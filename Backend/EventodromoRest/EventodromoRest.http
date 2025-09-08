@@ -1,0 +1,6 @@
+@EventodromoRest_HostAddress = http://localhost:5189
+
+GET {{EventodromoRest_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
