@@ -19,6 +19,7 @@ type PropsType = {
 export default async function Home({ searchParams }: PropsType) {
   const { selected_time_frame } = await searchParams;
   const extractTimeFrame = createTimeFrameExtractor(selected_time_frame);
+  console.log("balls")
   //const forecast = await fetch("127.0.0.1:8081/GetWeatherForecast");
   //console.log(forecast);
   return (

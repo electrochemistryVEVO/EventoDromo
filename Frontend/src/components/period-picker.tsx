@@ -27,6 +27,8 @@ export function PeriodPicker<TItem extends string>({
 
   const [isOpen, setIsOpen] = useState(false);
 
+  const safeUUID = function () { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); }); };
+
   return (
     <Dropdown isOpen={isOpen} setIsOpen={setIsOpen}>
       <DropdownTrigger
@@ -47,7 +49,7 @@ export function PeriodPicker<TItem extends string>({
       >
         <ul>
           {(items || ["monthly", "yearly"]).map((item) => (
-            <li key={crypto.randomUUID()}>
+            <li key={safeUUID()}>
               <button
                 className="flex w-full select-none items-center truncate rounded-md px-3 py-2 text-sm capitalize outline-none hover:bg-[#F9FAFB] hover:text-dark-3 dark:hover:bg-[#FFFFFF1A] dark:hover:text-white"
                 onClick={() => {
