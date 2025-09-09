@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+    db:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        restart: unless-stopped
+        ports: 
+            - "127.0.0.1:3306:3306"
+        #command: --default-authentication-plugin=mysql_native_password
+        environment:
+            ACCEPT_EULA: "Y" 
+            MSSQL_SA_PASSWORD: T8m!r2xZ
+        volumes:
+            - ./sql:/docker-entrypoint-initdb.d:ro
+            #- ./conf:/etc/mysql/conf.d:ro
+            #- persistent:/var/lib/mysql
+        networks:
+            - backend
+
+    www:
+        build: ./Frontend/
+        restart: unless-stopped
+        environment:
+            ASPNET_HOST: 127.0.0.1
+        ports: 
+            - "127.0.0.1:3000:8000"
+        volumes:
+            - ./Frontend:/app
+        depends_on:
+            - aspnet
+            - db
+        networks:
+            - frontend
+            - backend
+      #  healthcheck:
+      #      test: ["CMD", "curl", "-f", "http://localhost"]
+     #       interval: 10s
+    #        timeout: 5s
+     #       retries: 5
+
+    aspnet:
+        build: ./Backend/EventodromoRest/
+        restart: unless-stopped
+        environment:
+            PMA_HOST: localhost
+            PMA_USER: admin
+            PMA_PASSWORD: 12345
+        ports:
+            - "127.0.0.1:8080:8081"
+        depends_on:
+            - db
+        networks:
+            - frontend
+            - backend
+       # healthcheck:
+    #        test: ["CMD", "curl", "-f", "http://localhost"]
+       #     interval: 10s
+   #         timeout: 5s
+     #       retries: 5
+
+networks:
+    frontend:
+        driver: bridge
+    backend:
+        driver: bridge
+        internal: true
+
+volumes:
+    persistent:
