@@ -23,20 +23,19 @@ services:
         environment:
             ASPNET_HOST: 127.0.0.1
         ports: 
-            - "127.0.0.1:3000:8000"
-        volumes:
-            - ./Frontend:/app
+            - "0.0.0.0:3000:8000"
+       # volumes:
+       #     - ./Frontend:/app
         depends_on:
             - aspnet
             - db
         networks:
             - frontend
-            - backend
-      #  healthcheck:
-      #      test: ["CMD", "curl", "-f", "http://localhost"]
-     #       interval: 10s
-    #        timeout: 5s
-     #       retries: 5
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
     aspnet:
         build: ./Backend/EventodromoRest/
@@ -46,12 +45,11 @@ services:
             PMA_USER: admin
             PMA_PASSWORD: 12345
         ports:
-            - "127.0.0.1:8080:8081"
+            - "0.0.0.0:8081:8080"
         depends_on:
             - db
         networks:
             - frontend
-            - backend
        # healthcheck:
     #        test: ["CMD", "curl", "-f", "http://localhost"]
        #     interval: 10s

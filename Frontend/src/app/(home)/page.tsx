@@ -19,15 +19,15 @@ type PropsType = {
 export default async function Home({ searchParams }: PropsType) {
   const { selected_time_frame } = await searchParams;
   const extractTimeFrame = createTimeFrameExtractor(selected_time_frame);
-  console.log("balls")
-  //const forecast = await fetch("127.0.0.1:8081/GetWeatherForecast");
+  let balls = '';
+  fetch("http://eventodromo-aspnet-1:8080/WeatherForecast").then(response => response.json()).then(data => {console.log(JSON.stringify(data));})
   //console.log(forecast);
+  console.log("balls")
   return (
     <>
       <Suspense fallback={<OverviewCardsSkeleton />}>
         <OverviewCardsGroup />
       </Suspense>
-
       <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-9 2xl:gap-7.5">
         <PaymentsOverview
           className="col-span-12 xl:col-span-7"
@@ -48,13 +48,11 @@ export default async function Home({ searchParams }: PropsType) {
         />
 
         <RegionLabels />
-
         <div className="col-span-12 grid xl:col-span-6">
           <Suspense fallback={<TopChannelsSkeleton />}>
             <TopChannels />
           </Suspense>
         </div>
-
         <Suspense fallback={null}>
           <ChatsCard />
         </Suspense>
