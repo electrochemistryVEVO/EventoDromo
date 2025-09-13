@@ -1,9 +1,9 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "X:\\Proyectos\\Eventodromo\\Backend\\EventodromoRest\\",
+  "WorkspaceRootPath": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|x:\\proyectos\\eventodromo\\backend\\eventodromorest\\controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -14,17 +14,21 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "WeatherForecastController.cs",
-              "DocumentMoniker": "X:\\Proyectos\\Eventodromo\\Backend\\EventodromoRest\\Controllers\\WeatherForecastController.cs",
+              "DocumentMoniker": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Controllers\\WeatherForecastController.cs",
               "RelativeDocumentMoniker": "Controllers\\WeatherForecastController.cs",
-              "ToolTip": "X:\\Proyectos\\Eventodromo\\Backend\\EventodromoRest\\Controllers\\WeatherForecastController.cs",
+              "ToolTip": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Controllers\\WeatherForecastController.cs",
               "RelativeToolTip": "Controllers\\WeatherForecastController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAABuAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-09-08T19:55:48.179Z",
               "EditorCaption": ""
