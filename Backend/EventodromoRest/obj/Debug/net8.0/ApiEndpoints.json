@@ -1,15 +1,21 @@
 [
   {
-    "ContainingType": "EventodromoRest.Controllers.WeatherForecastController",
-    "Method": "Get",
-    "RelativePath": "WeatherForecast",
-    "HttpMethod": "GET",
+    "ContainingType": "EventodromoRest.Controllers.UsuarioController",
+    "Method": "AutenticarUsuario",
+    "RelativePath": "api/Usuario/AutenticarUsuario",
+    "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
-    "Parameters": [],
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "EventodromoRest.Dominio.RequestUsuario",
+        "IsRequired": true
+      }
+    ],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[EventodromoRest.WeatherForecast, EventodromoRest, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "EventodromoRest.Dominio.ResponseAutenticacion",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -17,7 +23,6 @@
         ],
         "StatusCode": 200
       }
-    ],
-    "EndpointName": "GetWeatherForecast"
+    ]
   }
 ]
