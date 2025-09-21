@@ -3,12 +3,32 @@
   "WorkspaceRootPath": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\dao\\usuariodao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:dao\\usuariodao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\dominio\\usuario.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:dominio\\usuario.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\dbmanager\\dbmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:dbmanager\\dbmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\entidades\\usuario.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:entidades\\usuario.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\entidades\\utiles\\parameterlist.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:entidades\\utiles\\parameterlist.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\negocio\\usuariobo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:negocio\\usuariobo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\globales\\constantes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -19,24 +39,8 @@
       "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:globales\\globales.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\dbmanager\\dbmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:dbmanager\\dbmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\controllers\\usuariocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:controllers\\usuariocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\negocio\\usuariobo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:negocio\\usuariobo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|e:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\controllers\\basecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -54,7 +58,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Bookmark",
@@ -62,33 +66,33 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Constantes.cs",
-              "DocumentMoniker": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Globales\\Constantes.cs",
-              "RelativeDocumentMoniker": "Globales\\Constantes.cs",
-              "ToolTip": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Globales\\Constantes.cs",
-              "RelativeToolTip": "Globales\\Constantes.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAhAAAAAAAAAA==",
+              "DocumentIndex": 4,
+              "Title": "ParameterList.cs",
+              "DocumentMoniker": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Entidades\\Utiles\\ParameterList.cs",
+              "RelativeDocumentMoniker": "Entidades\\Utiles\\ParameterList.cs",
+              "ToolTip": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Entidades\\Utiles\\ParameterList.cs",
+              "RelativeToolTip": "Entidades\\Utiles\\ParameterList.cs",
+              "ViewState": "AgIAABUAAAAAAAAAAAAowCoAAAA1AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-14T23:00:04.142Z",
+              "WhenOpened": "2025-09-21T01:04:31.355Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 2,
               "Title": "DBManager.cs",
               "DocumentMoniker": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\DBManager\\DBManager.cs",
               "RelativeDocumentMoniker": "DBManager\\DBManager.cs",
               "ToolTip": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\DBManager\\DBManager.cs",
               "RelativeToolTip": "DBManager\\DBManager.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAABPAAAAAAAAAA==",
+              "ViewState": "AgIAAFEAAAAAAAAAAAAmwGkAAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-09-13T23:48:08.954Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 8,
               "Title": "Globales.cs",
               "DocumentMoniker": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Globales\\Globales.cs",
               "RelativeDocumentMoniker": "Globales\\Globales.cs",
@@ -96,64 +100,62 @@
               "RelativeToolTip": "Globales\\Globales.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-14T22:59:13.885Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-14T22:59:13.885Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 0,
               "Title": "Program.cs",
               "DocumentMoniker": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
               "ToolTip": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Program.cs",
               "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAoAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-09-13T23:56:22.578Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "UsuarioDAO.cs",
               "DocumentMoniker": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\DAO\\UsuarioDAO.cs",
               "RelativeDocumentMoniker": "DAO\\UsuarioDAO.cs",
-              "ToolTip": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\DAO\\UsuarioDAO.cs*",
-              "RelativeToolTip": "DAO\\UsuarioDAO.cs*",
-              "ViewState": "AgIAAAgAAAAAAAAAAAA0wCAAAABCAAAAAAAAAA==",
+              "ToolTip": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\DAO\\UsuarioDAO.cs",
+              "RelativeToolTip": "DAO\\UsuarioDAO.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAACUAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-09-15T00:06:22.169Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "Usuario.cs",
-              "DocumentMoniker": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Dominio\\Usuario.cs",
-              "RelativeDocumentMoniker": "Dominio\\Usuario.cs",
-              "ToolTip": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Dominio\\Usuario.cs",
-              "RelativeToolTip": "Dominio\\Usuario.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAsAAAASAAAAAAAAAA==",
+              "DocumentMoniker": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Entidades\\Usuario.cs",
+              "RelativeDocumentMoniker": "Entidades\\Usuario.cs",
+              "ToolTip": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Entidades\\Usuario.cs",
+              "RelativeToolTip": "Entidades\\Usuario.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-09-13T23:29:15.17Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 5,
               "Title": "appsettings.json",
               "DocumentMoniker": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\appsettings.json",
               "RelativeDocumentMoniker": "appsettings.json",
               "ToolTip": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\appsettings.json",
               "RelativeToolTip": "appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAABrAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-09-14T00:01:37.201Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-14T00:01:37.201Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 6,
               "Title": "UsuarioBO.cs",
               "DocumentMoniker": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Negocio\\UsuarioBO.cs",
               "RelativeDocumentMoniker": "Negocio\\UsuarioBO.cs",
@@ -161,25 +163,35 @@
               "RelativeToolTip": "Negocio\\UsuarioBO.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-14T23:46:04.089Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-14T23:46:04.089Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 7,
+              "Title": "Constantes.cs",
+              "DocumentMoniker": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Globales\\Constantes.cs",
+              "RelativeDocumentMoniker": "Globales\\Constantes.cs",
+              "ToolTip": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Globales\\Constantes.cs",
+              "RelativeToolTip": "Globales\\Constantes.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-14T23:00:04.142Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
               "Title": "UsuarioController.cs",
               "DocumentMoniker": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Controllers\\UsuarioController.cs",
               "RelativeDocumentMoniker": "Controllers\\UsuarioController.cs",
               "ToolTip": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Controllers\\UsuarioController.cs",
               "RelativeToolTip": "Controllers\\UsuarioController.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAAA4AAAA3AAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAIBJwA4AAAA3AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-13T23:36:43.493Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-13T23:36:43.493Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "BaseController.cs",
               "DocumentMoniker": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Controllers\\BaseController.cs",
               "RelativeDocumentMoniker": "Controllers\\BaseController.cs",
@@ -187,12 +199,11 @@
               "RelativeToolTip": "Controllers\\BaseController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAwAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-14T23:40:52.428Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-14T23:40:52.428Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "EventodromoRest.http",
               "DocumentMoniker": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\EventodromoRest.http",
               "RelativeDocumentMoniker": "EventodromoRest.http",
@@ -200,8 +211,7 @@
               "RelativeToolTip": "EventodromoRest.http",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
-              "WhenOpened": "2025-09-13T23:36:07.223Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-13T23:36:07.223Z"
             }
           ]
         }
