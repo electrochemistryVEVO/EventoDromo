@@ -1,0 +1,137 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.login-hipervinculos-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;      /* <-- Cambia de flex-start a center */
+  
+  margin-top: 2.5rem;
+  padding: 0;
+  min-height: unset;
+}
+
+.alinear-derecha {
+  display: block;       /* Hace que el <a> ocupe toda la fila */
+  text-align: right;    /* El texto se va a la derecha */
+  margin-top: 5px;      /* Un poco de espacio con el input */
+  font-size: 0.9rem;    /* Opcional: que se vea un poco más discreto */
+  color: #007bff;       /* Opcional: estilo de link */
+  text-decoration: none;/* Opcional: sin subrayado */
+}
+
+.alinear-derecha:hover {
+  text-decoration: underline; /* Al pasar el mouse que se subraye */
+}
+.login-hipervinculos-container button {
+  background-color: #40b6b6;   /* Azul */
+  color: #fff;                 /* Texto blanco */
+  border: none;
+  border-radius: 5px;
+  padding: 0.7rem 2rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 0.5rem;
+}
+
+.login-hipervinculos-container button:hover {
+  background-color: #125ea2;   /* Azul más oscuro al pasar el mouse */
+}
+
+.login-form-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Alinea todo a la izquierda */
+  justify-content: flex-start;  /* Izquierda */
+  padding-left: 2vw;           /* Espacio desde la izquierda */
+  padding-top: 13vh;             /* Espacio desde arriba */
+}
+
+.login-logo {
+  margin-bottom: 1.2rem;   /* Espacio debajo de la imagen */
+  margin-left: 0.2rem;     /* Opcional: pequeño ajuste para alinear con el form */
+  width: 200px;             /* Ajusta el tamaño según tu imagen */
+  height: 200px;
+  object-fit: contain;
+}
+
+.imagen-mitad {
+  position: absolute; 
+  right: 0;
+  top: 0;
+  width: 50%;      /* mitad derecha */
+  height: 100vh;   /* toda la altura */
+  overflow: hidden; /* recorta la imagen si se sale */
+  z-index: 0;       /* se queda detrás del formulario */
+}
+
+.imagen-mitad img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;  /* aquí sí funciona */
+  display: block;
+}
+
+.login-text {
+  background: #fff;
+  padding: 2rem 2.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  text-align: left;
+}
+
+.login-text label {
+  display: block;
+  margin-bottom: 0.4rem; /* Espacio entre el label y el input */
+}
+
+.login-text input[type="email"],
+.login-text input[type="password"] {
+  width: 100%;           /* Ocupa todo el ancho disponible */
+  padding: 0.6rem 5rem;  /* Hace la casilla más alta y cómoda */
+  font-size: 1.1rem;     /* Texto más grande */
+  border: 1px solid #bbb;
+  border-radius: 5px;
+  box-sizing: border-box;
+  background: #cbcbcb;      /* Fondo gris oscuro */
+  color: #f5f5f5;        /* Texto claro */
+}
