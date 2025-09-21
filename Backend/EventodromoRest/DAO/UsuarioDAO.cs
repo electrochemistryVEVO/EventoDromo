@@ -7,7 +7,7 @@ using static EventodromoRest.Globales.Constantes;
 
 namespace EventodromoRest.DAO
 {
-    public class UsuarioDAO(DBManager.DBManager DB)
+    public class UsuarioDAO(Globales.Globales globales, DBManager.DBManager DB)
     {
         public bool AutenticarUsuario(RequestUsuario request)
         {
