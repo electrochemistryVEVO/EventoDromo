@@ -1,0 +1,8 @@
+﻿2025-09-23 00:24:29.589 | Request: {"Correo":"juan.perez@mail.com","Contrasena":"HashPass123"}
+Response: {"Codigo":-1,"Mensaje":"Error al autenticar usuario: Incorrect syntax near the keyword \u0027FROM\u0027.","NombreUsuario":null,"UsuarioValido":false}
+Mensaje: [Excepción principal] System.Exception
+[Mensaje] Error al autenticar usuario: Incorrect syntax near the keyword 'FROM'.
+[StackTrace]
+   at EventodromoRest.Negocio.UsuarioBO.AutenticarUsuario(RequestUsuario usuario) in E:\Local\Universidad\2025-2\INGESOFT\Proyecto\EventoDromo\Backend\EventodromoRest\Negocio\UsuarioBO.cs:line 23
+   at EventodromoRest.Controllers.UsuarioController.AutenticarUsuario(RequestUsuario request) in E:\Local\Universidad\2025-2\INGESOFT\Proyecto\EventoDromo\Backend\EventodromoRest\Controllers\UsuarioController.cs:line 28
+--------------------------------------------------------------------------------

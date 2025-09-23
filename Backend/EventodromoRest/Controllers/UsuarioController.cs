@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using System.Text.Json;
 
 namespace EventodromoRest.Controllers
 {
@@ -34,6 +35,7 @@ namespace EventodromoRest.Controllers
                     Mensaje = e.Message,
                     UsuarioValido = false
                 };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
                 return response;
             }
         }
