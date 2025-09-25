@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using EventodromoRest.Entidades.Utiles;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EventodromoRest.Controllers
 {
@@ -12,21 +13,21 @@ namespace EventodromoRest.Controllers
             }
         }
 
-        //protected void AgregarEntradaBitacora(Exception e, string esquema, string request, string response)
-        //{
-        //    try
-        //    {
-        //        string nombreCarpeta = string.Concat(Path.GetDirectoryName(typeof(BaseController).Assembly.Location), @$"\Bitacoras\{esquema}\", DateTime.Now.ToString("yyyyMM"));
-        //        string archivoBitacora = string.Concat(nombreCarpeta, @"\Bitacora-", DateTime.Now.ToString("yyyyMMdd"), ".txt");
-        //        Bitacora bitacora = new(ref archivoBitacora);
-        //        string error = $"Request: {request}{Environment.NewLine}Response: {response}{Environment.NewLine}Mensaje: {BitacoraDepuracion.GestionExcepcion(e)}";
-        //        bitacora.AgregarEntradaBitacora(error, true);
-        //    }
-        //    catch { }
-        //    finally
-        //    {
-        //        BitacoraDepuracion.AgregarEntradaBitacoraYVisor(e);
-        //    }
-        //}
+        protected void AgregarEntradaBitacora(Exception e, string request, string response)
+        {
+            try
+            {
+                string nombreCarpeta = string.Concat(Path.GetDirectoryName(typeof(BaseController).Assembly.Location), @$"\Bitacoras\", DateTime.Now.ToString("yyyyMM"));
+                string archivoBitacora = string.Concat(nombreCarpeta, @"\Bitacora-", DateTime.Now.ToString("yyyyMMdd"), ".txt");
+                Bitacora bitacora = new(ref archivoBitacora);
+                string error = $"Request: {request}{Environment.NewLine}Response: {response}{Environment.NewLine}Mensaje: {BitacoraDepuracion.GestionExcepcion(e)}";
+                bitacora.AgregarEntradaBitacora(error, true);
+            }
+            catch { }
+            finally
+            {
+                BitacoraDepuracion.AgregarEntradaBitacoraYVisor(e);
+            }
+        }
     }
 }
