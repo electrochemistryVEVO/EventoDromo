@@ -1,26 +1,34 @@
+//'use client'
 import './App.css';
 import logo from './assets/logo.png';
 import Image from "next/image";
+import { redirect } from 'next/navigation';
 import imagenMitad from './assets/imagenMitad.png';
+import Form from "next/form";
 function App() {
-  const onSubmit = (event) => {
+  async function onSubmit(event){
+    'use server'
     let loginInfo = {};
-    loginInfo.user = document.getElementById("email").innerText;
-    loginInfo.password = document.getElementById("password").innerText;
-    fetch("http://eventodromo-aspnet-1:8000/api/Usuario/AutenticarUsuario", {
+    let canRedirect = false;
+    console.log("peep");
+    loginInfo.Correo = event.get("email");
+    loginInfo.Contrasena = event.get("password");
+    return await fetch("http://eventodromo-aspnet-1:8080/api/Usuario/AutenticarUsuario", {
       method: "POST",
       headers: {
-        "Content-Type": "Application/JSON",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(loginInfo),
     })
-      .then((res)=>res.json())
+      .then((res)=>{console.log(res.statusText);return res.json();})
       .then((response)=>{
         console.log(JSON.stringify(response));
+        canRedirect = response.usuarioValido;
       })
       .catch((error) => {
         console.log(error);
-      });
+      })
+      .finally(()=>{if(canRedirect)redirect("/");});
   }
   return (
     <div className="App">
@@ -38,7 +46,7 @@ function App() {
           alt="Logo"
           className="login-logo"
         />
-        <form className="login-text">
+        <Form className="login-text" action={onSubmit}>
           <div>
             <label htmlFor="email">Email</label>
             <input type="email" id="email" name="email" required />
@@ -54,7 +62,7 @@ function App() {
             <p>¿Aún no tienes cuenta?</p>
             <a href="#create-account">Registrate aquí</a>
           </div>
-        </form>
+        </Form>
       </div>
     </div>
   );

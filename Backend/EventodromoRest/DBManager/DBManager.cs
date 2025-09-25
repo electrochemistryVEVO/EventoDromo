@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using System.Diagnostics;
 
 namespace EventodromoRest.DBManager
 {
