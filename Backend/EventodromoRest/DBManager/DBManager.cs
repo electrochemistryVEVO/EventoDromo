@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-﻿using Microsoft.Data.SqlClient;
-using System.Diagnostics;
-=======
 ﻿using EventodromoRest.Entidades.Utiles;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;

@@ -14,17 +14,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestUsuario"
+                "$ref": "#/components/schemas/RequestAutenticarUsuario"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestUsuario"
+                "$ref": "#/components/schemas/RequestAutenticarUsuario"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestUsuario"
+                "$ref": "#/components/schemas/RequestAutenticarUsuario"
               }
             }
           }
@@ -35,17 +35,65 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResponseAutenticacion"
+                  "$ref": "#/components/schemas/ResponseAutenticarUsuario"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResponseAutenticacion"
+                  "$ref": "#/components/schemas/ResponseAutenticarUsuario"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResponseAutenticacion"
+                  "$ref": "#/components/schemas/ResponseAutenticarUsuario"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Usuario/InsertarUsuario": {
+      "post": {
+        "tags": [
+          "Usuario"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestInsertarUsuario"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestInsertarUsuario"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestInsertarUsuario"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseBool"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseBool"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseBool"
                 }
               }
             }
@@ -56,7 +104,7 @@
   },
   "components": {
     "schemas": {
-      "RequestUsuario": {
+      "RequestAutenticarUsuario": {
         "type": "object",
         "properties": {
           "correo": {
@@ -70,7 +118,45 @@
         },
         "additionalProperties": false
       },
-      "ResponseAutenticacion": {
+      "RequestInsertarUsuario": {
+        "required": [
+          "apellido",
+          "contrasena",
+          "correo",
+          "dni",
+          "nombre",
+          "telefono"
+        ],
+        "type": "object",
+        "properties": {
+          "correo": {
+            "type": "string",
+            "nullable": true
+          },
+          "contrasena": {
+            "type": "string",
+            "nullable": true
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "apellido": {
+            "type": "string",
+            "nullable": true
+          },
+          "dni": {
+            "type": "string",
+            "nullable": true
+          },
+          "telefono": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ResponseAutenticarUsuario": {
         "type": "object",
         "properties": {
           "codigo": {
@@ -86,6 +172,23 @@
             "nullable": true
           },
           "usuarioValido": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ResponseBool": {
+        "type": "object",
+        "properties": {
+          "codigo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "resultado": {
             "type": "boolean"
           }
         },

@@ -20,7 +20,7 @@ namespace EventodromoRest.Controllers
 
         [HttpPost]
         [Route("/api/[controller]/[action]")]
-        public ResponseAutenticacion AutenticarUsuario([FromBody] RequestUsuario request)
+        public ResponseAutenticarUsuario AutenticarUsuario([FromBody] RequestAutenticarUsuario request)
         {
             try
             {
@@ -29,11 +29,33 @@ namespace EventodromoRest.Controllers
             }
             catch (Exception e)
             {
-                var response = new ResponseAutenticacion
+                var response = new ResponseAutenticarUsuario
                 {
                     Codigo = -1,
                     Mensaje = e.Message,
                     UsuarioValido = false
+                };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public ResponseBool InsertarUsuario([FromBody] RequestInsertarUsuario request)
+        {
+            try
+            {
+                ValidarBody(request);
+                return new UsuarioBO(globales, BD).InsertarUsuario(request);
+            }
+            catch (Exception e)
+            {
+                var response = new ResponseBool
+                {
+                    Codigo = -1,
+                    Mensaje = e.Message,
+                    Resultado = false
                 };
                 AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
                 return response;

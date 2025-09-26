@@ -8,10 +8,10 @@ namespace EventodromoRest.Globales
         {
             public enum Rol
             {
-                [Description("Adminsitrador")]
-                Administrador = 1,
-                [Description("Usuario")]
-                Usuario = 2
+                [Description("Cliente")]
+                Cliente = 'C',
+                [Description("Administrador")]
+                Administrador = 'A'
             }
         }
     }

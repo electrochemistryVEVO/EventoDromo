@@ -9,13 +9,39 @@
     "Parameters": [
       {
         "Name": "request",
-        "Type": "EventodromoRest.Dominio.RequestUsuario",
+        "Type": "EventodromoRest.Dominio.RequestAutenticarUsuario",
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "EventodromoRest.Dominio.ResponseAutenticacion",
+        "Type": "EventodromoRest.Dominio.ResponseAutenticarUsuario",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "EventodromoRest.Controllers.UsuarioController",
+    "Method": "InsertarUsuario",
+    "RelativePath": "api/Usuario/InsertarUsuario",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "EventodromoRest.Dominio.RequestInsertarUsuario",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "EventodromoRest.Dominio.ResponseBool",
         "MediaTypes": [
           "text/plain",
           "application/json",
