@@ -28,7 +28,7 @@ function App() {
       .then((res)=>{console.log(res.statusText);return res.json();})
       .then((response)=>{
         console.log(JSON.stringify(response));
-        canRedirect = response.usuarioValido;
+        canRedirect = response.resultado;
       })
       .catch((error) => {
         console.log(error);
