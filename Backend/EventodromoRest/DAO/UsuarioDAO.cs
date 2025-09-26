@@ -44,7 +44,7 @@ namespace EventodromoRest.DAO
                 var parametros = new ParameterList();
                 parametros.Add("@CORREO", request.Correo);
                 parametros.Add("@CONTRASENA", request.Contrasena);
-                parametros.Add("@ROL", ConstantesUsuario.Rol.Usuario);
+                parametros.Add("@ROL", ConstantesUsuario.Rol.Cliente);
                 parametros.Add("@NOMBRE", request.Nombre);
                 parametros.Add("@APELLIDO", request.Apellido);
                 parametros.Add("@DNI", request.DNI);

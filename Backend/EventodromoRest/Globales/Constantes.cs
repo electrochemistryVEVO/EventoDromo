@@ -9,9 +9,9 @@ namespace EventodromoRest.Globales
             public enum Rol
             {
                 [Description("Cliente")]
-                Administrador = 'C',
-                [Description("Usuario")]
-                Usuario = 'U'
+                Cliente = 'C',
+                [Description("Administrador")]
+                Administrador = 'A'
             }
         }
     }
