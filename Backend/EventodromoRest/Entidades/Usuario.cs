@@ -14,17 +14,34 @@
         public string? UsuarioUltModif { get; set; }
     }
 
-    public class RequestUsuario
+    public class RequestAutenticarUsuario
     {
         public string? Correo { get; set; }
         public string? Contrasena { get; set; }
     }
 
-    public class ResponseAutenticacion
+    public class ResponseAutenticarUsuario
     {
         public int Codigo { get; set; }
         public string? Mensaje { get; set; }
         public string? NombreUsuario { get; set; }
         public bool UsuarioValido { get; set; }
+    }
+
+    public class RequestInsertarUsuario
+    {
+        public required string Correo { get; set; }
+        public required string Contrasena { get; set; }
+        public required string Nombre { get; set; }
+        public required string Apellido { get; set; }
+        public required string DNI { get; set; }
+        public required string Telefono { get; set; }
+    }
+
+    public class ResponseBool
+    {
+        public int Codigo { get; set; }
+        public string? Mensaje { get; set; }
+        public bool Resultado { get; set; }
     }
 }
