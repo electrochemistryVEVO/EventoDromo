@@ -1,10 +1,8 @@
-import 'bootstrap/dist/css/bootstrap.css';
+'use client'
+//import 'bootstrap/dist/css/bootstrap.css';
 import { useEffect } from "react";
 
 function App() {
-  useEffect(() => {
-    require('bootstrap/dist/js/bootstrap.bundle.min.js');
-  }, []);
   return (
     <html lang="en">
     <head>

@@ -1,9 +1,9 @@
 //'use client'
 import './App.css';
-import logo from '../assets/logo.png';
+import logo from '@/assets/logos/eventodromo.svg';
 import Image from "next/image";
 import { redirect } from 'next/navigation';
-import imagenMitad from '../assets/imagenMitad.png';
+import imagenMitad from '@/assets/pictures/imagenMitad.png';
 import Form from "next/form";
 import { onSubmit } from "./controller";
 function App() {
