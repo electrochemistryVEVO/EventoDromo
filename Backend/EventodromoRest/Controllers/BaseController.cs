@@ -1,4 +1,4 @@
-﻿using EventodromoRest.Entidades.Utiles;
+﻿using EventodromoRest.Modelos.Utiles;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventodromoRest.Controllers

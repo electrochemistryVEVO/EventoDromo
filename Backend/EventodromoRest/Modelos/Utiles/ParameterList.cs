@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Data;
 
-namespace EventodromoRest.Entidades.Utiles
+namespace EventodromoRest.Modelos.Utiles
 {
     public class ParameterList
     {

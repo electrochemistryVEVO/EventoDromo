@@ -1,14 +1,10 @@
-﻿using Azure.Core;
-using EventodromoRest.Dominio;
-using EventodromoRest.Entidades.Utiles;
-using EventodromoRest.Globales;
-using System.Diagnostics;
-using Microsoft.Data.SqlClient;
+﻿using EventodromoRest.Modelos;
+using EventodromoRest.Modelos.Utiles;
 using static EventodromoRest.Globales.Constantes;
 
-namespace EventodromoRest.DAO
+namespace EventodromoRest.Mappers
 {
-    public class UsuarioDAO(Globales.Globales globales, DBManager.DBManager DB)
+    public class UsuarioMapper(Globales.Globales globales, DBManager.DBManager DB)
     {
         public bool AutenticarUsuario(RequestAutenticarUsuario request)
         {

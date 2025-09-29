@@ -1,11 +1,8 @@
-﻿using EventodromoRest.Entidades.Utiles;
-using System;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 
-namespace EventodromoRest.Entidades.Utiles
+namespace EventodromoRest.Modelos.Utiles
 {
     public static class BitacoraDepuracion
     {

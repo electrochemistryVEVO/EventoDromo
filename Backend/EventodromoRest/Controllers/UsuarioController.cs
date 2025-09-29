@@ -1,12 +1,6 @@
-﻿using EventodromoRest.DBManager;
-using EventodromoRest.Dominio;
-using EventodromoRest.Globales;
+﻿using EventodromoRest.Modelos;
 using EventodromoRest.Negocio;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
 using System.Text.Json;
 
 namespace EventodromoRest.Controllers
