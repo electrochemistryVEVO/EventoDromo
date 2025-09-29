@@ -1,35 +1,12 @@
 //'use client'
 import './App.css';
-import logo from './assets/logo.png';
+import logo from '@/assets/logos/eventodromo.svg';
 import Image from "next/image";
 import { redirect } from 'next/navigation';
-import imagenMitad from './assets/imagenMitad.png';
+import imagenMitad from '@/assets/pictures/imagenMitad.png';
 import Form from "next/form";
+import { onSubmit } from "./controller";
 function App() {
-  async function onSubmit(event){
-    'use server'
-    let loginInfo = {};
-    let canRedirect = false;
-    console.log("peep");
-    loginInfo.Correo = event.get("email");
-    loginInfo.Contrasena = event.get("password");
-    return await fetch("http://eventodromo-aspnet-1:8080/api/Usuario/AutenticarUsuario", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(loginInfo),
-    })
-      .then((res)=>{console.log(res.statusText);return res.json();})
-      .then((response)=>{
-        console.log(JSON.stringify(response));
-        canRedirect = response.usuarioValido;
-      })
-      .catch((error) => {
-        console.log(error);
-      })
-      .finally(()=>{if(canRedirect)redirect("/");});
-  }
   return (
     <div className="App">
       <div className='imagen-mitad'>
@@ -48,19 +25,34 @@ function App() {
         />
         <Form className="login-text" action={onSubmit}>
           <div>
+            <label htmlFor="nombres">Nombres</label>
+            <input type="text" id="nombres" name="nombres" required />
+          </div>
+          <div>
+            <label htmlFor="apellidos">Apellidos</label>
+            <input type="text" id="apellidos" name="apellidos" required />
+          </div>
+          <div>
+            <label htmlFor="dni">DNI</label>
+            <input type="text" id="dni" name="dni" required />
+          </div>
+          <div>
+            <label htmlFor="telefono">Teléfono</label>
+            <input type="tel" id="telefono" name="telefono" required />
+          </div>
+          <div>
             <label htmlFor="email">Email</label>
             <input type="email" id="email" name="email" required />
           </div>
           <div>
             <label htmlFor="password">Contraseña</label>
             <input type="password" id="password" name="password" required />
-            
           </div>
           <a className='alinear-derecha' href="#create-account">¿Olvidaste tu contraseña?</a>
           <div className="login-hipervinculos-container">
-            <button type="submit">Ingresar</button>
-            <p>¿Aún no tienes cuenta?</p>
-            <a href="#create-account">Registrate aquí</a>
+            <button type="submit">Registrar</button>
+            <p>¿Ya tienes cuenta?</p>
+            <a href="#create-account">Ingresa aquí</a>
           </div>
         </Form>
       </div>
