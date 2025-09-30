@@ -1,9 +1,7 @@
-﻿using EventodromoRest.Entidades.Utiles;
+﻿using EventodromoRest.Modelos.Utiles;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Microsoft.Identity.Client;
 using System.Data;
 
 namespace EventodromoRest.DBManager

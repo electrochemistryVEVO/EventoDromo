@@ -1,5 +1,5 @@
-﻿using EventodromoRest.DAO;
-using EventodromoRest.Dominio;
+﻿using EventodromoRest.Modelos;
+using EventodromoRest.Mappers;
 
 namespace EventodromoRest.Negocio
 {
@@ -7,8 +7,8 @@ namespace EventodromoRest.Negocio
     {
         public ResponseAutenticarUsuario AutenticarUsuario(RequestAutenticarUsuario usuario)
         {
-            var usuarioDAO = new UsuarioDAO(globales, DB);
-            bool esValido = usuarioDAO.AutenticarUsuario(usuario);
+            var usuarioMapper = new UsuarioMapper(globales, DB);
+            bool esValido = usuarioMapper.AutenticarUsuario(usuario);
             return new ResponseAutenticarUsuario
             {
                 Codigo = 0,
@@ -19,8 +19,8 @@ namespace EventodromoRest.Negocio
 
         public ResponseBool InsertarUsuario(RequestInsertarUsuario request)
         {
-            var usuarioDAO = new UsuarioDAO(globales, DB);
-            bool resultado = usuarioDAO.InsertarUsuario(request);
+            var usuarioMapper = new UsuarioMapper(globales, DB);
+            bool resultado = usuarioMapper.InsertarUsuario(request);
             return new ResponseBool
             {
                 Codigo = 0,

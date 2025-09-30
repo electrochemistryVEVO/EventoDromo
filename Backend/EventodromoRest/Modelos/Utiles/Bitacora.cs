@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace EventodromoRest.Entidades.Utiles
+namespace EventodromoRest.Modelos.Utiles
 {
     public class Bitacora
     {

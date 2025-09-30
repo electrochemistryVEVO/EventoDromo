@@ -3,10 +3,6 @@
   "WorkspaceRootPath": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\dao\\usuariodao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:dao\\usuariodao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\controllers\\usuariocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:controllers\\usuariocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -15,16 +11,36 @@
       "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:negocio\\usuariobo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\entidades\\usuario.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:entidades\\usuario.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\modelos\\utiles\\parameterlist.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:modelos\\utiles\\parameterlist.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\modelos\\utiles\\bitacoradeepuracion.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:modelos\\utiles\\bitacoradeepuracion.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\modelos\\utiles\\bitacora.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:modelos\\utiles\\bitacora.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\mappers\\usuariomapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:mappers\\usuariomapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\dbmanager\\dbmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:dbmanager\\dbmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\modelos\\usuario.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:modelos\\usuario.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\controllers\\basecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:controllers\\basecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\globales\\constantes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:globales\\constantes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -33,18 +49,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\entidades\\utiles\\parameterlist.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:entidades\\utiles\\parameterlist.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\entidades\\utiles\\bitacoradeepuracion.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:entidades\\utiles\\bitacoradeepuracion.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\entidades\\utiles\\bitacora.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|solutionrelative:entidades\\utiles\\bitacora.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{AB876301-22DD-4120-999D-EBA20A8686EB}|EventodromoRest.csproj|c:\\local\\universidad\\2025-2\\ingesoft\\proyecto\\eventodromo\\backend\\eventodromorest\\eventodromorest.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}",
@@ -58,7 +62,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 6,
           "Children": [
             {
               "$type": "Bookmark",
@@ -66,84 +70,96 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 9,
+              "Title": "Constantes.cs",
+              "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Globales\\Constantes.cs",
+              "RelativeDocumentMoniker": "Globales\\Constantes.cs",
+              "ToolTip": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Globales\\Constantes.cs",
+              "RelativeToolTip": "Globales\\Constantes.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-26T01:12:18.775Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "Usuario.cs",
-              "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Entidades\\Usuario.cs",
-              "RelativeDocumentMoniker": "Entidades\\Usuario.cs",
-              "ToolTip": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Entidades\\Usuario.cs",
-              "RelativeToolTip": "Entidades\\Usuario.cs",
-              "ViewState": "AgIAAB4AAAAAAAAAAAA2wCoAAAASAAAAAAAAAA==",
+              "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Modelos\\Usuario.cs",
+              "RelativeDocumentMoniker": "Modelos\\Usuario.cs",
+              "ToolTip": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Modelos\\Usuario.cs",
+              "RelativeToolTip": "Modelos\\Usuario.cs",
+              "ViewState": "AgIAABoAAAAAAAAAAAAAAAAAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-09-25T22:11:42.724Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "UsuarioBO.cs",
               "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Negocio\\UsuarioBO.cs",
               "RelativeDocumentMoniker": "Negocio\\UsuarioBO.cs",
               "ToolTip": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Negocio\\UsuarioBO.cs",
               "RelativeToolTip": "Negocio\\UsuarioBO.cs",
-              "ViewState": "AgIAAAQAAAAAAAAAAAAswBsAAAAlAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-09-24T20:43:56.922Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "UsuarioDAO.cs",
-              "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\DAO\\UsuarioDAO.cs",
-              "RelativeDocumentMoniker": "DAO\\UsuarioDAO.cs",
-              "ToolTip": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\DAO\\UsuarioDAO.cs",
-              "RelativeToolTip": "DAO\\UsuarioDAO.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAoAAAAuAAAAAAAAAA==",
+              "DocumentIndex": 5,
+              "Title": "UsuarioMapper.cs",
+              "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Mappers\\UsuarioMapper.cs",
+              "RelativeDocumentMoniker": "Mappers\\UsuarioMapper.cs",
+              "ToolTip": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Mappers\\UsuarioMapper.cs",
+              "RelativeToolTip": "Mappers\\UsuarioMapper.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-09-23T05:19:54.643Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 8,
               "Title": "BaseController.cs",
               "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Controllers\\BaseController.cs",
               "RelativeDocumentMoniker": "Controllers\\BaseController.cs",
               "ToolTip": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Controllers\\BaseController.cs",
               "RelativeToolTip": "Controllers\\BaseController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAMAAAAAAAAAA==",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAQwBIAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-09-23T05:02:54.159Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "UsuarioController.cs",
               "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Controllers\\UsuarioController.cs",
               "RelativeDocumentMoniker": "Controllers\\UsuarioController.cs",
               "ToolTip": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Controllers\\UsuarioController.cs",
               "RelativeToolTip": "Controllers\\UsuarioController.cs",
-              "ViewState": "AgIAACIAAAAAAAAAAAAAwD4AAAAJAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-09-23T05:03:30.249Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "DBManager.cs",
               "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\DBManager\\DBManager.cs",
               "RelativeDocumentMoniker": "DBManager\\DBManager.cs",
               "ToolTip": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\DBManager\\DBManager.cs",
               "RelativeToolTip": "DBManager\\DBManager.cs",
-              "ViewState": "AgIAABIAAAAAAAAAAAAowCYAAAAdAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB4AAAAyAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-09-21T04:00:32.132Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 10,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
@@ -155,7 +171,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 11,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\appsettings.json",
               "RelativeDocumentMoniker": "appsettings.json",
@@ -167,43 +183,46 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 4,
               "Title": "Bitacora.cs",
-              "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Entidades\\Utiles\\Bitacora.cs",
-              "RelativeDocumentMoniker": "Entidades\\Utiles\\Bitacora.cs",
-              "ToolTip": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Entidades\\Utiles\\Bitacora.cs",
-              "RelativeToolTip": "Entidades\\Utiles\\Bitacora.cs",
-              "ViewState": "AgIAABMAAAAAAAAAAAAgwAQAAAAKAAAAAAAAAA==",
+              "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Modelos\\Utiles\\Bitacora.cs",
+              "RelativeDocumentMoniker": "Modelos\\Utiles\\Bitacora.cs",
+              "ToolTip": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Modelos\\Utiles\\Bitacora.cs",
+              "RelativeToolTip": "Modelos\\Utiles\\Bitacora.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-23T05:08:58.609Z"
+              "WhenOpened": "2025-09-23T05:08:58.609Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 3,
               "Title": "BitacoraDeepuracion.cs",
-              "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Entidades\\Utiles\\BitacoraDeepuracion.cs",
-              "RelativeDocumentMoniker": "Entidades\\Utiles\\BitacoraDeepuracion.cs",
-              "ToolTip": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Entidades\\Utiles\\BitacoraDeepuracion.cs",
-              "RelativeToolTip": "Entidades\\Utiles\\BitacoraDeepuracion.cs",
-              "ViewState": "AgIAABkAAAAAAAAAAAAgwAcAAAAqAAAAAAAAAA==",
+              "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Modelos\\Utiles\\BitacoraDeepuracion.cs",
+              "RelativeDocumentMoniker": "Modelos\\Utiles\\BitacoraDeepuracion.cs",
+              "ToolTip": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Modelos\\Utiles\\BitacoraDeepuracion.cs",
+              "RelativeToolTip": "Modelos\\Utiles\\BitacoraDeepuracion.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-23T05:09:36.828Z"
+              "WhenOpened": "2025-09-23T05:09:36.828Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 2,
               "Title": "ParameterList.cs",
-              "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Entidades\\Utiles\\ParameterList.cs",
-              "RelativeDocumentMoniker": "Entidades\\Utiles\\ParameterList.cs",
-              "ToolTip": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Entidades\\Utiles\\ParameterList.cs",
-              "RelativeToolTip": "Entidades\\Utiles\\ParameterList.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAwAAAAAAAAAA==",
+              "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Modelos\\Utiles\\ParameterList.cs",
+              "RelativeDocumentMoniker": "Modelos\\Utiles\\ParameterList.cs",
+              "ToolTip": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Modelos\\Utiles\\ParameterList.cs",
+              "RelativeToolTip": "Modelos\\Utiles\\ParameterList.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-23T05:09:05.75Z"
+              "WhenOpened": "2025-09-23T05:09:05.75Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "EventodromoRest.http",
               "DocumentMoniker": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\EventodromoRest.http",
               "RelativeDocumentMoniker": "EventodromoRest.http",

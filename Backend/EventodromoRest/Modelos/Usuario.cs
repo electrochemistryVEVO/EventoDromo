@@ -1,4 +1,4 @@
-﻿namespace EventodromoRest.Dominio
+﻿namespace EventodromoRest.Modelos
 {
     public class Usuario
     {
