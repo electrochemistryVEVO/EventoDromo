@@ -24,7 +24,7 @@ services:
         environment:
             ASPNET_HOST: 127.0.0.1
         ports: 
-            - "0.0.0.0:3000:8000"
+            - "0.0.0.0:3000:3000"
        # volumes:
        #     - ./Frontend:/app
         depends_on:
