@@ -4257,11 +4257,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\EventodromoRest.csproj",
+      "projectUniqueName": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\EventodromoRest.csproj",
       "projectName": "EventodromoRest",
-      "projectPath": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\EventodromoRest.csproj",
+      "projectPath": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\EventodromoRest.csproj",
       "packagesPath": "C:\\Users\\ricar\\.nuget\\packages\\",
-      "outputPath": "C:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\obj\\",
+      "outputPath": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -4347,7 +4347,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
