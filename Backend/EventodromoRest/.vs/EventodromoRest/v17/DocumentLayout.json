@@ -102,8 +102,7 @@
               "RelativeToolTip": "DBManager\\DBManager.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAEoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-21T04:00:32.132Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-21T04:00:32.132Z"
             },
             {
               "$type": "Document",
@@ -115,8 +114,7 @@
               "RelativeToolTip": "Program.cs",
               "ViewState": "AgIAAAMAAAAAAAAAAAAAAA8AAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-13T23:56:22.578Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-13T23:56:22.578Z"
             },
             {
               "$type": "Document",
@@ -128,8 +126,7 @@
               "RelativeToolTip": "Modelos\\Utiles\\ParameterList.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-23T05:09:05.75Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-23T05:09:05.75Z"
             },
             {
               "$type": "Document",
@@ -141,8 +138,7 @@
               "RelativeToolTip": "Modelos\\GenericResponse.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-30T03:50:19.342Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-30T03:50:19.342Z"
             },
             {
               "$type": "Document",
@@ -154,8 +150,7 @@
               "RelativeToolTip": "Negocio\\UsuarioBO.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-24T20:43:56.922Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-24T20:43:56.922Z"
             },
             {
               "$type": "Document",
@@ -167,8 +162,7 @@
               "RelativeToolTip": "Modelos\\Utiles\\BitacoraDeepuracion.cs",
               "ViewState": "AgIAACEAAAAAAAAAAAAhwC0AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-23T05:09:36.828Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-23T05:09:36.828Z"
             },
             {
               "$type": "Document",
@@ -180,8 +174,7 @@
               "RelativeToolTip": "Modelos\\Cliente.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAASAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-30T03:46:57.878Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-30T03:46:57.878Z"
             },
             {
               "$type": "Document",
@@ -193,8 +186,7 @@
               "RelativeToolTip": "Mappers\\ClienteMapper.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAABFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-30T04:05:41.609Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-30T04:05:41.609Z"
             },
             {
               "$type": "Document",
@@ -206,8 +198,7 @@
               "RelativeToolTip": "Negocio\\ClienteBO.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAXAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-30T03:59:40.059Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-30T03:59:40.059Z"
             },
             {
               "$type": "Document",
@@ -217,7 +208,7 @@
               "RelativeDocumentMoniker": "Controllers\\ClienteController.cs",
               "ToolTip": "E:\\Local\\Universidad\\2025-2\\INGESOFT\\Proyecto\\EventoDromo\\Backend\\EventodromoRest\\Controllers\\ClienteController.cs",
               "RelativeToolTip": "Controllers\\ClienteController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAC4AAAAlAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-09-30T03:54:58.667Z",
               "EditorCaption": ""
@@ -232,8 +223,7 @@
               "RelativeToolTip": "Controllers\\BaseController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAqwBIAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-23T05:02:54.159Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-23T05:02:54.159Z"
             },
             {
               "$type": "Document",
@@ -245,8 +235,7 @@
               "RelativeToolTip": "Mappers\\UsuarioMapper.cs",
               "ViewState": "AgIAAAMAAAAAAAAAAAAAABIAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-23T05:19:54.643Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-23T05:19:54.643Z"
             },
             {
               "$type": "Document",
@@ -258,8 +247,7 @@
               "RelativeToolTip": "Modelos\\Utiles\\Bitacora.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAA1AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-23T05:08:58.609Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-23T05:08:58.609Z"
             },
             {
               "$type": "Document",
@@ -283,8 +271,7 @@
               "RelativeToolTip": "Controllers\\UsuarioController.cs",
               "ViewState": "AgIAAAsAAAAAAAAAAAAQwBgAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-23T05:03:30.249Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-23T05:03:30.249Z"
             },
             {
               "$type": "Document",
@@ -296,8 +283,7 @@
               "RelativeToolTip": "Modelos\\Usuario.cs",
               "ViewState": "AgIAAAsAAAAAAAAAAAAuwBgAAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-25T22:11:42.724Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-25T22:11:42.724Z"
             },
             {
               "$type": "Document",
@@ -309,8 +295,7 @@
               "RelativeToolTip": "appsettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-09-14T00:01:37.201Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-14T00:01:37.201Z"
             },
             {
               "$type": "Document",
