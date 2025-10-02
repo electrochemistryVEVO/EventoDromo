@@ -1,4 +1,4 @@
-﻿namespace EventodromoRest.Modelos
+﻿namespace EventodromoRest.Modelos.Utiles
 {
     public class GenericResponse<T>
     {

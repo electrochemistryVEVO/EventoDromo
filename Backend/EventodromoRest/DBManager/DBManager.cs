@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
+using System.Data.Common;
 
 namespace EventodromoRest.DBManager
 {
@@ -10,8 +11,8 @@ namespace EventodromoRest.DBManager
     {
         public DBManager(DbContextOptions<DBManager> options) : base(options) { }
 
-        private SqlCommand? command;
-        private SqlDataReader? reader;
+        private DbCommand? command;
+        private DbDataReader? reader;
 
         public void OpenConnection()
         {
@@ -32,7 +33,7 @@ namespace EventodromoRest.DBManager
         {
             using var cmd = Database.GetDbConnection().CreateCommand();
             cmd.CommandText = sql;
-            var arr = parameters.ToArray();
+            var arr = parameters.ToArray(cmd);
             cmd.Parameters.AddRange(arr);
             OpenConnection();
             return cmd.ExecuteNonQuery();
@@ -47,7 +48,7 @@ namespace EventodromoRest.DBManager
         {
             using var cmd = Database.GetDbConnection().CreateCommand();
             cmd.CommandText = sql;
-            var arr = parameters.ToArray();
+            var arr = parameters.ToArray(cmd);
             cmd.Parameters.AddRange(arr);
             OpenConnection();
             return cmd.ExecuteScalar();
@@ -60,11 +61,11 @@ namespace EventodromoRest.DBManager
         {
             using var cmd = Database.GetDbConnection().CreateCommand();
             cmd.CommandText = sql;
-            var arr = parameters.ToArray();
+            var arr = parameters.ToArray(cmd);
             cmd.Parameters.AddRange(arr);
             OpenConnection();
 
-            using var reader = cmd.ExecuteReader();
+            using var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
             var result = new List<T>();
             while (reader.Read())
             {
@@ -82,7 +83,7 @@ namespace EventodromoRest.DBManager
             using var cmd = Database.GetDbConnection().CreateCommand();
             cmd.CommandText = procedureName;
             cmd.CommandType = CommandType.StoredProcedure;
-            var arr = parameters.ToArray();
+            var arr = parameters.ToArray(cmd);
             cmd.Parameters.AddRange(arr);
             OpenConnection();
             return cmd.ExecuteNonQuery();
@@ -148,11 +149,13 @@ namespace EventodromoRest.DBManager
         public void Select(string sql, ParameterList parameters)
         {
             CloseReader();
-            command = (SqlCommand)Database.GetDbConnection().CreateCommand();
+            command = Database.GetDbConnection().CreateCommand();
             command.CommandText = sql;
-            command.Transaction = (SqlTransaction?)Database.CurrentTransaction?.GetDbTransaction();
 
-            var arr = parameters.ToArray();
+            var dbTx = Database.CurrentTransaction?.GetDbTransaction();
+            if (dbTx is not null) command.Transaction = dbTx;
+
+            var arr = parameters.ToArray(command);
             if (arr.Length > 0) command.Parameters.AddRange(arr);
 
             OpenConnection();

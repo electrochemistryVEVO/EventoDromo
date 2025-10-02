@@ -15,59 +15,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "EventodromoRest.Modelos.GenericResponse\u00601[[EventodromoRest.Modelos.Cliente, EventodromoRest, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
-  },
-  {
-    "ContainingType": "EventodromoRest.Controllers.UsuarioController",
-    "Method": "AutenticarUsuario",
-    "RelativePath": "api/Usuario/AutenticarUsuario",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "request",
-        "Type": "EventodromoRest.Modelos.RequestAutenticarUsuario",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "EventodromoRest.Modelos.ResponseAutenticarUsuario",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
-  },
-  {
-    "ContainingType": "EventodromoRest.Controllers.UsuarioController",
-    "Method": "InsertarUsuario",
-    "RelativePath": "api/Usuario/InsertarUsuario",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "request",
-        "Type": "EventodromoRest.Modelos.RequestInsertarUsuario",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "EventodromoRest.Modelos.ResponseBool",
+        "Type": "EventodromoRest.Modelos.Utiles.GenericResponse\u00601[[EventodromoRest.Modelos.Cliente, EventodromoRest, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",

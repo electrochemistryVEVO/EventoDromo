@@ -15,7 +15,13 @@ builder.Services.AddSwaggerGen();
 // Inyectar servicios propios
 builder.Services.AddDbContext<DBManager>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    var cs = builder.Configuration.GetConnectionString("DefaultConnection");
+
+    // SQL
+    //options.UseSqlServer(cs);
+
+    //MySQL
+    options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"), ServerVersion.AutoDetect(cs));
 });
 
 Globales globales = new Globales();

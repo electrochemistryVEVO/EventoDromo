@@ -354,3 +354,11 @@ C:\Local\Universidad\2025-2\INGESOFT\Proyecto\EventoDromo\Backend\EventodromoRes
 C:\Local\Universidad\2025-2\INGESOFT\Proyecto\EventoDromo\Backend\EventodromoRest\obj\Debug\net8.0\EventodromoRest.pdb
 C:\Local\Universidad\2025-2\INGESOFT\Proyecto\EventoDromo\Backend\EventodromoRest\obj\Debug\net8.0\EventodromoRest.genruntimeconfig.cache
 C:\Local\Universidad\2025-2\INGESOFT\Proyecto\EventoDromo\Backend\EventodromoRest\obj\Debug\net8.0\ref\EventodromoRest.dll
+E:\Local\Universidad\2025-2\INGESOFT\Proyecto\EventoDromo\Backend\EventodromoRest\bin\Debug\net8.0\Publish\web.config
+E:\Local\Universidad\2025-2\INGESOFT\Proyecto\EventoDromo\Backend\EventodromoRest\bin\Debug\net8.0\Publish\appsettings.Development.json
+E:\Local\Universidad\2025-2\INGESOFT\Proyecto\EventoDromo\Backend\EventodromoRest\bin\Debug\net8.0\Publish\appsettings.json
+E:\Local\Universidad\2025-2\INGESOFT\Proyecto\EventoDromo\Backend\EventodromoRest\bin\Debug\net8.0\Publish\EventodromoRest.deps.json
+E:\Local\Universidad\2025-2\INGESOFT\Proyecto\EventoDromo\Backend\EventodromoRest\bin\Debug\net8.0\Publish\EventodromoRest.runtimeconfig.json
+E:\Local\Universidad\2025-2\INGESOFT\Proyecto\EventoDromo\Backend\EventodromoRest\bin\Debug\net8.0\Publish\EventodromoRest.staticwebassets.endpoints.json
+E:\Local\Universidad\2025-2\INGESOFT\Proyecto\EventoDromo\Backend\EventodromoRest\bin\Debug\net8.0\MySqlConnector.dll
+E:\Local\Universidad\2025-2\INGESOFT\Proyecto\EventoDromo\Backend\EventodromoRest\bin\Debug\net8.0\Pomelo.EntityFrameworkCore.MySql.dll

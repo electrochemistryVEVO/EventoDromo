@@ -10,9 +10,11 @@ namespace EventodromoRest.Mappers
             List<Cliente> listaClientes = new List<Cliente>();
             lock (DB)
             {
-                string query = "SELECT ID, NOMBRE, CORREO, CONTRASENA FROM dbo.Cliente WHERE CORREO = @CORREO";
+                string query = "SELECT ID, NOMBRES, APELLIDOS, EMAIL FROM cliente WHERE EMAIL = @EMAIL AND PASSWORDHASH = @PASSWORDHASH ";
+
                 var parametros = new ParameterList();
-                parametros.Add("@CORREO", request.Correo);
+                parametros.Add("@EMAIL", request.Correo);
+                parametros.Add("@PASSWORDHASH", request.Password);
 
                 DB.Select(query, parametros);
                 while (DB.Read())
@@ -20,9 +22,9 @@ namespace EventodromoRest.Mappers
                     Cliente cliente = new()
                     {
                         ID = DB.GetInt("ID"),
-                        Correo = DB.GetString("CORREO"),
-                        Contrasena = DB.GetString("CONTRASENA"),
-                        Nombre = DB.GetString("NOMBRE")
+                        Nombres = DB.GetString("NOMBRES"),
+                        Apellidos = DB.GetString("APELLIDOS"),
+                        Email = DB.GetString("EMAIL")
                     };
                     listaClientes.Add(cliente);
                 }

@@ -52,102 +52,6 @@
           }
         }
       }
-    },
-    "/api/Usuario/AutenticarUsuario": {
-      "post": {
-        "tags": [
-          "Usuario"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RequestAutenticarUsuario"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RequestAutenticarUsuario"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/RequestAutenticarUsuario"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseAutenticarUsuario"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseAutenticarUsuario"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseAutenticarUsuario"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Usuario/InsertarUsuario": {
-      "post": {
-        "tags": [
-          "Usuario"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RequestInsertarUsuario"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RequestInsertarUsuario"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/RequestInsertarUsuario"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBool"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBool"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBool"
-                }
-              }
-            }
-          }
-        }
-      }
     }
   },
   "components": {
@@ -160,15 +64,19 @@
             "format": "int32",
             "nullable": true
           },
-          "nombre": {
+          "nombres": {
             "type": "string",
             "nullable": true
           },
-          "correo": {
+          "apellidos": {
             "type": "string",
             "nullable": true
           },
-          "contrasena": {
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "password": {
             "type": "string",
             "nullable": true
           }
@@ -196,41 +104,9 @@
         "additionalProperties": false
       },
       "RequestAutenticarCliente": {
-        "type": "object",
-        "properties": {
-          "correo": {
-            "type": "string",
-            "nullable": true
-          },
-          "contrasena": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "RequestAutenticarUsuario": {
-        "type": "object",
-        "properties": {
-          "correo": {
-            "type": "string",
-            "nullable": true
-          },
-          "contrasena": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "RequestInsertarUsuario": {
         "required": [
-          "apellido",
-          "contrasena",
           "correo",
-          "dni",
-          "nombre",
-          "telefono"
+          "password"
         ],
         "type": "object",
         "properties": {
@@ -238,63 +114,9 @@
             "type": "string",
             "nullable": true
           },
-          "contrasena": {
+          "password": {
             "type": "string",
             "nullable": true
-          },
-          "nombre": {
-            "type": "string",
-            "nullable": true
-          },
-          "apellido": {
-            "type": "string",
-            "nullable": true
-          },
-          "dni": {
-            "type": "string",
-            "nullable": true
-          },
-          "telefono": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "ResponseAutenticarUsuario": {
-        "type": "object",
-        "properties": {
-          "codigo": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "mensaje": {
-            "type": "string",
-            "nullable": true
-          },
-          "nombreUsuario": {
-            "type": "string",
-            "nullable": true
-          },
-          "usuarioValido": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ResponseBool": {
-        "type": "object",
-        "properties": {
-          "codigo": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "mensaje": {
-            "type": "string",
-            "nullable": true
-          },
-          "resultado": {
-            "type": "boolean"
           }
         },
         "additionalProperties": false

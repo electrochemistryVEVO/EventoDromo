@@ -1,23 +1,26 @@
-﻿using Microsoft.Data.SqlClient;
-using System.Collections;
-using System.Data;
+﻿using System.Data;
+using System.Data.Common;
+using MySqlConnector;
 
 namespace EventodromoRest.Modelos.Utiles
 {
     public class ParameterList
     {
-        private readonly Dictionary<string, SqlParameter> parDeValores = new(StringComparer.OrdinalIgnoreCase);
-        private readonly List<SqlParameter> parametros = new();
+        private readonly List<DbParameter> parametros = new();
+        private readonly Dictionary<string, DbParameter> parDeValores = new(StringComparer.OrdinalIgnoreCase);
 
-        private void AddParameter(SqlParameter parametro)
+        private void AddParameter(DbParameter parametro)
         {
             parametros.Add(parametro);
             parDeValores[parametro.ParameterName] = parametro;
         }
 
+        /// <summary>
+        /// Agrega parámetro de entrada (por defecto DbParameter se usa).
+        /// </summary>
         public void Add(string name, object? value, DbType? type = null, int? size = null)
         {
-            var p = new SqlParameter
+            var p = new MySqlParameter   // MySQL Parameter
             {
                 ParameterName = name,
                 Value = value ?? DBNull.Value,
@@ -28,9 +31,12 @@ namespace EventodromoRest.Modelos.Utiles
             AddParameter(p);
         }
 
+        /// <summary>
+        /// Agrega parámetro de salida (DbParameter).
+        /// </summary>
         public void AddOut(string name, DbType type, int size = 4000)
         {
-            var p = new SqlParameter
+            var p = new MySqlParameter  // MySQL Parameter
             {
                 ParameterName = name,
                 Direction = ParameterDirection.Output,
@@ -40,6 +46,14 @@ namespace EventodromoRest.Modelos.Utiles
             AddParameter(p);
         }
 
-        public SqlParameter[] ToArray() => parametros.ToArray();
+        /// <summary>
+        /// Convierte la lista de parámetros a un arreglo de DbParameters.
+        /// </summary>
+        public DbParameter[] ToArray(DbCommand cmd)
+        {
+            return parametros.ToArray(); // Ya son DbParameters creados
+        }
+
+        public int Count => parametros.Count;
     }
 }

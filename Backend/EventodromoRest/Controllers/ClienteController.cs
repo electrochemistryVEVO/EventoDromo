@@ -1,4 +1,5 @@
 ﻿using EventodromoRest.Modelos;
+using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -19,24 +20,7 @@ namespace EventodromoRest.Controllers
             try
             {
                 ValidarBody(request);
-                Cliente clienteResponse = new ClienteBO(globales, BD).AutenticarCliente(request);
-                if (clienteResponse == null)
-                {
-                    return new GenericResponse<Cliente> 
-                    {
-                        Success = false,
-                        Message = "Credenciales invalidas",
-                        Error = null,
-                        Data = null
-                    };
-                }
-                return new GenericResponse<Cliente>
-                {
-                    Success = true,
-                    Message = "Credenciales validas",
-                    Error = null,
-                    Data = clienteResponse
-                };
+                return new ClienteBO(globales, BD).AutenticarCliente(request);
             }
             catch (Exception e)
             {
