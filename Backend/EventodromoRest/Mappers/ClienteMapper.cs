@@ -10,7 +10,7 @@ namespace EventodromoRest.Mappers
             List<Cliente> listaClientes = new List<Cliente>();
             lock (DB)
             {
-                string query = "SELECT ID, NOMBRES, APELLIDOS, EMAIL FROM cliente WHERE EMAIL = @EMAIL AND PASSWORDHASH = @PASSWORDHASH ";
+                string query = "SELECT ID, NOMBRES, APELLIDOS, EMAIL FROM Cliente WHERE EMAIL = @EMAIL AND PASSWORDHASH = @PASSWORDHASH ";
 
                 var parametros = new ParameterList();
                 parametros.Add("@EMAIL", request.Correo);

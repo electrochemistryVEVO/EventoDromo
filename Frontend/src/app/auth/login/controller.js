@@ -7,13 +7,13 @@ export async function onSubmit(event){
   let loginInfo = {};
   let canRedirect = false;
   console.log("peep");
-  loginInfo.Correo = event.get("email");
-  loginInfo.Contrasena = event.get("password");
+  loginInfo.correo = event.get("email");
+  loginInfo.password = event.get("password");
   return await autenticarUsuario(loginInfo)
     .then((res)=>{console.log(res.statusText);return res.json();})
     .then((response)=>{
       console.log(JSON.stringify(response));
-      canRedirect = response.usuarioValido;
+      canRedirect = response.success;
     })
     .catch((error) => {
       console.log(error);

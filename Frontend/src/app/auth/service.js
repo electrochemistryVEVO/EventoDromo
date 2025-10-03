@@ -1,6 +1,6 @@
-const url = "http://eventodromo-aspnet-1:8080/api/Usuario"
+const url = "http://eventodromo-aspnet-1:8080/api/Cliente"
 export async function autenticarUsuario(loginInfo){
-    return await fetch(url+"/AutenticarUsuario", {
+    return await fetch(url+"/AutenticarCliente", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -8,8 +8,10 @@ export async function autenticarUsuario(loginInfo){
       body: JSON.stringify(loginInfo),
     })
 }
+
+
 export async function insertarUsuario(loginInfo){
-  return await fetch(url+"/InsertarUsuario", {
+  return await fetch(url+"/InsertarCliente", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
