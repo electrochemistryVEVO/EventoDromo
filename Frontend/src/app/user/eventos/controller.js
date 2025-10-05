@@ -1,5 +1,6 @@
-import EventCard from "@/components/ui-elements/cards/eventCard";
-import Carousel from "@/components/Layouts/carousel";
+import EventCard from "@/components/ui-elements/cards/eventCard"
+import CarouselImage from "@/components/ui-elements/carouselImage";
+import { Carousel,CarouselItem } from 'react-bootstrap'
 
 const eventoMockData = [
   {
@@ -144,10 +145,24 @@ let culturales = obtenerEventosPorTipo(2)
 let deportes = obtenerEventosPorTipo(3)
 
 export async function CarruselEventos(){
-  'use server'
+  'use client'
+  destacados = destacados ?? obtenerDestacados();
+  let carousel_i=0;
+  //placeholder
   return(
     <Carousel>
-      {destacados}
+      <CarouselItem>
+      <CarouselImage evento={destacados[0]}/>
+      </CarouselItem>
+      <CarouselItem>
+        <CarouselImage evento={destacados[1]}/>
+      </CarouselItem>
+      <CarouselItem>
+        <CarouselImage evento={destacados[2]}/>
+      </CarouselItem>
+      <CarouselItem>
+        <CarouselImage evento={destacados[3]}/>
+      </CarouselItem>
     </Carousel>
   )
 }
