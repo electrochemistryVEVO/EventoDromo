@@ -1,1 +1,50 @@
-*.vsidx
+# Archivos de build
+[Dd]ebug/
+[Dd]ebugPublic/
+[Dd]ist/
+[Dd]ebug/
+[Dd]ebugPublic/
+
+# Archivos generados por Visual Studio
+.vs/
+.vscode/
+.idea/
+
+# Archivos de usuario de Visual Studio
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.sln.docstates
+
+# Archivos de compilación
+bin/
+obj/
+
+# Archivos temporales de ASP.NET
+_app_data/
+_/.vs/
+
+# Archivos de caché de NuGet
+.nuget/
+packages/
+
+# Archivos de configuración de entorno
+.env
+.env.local
+.env.*.local
+
+# Archivos generados por los tests
+TestResults/
+
+# Archivos de cobertura de código
+coverage/
+
+# Archivos de configuración de Rider
+.idea/
+
+# Archivos de build de Docker
+Dockerfile*
+
+# Archivos de configuración de equipo
+.vscode/

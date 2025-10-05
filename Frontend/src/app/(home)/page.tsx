@@ -19,10 +19,8 @@ type PropsType = {
 export default async function Home({ searchParams }: PropsType) {
   const { selected_time_frame } = await searchParams;
   const extractTimeFrame = createTimeFrameExtractor(selected_time_frame);
-  let balls = '';
-  fetch("http://eventodromo-aspnet-1:8080/WeatherForecast").then(response => response.json()).then(data => {console.log(JSON.stringify(data));})
+  //fetch("http://eventodromo-aspnet-1:8080/WeatherForecast").then(response => response.json()).then(data => {console.log(JSON.stringify(data));})
   //console.log(forecast);
-  console.log("balls")
   return (
     <>
       <Suspense fallback={<OverviewCardsSkeleton />}>

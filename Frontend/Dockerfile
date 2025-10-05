@@ -1,4 +1,4 @@
-FROM node:latest AS base
+FROM node:22.4.1 AS base
 #USER app
 WORKDIR /app
 EXPOSE 3000
