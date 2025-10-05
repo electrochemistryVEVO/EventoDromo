@@ -1,7 +1,5 @@
-
-import 'bootstrap/dist/css/bootstrap.css';
 import '@/css/styles.css'
-import { ListaEventos } from "./controller";
+import { CarruselEventos, ListaEventos } from "./controller";
 //import BootstrapClient from "@/components/BootstrapComponent";
 import Image from "next/image";
 import logo from "@/assets/logos/eventodromo.svg";
@@ -10,11 +8,12 @@ import logo from "@/assets/logos/eventodromo.svg";
 
 function App() {
   return (
-    <html>
-    <section className="py-5">
-      <ListaEventos></ListaEventos>
-    </section>
-    </html>
+    <div>
+      <CarruselEventos></CarruselEventos>
+      <section className="py-5">
+        <ListaEventos></ListaEventos>
+      </section>
+    </div>
   );
 }
 

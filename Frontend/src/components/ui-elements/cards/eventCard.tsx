@@ -1,19 +1,7 @@
 import Image from "next/image";
 import { Suspense,use } from "react";
 import triangleRight from "@/assets/triangleRignt.png"
-
-type Evento = {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  idTipoEvento: number;
-  idLocal: number;
-  creadoPor: number;
-  fechaPublicacion: Date;
-  fechaCompra: Date;
-  isDeleted: number;
-  imagenURL: string;
-}
+import type { Evento } from "@/types/globals"
 type PropsWithEvento = {
   event: Evento;
 }
