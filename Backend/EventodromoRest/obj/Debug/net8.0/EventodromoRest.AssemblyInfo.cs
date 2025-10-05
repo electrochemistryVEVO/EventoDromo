@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EventodromoRest")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a26652df500f114a9dbc0524360794bb8bc82fe4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c2999d9dfa32577a139ad03d276ca311f419a043")]
 [assembly: System.Reflection.AssemblyProductAttribute("EventodromoRest")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EventodromoRest")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
