@@ -1,10 +1,11 @@
 import EventCard from "@/components/ui-elements/cards/eventCard"
 import CarouselImage from "@/components/ui-elements/carouselImage";
 import { Carousel,CarouselItem } from 'react-bootstrap'
-
+//NOTA: En lo posible, usar componentes de react-bootstrap en vez de usar las clases manualmente
+//Usar las clases manualmente no implementa el javascript necesario para el funcionamiento de algunos elementos
 const eventoMockData = [
   {
-    id: 1,
+    id: 0,
     nombre: "Festival Overpass Lima",
     descripcion: "Concierto internacional con artistas destacados.",
     idTipoEvento: 1, // Concierto
@@ -16,7 +17,7 @@ const eventoMockData = [
     imagenURL: "festival-overpass-lima.png"
   },
   {
-    id: 2,
+    id: 1,
     nombre: "Noches de Folklore",
     descripcion: "Presentación cultural con danzas típicas y música peruana.",
     idTipoEvento: 3, // Teatro / Cultural
@@ -28,7 +29,7 @@ const eventoMockData = [
     imagenURL: "noches-de-folklore.jpg"
   },
   {
-    id: 3,
+    id: 2,
     nombre: "Carmen Ópera de Georges Bizet",
     descripcion: "Ópera clásica presentada en el Teatro Municipal de Lima.",
     idTipoEvento: 3, // Teatro
@@ -40,7 +41,7 @@ const eventoMockData = [
     imagenURL: "carmen-opera.jpg"
   },
   {
-    id: 4,
+    id: 3,
     nombre: "Tour + Museo Monumental",
     descripcion: "Recorrido por el Estadio Monumental y su museo.",
     idTipoEvento: 2, // Deportivo
@@ -52,7 +53,7 @@ const eventoMockData = [
     imagenURL: "tour-museo-monumental.jpg"
   },
   {
-    id: 5,
+    id: 4,
     nombre: "Daniela Darcourt",
     descripcion: "Concierto de salsa en vivo de Daniela Darcourt.",
     idTipoEvento: 1, // Concierto
@@ -64,7 +65,7 @@ const eventoMockData = [
     imagenURL: "daniela-darcourt.png"
   },
   {
-    id: 6,
+    id: 5,
     nombre: "Linkin Park",
     descripcion: "From Zero World Tour con Linkin Park en Lima.",
     idTipoEvento: 1, // Concierto
@@ -76,7 +77,7 @@ const eventoMockData = [
     imagenURL: "linkin-park.jpg"
   },
   {
-    id: 7,
+    id: 6,
     nombre: "Imagine Dragons",
     descripcion: "Concierto de la banda Imagine Dragons en Lima.",
     idTipoEvento: 1, // Concierto
@@ -88,7 +89,7 @@ const eventoMockData = [
     imagenURL: "imagine-dragons.jpg"
   },
   {
-    id: 8,
+    id: 7,
     nombre: "Carrera 10 Kilómetros Alimentación 10/10",
     descripcion: "Carrera de atletismo para promover la buena alimentación.",
     idTipoEvento: 2, // Deportivo
@@ -100,7 +101,7 @@ const eventoMockData = [
     imagenURL: "carrera-10k.png"
   },
   {
-    id: 9,
+    id: 8,
     nombre: "Rimac Sports Festival",
     descripcion: "Evento deportivo con diferentes disciplinas.",
     idTipoEvento: 2, // Deportivo
@@ -112,7 +113,7 @@ const eventoMockData = [
     imagenURL: "rimac-sports-festival.png"
   },
   {
-    id: 10,
+    id: 9,
     nombre: "Marinera y Show Peruano",
     descripcion: "Evento cultural con baile de marinera y espectáculos típicos.",
     idTipoEvento: 3, // Teatro / Cultural

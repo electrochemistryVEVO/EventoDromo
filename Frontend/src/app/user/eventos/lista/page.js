@@ -1,10 +1,9 @@
 import '@/css/styles.css'
 import { CarruselEventos, ListaEventos } from "./controller";
-//import BootstrapClient from "@/components/BootstrapComponent";
-import Image from "next/image";
-import logo from "@/assets/logos/eventodromo.svg";
-//import 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css'
-//import { useEffect } from "react";
+
+//NOTA: En lo posible, usar componentes de react-bootstrap en vez de usar las clases manualmente
+//Usar las clases manualmente no implementa el javascript necesario para el funcionamiento de algunos elementos
+//Procurar usar .jsx en vez de .js para las paginas
 
 function App() {
   return (

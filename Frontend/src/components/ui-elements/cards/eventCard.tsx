@@ -1,5 +1,7 @@
 import Image from "next/image";
-import { Suspense,use } from "react";
+import LazyImage from "@/components/ui-elements/lazyImage";
+import Link from "next/link"
+import { redirect } from "next/navigation";
 import triangleRight from "@/assets/triangleRignt.png"
 import type { Evento } from "@/types/globals"
 type PropsWithEvento = {
@@ -13,13 +15,7 @@ export default function EventCard(props:PropsWithEvento){
   }).format(evento.fechaPublicacion)
   return (<div className="col mb-5">
     <div className="card h-100">
-      <Suspense>
-        <Image
-          className="card-img-top"
-          src={use(img)}
-          alt="..."
-        />
-      </Suspense>
+      <LazyImage imageUrl={evento.imagenURL}/>
       <div className="row card-body p-4">
         <Image className="col-2" src={triangleRight} alt={"ok"}/>
         <div className="col-md-auto text-center">
@@ -29,9 +25,9 @@ export default function EventCard(props:PropsWithEvento){
       </div>
       <div className="card-footer border-top-0 bg-transparent p-4 pt-0">
         <div className="text-center">
-          <a className="btn btn-outline-dark mt-auto" href="#">
+          <Link className="btn btn-outline-dark mt-auto" href={"/user/eventos/detalle?id="+evento.id.toString()}>
             View options
-          </a>
+          </Link>
         </div>
       </div>
     </div>
