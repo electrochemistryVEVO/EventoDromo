@@ -17,6 +17,8 @@ import Image from "next/image";
 import { Logo } from "@/components/logo";
 import Script from "next/script";
 import { text } from "node:stream/consumers";
+import { searchBarSubmit } from "./layout-controller";
+import Form from "next/form";
 //import { Providers } from "../providers";
 
 export const metadata: Metadata = {
@@ -67,11 +69,11 @@ export default function RootLayout({ children }: PropsWithChildren) {
                 </ul>
               </li>
             </ul>
-            <form id="navSearchBar" className="d-flex">
-              <input type="text">
+            <Form id="navSearchBar" className="d-flex" action={searchBarSubmit}>
+              <input id="searchBarText" name="searchBarText" type="text">
 
               </input>
-            </form>
+            </Form>
             <form id="navShoppingCart" className="d-flex">
 
               <button className="btn btn-outline-dark" type="submit">

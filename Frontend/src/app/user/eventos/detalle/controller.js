@@ -7,7 +7,7 @@ import { useState,Suspense } from "react";
 import Image from "next/image";
 import iconMenosEntrada from '@/assets/icons/minusEntrada.png'
 import iconMasEntrada from '@/assets/icons/plusEntrada.png'
-import iconMasEntradaDeshabilitado from '@assets/icons/plusEntradaNoDisponible.png'
+import iconMasEntradaDeshabilitado from '@/assets/icons/plusEntradaNoDisponible.png'
 
 const eventoMockData = [
   {
