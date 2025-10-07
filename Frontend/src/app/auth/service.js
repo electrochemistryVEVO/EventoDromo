@@ -1,4 +1,4 @@
-const url = "http://eventodromo-aspnet-1:8080/api/Cliente"
+const url = "http://localhost:5189/api/Cliente"
 export async function autenticarUsuario(loginInfo){
     return await fetch(url+"/AutenticarCliente", {
       method: "POST",
