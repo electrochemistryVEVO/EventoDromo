@@ -1,6 +1,11 @@
+"use client";
+
+import Image, { StaticImageData } from "next/image";
+import React from "react";
+
 export type CartItem = {
     id: string;
-    imageUrl: string;
+    imageUrl: string | StaticImageData;
     title: string;
     subtitle: string;
     quantity: number;
@@ -35,7 +40,7 @@ export const FilaEntrada: React.FC<CartRowProps> = ({ item, selected, onToggle }
             </div>
 
             <div className="flex items-center gap-3">
-                <img
+                <Image
                     src={item.imageUrl}
                     alt={`${item.title} ${item.subtitle}`}
                     className="h-12 w-12 rounded-md object-cover"
