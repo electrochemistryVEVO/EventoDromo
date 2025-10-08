@@ -17,7 +17,7 @@ const pen = new Intl.NumberFormat("es-PE", {
 export const FilaResumenCompra: React.FC<CartRowProps> = ({ item }) => {
     return (
         <li
-            className="grid grid-cols-[1fr_1fr_1fr] items-center hover:bg-gray-50 transition"
+            className="grid grid-cols-[3fr_1fr_1fr] items-center hover:bg-gray-50 transition py-2"
         >
             <div className="flex items-center gap-2">
                 <Image

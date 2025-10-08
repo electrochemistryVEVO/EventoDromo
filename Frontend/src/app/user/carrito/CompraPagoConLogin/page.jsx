@@ -8,11 +8,9 @@ import "@/css/compraPagoConLogin.css";
 // Rename from App to a component name (optional, but good practice)
 function CompraPagoConLogin() {
     const [showModal, setShowModal] = useState(false);
-    // <--- 2. Use useState hook to initialize and manage state
     const [selectedOption, setSelectedOption] = useState('opcionA');
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
 
-    // <--- 3. Define the handler function
     const handleOptionChange = (event) => {
         setSelectedOption(event.target.value);
     };
@@ -55,7 +53,6 @@ function CompraPagoConLogin() {
                     <div className="flex flex-row gap-2 items-center">
                         <div className="text-[#00C49A] font-semibold text-4xl">Metodo de Pago</div>
                     </div>
-                    {/* Radio Buttons for Payment Method */}
                     <div className="flex flex-col gap-3 items-start p-4">
                         <label className="flex items-center gap-2">
                             <input
@@ -119,7 +116,7 @@ function CompraPagoConLogin() {
                     <div className="flex flex-row gap-2 items-center">
                         <div className="text-[#00C49A] font-semibold text-4xl">Resumen de la compra</div>
                     </div>
-                    <div className="carrito-col">
+                    <div className="">
                         <div className="costo-detalle-title pt-4 pb-2  text-lg">
                             Tienes {cantidadEntradas()} entradas
                         </div>

@@ -17,7 +17,7 @@ function App() {
                 </div>
                 <div className="flex flex-row gap-2 w-100 justify-center items-center">
                     <div className="flex flex-row gap-2 items-center">
-                        <div className="text-[#00C49A] font-extrabold text-3xl">Identificación</div>
+                        <div className="text-[#00C49A] font-bold text-4xl">Identificación</div>
                     </div>
                     <div className="flex flex-row gap-2 items-center">
                         <div className="text-[#00C49A] font-extrabold text-3xl">Metodo de Pago</div>

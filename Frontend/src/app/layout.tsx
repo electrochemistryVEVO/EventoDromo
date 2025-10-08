@@ -31,7 +31,8 @@ export default function RootLayout({ children }: PropsWithChildren) {
       </head>
       <body suppressHydrationWarning>
         <NextTopLoader color="#5750F1" showSpinner={false} />
-        <body className={`${nunito.className} antialiased`}>{children}</body>
+        {/* <body className={`${nunito.className} antialiased`}>{children}</body> */}
+        {children}
       </body>
     </html>
   );
