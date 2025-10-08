@@ -2,6 +2,7 @@
 
 import { FilaEntrada, CartItem } from "./filaEntrada"   ;
 import { useState } from "react";
+import "@/css/checkboxCarrito.css";
 
 type Props = { items?: CartItem[] };
 
@@ -24,15 +25,15 @@ export const TablaEntradas: React.FC<Props> = ({ items = [] }) => {
     };
 
     return (
-        <div className="w-full rounded-xl border border-gray-200 bg-white">
+    <div className="tabla-entradas-carrito rounded-xl border border-gray-200 bg-white">
             {/* Encabezado */}
-            <div className="grid grid-cols-[48px_1fr_120px_140px] items-center px-4 py-3 text-sm font-medium text-gray-600 bg-gray-50 rounded-t-xl">
-                <div>
+            <div className="grid grid-cols-[40px_2fr_90px_180px] items-center px-6 py-4 text-gray-600 bg-gray-50 rounded-t-xl" style={{ fontSize: '1.25rem' }}>
+                <div >
                     <input
                         type="checkbox"
                         checked={allSelected}
                         onChange={toggleAll}
-                        className="size-4 accent-black"
+                        className="size-6 accent-black"
                     />
                 </div>
                 <div>Evento</div>
@@ -41,7 +42,7 @@ export const TablaEntradas: React.FC<Props> = ({ items = [] }) => {
             </div>
 
             {/* Filas */}
-            <ul className="divide-y divide-gray-200">
+            <ul className="divide-y divide-gray-200" style={{marginLeft: '-20px'}} >
                 {items.map((item) => (
                     <FilaEntrada
                         key={item.id}

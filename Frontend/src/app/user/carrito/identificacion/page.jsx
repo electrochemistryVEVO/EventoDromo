@@ -1,5 +1,5 @@
 import '@/css/styles.css'
-import { CircleUser, WalletMinimal, ArrowLeftFromLine, File } from 'lucide-react';
+//import { CircleUser, WalletMinimal, ArrowLeftFromLine, File } from 'lucide-react';
 
 function App() {
     return (
