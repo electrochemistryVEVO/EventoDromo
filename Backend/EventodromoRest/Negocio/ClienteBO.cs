@@ -5,23 +5,27 @@ namespace EventodromoRest.Negocio
 {
     public class ClienteBO (Globales.Globales globales, DBManager.DBManager DB)
     {
-        public ClienteLogin AutenticarCliente(Cliente clienteEnviado)
+        public object AutenticarCliente(string email, string password)
         {
-            
-            Cliente clienteObtenido = clienteMapper.ObtenerClienteLoginPorEmailContrasenhaa(clienteEnviado.email,clienteEnviado.passwordhash);
-            if (clienteObtenido != null)
+            var mapper = new ClienteMapper(globales, DB);
+            char tipoUsuario;
+            Cliente cliente = mapper.ObtenerClientePorEmailPassword(email, password,out tipoUsuario);
+
+            if (cliente == null)
             {
-                ClienteLogin clienteObtenido.cliente = clienteObtenido;
-                clienteObtenido
+                return new { success = false, message = "Credenciales inválidas" };
             }
-     
-            return clienteEnviar;
 
+            // Aquí devuelves un objeto anónimo que incluye al Cliente y el rol
+            return new
+            {
+                success = true,
+                cliente,
+                rol = tipoUsuario
+            };
         }
 
-        public int TipoUsuario(int idCliente)
-        {
-            return 2;
-        }
+
+
     }
 }
