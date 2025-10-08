@@ -2,7 +2,8 @@ const url =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/Cliente";
 export async function autenticarUsuario(loginInfo) {
   try {
-    const response = await fetch(url + "/AutenticarCliente", {
+    //const response = await fetch(url + "/AutenticarCliente", {
+    const response = await fetch("data/loginHardCodeo.json", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
