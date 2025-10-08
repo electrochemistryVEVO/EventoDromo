@@ -1,11 +1,25 @@
-export default function MisEntradas({ entries = [], loading = false, error = null }) {
+export default function MisEntradas({
+  entries = [],
+  loading = false,
+  error = null,
+  currentPage = 1,
+  totalPages = 1,
+  totalItems = 0,
+  pageSize = 10,
+  onPageChange = () => {},
+  onPrev = () => {},
+  onNext = () => {},
+  onDateFilter = () => {},
+  startDate = null,
+  endDate = null,
+  statusFilter = "all",
+  onStateFilter = () => {},
+}) {
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center p-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Cargando...</span>
-        </div>
-        <span className="ms-3">Cargando entradas...</span>
+      <div className="mi-centro p-4">
+        <div className="spinner-border text-primary" role="status" />
+        <span className="ms-2">Cargando entradas...</span>
       </div>
     );
   }
@@ -19,157 +33,142 @@ export default function MisEntradas({ entries = [], loading = false, error = nul
     );
   }
 
-  if (!entries || entries.length === 0) {
-    return (
-      <div className="text-center p-5">
-        <div className="text-muted">
-          <i className="bi bi-ticket-perforated display-4"></i>
-          <h4 className="mt-3">No tienes entradas</h4>
-          <p>Cuando compres entradas, aparecerán aquí.</p>
-        </div>
-      </div>
-    );
-  }
+  const ENTRY_HEIGHT_PX = 120;
+  const maxHeight = Math.min(ENTRY_HEIGHT_PX * pageSize, ENTRY_HEIGHT_PX * 10);
 
   return (
-    <div>
-      {/* Header con filtros */}
-      <div className="mb-4">
-        <h1 className="h3 mb-3">Mis Entradas</h1>
-        
-        <div className="row align-items-center">
-          {/* Filtros por estado - Lado izquierdo */}
-          <div className="col-md-6">
-            <div className="d-flex align-items-center">
-              <span className="fw-medium me-3">Mostrar entradas:</span>
-              <div className="d-flex gap-2">
-                <button className="btn btn-outline-primary btn-sm rounded-pill px-3 active">Vigentes</button>
-                <button className="btn btn-outline-secondary btn-sm rounded-pill px-3">Vencido</button>
-              </div>
-            </div>
+    <div style={{ overflowX: "hidden" }}>
+      {/* Top row: filtros en una sola linea */}
+      <div className="mef-filters-row">
+        <div className="mef-left">
+          <span className="mef-label">Mostrar entradas:</span>
+          <div className="mef-chip-group">
+            <button
+              className={`mef-chip ${statusFilter === "all" ? "active" : ""}`}
+              onClick={() => onStateFilter("all")}
+            >
+              Todos
+            </button>
+            <button
+              className={`mef-chip ${statusFilter === "vigente" ? "active" : ""}`}
+              onClick={() => onStateFilter("vigente")}
+            >
+              Vigentes
+            </button>
+            <button
+              className={`mef-chip ${statusFilter === "vencido" ? "active" : ""}`}
+              onClick={() => onStateFilter("vencido")}
+            >
+              Vencido
+            </button>
           </div>
+        </div>
 
-          {/* Selector de fechas - Lado derecho */}
-          <div className="col-md-6">
-            <div className="d-flex align-items-center justify-content-end">
-              <span className="fw-medium me-3">Filtrar por fecha:</span>
-              <div className="d-flex gap-2 align-items-center">
-                <div>
-                  <input 
-                    type="date" 
-                    className="form-control form-control-sm"
-                    placeholder="Desde"
-                  />
-                </div>
-                <span className="text-muted">a</span>
-                <div>
-                  <input 
-                    type="date" 
-                    className="form-control form-control-sm"
-                    placeholder="Hasta"
-                  />
-                </div>
-                <button className="btn btn-outline-primary btn-sm rounded-pill px-3">
-                  Aplicar
-                </button>
-              </div>
-            </div>
-          </div>
+        <div className="mef-right">
+          <label className="mef-date-label">Fecha:</label>
+          <input
+            type="date"
+            className="mef-date"
+            value={startDate ?? ""}
+            onChange={(e) => onDateFilter(e.target.value || null, endDate)}
+          />
+          <span className="mef-to">→</span>
+          <input
+            type="date"
+            className="mef-date"
+            value={endDate ?? ""}
+            onChange={(e) => onDateFilter(startDate, e.target.value || null)}
+          />
         </div>
       </div>
 
-      <hr className="my-4" />
+      <hr className="my-3" />
 
-      {/* Lista de entradas */}
-      <div>
-        {entries.map((entrada, index) => {
-          return (
-            <div key={entrada.id} className="mb-5">
-              <div className="row align-items-start">
-                {/* Columna IZQUIERDA - Imagen e información del evento */}
-                <div className="col-md-8">
-                  <div className="d-flex">
-                    {/* Espacio para la imagen */}
-                    <div className="flex-shrink-0 me-4">
-                      <div className="bg-light rounded d-flex align-items-center justify-content-center border" 
-                          style={{ width: '120px', height: '120px' }}>
-                        {entrada.imagen ? (
-                          <img 
-                            src={entrada.imagen} 
-                            alt={entrada.titulo}
-                            style={{ 
-                              width: '100%', 
-                              height: '100%', 
-                              objectFit: 'contain',
-                              padding: '8px'
-                            }}
-                          />
-                        ) : (
-                          <span className="text-muted fw-bold">LOGO</span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Información del evento */}
-                    <div className="flex-grow-1">
-                      <h3 className="h4 fw-bold mb-3">{entrada.titulo}</h3>
-                      
-                      <div className="mb-2">
-                        <p className="mb-1"><strong>Fecha:</strong> {entrada.fecha}</p>
-                        <p className="mb-1"><strong>Horario:</strong> {entrada.hora}</p>
-                        <p className="mb-0"><strong>Ubicación:</strong> {entrada.ubicacion}</p>
-                        <p className="mb-0"><strong>Transaccion:</strong> {entrada.transaccion}</p>
-                      </div>
-                    </div>
-                  </div>
+      {/* Scrollable list */}
+      <div
+        id="mis-entradas-scrollable"
+        className="mef-list"
+        style={{ maxHeight: `${maxHeight}px` }}
+      >
+        {entries.length === 0 ? (
+          <div className="text-center p-4 text-muted">No hay entradas en este rango de fechas / estado.</div>
+        ) : (
+          entries.map((entrada, index) => (
+            <div key={entrada.id ?? entrada.transaccion ?? index} className="mef-item">
+              <div className="mef-item-left">
+                <div className="mef-thumb">
+                  {entrada.imagen ? (
+                    <img
+                      src={entrada.imagen}
+                      alt={entrada.titulo}
+                      onError={(e) => {
+                        e.currentTarget.src = "/images/cards-04.png";
+                      }}
+                    />
+                  ) : (
+                    <span className="text-muted">LOGO</span>
+                  )}
                 </div>
 
-                {/* Columna DERECHA - Detalles de la compra */}
-                <div className="col-md-4">
-                  <div className="border-start ps-4">
-                    {/* Estado */}
-                    <div className="mb-3">
-                      <div className="d-flex align-items-center">
-                        <strong className="me-2">Estado:</strong>
-                        <span className="badge bg-success">Vigente</span>
-                      </div>
-                    </div>
-
-                    {/* Detalles de la compra - Con números a la derecha */}
-                    <div className="mb-3">
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <strong>Número de entradas:</strong>
-                        <span className="fw-bold">{entrada.numeroEntradas || 1}</span>
-                      </div>
-                      <div className="d-flex justify-content-between align-items-center">
-                        <strong>Costo total:</strong>
-                        <span className="h5 fw-bold mb-0">S/. {entrada.precio}</span>
-                      </div>
-                    </div>
-
-                    {/* Botones de acción - Ovalados y alineados */}
-                    <div className="d-flex flex-wrap gap-2 mt-3">
-                      <button className="btn btn-primary rounded-pill px-4">
-                        Descargar
-                      </button>
-                      <button className="btn btn-success rounded-pill px-4">
-                        Transferir
-                      </button>
-                      <button className="btn btn-outline-secondary rounded-pill px-4">
-                        Ver detalle
-                      </button>
-                    </div>
+                <div className="mef-meta">
+                  <h3 className="mef-title">{entrada.titulo ?? "Evento"}</h3>
+                  <div className="mef-sub small text-muted">
+                    <div>Fecha: {entrada.fecha ?? "-"}</div>
+                    <div>Horario: {entrada.hora ?? "-"}</div>
+                    <div>Ubicación: {entrada.ubicacion ?? "-"}</div>
+                    <div>Transacción: {entrada.transaccion ?? "-"}</div>
                   </div>
                 </div>
               </div>
 
-              {/* Separador entre entradas */}
-              {index < entries.length - 1 && (
-                <hr className="my-4" />
-              )}
+              <div className="mef-item-right">
+                <div className="mef-status">
+                  <span className={`badge ${entrada.estado === "vigente" ? "bg-success" : "bg-secondary"}`}>
+                    {entrada.estado ?? "desconocido"}
+                  </span>
+                </div>
+
+                <div className="mef-actions">
+                  <div className="mef-numbers">
+                    <div>Número: <strong>{entrada.cantidad ?? 1}</strong></div>
+                    <div>Costo: <strong>S/. {entrada.precio ?? "-"}</strong></div>
+                  </div>
+
+                  <div className="mef-buttons">
+                    <button className="btn btn-primary btn-sm">Descargar</button>
+                    <button className="btn btn-success btn-sm">Transferir</button>
+                    <button className="btn btn-outline-secondary btn-sm">Ver detalle</button>
+                  </div>
+                </div>
+              </div>
             </div>
-          );
-        })}
+          ))
+        )}
+      </div>
+
+      {/* Paginación (fuera del scroll) */}
+      <div className="mef-footer">
+        <div className="mef-summary small text-muted">
+          Mostrando {entries.length} de {totalItems} entradas — Página {currentPage} / {totalPages} — {pageSize} por página
+        </div>
+
+        <nav aria-label="Paginación">
+          <ul className="pagination mb-0">
+            <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+              <button className="page-link" onClick={onPrev} aria-disabled={currentPage <= 1}>Anterior</button>
+            </li>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <li key={p} className={`page-item ${p === currentPage ? "active" : ""}`}>
+                <button className="page-link" onClick={() => onPageChange(p)}>{p}</button>
+              </li>
+            ))}
+
+            <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+              <button className="page-link" onClick={onNext} aria-disabled={currentPage >= totalPages}>Siguiente</button>
+            </li>
+          </ul>
+        </nav>
       </div>
     </div>
   );

@@ -1,58 +1,73 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { PropsWithChildren } from "react";
-import "./perfil.css"; // opcional: si usas Tailwind puedes quitar este archivo
-
+import "./perfil.css";
 
 export default function PerfilLayout({ children }: PropsWithChildren) {
   const searchParams = useSearchParams();
   const tab = (searchParams?.get("tab") ?? "entradas").toString();
 
+  const REMOTE_BANNER =
+    "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Banner.png";
+  const FALLBACK_BANNER = "/images/cards-04.png";
+  const [bannerSrc, setBannerSrc] = useState(REMOTE_BANNER);
+
   const linkClass = (name: string) =>
-    `flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-      tab === name
-        ? "bg-emerald-500 text-white"      // estado activo (cambiar colores si quieres)
-        : "text-gray-700 hover:bg-gray-100" // estado inactivo
-    }`;
+    `perfil-sidebar-link ${tab === name ? "active" : ""}`;
 
   return (
-    <div className="perfil-layout flex gap-6 p-6 min-h-[calc(100vh-200px)]">
-      <aside className="perfil-sidebar w-56" aria-label="Navegación de perfil">
-        <nav>
-          <ul className="space-y-3">
-            <li>
-              <Link href="/user/perfil?tab=info" className={linkClass("info")}>
-                Información Personal
-              </Link>
-            </li>
+    <div className="perfil-page">
+      {/* Banner: contenido primero, overlay, luego imagen (imagen debajo del texto mediante z-index) */}
+      <div className="perfil-banner" role="banner">
+        <div className="perfil-banner-content">
+          <h1 className="perfil-banner-title">Bienvenido a tu perfil</h1>
+          <p className="perfil-banner-sub">Revisa todos tus beneficios</p>
+        </div>
 
-            <li>
-              <Link href="/user/perfil?tab=entradas" className={linkClass("entradas")}>
-                Mis Entradas
-              </Link>
-            </li>
+        <div className="perfil-banner-overlay" />
 
-            <li>
-              <Link href="/user/perfil?tab=dromopuntos" className={linkClass("dromopuntos")}>
-                Mis DromoPuntos
-              </Link>
-            </li>
-          </ul>
-        </nav>
-      </aside>
+        <img
+          src={bannerSrc}
+          alt="Banner de perfil"
+          className="perfil-banner-img"
+          onError={() => {
+            if (bannerSrc !== FALLBACK_BANNER) setBannerSrc(FALLBACK_BANNER);
+          }}
+          loading="lazy"
+        />
+      </div>
 
-      <section className="perfil-main flex-1 min-w-0">
-        <header className="perfil-header mb-4">
-          <h2 className="text-2xl font-semibold">Bienvenido a tu perfil</h2>
-        </header>
+      {/* Main container: centered */}
+      <div className="perfil-container">
+        <aside className="perfil-sidebar" aria-label="Navegación de perfil">
+          <nav>
+            <ul>
+              <li>
+                <Link href="/user/perfil?tab=info" className={linkClass("info")}>
+                  Información Personal
+                </Link>
+              </li>
+              <li>
+                <Link href="/user/perfil?tab=entradas" className={linkClass("entradas")}>
+                  Mis Entradas
+                </Link>
+              </li>
+              <li>
+                <Link href="/user/perfil?tab=dromopuntos" className={linkClass("dromopuntos")}>
+                  Mis DromoPuntos
+                </Link>
+              </li>
+            </ul>
+          </nav>
+        </aside>
 
-        <main className="perfil-content bg-white p-6 rounded-lg shadow-sm">
-          {children}
+        <main className="perfil-main" id="perfil-main">
+          <div className="perfil-main-inner">{children}</div>
         </main>
-      </section>
+      </div>
     </div>
   );
 }
