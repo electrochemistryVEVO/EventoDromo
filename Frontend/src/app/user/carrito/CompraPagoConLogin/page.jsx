@@ -1,12 +1,13 @@
 "use client";
 import { cantidadEntradas, items, importeTotal } from "./controller";
-import React, { useState } from 'react'; // <--- 1. Import useState
+import React, { useState } from 'react';
 import '@/css/styles.css'
 import { ResumenCompra } from "@/components/carrito/ResumenCompra";
 import "@/css/compraPagoConLogin.css";
 
 // Rename from App to a component name (optional, but good practice)
-function CompraPagoConLogin() { 
+function CompraPagoConLogin() {
+    const [showModal, setShowModal] = useState(false);
     // <--- 2. Use useState hook to initialize and manage state
     const [selectedOption, setSelectedOption] = useState('opcionA');
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
@@ -124,7 +125,6 @@ function CompraPagoConLogin() {
                         </div>
                         <ResumenCompra items={items} />
                         <div className="costo-detalle-total flex justify-between items-center">
-                            <span className="font-bold text-xl">Total</span>
                             {selectedPaymentMethod === 'dromopuntos' && (
                                 <span className="flex items-center gap-2 ml-6">
                                     <span style={{fontSize: '2.2rem', color: '#00C49A', border: '2px solid #00C49A', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
@@ -135,16 +135,62 @@ function CompraPagoConLogin() {
                             )}
                         </div>
                         {selectedPaymentMethod === 'tarjeta' && (
-                            <div className="flex items-center gap-3 mt-2">
+                            <div className="flex flex-col items-center gap-3 mt-2">
+                                <div className="costo-detalle-title pt-4 pb-2  text-lg">
+                                   Total: S/. {importeTotal()}  
+                                </div>
+                                <div>
                                 <span style={{fontSize: '2.2rem', color: '#00C49A'}}>
                                     &#36;
                                 </span>
-                                <span className="font-bold text-lg text-[#00C49A]">+12 Dromopuntos</span>
+                                    <span className="font-bold text-lg text-[#00C49A]">+12 Dromopuntos</span>
+                                </div>
                             </div>
                         )}
-                        <div className="costo-detalle-puntos">
-                            Seleccione un método de pago válido
+                        <div className="flex justify-center mt-6">
+                            {selectedPaymentMethod ? (
+                                <button
+                                    className="bg-[#00C49A] text-white rounded-2xl px-8 py-2 font-bold text-lg shadow hover:bg-[#00b07e] transition"
+                                    onClick={() => setShowModal(true)}
+                                >
+                                    Pagar
+                                </button>
+                            ) : (
+                                <div className="costo-detalle-puntos text-center w-full">
+                                    Seleccione un método de pago válido
+                                </div>
+                            )}
                         </div>
+                        {showModal && (
+                            <div className="fixed inset-0 flex items-center justify-center z-50">
+                                <div className="bg-white rounded-2xl p-8 flex flex-col items-center shadow-lg relative min-w-[350px]">
+                                    <button
+                                        className="absolute top-4 right-4 text-3xl font-bold text-gray-400 hover:text-gray-700"
+                                        onClick={() => setShowModal(false)}
+                                        aria-label="Cerrar"
+                                    >
+                                        &times;
+                                    </button>
+                                    <div className="mb-4">
+                                        <div className="flex items-center justify-center">
+                                            <div style={{ width: '120px', height: '120px', background: '#38E86B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <svg width="70" height="70" viewBox="0 0 70 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M20 36L32 48L50 30" stroke="white" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h2 className="text-3xl font-bold text-center mb-2">Compra Exitosa</h2>
+                                    <p className="text-gray-600 text-center mb-6">Puede visualizar y descargar su(s) ticket en la pagina de Mis Entradas</p>
+                                    <button
+                                        className="bg-[#00C49A] text-white rounded-xl px-8 py-2 font-bold text-lg shadow hover:bg-[#00b07e] transition"
+                                        onClick={() => window.location.href = '/mis-entradas'}
+                                    >
+                                        Mis Entradas
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </section>
             </section>
