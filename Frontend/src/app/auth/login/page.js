@@ -1,35 +1,51 @@
-//'use client'
-//TODO: usar componente aparte en vez de hacerlo todo en una pagina
-import './App.css';
-
-import { cookies } from "next/headers";
-
-//import logo from '../assets/logo.png';
-import logo from '@/assets/logos/eventodromo.svg'
+"use client";
+import "./App.css";
+import logo from "@/assets/logos/logo_eventodromo.png";
 import Image from "next/image";
-import { redirect } from 'next/navigation';
-import imagenMitad from '@/assets/pictures/imagenMitad.png';
-import Form from "next/form";
+import imagenMitad from "@/assets/pictures/imagenMitad.png";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { onSubmit } from "./controller";
 
 function App() {
+  const router = useRouter();
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+
+    try {
+      const result = await onSubmit(formData);
+      if (result?.error) {
+        setError(result.error);
+      } else if (result?.success) {
+        // Redireccionar según el rol del usuario
+        if (result.rol === "A") {
+          router.push("/home");
+        } else if (result.rol === "U") {
+          router.push("/user/eventos");
+        } else {
+          setError("Rol de usuario no válido");
+        }
+      }
+    } catch (err) {
+      setError("Error al iniciar sesión");
+      console.error(err);
+    }
+  };
+
   return (
     <div className="App">
-      <div className='imagen-mitad'>
-        <Image
-          src={imagenMitad}
-          alt="Imagen de fondo"
-          className="background-image"
-        />
-      </div>
       <div className="login-form-container">
-        {/* Imagen encima del formulario */}
-        <Image
-          src={logo}
-          alt="Logo"
-          className="login-logo"
-        />
-        <Form className="login-text" action={onSubmit}>
+        <div className="logo-container">
+          <Image src={logo} alt="Logo" className="login-logo" priority />
+        </div>
+        <a href="/" className="volver-inicio">
+          Volver al inicio
+        </a>
+        <form className="login-text" onSubmit={handleSubmit}>
+          {error && <div className="error-message">{error}</div>}
           <div>
             <label htmlFor="email">Email</label>
             <input type="email" id="email" name="email" required />
@@ -37,15 +53,24 @@ function App() {
           <div>
             <label htmlFor="password">Contraseña</label>
             <input type="password" id="password" name="password" required />
-
           </div>
-          <a className='alinear-derecha' href="#create-account">¿Olvidaste tu contraseña?</a>
+          <a className="alinear-derecha" href="/forgot-password">
+            ¿Olvidaste tu contraseña?
+          </a>
           <div className="login-hipervinculos-container">
-            <button type="submit">Ingresar</button>
+            <button type="submit">Ingresa</button>
             <p>¿Aún no tienes cuenta?</p>
-            <a href="#create-account">Registrate aquí</a>
+            <a href="/auth/signup">Registrate Aquí</a>
           </div>
-        </Form>
+        </form>
+      </div>
+      <div className="imagen-mitad">
+        <Image
+          src={imagenMitad}
+          alt="Imagen de fondo"
+          className="background-image"
+          priority
+        />
       </div>
     </div>
   );

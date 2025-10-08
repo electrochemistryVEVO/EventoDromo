@@ -1,26 +1,35 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+"use client";
 import { autenticarUsuario } from "../service";
 
-export async function onSubmit(event){
-  'use server'
-  let loginInfo = {};
-  let canRedirect = false;
-  console.log("peep");
-  loginInfo.correo = event.get("email");
-  loginInfo.password = event.get("password");
-  return await autenticarUsuario(loginInfo)
-    .then((res)=>{console.log(res.statusText);return res.json();})
-    .then((response)=>{
-      console.log(JSON.stringify(response));
-      canRedirect = response.success;
-    })
-    .catch((error) => {
-      console.log(error);
-    })
-    .finally(()=>{
-      if(canRedirect){
-        cookies().set("session",loginInfo,Date.now() + 10 * 1000 * 60 * 60); //10 horas
-        redirect("/");
-      }});
+export async function onSubmit(formData) {
+  try {
+    const loginInfo = {
+      correo: formData.get("email"),
+      password: formData.get("password"),
+    };
+
+    const response = await autenticarUsuario(loginInfo);
+
+    if (response.success) {
+      // En lugar de usar cookies del servidor, usamos localStorage o sessionStorage
+      sessionStorage.setItem(
+        "session",
+        JSON.stringify({
+          token: response.token,
+          user: loginInfo.correo,
+          rol: response.rol,
+        }),
+      );
+
+      return {
+        success: true,
+        rol: response.rol,
+      };
+    } else {
+      return { error: "Credenciales inválidas" };
+    }
+  } catch (error) {
+    console.error("Error en el login:", error);
+    return { error: "Error al intentar iniciar sesión" };
+  }
 }
