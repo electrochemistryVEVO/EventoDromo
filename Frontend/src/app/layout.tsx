@@ -28,3 +28,5 @@ export default function RootLayout({ children }: PropsWithChildren) {
     </html>
   );
 }
+
+// comentario secreto
