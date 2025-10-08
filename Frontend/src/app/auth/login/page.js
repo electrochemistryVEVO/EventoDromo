@@ -19,6 +19,15 @@ function App() {
       const result = await onSubmit(formData);
       if (result?.error) {
         setError(result.error);
+      } else if (result?.success) {
+        // Redireccionar según el rol del usuario
+        if (result.rol === "A") {
+          router.push("/home");
+        } else if (result.rol === "U") {
+          router.push("/user/eventos");
+        } else {
+          setError("Rol de usuario no válido");
+        }
       }
     } catch (err) {
       setError("Error al iniciar sesión");

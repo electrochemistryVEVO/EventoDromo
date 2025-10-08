@@ -1,34 +1,30 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+"use client";
 import { autenticarUsuario } from "../service";
 
-export async function onSubmit(event) {
-  "use server";
+export async function onSubmit(formData) {
   try {
     const loginInfo = {
-      correo: event.get("email"),
-      password: event.get("password"),
+      correo: formData.get("email"),
+      password: formData.get("password"),
     };
 
     const response = await autenticarUsuario(loginInfo);
 
     if (response.success) {
-      // Guardar la sesión en las cookies
-      cookies().set(
+      // En lugar de usar cookies del servidor, usamos localStorage o sessionStorage
+      sessionStorage.setItem(
         "session",
-        {
-          token: response.token, // Si el backend devuelve un token
+        JSON.stringify({
+          token: response.token,
           user: loginInfo.correo,
-        },
-        {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-          maxAge: 10 * 60 * 60, // 10 horas
-        },
+          rol: response.rol,
+        }),
       );
 
-      redirect("/home");
+      return {
+        success: true,
+        rol: response.rol,
+      };
     } else {
       return { error: "Credenciales inválidas" };
     }
