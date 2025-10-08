@@ -1,12 +1,20 @@
-import 'bootstrap/dist/css/bootstrap.css';
-import '@/css/styles.css'
+import MisEntradas from "../../../components/Layouts/perfil/mis-entradas.controller";
+import InformacionPersonal from "../../../components/Layouts/perfil/informacion-personal";
+import MisDromoPuntos from "../../../components/Layouts/perfil/mis-dromopuntos";
 
-function App() {
+export const metadata = {
+  title: "Perfil — Usuario",
+  description: "Sección de perfil del usuario",
+};
+
+export default function Page({ searchParams }) {
+  const tab = (searchParams?.tab || "entradas").toString();
+
   return (
-    <div className="py-5">
-      Mi perfil
-    </div>
+    <>
+      {tab === "info" && <InformacionPersonal />}
+      {tab === "dromopuntos" && <MisDromoPuntos />}
+      {tab === "entradas" && <MisEntradas />}
+    </>
   );
 }
-
-export default App;

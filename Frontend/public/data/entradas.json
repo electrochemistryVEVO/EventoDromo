@@ -1,0 +1,29 @@
+{
+  "success": true,
+  "mensaje": "Entradas cargadas correctamente",
+  "data": [
+    {
+      "id": "1",
+      "titulo": "Overpass Lima",
+      "fecha": "2025-09-11",
+      "hora": "20:00",
+      "ubicacion": "Estadio San Marcos, LIMA, PE",
+      "cantidad": 1,
+      "precio": 300,
+      "imagen": "/images/overpass.jpg",
+      "estado": "vigente"
+    },
+    {
+      "id": "2",
+      "titulo": "Linkin Park",
+      "fecha": "2025-10-18",
+      "hora": "20:00",
+      "ubicacion": "Estadio San Marcos, LIMA, PE",
+      "cantidad": 1,
+      "precio": 500,
+      "imagen": "/images/linkinpark.jpg",
+      "estado": "vigente"
+    }
+  ],
+  "error": null
+}

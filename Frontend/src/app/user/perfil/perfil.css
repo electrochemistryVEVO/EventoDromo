@@ -1,0 +1,51 @@
+.perfil-layout {
+  display: flex;
+  gap: 2rem;
+  padding: 1.5rem;
+  min-height: calc(100vh - 200px); /* ajustar según header/footer global */
+}
+
+.perfil-sidebar {
+  width: 240px;
+  border-right: 1px solid #e6e6e6;
+  padding-right: 1rem;
+}
+
+.perfil-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.perfil-sidebar li {
+  margin: 0.75rem 0;
+}
+
+.perfil-sidebar a {
+  color: #222;
+  text-decoration: none;
+  padding: 0.5rem 0.75rem;
+  display: block;
+  border-radius: 8px;
+}
+
+.perfil-sidebar li.active a {
+  background: #00c2a3;
+  color: #fff;
+}
+
+.perfil-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.perfil-header {
+  margin-bottom: 1rem;
+}
+
+.perfil-content {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
