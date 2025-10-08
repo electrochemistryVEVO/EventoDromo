@@ -152,5 +152,4 @@ function CompraPagoConLogin() {
     );
 }
 
-// Ensure you export the correct component name if you changed it
 export default CompraPagoConLogin;
