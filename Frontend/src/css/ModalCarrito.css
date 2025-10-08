@@ -1,0 +1,88 @@
+/* src/css/ModalCarrito.css (CORREGIDO) */
+
+.modal-carrito-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  
+  /* --- CAMBIO PRINCIPAL --- */
+  /* En lugar de 'visibility', usamos 'opacity' y 'pointer-events' */
+  /* para un mejor control de la animación y la interacción. */
+  opacity: 0;
+  pointer-events: none; /* Evita que se pueda hacer clic en el fondo cuando está oculto */
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Cuando el backdrop está activo, se vuelve visible y se puede interactuar con él */
+.modal-carrito-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-carrito {
+  position: fixed;
+  top: 0;
+  right: 0; /* Asegura que esté anclado a la derecha */
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  background-color: #ffffff;
+  box-shadow: -4px 0px 15px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+
+  /* --- ESTADO INICIAL --- */
+  /* El modal empieza 100% fuera de la pantalla hacia la derecha */
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out; /* Esta es la animación de deslizamiento */
+}
+
+/* --- ESTADO ACTIVO --- */
+/* Cuando el backdrop tiene la clase 'active', el modal se desliza a su posición final (visible) */
+.modal-carrito-backdrop.active .modal-carrito {
+  transform: translateX(0);
+}
+
+/* El resto de los estilos no necesitan cambios */
+.modal-carrito__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background-color: #00D095;
+  color: white;
+  flex-shrink: 0;
+}
+
+.modal-carrito__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.modal-carrito__close-button {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: white;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.modal-carrito__close-button:hover {
+  opacity: 1;
+}
+
+.modal-carrito__body {
+  flex-grow: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+}
