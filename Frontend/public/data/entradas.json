@@ -10,7 +10,7 @@
       "ubicacion": "Estadio San Marcos, LIMA, PE",
       "cantidad": 1,
       "precio": 300,
-      "imagen": "/assets/Logos/overpass.png",
+      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Overpass.png",
       "estado": "vigente",
       "transaccion": "TXN20250911001"
     },
@@ -22,7 +22,7 @@
       "ubicacion": "Estadio San Marcos, LIMA, PE",
       "cantidad": 1,
       "precio": 500,
-      "imagen": "/assets/Logos/linkinpark.png",
+      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Linkin%20Park.png",
       "estado": "vigente",
       "transaccion": "TXN20251018002"
     },
@@ -34,7 +34,7 @@
       "ubicacion": "Estadio Nacional, LIMA, PE",
       "cantidad": 2,
       "precio": 500,
-      "imagen": "/assets/Logos/default.png",
+      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Imagine%20Dragons.png",
       "estado": "vigente",
       "transaccion": "TXN20251028003"
     }

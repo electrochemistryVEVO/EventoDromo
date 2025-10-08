@@ -95,7 +95,7 @@ export default function MisEntradas({ entries = [], loading = false, error = nul
                           style={{ width: '120px', height: '120px' }}>
                         {entrada.imagen ? (
                           <img 
-                            src={'@/assets/logos/Overpass.svg'} 
+                            src={entrada.imagen} 
                             alt={entrada.titulo}
                             style={{ 
                               width: '100%', 
