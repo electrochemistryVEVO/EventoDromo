@@ -1,26 +1,50 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { autenticarUsuario } from "../service";
+// 📡 Importa una función llamada `autenticarUsuario` desde `service.js`.
+// Esa función probablemente hace la llamada al backend (por ejemplo con fetch o axios)
+// para verificar si el correo y contraseña son correctos.
 
-export async function onSubmit(event){
-  'use server'
-  let loginInfo = {};
-  let canRedirect = false;
-  console.log("peep");
-  loginInfo.correo = event.get("email");
-  loginInfo.password = event.get("password");
-  return await autenticarUsuario(loginInfo)
-    .then((res)=>{console.log(res.statusText);return res.json();})
-    .then((response)=>{
-      console.log(JSON.stringify(response));
-      canRedirect = response.success;
-    })
-    .catch((error) => {
-      console.log(error);
-    })
-    .finally(()=>{
-      if(canRedirect){
-        cookies().set("session",loginInfo,Date.now() + 10 * 1000 * 60 * 60); //10 horas
-        redirect("/");
-      }});
+
+// 📤 Esta función se exporta y se usa en `page.js` cuando se envía el formulario
+export async function onSubmit(formData) {
+  try {
+    // 🧱 1. Construimos un objeto con los datos del formulario:
+    const loginInfo = {
+      email: formData.get("email"),     // 📩 Obtiene el valor del input con name="email"
+      passwordhash: formData.get("password") // 🔑 Obtiene el valor del input con name="password"
+    };
+
+    // 📡 2. Llamamos a la función que valida el login en el backend
+    // Le enviamos el correo y contraseña al servidor para que los verifique.
+    const response = await autenticarUsuario(loginInfo);
+
+    // ✅ 3. Si la autenticación fue exitosa:
+    // 🗂️ 4. Guardamos datos de sesión en el navegador:
+      // En lugar de usar cookies del servidor, aquí se usa sessionStorage (propio del navegador)
+      // Esto permite que la sesión se mantenga mientras la pestaña esté abierta.
+    if (response.success) {
+      const cliente = response.cliente;
+
+      // Guarda toda la información del cliente
+      sessionStorage.setItem("session", JSON.stringify({
+        token: response.token,
+        cliente: cliente,
+      }));
+
+      return {
+        success: true,
+        rol: cliente?.rol, // si tu modelo tuviera rol
+        cliente: cliente,
+      };
+    } 
+    else {
+      // ❌ Si el backend respondió que las credenciales son incorrectas:
+      return { error: "Credenciales inválidas" };
+    }
+  } catch (error) {
+    // 💥 Si algo falla en la petición (por ejemplo, el backend no responde):
+    console.error("Error en el login:", error);
+    return { error: "Error al intentar iniciar sesión" };
+  }
 }

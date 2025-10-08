@@ -6,6 +6,79 @@ namespace EventodromoRest.Mappers
 {
     public class ClienteMapper(Globales.Globales globales, DBManager.DBManager DB)
     {
+
+        public Cliente ObtenerClientePorEmailPassword(string email, string password, out char tipoUsuario)
+        {
+            lock (DB)
+            {
+                string query = "SELECT * FROM Cliente WHERE email = @email AND passwordHash = @passwordHash";
+                var parametros = new ParameterList();
+                parametros.Add("@email", email);
+                parametros.Add("@passwordHash", password);
+
+                DB.Select(query, parametros);
+
+                // 👇 DB.Read() devuelve true si hay una fila disponible
+                if (DB.Read())
+                {
+                    Cliente cliente = new()
+                    {
+                        id = DB.GetInt("id"),
+                        nombres = DB.GetString("nombres"),
+                        apellidos = DB.GetString("apellidos"),
+                        email = DB.GetString("email"),
+                        passwordhash = DB.GetString("passwordHash"),
+                        fechanacimiento = DB.GetDateTime("fechaNacimiento"),
+                        idsexo = DB.GetInt("idSexo"),
+                        idtipodocumento = DB.GetInt("idTipoDocumento"),
+                        numerodocumento = DB.GetString("numeroDocumento"),
+                        telefono = DB.GetString("telefono"),
+                        idciudad = DB.GetInt("idCiudad"),
+                        politicadeprivacidad = DB.GetBoolean("politicaDePrivacidad"),
+                        enviodepublicidad = DB.GetBoolean("envioDePublicidad"),
+                        fechacreacion = DB.GetDateTime("fechaCreacion"),
+                        fechaultimaedicion = DB.GetDateTime("fechaUltimaEdicion"),
+                        fechaultimasession = DB.GetDateTime("fechaUltimaSesion"),
+                        sexo = ObtenerSexoPorId(DB.GetInt("idSexo")),
+                        tipodocumento = ObtenerTipoDocumentoPorId(DB.GetInt("idTipoDocumento")),
+                        ciudad = ObtenerCiudadPorId(DB.GetInt("idCiudad"))
+                    };
+
+                    tipoUsuario = 'C'; // Cliente
+                    return cliente;
+                }
+                else
+                {
+                    // Si no está en Cliente, probamos con Administrador
+                    query = "SELECT * FROM Administrador WHERE email = @email AND passwordHash = @passwordHash";
+                    DB.Select(query, parametros);
+
+                    if (DB.Read())
+                    {
+                        Cliente admin = new()
+                        {
+                            id = DB.GetInt("id"),
+                            nombres = DB.GetString("nombres"),
+                            apellidos = DB.GetString("apellidos"),
+                            email = DB.GetString("email"),
+                            passwordhash = DB.GetString("passwordHash"),
+                            fechacreacion = DB.GetDateTime("fechaCreacion")
+                        };
+
+                        tipoUsuario = 'A'; // Administrador
+                        return admin;
+                    }
+                    else
+                    {
+                        tipoUsuario = ' '; // Ninguno
+                        return null;
+                    }
+                }
+            }
+        }
+
+
+
         public List<Cliente> ListarClientes()
         {
             List<Cliente> listaClientes = new List<Cliente>();
