@@ -24,11 +24,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
-    <html>
-      <body>
-        {/* <body className={`${nunito.className} antialiased`}>{children}</body> */}
+    <html lang="es">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body suppressHydrationWarning>
+        <NextTopLoader color="#5750F1" showSpinner={false} />
         <body className={`${nunito.className} antialiased`}>{children}</body>
-        {/* {children} */}
       </body>
     </html>
   );

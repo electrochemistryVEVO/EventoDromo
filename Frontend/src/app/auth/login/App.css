@@ -1,139 +1,189 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
+
 .App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.login-hipervinculos-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;      /* <-- Cambia de flex-start a center */
-  
-  margin-top: 2.5rem;
-  padding: 0;
-  min-height: unset;
-}
-
-.alinear-derecha {
-  display: block;       /* Hace que el <a> ocupe toda la fila */
-  text-align: right;    /* El texto se va a la derecha */
-  margin-top: 5px;      /* Un poco de espacio con el input */
-  font-size: 0.9rem;    /* Opcional: que se vea un poco más discreto */
-  color: #007bff;       /* Opcional: estilo de link */
-  text-decoration: none;/* Opcional: sin subrayado */
-}
-
-.alinear-derecha:hover {
-  text-decoration: underline; /* Al pasar el mouse que se subraye */
-}
-.login-hipervinculos-container button {
-  background-color: #40b6b6;   /* Azul */
-  color: #fff;                 /* Texto blanco */
-  border: none;
-  border-radius: 5px;
-  padding: 0.7rem 2rem;
-  font-size: 1.1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.2s;
-  margin-bottom: 0.5rem;
-}
-
-.login-hipervinculos-container button:hover {
-  background-color: #125ea2;   /* Azul más oscuro al pasar el mouse */
-}
-
-.login-form-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start; /* Alinea todo a la izquierda */
-  justify-content: flex-start;  /* Izquierda */
-  padding-left: 2vw;           /* Espacio desde la izquierda */
-  padding-top: 13vh;             /* Espacio desde arriba */
-}
-
-.login-logo {
-  margin-bottom: 1.2rem;   /* Espacio debajo de la imagen */
-  margin-left: 0.2rem;     /* Opcional: pequeño ajuste para alinear con el form */
-  width: 200px;             /* Ajusta el tamaño según tu imagen */
-  height: 200px;
-  object-fit: contain;
+  height: 100vh;
+  font-family: "Nunito", sans-serif;
+  background-color: white;
 }
 
 .imagen-mitad {
-  position: absolute; 
-  right: 0;
-  top: 0;
-  width: 50%;      /* mitad derecha */
-  height: 100vh;   /* toda la altura */
-  overflow: hidden; /* recorta la imagen si se sale */
-  z-index: 0;       /* se queda detrás del formulario */
+  flex: 1;
+  position: relative;
+  overflow: hidden;
 }
 
-.imagen-mitad img {
+.background-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;  /* aquí sí funciona */
-  display: block;
+  object-fit: cover;
+  filter: brightness(0.8);
+}
+
+.login-form-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  background-color: white;
+  margin-top: 2rem;
+}
+
+/* Ajustes para pantallas grandes */
+@media (min-width: 1024px) {
+  .login-form-container {
+    min-width: 40vw;
+  }
+}
+
+/* Ajustes para pantallas medianas */
+@media (min-width: 769px) and (max-width: 1023px) {
+  .login-form-container {
+    min-width: 40vw;
+  }
+}
+
+/* Ajustes para móviles */
+@media (max-width: 768px) {
+  .login-form-container {
+    width: 100%;
+    padding: 1.5rem;
+    margin-top: 6rem;
+  }
+}
+
+.login-logo {
+  width: 300px;
+  height: auto;
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
 }
 
 .login-text {
-  background: #fff;
-  padding: 2rem 2.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  text-align: left;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  margin-top: 9rem;
+  display: flex;
+  flex-direction: column;
+  padding: 0 2rem;
+}
+
+.login-text input {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  min-width: 400px;
+}
+
+@media (max-width: 768px) {
+  .login-text {
+    max-width: 100%;
+    margin-top: 6rem;
+    padding: 0 1rem;
+  }
+
+  .login-text input {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .imagen-mitad {
+    display: none;
+  }
+
+  .login-form-container {
+    flex: 1;
+  }
+}
+.login-text div {
+  margin-bottom: 1.5rem;
 }
 
 .login-text label {
   display: block;
-  margin-bottom: 0.4rem; /* Espacio entre el label y el input */
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
 }
 
-.login-text input[type="email"],
-.login-text input[type="password"],
-.login-text input[type="text"],
-.login-text input[type="tel"]{
-  width: 100%;           /* Ocupa todo el ancho disponible */
-  padding: 0.6rem 5rem;  /* Hace la casilla más alta y cómoda */
-  font-size: 1.1rem;     /* Texto más grande */
-  border: 1px solid #bbb;
-  border-radius: 5px;
-  box-sizing: border-box;
-  background: #cbcbcb;      /* Fondo gris oscuro */
-  color: #f5f5f5;        /* Texto claro */
+.login-text input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #f5f5f5;
+  font-family: "Nunito", sans-serif;
+}
+
+.login-text input:focus {
+  outline: none;
+  border-color: #00bfa6;
+  background-color: white;
+}
+
+.login-hipervinculos-container {
+  text-align: center;
+}
+
+button[type="submit"] {
+  width: 100%;
+  padding: 1rem;
+  background-color: #00bfa6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  font-family: "Nunito", sans-serif;
+  transition: background-color 0.2s;
+  min-width: 400px;
+}
+
+@media (max-width: 768px) {
+  button[type="submit"] {
+    min-width: unset;
+    width: 100%;
+  }
+}
+
+button[type="submit"]:hover {
+  background-color: #00a892;
+}
+
+.alinear-derecha {
+  display: block;
+  text-align: right;
+  color: #00bfa6;
+  text-decoration: none;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.login-hipervinculos-container p {
+  margin: 0.5rem 0;
+  color: #666;
+}
+
+.login-hipervinculos-container a {
+  color: #00bfa6;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login-hipervinculos-container a:hover {
+  text-decoration: underline;
+}
+
+/* Estilos para el link "Volver al inicio" */
+.volver-inicio {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  color: #00bfa6;
+  text-decoration: none;
+  font-weight: 600;
 }
