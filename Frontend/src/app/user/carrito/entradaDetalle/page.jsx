@@ -5,7 +5,6 @@ import { cantidadEntradas, items } from "./controller";
 import CostoDetalleEntradas from '@/components/carrito/costoDetalleEntradas';
 import CheckboxCarrito from '@/components/carrito/CheckboxCarrito';
 import { useState } from 'react';
-import Link from 'next/link';
 
 function App() {
     const [aceptaTerminos, setAceptaTerminos] = useState(false);
@@ -24,7 +23,7 @@ function App() {
             </div>
             <section className="carrito-main-row flex flex-row">
                 <div className="carrito-col">
-                    <div className="costo-detalle-title pt-4 pb-2  text-lg">
+                    <div className="costo-detalle-title pt-4 pb-2 text-lg">
                         Tienes {cantidadEntradas()} entradas
                     </div>
                     <TablaEntradas items={items} />
@@ -46,23 +45,13 @@ function App() {
                             label="Autorizo el uso de mis datos para finalidades adicionales"
                         />
                     </div>
-                       <div className="botones-carrito-container">
-                        {aceptaTerminos ? (
-                            <Link
-                                href="/user/carrito/identificacion"
-                                className={"boton-pedido-finalizar"}
-                            >
-                                Finalizar Pedido
-                            </Link>
-                        ) : (
-                            <button
-                                type="button"
-                                className={"boton-pedido-finalizar boton-pedido-finalizar-disabled"}
-                                disabled
-                            >
-                                Finalizar Pedido
-                            </button>
-                        )}
+                    <div className="botones-carrito-container">
+                        <button
+                            className={"boton-pedido-finalizar" + (aceptaTerminos ? "" : " boton-pedido-finalizar-disabled")}
+                            disabled={!aceptaTerminos}
+                        >
+                            Finalizar Pedido
+                        </button>
                         <button
                             className="boton-pedido-eventos"
                         >
