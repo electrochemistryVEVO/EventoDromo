@@ -49,6 +49,7 @@
 .boton-pedido-finalizar {
     background: #00C49A;
     color: #fff;
+    text-align: center;
     font-weight: bold;
     font-size: 1.7rem;
     padding: 18px 40px;
@@ -58,6 +59,32 @@
     transition: background 0.2s;
     width: 100%;
     max-width: 340px;
+    cursor: pointer;
+}
+
+.boton-verde-activo {
+    background: #00C49A;
+    text-align: center;
+    color: #fff;
+    font-weight: bold;
+    padding: 18px 40px;
+    border-radius: 14px;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.boton-borde-verde {
+    background: transparent;
+    text-align: center;
+    color: #00C49A;
+    font-weight: bold;
+    padding: 18px 40px;
+    border-radius: 14px;
+    border: 2px solid #00C49A;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: background 0.2s;
     cursor: pointer;
 }
 

@@ -10,7 +10,8 @@ import { Header } from "@/components/Layouts/header";
 import type { Metadata } from "next";
 import NextTopLoader from "nextjs-toploader";
 import type { PropsWithChildren } from "react";
-//import { Providers } from "../providers";
+import { Nunito } from 'next/font/google';
+const nunito = Nunito({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: {
@@ -25,7 +26,9 @@ export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html>
       <body>
-        {children}
+        {/* <body className={`${nunito.className} antialiased`}>{children}</body> */}
+        <body className={`${nunito.className} antialiased`}>{children}</body>
+        {/* {children} */}
       </body>
     </html>
   );
