@@ -27,7 +27,7 @@ function CompraPagoConLogin() {
                         Regresar
                     </button>
                 </div>
-                <div className="flex flex-row gap-2 w-100 justify-center gap-5 items-center">
+                <div className="flex flex-row w-100 justify-center gap-5 items-center">
                     <div className="flex flex-row gap-2 items-center">
                         <div className="text-[#00C49A] font-bold text-4xl">Identificación</div>
                     </div>
