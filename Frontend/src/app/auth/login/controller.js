@@ -25,17 +25,18 @@ export async function onSubmit(formData) {
       // Esto permite que la sesión se mantenga mientras la pestaña esté abierta.
     if (response.success) {
       const cliente = response.cliente;
+      const rol = response.rol;
 
       // Guarda toda la información del cliente
       sessionStorage.setItem("session", JSON.stringify({
-        token: response.token,
-        cliente: cliente,
+        cliente,
+        rol,
       }));
 
       return {
         success: true,
-        rol: cliente?.rol, // si tu modelo tuviera rol
-        cliente: cliente,
+        rol,
+        cliente,
       };
     } 
     else {
