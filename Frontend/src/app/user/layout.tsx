@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
-    <html lang="en">
+    <>
     <head>
       <meta charSet="utf-8" />
       <meta
@@ -137,6 +137,6 @@ export default function RootLayout({ children }: PropsWithChildren) {
       </div>
     </footer>
     </body>
-    </html>
+    </>
   );
 }
