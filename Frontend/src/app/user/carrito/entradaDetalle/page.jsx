@@ -30,7 +30,6 @@ function App() {
                             <CostoDetalleEntradas entradas={items} />
                         </div>
                     </div>
-                    
                 </section>
             </section>
         </div>
