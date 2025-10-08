@@ -1,4 +1,4 @@
-/*"use client"
+"use client"
 
 import { useEffect } from 'react'
 
@@ -10,4 +10,4 @@ function BootstrapClient() {
   return null
 }
 
-export default BootstrapClient*/
+export default BootstrapClient
