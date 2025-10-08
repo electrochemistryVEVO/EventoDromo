@@ -10,8 +10,9 @@
       "ubicacion": "Estadio San Marcos, LIMA, PE",
       "cantidad": 1,
       "precio": 300,
-      "imagen": "/images/overpass.jpg",
-      "estado": "vigente"
+      "imagen": "/assets/Logos/overpass.png",
+      "estado": "vigente",
+      "transaccion": "TXN20250911001"
     },
     {
       "id": "2",
@@ -21,8 +22,21 @@
       "ubicacion": "Estadio San Marcos, LIMA, PE",
       "cantidad": 1,
       "precio": 500,
-      "imagen": "/images/linkinpark.jpg",
-      "estado": "vigente"
+      "imagen": "/assets/Logos/linkinpark.png",
+      "estado": "vigente",
+      "transaccion": "TXN20251018002"
+    },
+    {
+      "id": "3",
+      "titulo": "Titulo 1 ",
+      "fecha": "2025-10-28",
+      "hora": "218:00",
+      "ubicacion": "Estadio Nacional, LIMA, PE",
+      "cantidad": 2,
+      "precio": 500,
+      "imagen": "/assets/Logos/default.png",
+      "estado": "vigente",
+      "transaccion": "TXN20251028003"
     }
   ],
   "error": null
