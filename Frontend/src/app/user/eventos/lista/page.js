@@ -1,4 +1,3 @@
-import '@/css/styles.css'
 import { CarruselEventos, ListaEventos } from "./controller";
 
 //NOTA: En lo posible, usar componentes de react-bootstrap en vez de usar las clases manualmente

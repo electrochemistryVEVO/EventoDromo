@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import BootstrapClient from '@/components/BootstrapComponent';
 import "@/css/satoshi.css";
 import "@/css/style.css";
+import "@/css/user-style.css"
 import { Sidebar } from "@/components/Layouts/sidebar";
 
 import "flatpickr/dist/flatpickr.min.css";
@@ -13,8 +14,8 @@ import type { Metadata } from "next";
 import NextTopLoader from "nextjs-toploader";
 import type { PropsWithChildren } from "react";
 import Image from "next/image";
-//import logo from "@/assets/logos/eventodromo.svg";
-import { Logo } from "@/components/logo";
+import logo from "@/assets/logos/eventodromo.png";
+//import { Logo } from "@/components/logo";
 import Script from "next/script";
 import { text } from "node:stream/consumers";
 import { searchBarSubmit } from "./layout-controller";
@@ -47,30 +48,19 @@ export default function RootLayout({ children }: PropsWithChildren) {
       <body>
       <nav className="navbar navbar-expand-lg navbar-light bg-light">
         <div className="container px-4 px-lg-5">
-          <a className="navbar-brand" href="#!">Start Bootstrap</a>
+          <a className="navbar-brand" href="/user/eventos/lista"><Image
+            src={logo}
+            height={100}
+            alt=""
+            role="presentation"
+          /></a>
           <button className="navbar-toggler" type="button" data-bs-toggle="collapse"
                   data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                   aria-label="Toggle navigation"><span className="navbar-toggler-icon"></span></button>
-          <Logo/>
+
           <div className="navbar-collapse" id="navbarSupportedContent">
-            <ul className="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
-              <li className="nav-item"><a className="nav-link active" aria-current="page" href="#!">Home</a></li>
-              <li className="nav-item"><a className="nav-link" href="#!">About</a></li>
-              <li className="nav-item dropdown">
-                <a className="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
-                   data-bs-toggle="dropdown" aria-expanded="false">Shop</a>
-                <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
-                  <li><a className="dropdown-item" href="#!">All Products</a></li>
-                  <li>
-                    <hr className="dropdown-divider" />
-                  </li>
-                  <li><a className="dropdown-item" href="#!">Popular Items</a></li>
-                  <li><a className="dropdown-item" href="#!">New Arrivals</a></li>
-                </ul>
-              </li>
-            </ul>
             <Form id="navSearchBar" className="d-flex" action={searchBarSubmit}>
-              <input id="searchBarText" name="searchBarText" type="text">
+              <input className="search-bar px-4 py-3 rounded-2" placeholder="Busca tus eventos" id="searchBarText" name="searchBarText" type="text">
 
               </input>
             </Form>
@@ -85,22 +75,26 @@ export default function RootLayout({ children }: PropsWithChildren) {
           </div>
         </div>
       </nav>
-      <header className="bg-dark py-5">
-        <div className="px-lg-5 container my-5 px-4">
-          <div className="text-center text-white">
-            <h1 className="display-4 fw-bolder">Shop in style</h1>
-            <p className="lead fw-normal text-white-50 mb-0">
-              With this shop hompeage template
-            </p>
-          </div>
-        </div>
-      </header>
       {children}
-      <footer className="bg-dark py-5">
+      <footer className="bg-dark py-5 text-white">
         <div className="container">
-          <p className="m-0 text-center text-white">
-            Copyright &copy; Your Website 2023
-          </p>
+          <div className="row">
+            <div className="col">
+              <Image
+                src={logo}
+                height={100}
+                alt=""
+                role="presentation"
+              />
+              <div className="col container">
+                <div className="row">
+                  <h2>Conversemos</h2>
+                </div>
+              </div>
+            </div>
+          </div>
+          <hr/>
+          Todos los derechos reservados
         </div>
       </footer>
       </body>
