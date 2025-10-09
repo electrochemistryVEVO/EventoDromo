@@ -1,26 +1,35 @@
 import { redirect } from "next/navigation";
-import { insertarUsuario } from "../service";
+import { insertarUsuario } from "../../../services/signUpService";
 
-export async function onSubmit(event){
-  'use server'
-  let loginInfo = {};
-  let canRedirect = false;
-  console.log("peep");
-  loginInfo.correo = event.get("email");
-  loginInfo.contrasena = event.get("password");
-  //placeholders
-  loginInfo.nombre = event.get("nombres");
-  loginInfo.apellido = event.get("apellidos");
-  loginInfo.dni =  event.get("dni");
-  loginInfo.telefono = event.get("telefono");
-  return await insertarUsuario(loginInfo)
-    .then((res)=>{console.log(res.statusText);return res.json();})
-    .then((response)=>{
-      console.log(JSON.stringify(response));
-      canRedirect = response.resultado;
-    })
-    .catch((error) => {
-      console.log(error);
-    })
-    .finally(()=>{if(canRedirect)redirect("/auth/login");});
+export async function onSubmit(formData) {
+  try {
+    const clienteData = {
+      nombre: formData.get("nombres"),
+      apellido: formData.get("apellidos"),
+      correo: formData.get("email"),
+      contrasena: formData.get("password"),
+      tipoDocumento: formData.get("tipoDocumento"),
+      numeroDocumento: formData.get("numeroDocumento"),
+      fechaNacimiento: formData.get("fechaNacimiento"),
+      telefono: formData.get("telefono"),
+      pais: formData.get("pais"),
+      ciudad: formData.get("ciudad"),
+      sexo: formData.get("sexo"),
+      aceptaPromociones: formData.get("promociones") === "on",
+    };
+
+    const response = await insertarUsuario(clienteData);
+    if (response.success) {
+          // Redirigir al login después de un registro exitoso
+      window.location.href = "/auth/login";
+      return { success: true };
+    } else {
+      return { error: "No se pudo completar el registro" };
+    }
+
+    
+  } catch (error) {
+    console.error("Error en el registro:", error);
+    return { error: "Error al procesar el registro" };
+  }
 }
