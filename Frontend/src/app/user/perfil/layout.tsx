@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { PropsWithChildren } from "react";
-import "./perfil.css";
+import "./layout.css";
 
 export default function PerfilLayout({ children }: PropsWithChildren) {
   const searchParams = useSearchParams();
@@ -20,7 +20,7 @@ export default function PerfilLayout({ children }: PropsWithChildren) {
 
   return (
     <div className="perfil-page">
-      {/* Banner: contenido primero, overlay, luego imagen (imagen debajo del texto mediante z-index) */}
+      {/* Banner */}
       <div className="perfil-banner" role="banner">
         <div className="perfil-banner-content">
           <h1 className="perfil-banner-title">Bienvenido a tu perfil</h1>
@@ -44,25 +44,57 @@ export default function PerfilLayout({ children }: PropsWithChildren) {
       <div className="perfil-container">
         <aside className="perfil-sidebar" aria-label="Navegación de perfil">
           <nav>
-            <ul>
+            <ul className="perfil-sidebar-list">
               <li>
                 <Link href="/user/perfil?tab=info" className={linkClass("info")}>
-                  Información Personal
+                  <div className="sidebar-card">
+                    <div className="sidebar-dots" aria-hidden="true">
+                      <span className="dot" />
+                      <span className="dot" />
+                      <span className="dot" />
+                      <span className="dot" />
+                      <span className="dot" />
+                    </div>
+                    <div className="sidebar-text">Información Personal</div>
+                  </div>
                 </Link>
               </li>
+
               <li>
                 <Link href="/user/perfil?tab=entradas" className={linkClass("entradas")}>
-                  Mis Entradas
+                  <div className="sidebar-card">
+                    <div className="sidebar-dots" aria-hidden="true">
+                      <span className="dot" />
+                      <span className="dot" />
+                      <span className="dot" />
+                      <span className="dot" />
+                      <span className="dot" />
+                    </div>
+                    <div className="sidebar-text">Mis Entradas</div>
+                  </div>
                 </Link>
               </li>
+
               <li>
                 <Link href="/user/perfil?tab=dromopuntos" className={linkClass("dromopuntos")}>
-                  Mis DromoPuntos
+                  <div className="sidebar-card">
+                    <div className="sidebar-dots" aria-hidden="true">
+                      <span className="dot" />
+                      <span className="dot" />
+                      <span className="dot" />
+                      <span className="dot" />
+                      <span className="dot" />
+                    </div>
+                    <div className="sidebar-text">Mis DromoPuntos</div>
+                  </div>
                 </Link>
               </li>
             </ul>
           </nav>
         </aside>
+
+        {/* vertical divider (hr parado) */}
+        <div className="perfil-vertical-divider" aria-hidden="true" />
 
         <main className="perfil-main" id="perfil-main">
           <div className="perfil-main-inner">{children}</div>

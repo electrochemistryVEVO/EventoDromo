@@ -1,3 +1,5 @@
+import "./mis-entradas.css";
+
 export default function MisEntradas({
   entries = [],
   loading = false,

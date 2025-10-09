@@ -2,7 +2,7 @@
   --perfil-max-width: 1100px;
   --perfil-sidebar-width: 220px;
   --perfil-accent: #00c2a3;
-  --perfil-banner-height: 220px;
+  --perfil-banner-height: 363px;
   --perfil-banner-radius: 6px;
   --perfil-gap: 24px;
 }
@@ -29,7 +29,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: center 38%;
   display: block;
   z-index: 0; /* detrás de overlay y contenido */
 }
@@ -53,13 +53,14 @@
 }
 .perfil-banner-title {
   margin: 0;
-  font-size: 28px;
+  font-size: 64px;
   line-height: 1;
   font-weight: 700;
 }
 .perfil-banner-sub {
   margin: 0;
   opacity: 0.95;
+  font-size: 24px;
 }
 
 /* main container centered */
@@ -159,6 +160,32 @@
 /* footer pagination */
 .mef-footer { display:flex; justify-content:space-between; align-items:center; margin-top:12px; gap:12px; flex-wrap:wrap; }
 .mef-summary { color:#6b6b6b; font-size:13px; }
+
+/* divider (rayita) entre los botones (mef-left) y el resto */
+.mef-left {
+  position: relative; /* necesario para el pseudo-elemento */
+  padding-right: 14px; /* espacio para la rayita */
+}
+
+.mef-left::after {
+  content: "";
+  position: absolute;
+  right: 6px;                /* separa la raya del contenido de mef-left */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;                /* grosor de la raya */
+  height: 40px;              /* altura de la raya; ajustar según diseño */
+  background: rgba(0, 0, 0, 0.08); /* color / opacidad */
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+/* responsivo: ocultar la raya en pantallas pequeñas */
+@media (max-width: 700px) {
+  .mef-left::after {
+    display: none;
+  }
+}
 
 /* responsive */
 @media (max-width: 900px) {

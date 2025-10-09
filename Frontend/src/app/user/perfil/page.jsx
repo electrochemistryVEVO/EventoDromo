@@ -7,8 +7,9 @@ export const metadata = {
   description: "Sección de perfil del usuario",
 };
 
-export default function Page({ searchParams }) {
-  const tab = (searchParams?.tab || "entradas").toString();
+export default async function Page({ searchParams }) {
+  const params = await searchParams; // resolver el proxy antes de leer propiedades
+  const tab = (params?.tab || "entradas").toString();
 
   return (
     <>
