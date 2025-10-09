@@ -12,7 +12,6 @@ import NextTopLoader from "nextjs-toploader";
 import type { PropsWithChildren } from "react";
 import Image from "next/image";
 import logo from "@/assets/logos/eventodromo.svg";
-import { ListaEventos } from "@/app/user/eventos/controller";
 //import { Providers } from "../providers";
 
 export const metadata: Metadata = {
