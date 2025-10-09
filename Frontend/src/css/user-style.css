@@ -1,4 +1,9 @@
 .search-bar{
     @apply bg-gray-300
+}
 
+.dynamic-bg{
+    position:absolute;
+    filter:blur(4px);
+    z-index: -1;
 }

@@ -2,19 +2,21 @@ import Image from "next/image";
 import { Suspense,use } from "react";
 type LazyImageProps = {
   imageUrl:string;
+  className?:string;
 }
 //Usa este componente si quieres cargar una imagen dinamicamente
 export default function LazyImage(props:LazyImageProps){
   const img = import('@/assets/pictures/'+props.imageUrl);
+  const finalClassName = "img-fluid d-block w-100 "+(props?.className ?? "")
   return (
     <div>
       <Suspense fallback={<Image
-        className="img-fluid d-block w-100"
+        className={finalClassName}
         src={"https://placehold.co/400"}
         alt="..."
       />}>
         <Image
-          className="img-fluid d-block w-100"
+          className={finalClassName}
           src={use(img)}
           alt="..."
         />
