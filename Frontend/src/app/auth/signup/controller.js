@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { insertarUsuario } from "../service";
+import { insertarUsuario } from "../../../services/signUpService";
 
 export async function onSubmit(formData) {
   try {
@@ -19,19 +19,15 @@ export async function onSubmit(formData) {
     };
 
     const response = await insertarUsuario(clienteData);
-    const data = await response.json();
-
-    if (!response.ok) {
-      return { error: data.mensaje || "Error al registrar el usuario" };
-    }
-
-    if (data.resultado) {
-      // Redirigir al login después de un registro exitoso
+    if (response.success) {
+          // Redirigir al login después de un registro exitoso
       window.location.href = "/auth/login";
       return { success: true };
     } else {
       return { error: "No se pudo completar el registro" };
     }
+
+    
   } catch (error) {
     console.error("Error en el registro:", error);
     return { error: "Error al procesar el registro" };

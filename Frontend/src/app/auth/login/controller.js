@@ -2,7 +2,7 @@
 // 📍 Indica a Next.js que este archivo se ejecuta en el **navegador** (lado del cliente).
 // Esto es necesario porque aquí se usa sessionStorage (que solo existe en el navegador).
 
-import { autenticarUsuario } from "../service";
+import { autenticarUsuario } from "../../../services/loginService";
 // 📡 Importa una función llamada `autenticarUsuario` desde `service.js`.
 // Esa función probablemente hace la llamada al backend (por ejemplo con fetch o axios)
 // para verificar si el correo y contraseña son correctos.
@@ -26,19 +26,19 @@ export async function onSubmit(formData) {
       // En lugar de usar cookies del servidor, aquí se usa sessionStorage (propio del navegador)
       // Esto permite que la sesión se mantenga mientras la pestaña esté abierta.
     if (response.success) {
-      const cliente = response.cliente;
+      //const cliente = response.cliente;
       const rol = response.rol;
 
       // Guarda toda la información del cliente
       sessionStorage.setItem("session", JSON.stringify({
-        cliente,
+        //cliente,
         rol,
       }));
 
       return {
-        success: true,
+        success:  true,//es obligatorio para que page.js sepa que fue exitoso aunque en el json de respuesta ya se envia un succes true porque si no no entra al if en page.js
         rol,
-        cliente,
+        //cliente,
       };
     } 
     else {
