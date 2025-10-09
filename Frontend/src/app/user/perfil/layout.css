@@ -1,13 +1,18 @@
 :root {
-  --perfil-max-width: 1100px;
-  --perfil-sidebar-width: 293px;
+  --perfil-max-width: 1200px;
+  /* aumentado para dar más espacio al contenido */
+  --perfil-sidebar-width: 240px;
+  /* reducido para ceder espacio al main */
   --perfil-accent: #00C49A;
   --perfil-banner-height: 363px;
-  --perfil-gap: 24px;
+  --perfil-gap: 0px;
+  /* un poco menos de gap entre sidebar y main */
 }
 
 /* page layout */
-.perfil-page { background: var(--perfil-bg, #f8f8f8); }
+.perfil-page {
+  background: var(--perfil-bg, #f8f8f8);
+}
 
 /* banner */
 .perfil-banner {
@@ -19,6 +24,7 @@
   align-items: center;
   justify-content: center;
 }
+
 .perfil-banner-img {
   position: absolute;
   inset: 0;
@@ -29,12 +35,14 @@
   z-index: 0;
   transform: translateY(var(--perfil-banner-shift, 0px));
 }
+
 .perfil-banner-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.15) 40%, transparent 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.15) 40%, transparent 100%);
   z-index: 1;
 }
+
 .perfil-banner-content {
   position: relative;
   max-width: var(--perfil-max-width);
@@ -47,76 +55,169 @@
   align-items: flex-start;
   z-index: 2;
 }
-.perfil-banner-title { margin: 0; font-size: 64px; line-height: 1; font-weight: 700; }
-.perfil-banner-sub { margin: 0; opacity: .95; font-size: 24px; }
 
-/* main container centered + layout */
+.perfil-banner-title {
+  margin: 0;
+  font-size: 64px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.perfil-banner-sub {
+  margin: 0;
+  opacity: .95;
+  font-size: 24px;
+}
+
+/* --- corrección: asegurar espacio real para el aside y evitar solapamientos --- */
 .perfil-container {
-  max-width: var(--perfil-max-width);
-  margin: calc(var(--perfil-gap)) auto;
-  display: flex;
-  gap: var(--perfil-gap);
-  padding: 0 20px;
+  display: grid;
+  width: 100%;
+  /* Ocupa todo el ancho de la ventana */
+  margin: 10px 0px;
+  padding: 30px 0px 20px 0px;
   box-sizing: border-box;
+
+  /* Columnas: espacio sobrante, sidebar, divisor, contenido principal, espacio sobrante */
+  grid-template-columns: 1fr var(--perfil-sidebar-width) 2px minmax(0, var(--perfil-max-width)) 1fr;
+  gap: var(--perfil-gap);
   align-items: flex-start;
 }
 
-/* sidebar (cards + dots) */
+/* Sidebar: ya no necesita flex-shrink ni width, grid se encarga */
 .perfil-sidebar {
-  width: var(--perfil-sidebar-width);
-  flex-shrink: 0;
-  padding: 0;
-  display: flex;
-  align-items: flex-start;
-  background: transparent;
+  position: relative;
+  grid-column: 2;
+  z-index: 30;
+  /* El ancho es definido por grid-template-columns */
+  /* Espacio extra a la derecha para separar del divisor vertical */
+  margin-right: 16px;
 }
-.perfil-sidebar-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:18px; }
+
+/* sidebar: asegurar que el link no muestre estilo de ancla por defecto */
+.perfil-sidebar-link {
+  display: block;
+  color: inherit;
+  /* heredará el color del card */
+  text-decoration: none;
+  /* evita subrayado / color de link por defecto */
+}
+
+.perfil-sidebar-list {
+  list-style: none;
+  padding: 0px 0px 30px 0px;
+  margin: 0px 0px 20px 0px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
 
 /* card */
 .sidebar-card {
-  display:flex;
-  align-items:center;
-  gap:16px;
-  width:100%;
-  height:107px;
-  padding:16px 20px;
-  box-sizing:border-box;
-  border-radius:20px;
-  background:#f2f2f2;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  height: 107px;
+  padding: 16px 20px;
+  box-sizing: border-box;
+  border-radius: 20px;
+  background: #f2f2f2;
   transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
-  overflow:hidden;
+  overflow: hidden;
 }
+
+/* card text: texto negro por defecto, blanco solo cuando está activo */
+.sidebar-text {
+  font-weight: 500;
+  font-size: 24px;
+  /* cambiado a 24px según Figma */
+  color: #111;
+  /* texto en negro cuando NO está seleccionado */
+  white-space: normal;
+  /* permitir que el texto se ajuste a varias líneas */
+}
+
+.perfil-sidebar-link.active .sidebar-text {
+  color: #fff;
+  /* blanco cuando la tarjeta está activa/seleccionada */
+}
+
 .perfil-sidebar-link.active .sidebar-card {
   background: var(--perfil-accent);
-  color:#fff;
-  box-shadow: 0 6px 18px rgba(0,196,154,0.12);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(0, 196, 154, 0.12);
 }
 
 /* dots */
-.sidebar-dots { display:flex; flex-direction:column; gap:10px; align-items:center; justify-content:center; width:18px; }
-.sidebar-dots .dot { width:15px; height:15px; border-radius:50%; background:#fff; box-shadow:0 2px 4px rgba(0,0,0,0.08); }
-
-/* card text */
-.sidebar-text { font-weight:700; font-size:15px; color:inherit; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-/* vertical divider (hr parado) */
-.perfil-vertical-divider {
-  width:1px;
-  background:rgba(0,0,0,0.08);
-  margin-left:12px;
-  margin-right:20px;
-  align-self:stretch;
-  border-radius:1px;
+.sidebar-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
 }
 
-/* main content */
-.perfil-main { flex:1; min-width:0; }
-.perfil-main-inner { background:#fff; padding:20px; border-radius:8px; box-shadow:0 4px 12px rgba(9,10,10,0.03); overflow-x:hidden; box-sizing:border-box; }
+.sidebar-dots .dot {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* vertical divider: colocado entre aside y main, no encima del aside */
+.perfil-vertical-divider {
+  position: relative;
+  grid-column: 3;
+  /* Coloca el divisor en la tercera columna */
+  /* El ancho es definido por grid-template-columns */
+  background: rgba(0, 0, 0, 0.36);
+  /* más contrastada */
+  align-self: stretch;
+  border-radius: 1px;
+}
+
+/* main: ocupar el resto correctamente */
+.perfil-main {
+  position: relative;
+  grid-column: 4;
+  /* Coloca el contenido principal en la cuarta columna */
+  min-width: 0;
+  /* El ancho es definido por grid-template-columns (1fr) */
+  /* El max-width ya no es necesario aquí, lo controla el contenedor */
+}
+
+/* main-inner: evitar overflow horizontal y mantener stacking correcto */
+.perfil-main-inner {
+  position: relative;
+  z-index: 11;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(9, 10, 10, 0.03);
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
 
 /* responsive */
 @media (max-width: 900px) {
-  :root { --perfil-sidebar-width: 72px; }
-  .sidebar-text { display:none; }
-  .perfil-vertical-divider { display:none; }
-  .sidebar-card { height:72px; padding:10px; border-radius:12px; }
+  :root {
+    --perfil-sidebar-width: 72px;
+  }
+
+  .sidebar-text {
+    display: none;
+  }
+
+  .perfil-vertical-divider {
+    display: none;
+  }
+
+  .sidebar-card {
+    height: 72px;
+    padding: 10px;
+    border-radius: 12px;
+  }
 }

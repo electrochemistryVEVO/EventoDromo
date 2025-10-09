@@ -14,6 +14,7 @@ export default function PerfilLayout({ children }: PropsWithChildren) {
     "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Banner.png";
   const FALLBACK_BANNER = "/images/cards-04.png";
   const [bannerSrc, setBannerSrc] = useState(REMOTE_BANNER);
+  const [hasTriedFallback, setHasTriedFallback] = useState(false);
 
   const linkClass = (name: string) =>
     `perfil-sidebar-link ${tab === name ? "active" : ""}`;
@@ -34,7 +35,12 @@ export default function PerfilLayout({ children }: PropsWithChildren) {
           alt="Banner de perfil"
           className="perfil-banner-img"
           onError={() => {
-            if (bannerSrc !== FALLBACK_BANNER) setBannerSrc(FALLBACK_BANNER);
+            // Si aún no hemos intentado con la imagen de fallback, la usamos.
+            // Si la de fallback también falla, hasTriedFallback será true y no haremos nada más.
+            if (!hasTriedFallback) {
+              setHasTriedFallback(true);
+              setBannerSrc(FALLBACK_BANNER);
+            }
           }}
           loading="lazy"
         />

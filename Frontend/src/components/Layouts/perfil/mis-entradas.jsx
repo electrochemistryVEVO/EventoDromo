@@ -40,6 +40,7 @@ export default function MisEntradas({
 
   return (
     <div style={{ overflowX: "hidden" }}>
+      <h1>Mis entradas</h1>
       {/* Top row: filtros en una sola linea */}
       <div className="mef-filters-row">
         <div className="mef-left">
