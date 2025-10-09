@@ -44,7 +44,7 @@ function CompraPagoConLogin() {
                     <div className="flex flex-row gap-2 items-center">
                         <div className="text-[#00C49A] font-semibold text-4xl">Identificación</div>
                     </div>
-                    <div className="flex flex-col">
+                    <div className="flex flex-col text-2xl">
                         <br></br>
                         cperez@email.com<br></br>
                         Carlos Perez<br></br>
@@ -56,7 +56,7 @@ function CompraPagoConLogin() {
                         <div className="text-[#00C49A] font-semibold text-4xl">Metodo de Pago</div>
                     </div>
                     {/* Radio Buttons for Payment Method */}
-                    <div className="flex flex-col gap-3 items-start p-4">
+                    <div className="flex flex-col gap-3 items-start p-4 text-2xl">
                         <label className="flex items-center gap-2">
                             <input
                                 type="radio"
@@ -135,22 +135,23 @@ function CompraPagoConLogin() {
                             )}
                         </div>
                         {selectedPaymentMethod === 'tarjeta' && (
-                            <div className="flex flex-col items-center gap-3 mt-2">
-                                <div className="costo-detalle-title pt-4 pb-2  text-lg">
-                                   Total: S/. {importeTotal()}  
+                            <div className="flex flex-col items-start gap-1 mt-2">
+                                <div className="costo-detalle-title pt-4 pb-2 text-lg text-left">
+                                    Total: S/. {importeTotal()}
                                 </div>
-                                <div>
-                                <span style={{fontSize: '2.2rem', color: '#00C49A'}}>
-                                    &#36;
-                                </span>
-                                    <span className="font-bold text-lg text-[#00C49A]">+12 Dromopuntos</span>
+                                <div className="flex items-center">
+                                    <span style={{fontSize: '2.2rem', color: '#00C49A'}}>
+                                        &#36;
+                                    </span>
+                                    <span className="font-bold text-lg text-[#00C49A] ml-2">+12 Dromopuntos</span>
                                 </div>
                             </div>
                         )}
                         <div className="flex justify-center mt-6">
                             {selectedPaymentMethod ? (
                                 <button
-                                    className="bg-[#00C49A] text-white rounded-2xl px-8 py-2 font-bold text-lg shadow hover:bg-[#00b07e] transition"
+                                    className="bg-[#00C49A] text-white rounded-2xl px-16 py-4 font-extrabold text-2xl shadow-lg hover:bg-[#00b07e] transition"
+                                    style={{ minWidth: '220px' }}
                                     onClick={() => setShowModal(true)}
                                 >
                                     Pagar

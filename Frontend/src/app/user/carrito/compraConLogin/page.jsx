@@ -88,8 +88,19 @@ function App() {
                                     <option>Seleccione su ciudad</option>
                                     <option>aux2</option>
                                 </select>
+                                
                             </div>
                             
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '2rem' }}>
+                            <button
+                                className="bg-[#00C49A] text-white rounded-2xl px-8 py-2 font-bold text-lg shadow hover:bg-[#00b07e] transition"
+                                onClick={() => {
+                                    window.location.href = '/user/carrito/CompraPagoConLogin';
+                                }}
+                            >
+                                Ir a método de pago
+                            </button>
                         </div>
                     </div>
                 </section>

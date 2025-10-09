@@ -49,6 +49,11 @@ function App() {
                         <button
                             className={"boton-pedido-finalizar" + (aceptaTerminos ? "" : " boton-pedido-finalizar-disabled")}
                             disabled={!aceptaTerminos}
+                            onClick={() => {
+                                if (aceptaTerminos) {
+                                    window.location.href = '/user/carrito/identificacion';
+                                }
+                            }}
                         >
                             Finalizar Pedido
                         </button>
