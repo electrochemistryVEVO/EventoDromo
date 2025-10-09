@@ -125,7 +125,9 @@
 }
 
 .login-text input[type="email"],
-.login-text input[type="password"] {
+.login-text input[type="password"],
+.login-text input[type="text"],
+.login-text input[type="tel"]{
   width: 100%;           /* Ocupa todo el ancho disponible */
   padding: 0.6rem 5rem;  /* Hace la casilla más alta y cómoda */
   font-size: 1.1rem;     /* Texto más grande */
