@@ -1,6 +1,9 @@
 import EventCard from "@/components/ui-elements/cards/eventCard"
 import CarouselImage from "@/components/ui-elements/carouselImage";
 import { Carousel,CarouselItem } from 'react-bootstrap'
+
+
+
 //NOTA: En lo posible, usar componentes de react-bootstrap en vez de usar las clases manualmente
 //Usar las clases manualmente no implementa el javascript necesario para el funcionamiento de algunos elementos
 const eventoMockData = [
@@ -171,36 +174,45 @@ export async function CarruselEventos(){
 export async function ListaEventos(){
     'use server'
     //funcion transforma eventos a su componente
-    const _eventCard = (evento) => (<EventCard event={evento}/>)
+    const _eventCard = (evento) => (
+      // col-12: 1 por fila (móviles), col-md-6: 2 por fila (tablets), col-lg-3: 4 por fila (escritorio)
+      <div key={evento.id} className="col-12 col-md-6 col-lg-3 mb-4">
+        <EventCard event={evento}/>
+      </div>
+    )
+
     return (
       <section className="py-5">
-        <div className="container px-4 px-lg-5 mt-5">
-          <h2>EVENTOS DESTACADOS</h2>
-          <div className="col gx-4 gx-lg-5  justify-content-center">
-            <div id="lista-destacados" className="row px-lg-5 container mt-5 px-4">
-              {destacados.map(_eventCard)}
-            </div>
-          </div>
+        <div className="container-fluid px-4 px-lg-5 mt-5">
 
-          <h2>CONCIERTOS</h2>
-          <div className="col gx-4 gx-lg-5 justify-content-center">
+          {/* -------------------- EVENTOS DESTACADOS -------------------- */}
+          <h2 className="titulo-destacado">Eventos Destacados</h2>
+          
+          {/* NOTA: Eliminé el div extra con clase "col" que no es estándar en Bootstrap.
+             La lista de tarjetas debe ir directamente en un "row". */}
+          <div id="lista-destacados" className="row px-lg-5 container-fluid mt-5 px-4">
+            {destacados.map(_eventCard)}
+          </div>
+          
+          {/* -------------------- CONCIERTOS -------------------- */}
+          <h2 className="titulo-destacado">Conciertos</h2>
           <div id="lista-conciertos" className="row px-lg-5 container mt-5 px-4">
             {conciertos.map(_eventCard)}
           </div>
-          </div>
-          <h2>CULTURALES</h2>
-          <div className="col gx-4 gx-lg-5 justify-content-center">
+          
+          {/* -------------------- CULTURALES -------------------- */}
+          <h2 className="titulo-destacado">Culturales</h2>
           <div id="lista-culturales" className="row px-lg-5 container mt-5 px-4">
             {culturales.map(_eventCard)}
           </div>
-          </div>
-          <h2>DEPORTES</h2>
-          <div className="col gx-4 gx-lg-5 justify-content-center">
+          
+          {/* -------------------- DEPORTES -------------------- */}
+          <h2 className="titulo-destacado">Deportes</h2>
           <div id="lista-deportes" className="row px-lg-5 container mt-5 px-4">
             {deportes.map(_eventCard)}
           </div>
-          </div>
         </div>
       </section>
-);
+    );
+
 }
