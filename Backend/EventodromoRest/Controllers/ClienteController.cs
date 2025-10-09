@@ -46,8 +46,10 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
-        /*
-        public GenericResponse<signUpResponse> InsertarClienteSignUp([FromBody] Cliente request)
+        //sin esto no funciona el nuevo servicio
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<SignUpResponse> InsertarClienteSignUp([FromBody] RequestSignUpCliente request)
         {
             try
             {
@@ -55,19 +57,19 @@ namespace EventodromoRest.Controllers
                 var signUpResponse = new ClienteBO(globales, BD)
                     .InsertarCliente(request);
 
-                var response = new GenericResponse<signUpResponse>
+                var response = new GenericResponse<SignUpResponse>
                 {
-                    Success = loginResponse.success,
-                    Message = loginResponse.success ? "Autenticación exitosa" : "Credenciales inválidas",
+                    Success = signUpResponse.success,
+                    Message = signUpResponse.success ? "Insertar exitoso" : "Insertar inválido",
                     Error = null,
-                    Data = loginResponse
+                    Data = signUpResponse
                 };
 
                 return response;
             }
             catch (Exception e)
             {
-                var response = new GenericResponse<LoginResponse>
+                var response = new GenericResponse<SignUpResponse>
                 {
                     Success = false,
                     Message = null,
@@ -78,6 +80,6 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
-        */
+        
     }
 }
