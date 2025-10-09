@@ -1,4 +1,7 @@
-﻿namespace EventodromoRest.Negocio
+﻿using EventodromoRest.Mappers;
+using EventodromoRest.Modelos;
+
+namespace EventodromoRest.Negocio
 {
     public class ClienteBO (Globales.Globales globales, DBManager.DBManager DB)
     {

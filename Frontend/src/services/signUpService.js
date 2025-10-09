@@ -28,4 +28,8 @@ export async function insertarUsuario(loginInfo) {
     body: JSON.stringify(loginInfo),
   });
   */
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/grupo2

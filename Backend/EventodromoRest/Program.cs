@@ -56,11 +56,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-<<<<<<< HEAD
-// AGREGAR USO DE CORS - Esto también es necesario
-=======
 // AGREGAR USO DE CORS - Esto tambiÃ©n es necesario
->>>>>>> 4257796 (todo funciona el login con docker)
 app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();

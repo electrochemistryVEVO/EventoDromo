@@ -1,16 +1,14 @@
-//'use client'
-//TODO: usar componente aparte en vez de hacerlo todo en una pagina
-import './App.css';
+"use client"; 
+// 👆 Indica a Next.js que este componente se ejecuta en el **lado del cliente (navegador)**.
+// Esto es necesario porque usamos hooks como useState y useRouter.
 
-import { cookies } from "next/headers";
-
-//import logo from '../assets/logo.png';
-import logo from '@/assets/logos/eventodromo.svg'
-import Image from "next/image";
-import { redirect } from 'next/navigation';
-import imagenMitad from '@/assets/pictures/imagenMitad.png';
-import Form from "next/form";
-import { onSubmit } from "./controller";
+import "./App.css"; // 📁 Importa los estilos CSS para esta página.
+import logo from "@/assets/logos/logo_eventodromo.png"; // 📷 Logo de tu aplicación.
+import Image from "next/image"; // 🖼️ Componente optimizado de Next.js para imágenes.
+import imagenMitad from "@/assets/pictures/imagenMitad.png"; // 📷 Imagen decorativa lateral.
+import { useRouter } from "next/navigation"; // 🚀 Hook de Next.js para redirigir a otras rutas.
+import { useState } from "react"; // 🧠 Hook de React para manejar estados (como el error).
+import { onSubmit } from "./controller"; // 📡 Función que procesa el login (definida en controller.js).
 
 import Link from "next/link"; // Asegúrate de tener esta importación al inicio
 
@@ -58,10 +56,6 @@ function App() {
 
   // 🧱 Aquí empieza el renderizado (lo que se ve en pantalla)
   return (
-<<<<<<< HEAD
-    <div className="App">
-      <div className='imagen-mitad'>
-=======
     <div className="App"> 
       {/* Contenedor principal */}
       
@@ -109,40 +103,16 @@ function App() {
 
       {/* 📷 Sección derecha: imagen decorativa */}
       <div className="imagen-mitad">
->>>>>>> 4257796 (todo funciona el login con docker)
         <Image
           src={imagenMitad}
           alt="Imagen de fondo"
           className="background-image"
+          priority
         />
-      </div>
-      <div className="login-form-container">
-        {/* Imagen encima del formulario */}
-        <Image
-          src={logo}
-          alt="Logo"
-          className="login-logo"
-        />
-        <Form className="login-text" action={onSubmit}>
-          <div>
-            <label htmlFor="email">Email</label>
-            <input type="email" id="email" name="email" required />
-          </div>
-          <div>
-            <label htmlFor="password">Contraseña</label>
-            <input type="password" id="password" name="password" required />
-
-          </div>
-          <a className='alinear-derecha' href="#create-account">¿Olvidaste tu contraseña?</a>
-          <div className="login-hipervinculos-container">
-            <button type="submit">Ingresar</button>
-            <p>¿Aún no tienes cuenta?</p>
-            <a href="#create-account">Registrate aquí</a>
-          </div>
-        </Form>
       </div>
     </div>
   );
 }
 
-export default App;
+export default App; 
+// 📤 Exporta el componente para que Next.js lo use como página.
