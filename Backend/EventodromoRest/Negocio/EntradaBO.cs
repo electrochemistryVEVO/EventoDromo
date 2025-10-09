@@ -64,7 +64,7 @@ namespace EventodromoRest.Negocio
                         cantidad = 1, // Cada línea representa 1 entrada
                         precio = linea.precio, // Precio específico de esta línea
                         imagen = evento.imagenURL,
-                        estado = fecha > DateTime.Now ? "Vigente" : "Expirada",
+                        estado = fecha > DateTime.Now ? "vigente" : "Expirada",
                         transaccion = transaccion.numeroTransaccion
                     };
 

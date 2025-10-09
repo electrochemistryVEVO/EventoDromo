@@ -30,7 +30,7 @@ export default function MisEntradaItem({ entrada, index }) {
             <div className="mei-sub small text-muted">
               <div className="mei-row"><span className="mei-label">Fecha:</span> <span className="mei-value">{entrada.fecha ?? "-"}</span></div>
               <div className="mei-row"><span className="mei-label">Horario:</span> <span className="mei-value">{entrada.hora ?? "-"}</span></div>
-              <div className="mei-row"><span className="mei-label">Ubicación:</span> <span className="mei-value mei-value--location">{entrada.direccion ?? entrada.ubicacion ?? "-"}</span></div>
+              <div className="mei-row"><span className="mei-label">Dirección:</span> <span className="mei-value mei-value--location">{entrada.direccion ?? "-"}</span></div>
 
               {/* transacción debajo de ubicación */}
               <div className="mei-row mei-transaccion"><span className="mei-label">Transacción:</span> <span className="mei-value">{entrada.transaccion ?? "-"}</span></div>
