@@ -10,7 +10,7 @@
       "ubicacion": "Estadio San Marcos, LIMA, PE",
       "cantidad": 1,
       "precio": 300,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Overpass.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/overpass-banner-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20250911001"
     },
@@ -22,7 +22,7 @@
       "ubicacion": "Estadio San Marcos, LIMA, PE",
       "cantidad": 1,
       "precio": 500,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Linkin%20Park.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/Linkin-park-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20251018002"
     },
@@ -34,7 +34,7 @@
       "ubicacion": "Estadio Nacional, LIMA, PE",
       "cantidad": 2,
       "precio": 500,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Imagine%20Dragons.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/imagine-dragons-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20251028003"
     },
@@ -46,7 +46,7 @@
       "ubicacion": "Auditorio A, LIMA, PE",
       "cantidad": 1,
       "precio": 120,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Overpass.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/overpass-banner-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20251101004"
     },
@@ -58,7 +58,7 @@
       "ubicacion": "Club B, LIMA, PE",
       "cantidad": 2,
       "precio": 200,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Linkin%20Park.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/Linkin-park-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20251105005"
     },
@@ -70,7 +70,7 @@
       "ubicacion": "Coliseo C, LIMA, PE",
       "cantidad": 1,
       "precio": 80,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Imagine%20Dragons.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/imagine-dragons-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20251110006"
     },
@@ -82,7 +82,7 @@
       "ubicacion": "Sala D, LIMA, PE",
       "cantidad": 3,
       "precio": 150,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Overpass.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/overpass-banner-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20251112007"
     },
@@ -94,7 +94,7 @@
       "ubicacion": "Parque E, LIMA, PE",
       "cantidad": 1,
       "precio": 60,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Linkin%20Park.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/Linkin-park-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20251120008"
     },
@@ -106,7 +106,7 @@
       "ubicacion": "Teatro F, LIMA, PE",
       "cantidad": 2,
       "precio": 220,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Imagine%20Dragons.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/imagine-dragons-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20251125009"
     },
@@ -118,7 +118,7 @@
       "ubicacion": "Anfiteatro G, LIMA, PE",
       "cantidad": 1,
       "precio": 180,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Overpass.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/overpass-banner-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20251201010"
     },
@@ -130,7 +130,7 @@
       "ubicacion": "Estadio H, LIMA, PE",
       "cantidad": 2,
       "precio": 320,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Linkin%20Park.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/Linkin-park-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20251205011"
     },
@@ -142,7 +142,7 @@
       "ubicacion": "Club I, LIMA, PE",
       "cantidad": 1,
       "precio": 90,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Imagine%20Dragons.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/imagine-dragons-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20251210012"
     },
@@ -154,7 +154,7 @@
       "ubicacion": "Sala J, LIMA, PE",
       "cantidad": 1,
       "precio": 110,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Overpass.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/overpass-banner-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20251215013"
     },
@@ -166,7 +166,7 @@
       "ubicacion": "Parque K, LIMA, PE",
       "cantidad": 2,
       "precio": 210,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Linkin%20Park.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/Linkin-park-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20251220014"
     },
@@ -178,7 +178,7 @@
       "ubicacion": "Estadio L, LIMA, PE",
       "cantidad": 1,
       "precio": 400,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Imagine%20Dragons.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/imagine-dragons-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20251225015"
     },
@@ -190,7 +190,7 @@
       "ubicacion": "Sala M, LIMA, PE",
       "cantidad": 2,
       "precio": 140,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Overpass.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/overpass-banner-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20260105016"
     },
@@ -202,7 +202,7 @@
       "ubicacion": "Club N, LIMA, PE",
       "cantidad": 1,
       "precio": 95,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Linkin%20Park.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/Linkin-park-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20260110017"
     },
@@ -214,7 +214,7 @@
       "ubicacion": "Teatro O, LIMA, PE",
       "cantidad": 1,
       "precio": 130,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Imagine%20Dragons.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/imagine-dragons-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20260115018"
     },
@@ -226,7 +226,7 @@
       "ubicacion": "Anfiteatro P, LIMA, PE",
       "cantidad": 3,
       "precio": 260,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Overpass.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/overpass-banner-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20260120019"
     },
@@ -238,7 +238,7 @@
       "ubicacion": "Sala Q, LIMA, PE",
       "cantidad": 1,
       "precio": 85,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Linkin%20Park.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/Linkin-park-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20260125020"
     },
@@ -250,7 +250,7 @@
       "ubicacion": "Parque R, LIMA, PE",
       "cantidad": 2,
       "precio": 190,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Imagine%20Dragons.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/imagine-dragons-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20260201021"
     },
@@ -262,7 +262,7 @@
       "ubicacion": "Sala S, LIMA, PE",
       "cantidad": 1,
       "precio": 105,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Overpass.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/overpass-banner-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20260205022"
     },
@@ -274,7 +274,7 @@
       "ubicacion": "Club T, LIMA, PE",
       "cantidad": 1,
       "precio": 99,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Linkin%20Park.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/Linkin-park-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20260210023"
     },
@@ -286,7 +286,7 @@
       "ubicacion": "Teatro U, LIMA, PE",
       "cantidad": 2,
       "precio": 210,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Imagine%20Dragons.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/imagine-dragons-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20260215024"
     },
@@ -298,7 +298,7 @@
       "ubicacion": "Estadio V, LIMA, PE",
       "cantidad": 1,
       "precio": 210,
-      "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Overpass.png",
+      "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/overpass-banner-desktop%203.png",
       "estado": "vigente",
       "transaccion": "TXN20260220025"
     }

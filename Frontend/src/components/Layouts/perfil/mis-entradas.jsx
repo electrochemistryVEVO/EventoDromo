@@ -1,4 +1,6 @@
 import "./mis-entradas.css";
+import "./mis-entrada-item.css"; // Aseguramos que los estilos del item también se carguen
+import MisEntradaItem from "./mis-entrada-item.jsx"; // nuevo componente
 
 export default function MisEntradas({
   entries = [],
@@ -11,10 +13,11 @@ export default function MisEntradas({
   onPageChange = () => {},
   onPrev = () => {},
   onNext = () => {},
-  onDateFilter = () => {},
+  onStartDateChange = () => {},
+  onEndDateChange = () => {},
   startDate = null,
   endDate = null,
-  statusFilter = "all",
+  statusFilter = { vigente: true, vencido: false },
   onStateFilter = () => {},
 }) {
   if (loading) {
@@ -46,24 +49,22 @@ export default function MisEntradas({
         <div className="mef-left">
           <span className="mef-label">Mostrar entradas:</span>
           <div className="mef-chip-group">
-            <button
-              className={`mef-chip ${statusFilter === "all" ? "active" : ""}`}
-              onClick={() => onStateFilter("all")}
-            >
-              Todos
-            </button>
-            <button
-              className={`mef-chip ${statusFilter === "vigente" ? "active" : ""}`}
-              onClick={() => onStateFilter("vigente")}
-            >
+            <label className="mef-checkbox-label">
+              <input
+                type="checkbox"
+                checked={statusFilter.vigente}
+                onChange={(e) => onStateFilter("vigente", e.target.checked)}
+              />
               Vigentes
-            </button>
-            <button
-              className={`mef-chip ${statusFilter === "vencido" ? "active" : ""}`}
-              onClick={() => onStateFilter("vencido")}
-            >
-              Vencido
-            </button>
+            </label>
+            <label className="mef-checkbox-label">
+              <input
+                type="checkbox"
+                checked={statusFilter.vencido}
+                onChange={(e) => onStateFilter("vencido", e.target.checked)}
+              />
+              Vencidos
+            </label>
           </div>
         </div>
 
@@ -73,14 +74,14 @@ export default function MisEntradas({
             type="date"
             className="mef-date"
             value={startDate ?? ""}
-            onChange={(e) => onDateFilter(e.target.value || null, endDate)}
+            onChange={(e) => onStartDateChange(e.target.value)}
           />
           <span className="mef-to">→</span>
           <input
             type="date"
             className="mef-date"
             value={endDate ?? ""}
-            onChange={(e) => onDateFilter(startDate, e.target.value || null)}
+            onChange={(e) => onEndDateChange(e.target.value)}
           />
         </div>
       </div>
@@ -97,54 +98,7 @@ export default function MisEntradas({
           <div className="text-center p-4 text-muted">No hay entradas en este rango de fechas / estado.</div>
         ) : (
           entries.map((entrada, index) => (
-            <div key={entrada.id ?? entrada.transaccion ?? index} className="mef-item">
-              <div className="mef-item-left">
-                <div className="mef-thumb">
-                  {entrada.imagen ? (
-                    <img
-                      src={entrada.imagen}
-                      alt={entrada.titulo}
-                      onError={(e) => {
-                        e.currentTarget.src = "/images/cards-04.png";
-                      }}
-                    />
-                  ) : (
-                    <span className="text-muted">LOGO</span>
-                  )}
-                </div>
-
-                <div className="mef-meta">
-                  <h3 className="mef-title">{entrada.titulo ?? "Evento"}</h3>
-                  <div className="mef-sub small text-muted">
-                    <div>Fecha: {entrada.fecha ?? "-"}</div>
-                    <div>Horario: {entrada.hora ?? "-"}</div>
-                    <div>Ubicación: {entrada.direccion ?? "-"}</div>
-                    <div>Transacción: {entrada.transaccion ?? "-"}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mef-item-right">
-                <div className="mef-status">
-                  <span className={`badge ${entrada.estado === "vigente" ? "bg-success" : "bg-secondary"}`}>
-                    {entrada.estado ?? "desconocido"}
-                  </span>
-                </div>
-
-                <div className="mef-actions">
-                  <div className="mef-numbers">
-                    <div>Número: <strong>{entrada.cantidad ?? 1}</strong></div>
-                    <div>Costo: <strong>S/. {entrada.precio ?? "-"}</strong></div>
-                  </div>
-
-                  <div className="mef-buttons">
-                    <button className="btn btn-primary btn-sm">Descargar</button>
-                    <button className="btn btn-success btn-sm">Transferir</button>
-                    <button className="btn btn-outline-secondary btn-sm">Ver detalle</button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <MisEntradaItem key={entrada.id ?? entrada.transaccion ?? index} entrada={entrada} index={index} />
           ))
         )}
       </div>

@@ -1,5 +1,5 @@
 export async function getEntradas() {
-  const res = await fetch("https://localhost:44372/api/EntradaEventoAuxiliar/ListarTodasLasEntradas"); // para cambiar al back: fetch("http://ec2.amazonaws.com:3000/mis-entradas");
+  const res = await fetch("/data/entradas.json"); // para cambiar al back: fetch("https://localhost:44372/api/EntradaEventoAuxiliar/ListarTodasLasEntradas");
   console.log(res);
   if (!res.ok) throw new Error("Error cargando entradas (status " + res.status + ")");
   const json = await res.json();

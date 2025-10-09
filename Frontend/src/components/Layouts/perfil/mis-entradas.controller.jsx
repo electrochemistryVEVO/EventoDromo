@@ -23,7 +23,11 @@ export default function MisEntradasController({ initialPageSize = DEFAULT_PAGE_S
   const [endDate, setEndDate] = useState(null);
 
   // filtro por estado: "all" | "vigente" | "vencido" (puedes añadir más)
-  const [statusFilter, setStatusFilter] = useState("all");
+  // Cambiado a objeto para soportar selección múltiple (checkboxes)
+  const [statusFilter, setStatusFilter] = useState({
+    vigente: true,
+    vencido: false,
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -66,9 +70,13 @@ export default function MisEntradasController({ initialPageSize = DEFAULT_PAGE_S
 
   // función auxiliar para filtro por estado
   const matchesStatus = (entry) => {
-    if (!statusFilter || statusFilter === "all") return true;
+    // Si no hay ningún filtro activo, mostrar todo
+    if (!statusFilter.vigente && !statusFilter.vencido) return true;
+
     const estado = (entry.estado || "").toString().toLowerCase();
-    return estado === statusFilter;
+
+    // Retorna true si el estado de la entrada coincide con alguno de los filtros activos
+    return (statusFilter.vigente && estado === "vigente") || (statusFilter.vencido && estado === "vencido");
   };
 
   // aplica filtros
@@ -97,14 +105,29 @@ export default function MisEntradasController({ initialPageSize = DEFAULT_PAGE_S
   const handlePrev = () => goToPage(currentPage - 1);
   const handleNext = () => goToPage(currentPage + 1);
 
-  const handleDateFilter = (start, end) => {
-    setStartDate(start || null);
-    setEndDate(end || null);
+  // Lógica de inputs movida al controlador
+  const handleStartDateChange = (newStart) => {
+    const start = newStart || null;
+    setStartDate(start);
+    // Validación: si la nueva fecha de inicio es posterior a la de fin, ajusta la de fin.
+    if (start && endDate && new Date(start) > new Date(endDate)) {
+      setEndDate(start);
+    }
     setCurrentPage(1);
   };
 
-  const handleStateFilter = (status) => {
-    setStatusFilter(status || "all");
+  const handleEndDateChange = (newEnd) => {
+    const end = newEnd || null;
+    setEndDate(end);
+    // Validación: si la nueva fecha de fin es anterior a la de inicio, ajusta la de inicio.
+    if (end && startDate && new Date(end) < new Date(startDate)) {
+      setStartDate(end);
+    }
+    setCurrentPage(1);
+  };
+
+  const handleStateFilter = (status, isChecked) => {
+    setStatusFilter(prev => ({ ...prev, [status]: isChecked }));
     setCurrentPage(1);
   };
 
@@ -120,7 +143,8 @@ export default function MisEntradasController({ initialPageSize = DEFAULT_PAGE_S
       onPageChange={goToPage}
       onPrev={handlePrev}
       onNext={handleNext}
-      onDateFilter={handleDateFilter}
+      onStartDateChange={handleStartDateChange}
+      onEndDateChange={handleEndDateChange}
       startDate={startDate}
       endDate={endDate}
       statusFilter={statusFilter}

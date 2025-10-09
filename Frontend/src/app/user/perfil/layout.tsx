@@ -11,7 +11,7 @@ export default function PerfilLayout({ children }: PropsWithChildren) {
   const tab = (searchParams?.get("tab") ?? "entradas").toString();
 
   const REMOTE_BANNER =
-    "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Banner.png";
+    "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/banner-perfil.png";
   const FALLBACK_BANNER = "/images/cards-04.png";
   const [bannerSrc, setBannerSrc] = useState(REMOTE_BANNER);
   const [hasTriedFallback, setHasTriedFallback] = useState(false);
