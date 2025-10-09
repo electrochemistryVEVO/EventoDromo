@@ -28,13 +28,14 @@
     },
     "target": "ES2017"
   },
-  "include": [
+   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "**/*.js", // <-- AÑADIDO: Incluye todos los archivos JavaScript.
+    "**/*.jsx", // <-- AÑADIDO: Incluye todos los archivos JSX.
     ".next/types/**/*.ts"
-, "src/components/carrito/CheckboxCarrito.tsx"  ],
-  "exclude": [
-    "node_modules"
-  ]
+  ],
+  // --- Archivos a Excluir ---
+  "exclude": ["node_modules"]
 }

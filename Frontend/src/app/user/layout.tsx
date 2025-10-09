@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <>
-    <head>
+    <div>
       <meta charSet="utf-8" />
       <meta
         name="viewport"
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
       <meta name="author" content="" />
       <title>Shop Homepage - Start Bootstrap Template</title>
       <link rel="icon" type="image/x-icon" href="@/assets/favicon.ico" />
-    </head>
+    </div>
     <body>
 
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
