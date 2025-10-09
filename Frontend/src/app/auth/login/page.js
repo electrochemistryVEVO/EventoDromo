@@ -10,6 +10,8 @@ import { useRouter } from "next/navigation"; // 🚀 Hook de Next.js para rediri
 import { useState } from "react"; // 🧠 Hook de React para manejar estados (como el error).
 import { onSubmit } from "./controller"; // 📡 Función que procesa el login (definida en controller.js).
 
+import Link from "next/link"; // Asegúrate de tener esta importación al inicio
+
 function App() {
   const router = useRouter(); // 🔄 Permite navegar a otras páginas desde el código.
   const [error, setError] = useState(""); // 📍 Estado para guardar el mensaje de error (si lo hay).
@@ -66,7 +68,7 @@ function App() {
         </div>
 
         {/* 🔙 Link para volver a la página principal */}
-        <a href="/" className="volver-inicio">Volver al inicio</a>
+        <Link href="/" className="volver-inicio">Volver al inicio</Link>
 
         {/* 📩 Formulario de login */}
         <form className="login-text" onSubmit={handleSubmit}>
@@ -86,15 +88,15 @@ function App() {
           </div>
 
           {/* 🔐 Link para recuperar contraseña */}
-          <a className="alinear-derecha" href="/forgot-password">
+          <Link className="alinear-derecha" href="/forgot-password">
             ¿Olvidaste tu contraseña?
-          </a>
+          </Link>
 
           {/* 🔘 Botón para ingresar y links de registro */}
           <div className="login-hipervinculos-container">
             <button type="submit">Ingresa</button>
             <p>¿Aún no tienes cuenta?</p>
-            <a href="/auth/signup">Registrate Aquí</a>
+            <Link href="/auth/signup">Registrate Aquí</Link>
           </div>
         </form>
       </div>

@@ -1,21 +1,20 @@
 import { redirect } from "next/navigation";
-import { insertarUsuario } from "../../../services/signUpService";
+import { insertarUsuario } from "@/services/signUpService";
 
 export async function onSubmit(formData) {
   try {
     const clienteData = {
-      nombre: formData.get("nombres"),
-      apellido: formData.get("apellidos"),
-      correo: formData.get("email"),
-      contrasena: formData.get("password"),
-      tipoDocumento: formData.get("tipoDocumento"),
-      numeroDocumento: formData.get("numeroDocumento"),
-      fechaNacimiento: formData.get("fechaNacimiento"),
+      nombres: formData.get("nombres"),
+      apellidos: formData.get("apellidos"),
+      email: formData.get("email"),
+      passwordhash: formData.get("password"),
+      idsexo: formData.get("sexo"),
+      idtipodocumento: formData.get("tipoDocumento"),
+      numerodocumento: formData.get("numeroDocumento"),
       telefono: formData.get("telefono"),
-      pais: formData.get("pais"),
-      ciudad: formData.get("ciudad"),
-      sexo: formData.get("sexo"),
-      aceptaPromociones: formData.get("promociones") === "on",
+      idciudad: formData.get("ciudad"),
+      politicadeprivacidad: formData.get("politicaPrivacidad") === "on",
+      enviodepublicidad: formData.get("promociones") === "on",
     };
 
     const response = await insertarUsuario(clienteData);

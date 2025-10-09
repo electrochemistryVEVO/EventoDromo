@@ -29,4 +29,15 @@
         public required string Password { get; set; }
     }
 
+    public class LoginResponse
+    {
+        public required bool success { get; set; }
+        public required char rol { get; set; }
+    }
+
+    public class signUpResponse
+    {
+        public required bool success { get; set; }
+    }
+
 }
