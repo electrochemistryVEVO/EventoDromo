@@ -1,5 +1,6 @@
 ﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
+using EventodromoRest.Negocio;
 
 namespace EventodromoRest.Mappers
 {
@@ -8,21 +9,24 @@ namespace EventodromoRest.Mappers
         public List<Entrada> ListarEntrada()
         {
             List<Entrada> listaEntrada = new List<Entrada>();
+            var parametros = new ParameterList();
             lock (DB)
             {
                 string query = "SELECT * FROM Entrada";
-                DB.Select(query, null);
+                DB.Select(query, parametros);
                 while (DB.Read())
                 {
                     Entrada entrada = new()
                     {
                         id = DB.GetInt("id"),
                         idCarrito = DB.GetInt("idCarrito"),
-                        carrito = ObtenerCarritoPorId(DB.GetInt("idCarrito")),
+                        //carrito = ObtenerCarritoPorId(DB.GetInt("idCarrito")),
                         idTipoEntrada = DB.GetInt("idTipoEntrada"),
-                        tipoEntrada = ObtenerTipoEntradaPorId(DB.GetInt("idTipoEntrada"))
+                      //  tipoEntrada = ObtenerTipoEntradaPorId(DB.GetInt("idTipoEntrada"))
 
                     };
+                    entrada.carrito = ObtenerCarritoPorId(entrada.idCarrito);
+                    entrada.tipoEntrada = ObtenerTipoEntradaPorId(entrada.idTipoEntrada);
                     listaEntrada.Add(entrada);
                 }
                 return listaEntrada;
@@ -69,10 +73,12 @@ namespace EventodromoRest.Mappers
                     {
                         id = DB.GetInt("id"),
                         idCarrito = DB.GetInt("idCarrito"),
-                        carrito = ObtenerCarritoPorId(DB.GetInt("idCarrito")),
+                        //carrito = ObtenerCarritoPorId(DB.GetInt("idCarrito")),
                         idTipoEntrada = DB.GetInt("idTipoEntrada"),
-                        tipoEntrada = ObtenerTipoEntradaPorId(DB.GetInt("idTipoEntrada"))
+                       // tipoEntrada = ObtenerTipoEntradaPorId(DB.GetInt("idTipoEntrada"))
                     };
+                    entrada.carrito = ObtenerCarritoPorId(entrada.idCarrito);
+                    entrada.tipoEntrada = ObtenerTipoEntradaPorId(entrada.idTipoEntrada);
                     return entrada;
                 }
                 else

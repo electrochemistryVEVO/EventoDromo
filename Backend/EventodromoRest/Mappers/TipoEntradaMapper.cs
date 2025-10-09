@@ -19,7 +19,7 @@ namespace EventodromoRest.Mappers
                         id = DB.GetInt("ID"),
                         nombre = DB.GetString("NOMBRE"),
                         cantidadEntradas = DB.GetInt("CANTIDADENTRADAS"),
-                        cantidadVendida = DB.GetInt("CANTIDADVENDIDA"),
+                        cantidadVendida = DB.GetInt("CANTIDADVENIDA"),
                         precio = DB.GetDecimal("PRECIO"),
                         limiteCompra = DB.GetInt("LIMITECOMPRA"),
                         puntos = DB.GetInt("PUNTOS"),
@@ -70,15 +70,16 @@ namespace EventodromoRest.Mappers
                         id = DB.GetInt("ID"),
                         nombre = DB.GetString("NOMBRE"),
                         cantidadEntradas = DB.GetInt("CANTIDADENTRADAS"),
-                        cantidadVendida = DB.GetInt("CANTIDADVENDIDA"),
+                        cantidadVendida = DB.GetInt("CANTIDADVENTIDA"),
                         precio = DB.GetDecimal("PRECIO"),
                         limiteCompra = DB.GetInt("LIMITECOMPRA"),
                         puntos = DB.GetInt("PUNTOS"),
                         idFechaEvento = DB.GetInt("IDFECHAEVENTO"),
-                        FechaEvento = ObtenerFechaEventoPorId(DB.GetInt("IDFECHAEVENTO")),
+                        //FechaEvento = ObtenerFechaEventoPorId(DB.GetInt("IDFECHAEVENTO")),
 
 
                     };
+                    tipoEntrada.FechaEvento = ObtenerFechaEventoPorId(tipoEntrada.idFechaEvento ?? 0);
                     return tipoEntrada;
                 }
                 else

@@ -118,7 +118,7 @@ export default function MisEntradas({
                   <div className="mef-sub small text-muted">
                     <div>Fecha: {entrada.fecha ?? "-"}</div>
                     <div>Horario: {entrada.hora ?? "-"}</div>
-                    <div>Ubicación: {entrada.ubicacion ?? "-"}</div>
+                    <div>Ubicación: {entrada.direccion ?? "-"}</div>
                     <div>Transacción: {entrada.transaccion ?? "-"}</div>
                   </div>
                 </div>

@@ -60,9 +60,9 @@ namespace EventodromoRest.Mappers
                         id = DB.GetInt("ID"),
                         fechaHora = DB.GetDateTime("FECHAHORA"),
                         idEvento = DB.GetInt("IDEVENTO"),
-                        Evento = ObtenerEventoPorId(DB.GetInt("IDEVENTO")),
+                       // Evento = ObtenerEventoPorId(DB.GetInt("IDEVENTO")),
                     };
-                    
+                    fechaEvento.Evento = ObtenerEventoPorId(fechaEvento.idEvento ?? 0);
                     return fechaEvento;
                 }
                 else

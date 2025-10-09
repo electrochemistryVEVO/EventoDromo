@@ -1,5 +1,6 @@
 ﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
+using EventodromoRest.Negocio;
 
 namespace EventodromoRest.Mappers
 {
@@ -8,21 +9,23 @@ namespace EventodromoRest.Mappers
         public List<Carrito> ListarCarrito()
         {
             List<Carrito> listaCarrito = new List<Carrito>();
+            var parametros = new ParameterList();
             lock (DB)
             {
                 string query = "SELECT * FROM Carrito";
-                DB.Select(query, null);
+                DB.Select(query, parametros);
                 while (DB.Read())
                 {
                     Carrito carrito = new()
                     {
                         id = DB.GetInt("id"),
                         idCliente = DB.GetInt("idCliente"),
-                        cliente = ObtenerClientePorId(DB.GetInt("idCliente")),
+                        //cliente = ObtenerClientePorId(DB.GetInt("idCliente")),
                         fechaExpiracion = DB.GetDateTime("fechaExpiracion"),
                         fechaCreacion = DB.GetDateTime("fechaCreacion")
 
                     };
+                    carrito.cliente = ObtenerClientePorId(carrito.idCliente);
                     listaCarrito.Add(carrito);
                 }
                 return listaCarrito;
@@ -64,10 +67,11 @@ namespace EventodromoRest.Mappers
                     {
                         id = DB.GetInt("id"),
                         idCliente = DB.GetInt("idCliente"),
-                        cliente = ObtenerClientePorId(DB.GetInt("idCliente")),
+                        //cliente = ObtenerClientePorId(DB.GetInt("idCliente")),
                         fechaExpiracion = DB.GetDateTime("fechaExpiracion"),
                         fechaCreacion = DB.GetDateTime("fechaCreacion")
                     };
+                    carrito.cliente = ObtenerClientePorId(carrito.idCliente);
                     return carrito;
                 }
                 else

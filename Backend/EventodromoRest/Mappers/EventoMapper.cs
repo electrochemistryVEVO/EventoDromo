@@ -7,10 +7,11 @@ namespace EventodromoRest.Mappers
         public List<Evento> ListarEvento()
         {
             List<Evento> listaEvento = new List<Evento>();
+            var parametros = new ParameterList();
             lock (DB)
             {
                 string query = "SELECT * FROM Evento";
-                DB.Select(query, null);
+                DB.Select(query, parametros);
                 while (DB.Read())
                 {
                     Evento evento = new()
@@ -19,16 +20,16 @@ namespace EventodromoRest.Mappers
                         nombre = DB.GetString("NOMBRE"),
                         descripcion = DB.GetString("DESCRIPCION"),
                         idTipoEvento = DB.GetInt("IDTIPOEVENTO"),
-                        TipoEvento = ObtenerTipoEventoPorId(DB.GetInt("IDTIPOEVENTO")),
                         idLocal = DB.GetInt("IDLOCAL"),
-                        Local = ObtenerLocalPorId(DB.GetInt("IDLOCAL")),
                         creadoPor = DB.GetInt("CREADOPOR"),
-                        fechaPublicacion = DB.GetDateTime("FECHAPUBLICACION"), 
+                        fechaPublicacion = DB.GetDateTime("FECHAPUBLICACION"),
                         fechaCompra = DB.GetDateTime("FECHACOMPRA"),
                         isDeleted = DB.GetBoolean("ISDELETED"),
                         imagenURL = DB.GetString("IMAGENURL"),
 
                     };
+                    evento.TipoEvento= ObtenerTipoEventoPorId(evento.idTipoEvento ?? 0);
+                    evento.Local = ObtenerLocalPorId(evento.idLocal ?? 0);
                     listaEvento.Add(evento);
                 }
                 return listaEvento;
@@ -75,9 +76,9 @@ namespace EventodromoRest.Mappers
                         nombre = DB.GetString("NOMBRE"),
                         descripcion = DB.GetString("DESCRIPCION"),
                         idTipoEvento = DB.GetInt("IDTIPOEVENTO"),
-                        TipoEvento = ObtenerTipoEventoPorId(DB.GetInt("IDTIPOEVENTO")),
+                        //TipoEvento = ObtenerTipoEventoPorId(DB.GetInt("IDTIPOEVENTO")),
                         idLocal = DB.GetInt("IDLOCAL"),
-                        Local = ObtenerLocalPorId(DB.GetInt("IDLOCAL")),
+                        //Local = ObtenerLocalPorId(DB.GetInt("IDLOCAL")),
                         creadoPor = DB.GetInt("CREADOPOR"),
                         fechaPublicacion = DB.GetDateTime("FECHAPUBLICACION"),
                         fechaCompra = DB.GetDateTime("FECHACOMPRA"),
@@ -85,6 +86,8 @@ namespace EventodromoRest.Mappers
                         imagenURL = DB.GetString("IMAGENURL"),
 
                     };
+                    evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento ?? 0);
+                    evento.Local = ObtenerLocalPorId(evento.idLocal ?? 0);
                     return evento;
                 }
                 else

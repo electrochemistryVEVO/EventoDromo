@@ -1,5 +1,6 @@
 ﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
+using EventodromoRest.Negocio;
 
 namespace EventodromoRest.Mappers
 {
@@ -11,14 +12,16 @@ namespace EventodromoRest.Mappers
             lock (DB)
             {
                 string query = "SELECT * FROM Transaccion";
-                DB.Select(query, null);
+                var parametros = new ParameterList();
+
+                DB.Select(query, parametros);
                 while (DB.Read())
                 {
                     Transaccion transaccion = new()
                     {
                         id = DB.GetInt("id"),
                         idCarrito = DB.GetInt("idCarrito"),
-                        carrito = ObtenerCarritoPorId(DB.GetInt("idCarrito")),
+                        //carrito = ObtenerCarritoPorId(DB.GetInt("idCarrito")),
                         fechaHoraCompra = DB.GetDateTime("fechaHoraCompra"),
                         numeroTransaccion = DB.GetString("numeroTransaccion"),
                         nombresCliente = DB.GetString("nombresCliente"),
@@ -26,9 +29,12 @@ namespace EventodromoRest.Mappers
                         emailCliente = DB.GetString("emailCliente"),
                         numeroDocumentoCliente = DB.GetString("numeroDocumentoCliente"),
                         idTipoDocumento = DB.GetInt("idTipoDocumento"),
-                        tipoDocumento = ObtenerTipoDocumentoPorId(DB.GetInt("idTipoDocumento")),
-                        montoTotal = DB.GetDecimal("montoTotal"),
+                        //tipoDocumento = ObtenerTipoDocumentoPorId(DB.GetInt("idTipoDocumento")),
+                        montoTotal = DB.GetDecimal("montoTotal")
+                        //MontoTotal = double.Parse(DB.GetDecimal("montoTotal").ToString())
                     };
+                    transaccion.carrito = ObtenerCarritoPorId(transaccion.idCarrito);
+                    transaccion.tipoDocumento = ObtenerTipoDocumentoPorId(transaccion.idTipoDocumento);
                     listaTransaccion.Add(transaccion);
                 }
                 return listaTransaccion;
@@ -82,7 +88,7 @@ namespace EventodromoRest.Mappers
                     {
                         id = DB.GetInt("id"),
                         idCarrito = DB.GetInt("idCarrito"),
-                        carrito = ObtenerCarritoPorId(DB.GetInt("idCarrito")),
+                        //carrito = ObtenerCarritoPorId(DB.GetInt("idCarrito")),
                         fechaHoraCompra = DB.GetDateTime("fechaHoraCompra"),
                         numeroTransaccion = DB.GetString("numeroTransaccion"),
                         nombresCliente = DB.GetString("nombresCliente"),
@@ -90,9 +96,11 @@ namespace EventodromoRest.Mappers
                         emailCliente = DB.GetString("emailCliente"),
                         numeroDocumentoCliente = DB.GetString("numeroDocumentoCliente"),
                         idTipoDocumento = DB.GetInt("idTipoDocumento"),
-                        tipoDocumento = ObtenerTipoDocumentoPorId(DB.GetInt("idTipoDocumento")),
+                        //tipoDocumento = ObtenerTipoDocumentoPorId(DB.GetInt("idTipoDocumento")),
                         montoTotal = DB.GetDecimal("montoTotal"),
                     };
+                    transaccion.carrito = ObtenerCarritoPorId(transaccion.idCarrito);
+                    transaccion.tipoDocumento = ObtenerTipoDocumentoPorId(transaccion.idTipoDocumento);
                     return transaccion;
                 }
                 else

@@ -1,5 +1,6 @@
 ﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
+using EventodromoRest.Negocio;
 
 namespace EventodromoRest.Mappers
 {
@@ -95,12 +96,15 @@ namespace EventodromoRest.Mappers
                         politicadeprivacidad = DB.GetBoolean("politicaDePrivacidad"),
                         enviodepublicidad = DB.GetBoolean("envioDePublicidad"),
                         fechacreacion = DB.GetDateTime("fechaCreacion"),
-                        fechaultimaedicion = DB.GetDateTime("fechaUltimaEdicion"),
+                        fechaultimaedicion = DB.IsDBNull("fechaUltimaEdicion") ? (DateTime?)null : DB.GetDateTime("fecha_ultima_edicion"),
                         fechaultimasession = DB.GetDateTime("fechaUltimaSesion"),
-                        sexo = ObtenerSexoPorId(DB.GetInt("idSexo")),
-                        tipodocumento = ObtenerTipoDocumentoPorId(DB.GetInt("idTipoDocumento")),
-                        ciudad = ObtenerCiudadPorId(DB.GetInt("idCiudad"))
+                        // sexo = ObtenerSexoPorId(DB.GetInt("idSexo")),
+                        //tipodocumento = ObtenerTipoDocumentoPorId(DB.GetInt("idTipoDocumento")),
+                        //ciudad = ObtenerCiudadPorId(DB.GetInt("idCiudad"))
                     };
+                    cliente.sexo = ObtenerSexoPorId(cliente.idsexo ?? 0);
+                    cliente.tipodocumento = ObtenerTipoDocumentoPorId(cliente.idtipodocumento ?? 0);
+                    cliente.ciudad = ObtenerCiudadPorId(cliente.idciudad ?? 0);
                     return cliente;
                 }
                 else

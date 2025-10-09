@@ -11,7 +11,9 @@ namespace EventodromoRest.Mappers
             lock (DB)
             {
                 string query = "SELECT * FROM Punto";
-                DB.Select(query, null);
+                var parametros = new ParameterList();
+
+                DB.Select(query, parametros);
                 while (DB.Read())
                 {
                     Punto punto = new()
