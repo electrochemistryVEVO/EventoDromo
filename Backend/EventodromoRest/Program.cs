@@ -1,4 +1,4 @@
-using EventodromoRest.DBManager;
+﻿using EventodromoRest.DBManager;
 using EventodromoRest.Globales;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,7 +56,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+<<<<<<< HEAD
 // AGREGAR USO DE CORS - Esto tambi�n es necesario
+=======
+// AGREGAR USO DE CORS - Esto también es necesario
+>>>>>>> 4257796 (todo funciona el login con docker)
 app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();

@@ -12,6 +12,8 @@ import imagenMitad from '@/assets/pictures/imagenMitad.png';
 import Form from "next/form";
 import { onSubmit } from "./controller";
 
+import Link from "next/link"; // Asegúrate de tener esta importación al inicio
+
 function App() {
   const router = useRouter(); // 🔄 Permite navegar a otras páginas desde el código.
   const [error, setError] = useState(""); // 📍 Estado para guardar el mensaje de error (si lo hay).
@@ -56,8 +58,58 @@ function App() {
 
   // 🧱 Aquí empieza el renderizado (lo que se ve en pantalla)
   return (
+<<<<<<< HEAD
     <div className="App">
       <div className='imagen-mitad'>
+=======
+    <div className="App"> 
+      {/* Contenedor principal */}
+      
+      <div className="login-form-container">
+        {/* 🧩 Sección izquierda: formulario de login */}
+
+        <div className="logo-container">
+          {/* 📷 Logo en la parte superior */}
+          <Image src={logo} alt="Logo" className="login-logo" priority />
+        </div>
+
+        {/* 🔙 Link para volver a la página principal */}
+        <Link href="/" className="volver-inicio">Volver al inicio</Link>
+
+        {/* 📩 Formulario de login */}
+        <form className="login-text" onSubmit={handleSubmit}>
+          {/* ⚠️ Si hay un error, lo mostramos en pantalla */}
+          {error && <div className="error-message">{error}</div>}
+
+          {/* 📧 Campo de email */}
+          <div>
+            <label htmlFor="email">Email</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+
+          {/* 🔑 Campo de contraseña */}
+          <div>
+            <label htmlFor="password">Contraseña</label>
+            <input type="password" id="password" name="password" required />
+          </div>
+
+          {/* 🔐 Link para recuperar contraseña */}
+          <Link className="alinear-derecha" href="/forgot-password">
+            ¿Olvidaste tu contraseña?
+          </Link>
+
+          {/* 🔘 Botón para ingresar y links de registro */}
+          <div className="login-hipervinculos-container">
+            <button type="submit">Ingresa</button>
+            <p>¿Aún no tienes cuenta?</p>
+            <Link href="/auth/signup">Registrate Aquí</Link>
+          </div>
+        </form>
+      </div>
+
+      {/* 📷 Sección derecha: imagen decorativa */}
+      <div className="imagen-mitad">
+>>>>>>> 4257796 (todo funciona el login con docker)
         <Image
           src={imagenMitad}
           alt="Imagen de fondo"

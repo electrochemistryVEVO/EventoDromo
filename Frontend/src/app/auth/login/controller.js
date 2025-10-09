@@ -2,7 +2,7 @@
 // 📍 Indica a Next.js que este archivo se ejecuta en el **navegador** (lado del cliente).
 // Esto es necesario porque aquí se usa sessionStorage (que solo existe en el navegador).
 
-import { autenticarUsuario } from "../../../services/loginService";
+import { autenticarUsuario } from "@/services/loginService";
 // 📡 Importa una función llamada `autenticarUsuario` desde `service.js`.
 // Esa función probablemente hace la llamada al backend (por ejemplo con fetch o axios)
 // para verificar si el correo y contraseña son correctos.
@@ -13,8 +13,8 @@ export async function onSubmit(formData) {
   try {
     // 🧱 1. Construimos un objeto con los datos del formulario:
     const loginInfo = {
-      email: formData.get("email"),     // 📩 Obtiene el valor del input con name="email"
-      passwordhash: formData.get("password") // 🔑 Obtiene el valor del input con name="password"
+      Correo: formData.get("email"),     // 📩 Obtiene el valor del input con name="email"
+      Password: formData.get("password") // 🔑 Obtiene el valor del input con name="password"
     };
 
     // 📡 2. Llamamos a la función que valida el login en el backend
