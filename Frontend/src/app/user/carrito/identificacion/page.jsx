@@ -1,7 +1,6 @@
 import styles from '@/css/identificacion.module.css';
 import Link from 'next/link';
 import { ResumenCompra } from '@/components/carrito/ResumenCompra';
-import { items } from './controller';
 
 function App() {
     return (
@@ -49,7 +48,8 @@ function App() {
                 {/* --- COLUMNA 3: RESUMEN DE COMPRA --- */}
                 <section className={styles.card}>
                     <h2 className={styles.cardTitle}>Resumen de la compra</h2>
-                    <ResumenCompra items={items} />
+                    {/* ResumenCompra ahora es autónomo y obtiene sus propios datos */}
+                    <ResumenCompra />
                 </section>
             </main>
         </div>

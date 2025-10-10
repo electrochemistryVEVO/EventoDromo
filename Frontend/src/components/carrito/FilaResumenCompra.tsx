@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import React from "react";
 import { CartItem } from "./filaEntrada";
 
@@ -21,13 +20,11 @@ export const FilaResumenCompra: React.FC<CartRowProps> = ({ item }) => {
         >
             <div className="flex items-center gap-2">
                 {item.imageUrl && (
-                    <Image
+                    <img
                         src={item.imageUrl}
                         alt={`${item.title} ${item.subtitle}`}
-                        width={64}
-                        height={64}
                         className="h-16 w-16 rounded-md object-cover"
-                        loading="lazy"
+                        loading="lazy" // La etiqueta <img> también soporta lazy loading
                     />
                 )}
                 <div className="flex flex-col gap-1 text-center">
@@ -36,7 +33,7 @@ export const FilaResumenCompra: React.FC<CartRowProps> = ({ item }) => {
                 </div>
             </div>
             <div className="text-center text-lg">{item.quantity}</div>
-            <div className="text-right pr-2 text-lg">{pen.format(item.price * item.quantity)}</div>
+            <div className="text-right pr-2 text-lg">{pen.format(item.price)}</div>
         </li>
     );
 };

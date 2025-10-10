@@ -6,18 +6,20 @@ import { ResumenCompra } from "@/components/carrito/ResumenCompra";
 import styles from '@/css/compraPagoConLogin.module.css';
 
 const UserInfo = () => {
-    const [user, setUser] = useState({ email: '', name: 'Cargando...' });
+    const [user, setUser] = useState({ email: '', name: 'Cargando...', ciudad: '', pais: '' });
 
     useEffect(() => {
         // Asegurarnos de que sessionStorage solo se accede en el lado del cliente
         if (typeof window !== 'undefined') {
-            const sessionData = sessionStorage.getItem('session');
-            if (sessionData) {
-                const parsedSession = JSON.parse(sessionData);
-                // Asumimos que el nombre completo no está en la sesión, lo derivamos o dejamos un placeholder.
-                // Idealmente, el backend debería devolver el nombre completo al hacer login.
-                const name = parsedSession.user.split('@')[0].replace(/\./g, ' ').replace(/(^\w|\s\w)/g, m => m.toUpperCase());
-                setUser({ email: parsedSession.user, name: name });
+            const userDataString = sessionStorage.getItem('userData');
+            if (userDataString) {
+                const userData = JSON.parse(userDataString);
+                setUser({
+                    email: userData.email || 'No disponible',
+                    name: `${userData.nombre || ''} ${userData.apellido || ''}`.trim(),
+                    ciudad: userData.ciudad || 'No disponible',
+                    pais: userData.pais || 'No disponible'
+                });
             }
         }
     }, []);
@@ -29,7 +31,7 @@ const UserInfo = () => {
         <div className="flex flex-col text-base gap-1 text-gray-700 -mt-2">
             <p>{user.email}</p>
             <p>{user.name}</p>
-            <p>Perú, Callao</p>
+            <p>{user.ciudad}, {user.pais}</p>
         </div>
     </section>
     );

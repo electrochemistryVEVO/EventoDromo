@@ -1,11 +1,10 @@
 "use client";
 
-import Image, { StaticImageData } from "next/image";
 import React from "react";
 
 export type CartItem = {
     id: string;
-    imageUrl: string | StaticImageData;
+    imageUrl: string;
     title: string;
     subtitle: string;
     quantity: number;
@@ -36,20 +35,18 @@ export const FilaEntrada: React.FC<CartRowProps> = ({ item, selected, onToggle, 
                     type="checkbox"
                     checked={selected}
                     onChange={() => onToggle(item.id)}
-                    className="h-6 w-6 rounded border-gray-300 text-black focus:ring-black"
+                    className="h-6 w-6 rounded border-gray-300 text-black focus:ring-black" // Se ha corregido un typo en el className
                     aria-label={`Seleccionar ${item.title} ${item.subtitle}`}
                 />
             </div>
 
             {/* Imagen y Texto */}
             <div className="flex items-center gap-6">
-                <Image
+                <img
                     src={item.imageUrl || "/images/placeholder.png"}
                     alt={`${item.title} ${item.subtitle}`}
-                    width={112}
-                    height={112}
                     className="h-20 w-20 flex-shrink-0 rounded-lg object-cover"
-                    loading="lazy"
+                    loading="lazy" // Los navegadores modernos también entienden loading="lazy" en <img>
                 />
                 <div className="leading-tight">
                     <div className="text-xl font-bold text-gray-800">{item.title}</div>

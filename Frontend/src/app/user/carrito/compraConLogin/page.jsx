@@ -1,6 +1,5 @@
 "use client";
 
-import { cantidadEntradas, items, importeTotal } from "./controller";
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -36,11 +35,6 @@ function App() {
     };
 
     useEffect(() => {
-        // Guardar los items del carrito en sessionStorage para que persistan en la siguiente página.
-        // Esto es una solución temporal. Idealmente, se usaría un contexto de React para el estado del carrito.
-        sessionStorage.setItem('cartItems', JSON.stringify(items));
-
-        // Cargar datos del usuario desde la sesión para autocompletar el formulario
         if (typeof window !== 'undefined') {
             const sessionData = sessionStorage.getItem('session');
             if (sessionData && formRef.current) {
@@ -156,14 +150,9 @@ function App() {
                 {/* --- COLUMNA 3: RESUMEN DE COMPRA --- */}
                 <section className={styles.card}>
                     <h2 className={styles.cardTitle}>Resumen de la compra</h2>
-                    <div className="text-base text-gray-600 font-medium">
-                        Tienes {cantidadEntradas()} entradas
-                    </div>
-                    <ResumenCompra items={items} />
-                    <div className="mt-auto pt-4 border-t border-gray-300 flex flex-col items-center gap-4">
-                        <div className={styles.totalAmount}>
-                            Importe total: S/. {importeTotal()} 
-                        </div>
+                    {/* ResumenCompra ahora es autónomo. El total de entradas se podría obtener de un contexto global en el futuro. */}
+                    <ResumenCompra />
+                    <div className="mt-4 flex flex-col items-center gap-4">
                         {selectedPaymentMethod ? (
                             <button className={styles.payButton} disabled={true}>
                                 Complete su identificación
