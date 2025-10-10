@@ -4,12 +4,10 @@
     @apply bg-gray-300
 }
 
-<<<<<<< Updated upstream
 .dynamic-bg{
     position:absolute;
     filter:blur(4px);
     z-index: -1;
-=======
 }
 
 .titulo-destacado {
@@ -81,5 +79,4 @@
     background-color: #00A699 !important;
     color: white !important;
     border-color: #00A699 !important;
->>>>>>> Stashed changes
 }
