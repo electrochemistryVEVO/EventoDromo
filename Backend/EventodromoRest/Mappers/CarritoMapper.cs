@@ -67,7 +67,10 @@ namespace EventodromoRest.Mappers
                     {
                         id = DB.GetInt("id"),
                         idCliente = DB.GetInt("idCliente"),
+<<<<<<< HEAD
                         //cliente = ObtenerClientePorId(DB.GetInt("idCliente")),
+=======
+>>>>>>> origin/grupo1
                         fechaExpiracion = DB.GetDateTime("fechaExpiracion"),
                         fechaCreacion = DB.GetDateTime("fechaCreacion")
                     };
@@ -104,6 +107,37 @@ namespace EventodromoRest.Mappers
                 parametros.Add("@fechaCreacion", carrito.fechaCreacion);
                 int rowsAffected = DB.ExecuteNonQuery(query, parametros);
                 return rowsAffected;
+            }
+        }
+
+        public Carrito ObtenerCarritoPorIdCliente(int idCliente)
+        {
+            lock (DB)
+            {
+                string query = "SELECT * FROM Carrito WHERE idCliente = @idCliente " +
+                    "AND fechaCreacion < @fechaActual " +
+                    "AND fechaExpiracion > @fechaActual";
+                var parametros = new ParameterList();
+                parametros.Add("@idCliente", idCliente);
+                //parametros.Add("@fechaActual", DateTime.Now);
+                parametros.Add("@fechaActual", "2025-09-29 11:35:00");
+                DB.Select(query, parametros);
+                if (DB.Read())
+                {
+                    Carrito carrito = new()
+                    {
+                        id = DB.GetInt("id"),
+                        idCliente = DB.GetInt("idCliente"),
+                        fechaExpiracion = DB.GetDateTime("fechaExpiracion"),
+                        fechaCreacion = DB.GetDateTime("fechaCreacion")
+                    };
+                    carrito.cliente = ObtenerClientePorId(carrito.idCliente);
+                    return carrito;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
     }

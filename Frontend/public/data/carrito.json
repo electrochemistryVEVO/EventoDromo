@@ -1,0 +1,23 @@
+{
+  "success": true,
+  "mensaje": "Carrito cargado correctamente.",
+  "data": [
+    {
+      "id": "1",
+      "idCliente": "1",
+      "fechaExpiracion": "2025-12-31T23:59:59Z",
+      "fechaCreacion": "2025-10-01T12:00:00Z",
+      "entradas": [
+        {
+          "id":"312",
+          "titulo":"Overpass Lima",
+          "ubicacion":"Estadio San Marcos, LIMA, PE",
+          "cantidadTotal" : 3,
+          "precioTotal": 900,
+          "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/ulises-web.png"
+        }
+      ]
+    }
+  ],
+  "error": null
+}

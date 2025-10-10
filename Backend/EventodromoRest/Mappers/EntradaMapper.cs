@@ -20,12 +20,9 @@ namespace EventodromoRest.Mappers
                     {
                         id = DB.GetInt("id"),
                         idCarrito = DB.GetInt("idCarrito"),
-                        //carrito = ObtenerCarritoPorId(DB.GetInt("idCarrito")),
-                        idTipoEntrada = DB.GetInt("idTipoEntrada"),
-                      //  tipoEntrada = ObtenerTipoEntradaPorId(DB.GetInt("idTipoEntrada"))
-
+                        idTipoEntrada = DB.GetInt("idTipoEntrada")
                     };
-                    entrada.carrito = ObtenerCarritoPorId(entrada.idCarrito);
+                    entrada.carrito = ObtenerCarritoPorId(DB.GetInt("idCarrito"));
                     entrada.tipoEntrada = ObtenerTipoEntradaPorId(entrada.idTipoEntrada);
                     listaEntrada.Add(entrada);
                 }
@@ -73,11 +70,9 @@ namespace EventodromoRest.Mappers
                     {
                         id = DB.GetInt("id"),
                         idCarrito = DB.GetInt("idCarrito"),
-                        //carrito = ObtenerCarritoPorId(DB.GetInt("idCarrito")),
-                        idTipoEntrada = DB.GetInt("idTipoEntrada"),
-                       // tipoEntrada = ObtenerTipoEntradaPorId(DB.GetInt("idTipoEntrada"))
+                        idTipoEntrada = DB.GetInt("idTipoEntrada")
                     };
-                    entrada.carrito = ObtenerCarritoPorId(entrada.idCarrito);
+                    entrada.carrito = ObtenerCarritoPorId(DB.GetInt("idCarrito"));
                     entrada.tipoEntrada = ObtenerTipoEntradaPorId(entrada.idTipoEntrada);
                     return entrada;
                 }
@@ -110,6 +105,31 @@ namespace EventodromoRest.Mappers
                 parametros.Add("@idTipoEntrada", entrada.idTipoEntrada);
                 int rowsAffected = DB.ExecuteNonQuery(query, parametros);
                 return rowsAffected;
+            }
+        }
+
+        public List<Entrada> ObtenerEntradasPorIdCarrito(int idCarrito)
+        {
+            List<Entrada> listaEntrada = new List<Entrada>();
+            lock (DB)
+            {
+                string query = "SELECT * FROM Entrada WHERE idCarrito = @idCarrito";
+                var parametros = new ParameterList();
+                parametros.Add("@idCarrito", idCarrito);
+                DB.Select(query, parametros);
+                while (DB.Read())
+                {
+                    Entrada entrada = new()
+                    {
+                        id = DB.GetInt("id"),
+                        idCarrito = DB.GetInt("idCarrito"),
+                        idTipoEntrada = DB.GetInt("idTipoEntrada")
+                    };
+                    entrada.carrito = ObtenerCarritoPorId(DB.GetInt("idCarrito"));
+                    entrada.tipoEntrada = ObtenerTipoEntradaPorId(entrada.idTipoEntrada);
+                    listaEntrada.Add(entrada);
+                }
+                return listaEntrada;
             }
         }
     }

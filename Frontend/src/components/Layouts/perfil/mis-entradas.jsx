@@ -98,7 +98,54 @@ export default function MisEntradas({
           <div className="text-center p-4 text-muted">No hay entradas en este rango de fechas / estado.</div>
         ) : (
           entries.map((entrada, index) => (
-            <MisEntradaItem key={entrada.id ?? entrada.transaccion ?? index} entrada={entrada} index={index} />
+            <div key={entrada.id ?? entrada.transaccion ?? index} className="mef-item">
+              <div className="mef-item-left">
+                <div className="mef-thumb">
+                  {entrada.imagen ? (
+                    <img // Aseguramos que `src` no sea una cadena vacía
+                      src={entrada.imagen}
+                      alt={entrada.titulo}
+                      onError={(e) => {
+                        e.currentTarget.src = "/images/cards-04.png";
+                      }}
+                    />
+                  ) : (
+                    <span className="text-muted">LOGO</span>
+                  )}
+                </div>
+
+                <div className="mef-meta">
+                  <h3 className="mef-title">{entrada.titulo ?? "Evento"}</h3>
+                  <div className="mef-sub small text-muted">
+                    <div>Fecha: {entrada.fecha ?? "-"}</div>
+                    <div>Horario: {entrada.hora ?? "-"}</div>
+                    <div>Ubicación: {entrada.ubicacion ?? "-"}</div>
+                    <div>Transacción: {entrada.transaccion ?? "-"}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mef-item-right">
+                <div className="mef-status">
+                  <span className={`badge ${entrada.estado === "vigente" ? "bg-success" : "bg-secondary"}`}>
+                    {entrada.estado ?? "desconocido"}
+                  </span>
+                </div>
+
+                <div className="mef-actions">
+                  <div className="mef-numbers">
+                    <div>Número: <strong>{entrada.cantidad ?? 1}</strong></div>
+                    <div>Costo: <strong>S/. {entrada.precio ?? "-"}</strong></div>
+                  </div>
+
+                  <div className="mef-buttons">
+                    <button className="btn btn-primary btn-sm">Descargar</button>
+                    <button className="btn btn-success btn-sm">Transferir</button>
+                    <button className="btn btn-outline-secondary btn-sm">Ver detalle</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           ))
         )}
       </div>

@@ -153,6 +153,7 @@ namespace EventodromoRest.Mappers
                 DB.Select(query, parametros);
                 if (DB.Read())
                 {
+                   
                     Cliente cliente = new()
                     {
                         id = DB.GetInt("id"),
@@ -171,9 +172,6 @@ namespace EventodromoRest.Mappers
                         fechacreacion = DB.GetDateTime("fechaCreacion"),
                         fechaultimaedicion = DB.IsDBNull("fechaUltimaEdicion") ? (DateTime?)null : DB.GetDateTime("fecha_ultima_edicion"),
                         fechaultimasession = DB.GetDateTime("fechaUltimaSesion"),
-                        // sexo = ObtenerSexoPorId(DB.GetInt("idSexo")),
-                        //tipodocumento = ObtenerTipoDocumentoPorId(DB.GetInt("idTipoDocumento")),
-                        //ciudad = ObtenerCiudadPorId(DB.GetInt("idCiudad"))
                     };
                     cliente.sexo = ObtenerSexoPorId(cliente.idsexo ?? 0);
                     cliente.tipodocumento = ObtenerTipoDocumentoPorId(cliente.idtipodocumento ?? 0);
