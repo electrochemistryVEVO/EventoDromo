@@ -24,8 +24,7 @@ export default function LazyImage(props:LazyImageProps){
         <Image
           className={finalClassName}
           src={imgSrc}
-          width={800} // Añadimos un width y height por defecto para el layout
-          height={400}
+          layout="fill" // <-- La clave está aquí: la imagen llenará el contenedor
           alt="Imagen del evento"
           onError={() => setImgSrc(PLACEHOLDER_IMAGE)} // Si hay un error al cargar, usamos el placeholder
         />
