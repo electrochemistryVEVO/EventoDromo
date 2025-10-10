@@ -1,94 +1,93 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap");
 
-.search-bar{
-    --tw-bg-opacity:1;
-    background-color:rgb(209 213 219 / var(--tw-bg-opacity, 1));
+.search-bar {
+  --tw-bg-opacity: 1;
+  background-color: rgb(209 213 219 / var(--tw-bg-opacity, 1));
 }
 
-.dynamic-bg{
-    position:absolute;
-    filter:blur(4px);
-    z-index: -1;
+.dynamic-bg {
+  position: absolute;
+  filter: blur(4px);
+  z-index: -1;
 }
 
 .titulo-destacado {
-  font-family: 'Nunito', sans-serif; 
-  font-size: 40px; 
-  font-weight: 700; 
-  line-height: 60px; 
-  color: #000000; 
-
+  font-family: "Nunito", sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 60px;
+  color: #000000;
 }
 
 /* --- Estilos para EventCard --- */
 .card-evento-custom {
-    text-decoration: none; /* Quita el subrayado del Link */
-    color: inherit; /* Hereda el color de texto normal */
-    border: none;
-    overflow: hidden; /* Necesario para que el zoom de la imagen no se salga de la card */
-    display: block; /* Asegura que el Link ocupe todo el espacio */
-    border-radius: 6px; /* Bordes redondeados para toda la tarjeta */
-    background: #EAE8E8;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-decoration: none; /* Quita el subrayado del Link */
+  color: inherit; /* Hereda el color de texto normal */
+  border: none;
+  overflow: hidden; /* Necesario para que el zoom de la imagen no se salga de la card */
+  display: block; /* Asegura que el Link ocupe todo el espacio */
+  border-radius: 6px; /* Bordes redondeados para toda la tarjeta */
+  background: #eae8e8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .card-evento-custom .card-img-container {
-    height: 230px; /* Altura aumentada para la imagen */
-    overflow: hidden;
-    position: relative;
+  height: 230px; /* Altura aumentada para la imagen */
+  overflow: hidden;
+  position: relative;
 }
 
 .card-evento-custom .card-img-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Asegura que la imagen cubra el contenedor sin deformarse */
-    transition: transform 0.3s ease-in-out; /* Transición suave para el zoom */
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Asegura que la imagen cubra el contenedor sin deformarse */
+  transition: transform 0.3s ease-in-out; /* Transición suave para el zoom */
 }
 
 .card-evento-custom:hover .card-img-container img {
-    transform: scale(1.05); /* Efecto de zoom al pasar el mouse */
+  transform: scale(1.05); /* Efecto de zoom al pasar el mouse */
 }
 
 /* Cuerpo de la tarjeta */
 .card-evento-custom .card-body {
-    background: #EAE8E8; /* Fondo gris claro para la sección de texto */
-    height: 130px; /* Altura fija para la sección de texto */
-    font-family: 'Nunito', sans-serif;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
+  background: #eae8e8; /* Fondo gris claro para la sección de texto */
+  height: 130px; /* Altura fija para la sección de texto */
+  font-family: "Nunito", sans-serif;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
 
 /* Ícono (la imagen triangleRight) */
 .card-evento-custom .card-icon-play {
-    height: 40px !important; /* Altura del ícono */
-    width: auto !important;  /* Ancho automático para mantener la proporción */
+  height: 40px !important; /* Altura del ícono */
+  width: auto !important; /* Ancho automático para mantener la proporción */
 }
 
 /* Título */
 .card-evento-custom .card-title-custom {
-    font-size: 1.3rem; 
-    font-weight: 700;
-    margin: 0;
-    color: #333;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+  color: #333;
 }
 
 .card-info-title {
-    font-size: 0.9rem;
-    color: #6c757d; /* Un gris sutil */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: 0.9rem;
+  color: #6c757d; /* Un gris sutil */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-info-title .categoria-highlight {
-    color: #00C49A;
-    font-weight: 500;
+  color: #00c49a;
+  font-weight: 500;
 }
 
 /* Fecha */
 .card-evento-custom .card-date-text {
-    font-size: 1rem;
-    color: #777;
-    margin: 0; 
-    text-align: left;
+  font-size: 1rem;
+  color: #777;
+  margin: 0;
+  text-align: left;
 }
