@@ -75,9 +75,7 @@ namespace EventodromoRest.Mappers
                         nombre = DB.GetString("NOMBRE"),
                         descripcion = DB.GetString("DESCRIPCION"),
                         idTipoEvento = DB.GetInt("IDTIPOEVENTO"),
-                        TipoEvento = ObtenerTipoEventoPorId(DB.GetInt("IDTIPOEVENTO")),
                         idLocal = DB.GetInt("IDLOCAL"),
-                        Local = ObtenerLocalPorId(DB.GetInt("IDLOCAL")),
                         creadoPor = DB.GetInt("CREADOPOR"),
                         fechaPublicacion = DB.GetDateTime("FECHAPUBLICACION"),
                         fechaCompra = DB.GetDateTime("FECHACOMPRA"),
@@ -85,6 +83,8 @@ namespace EventodromoRest.Mappers
                         imagenURL = DB.GetString("IMAGENURL"),
 
                     };
+                    evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento);
+                    evento.Local = ObtenerLocalPorId(evento.idLocal);
                     return evento;
                 }
                 else

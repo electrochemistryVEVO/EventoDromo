@@ -66,13 +66,13 @@ namespace EventodromoRest.Mappers
                         id = DB.GetInt("ID"),
                         nombre = DB.GetString("NOMBRE"),
                         idCiudad = DB.GetInt("IDCIUDAD"),
-                        ciudad = ObtenerCiudadPorId(DB.GetInt("IDCIUDAD")),
                         direccion = DB.GetString("DIRECCION"),
                         capacidad = DB.GetInt("CAPACIDAD"),
                         isDeleted = DB.GetBoolean("ISDELETED"),
-                        idAdministrador = DB.GetInt("CREADOPOR"),
-                        administrador = ObtenerAdministradorPorId(DB.GetInt("CREADOPOR")),
+                        idAdministrador = DB.GetInt("CREADOPOR")
                     };
+                    local.ciudad = ObtenerCiudadPorId(local.idCiudad);
+                    local.administrador = ObtenerAdministradorPorId(local.idAdministrador);
                     return local;
                 }
                 else
