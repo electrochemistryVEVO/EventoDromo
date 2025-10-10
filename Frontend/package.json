@@ -23,6 +23,7 @@
     "react": "19.0.0",
     "react-apexcharts": "^1.7.0",
     "react-bootstrap": "^2.10.10",
+    "react-datepicker": "^8.7.0",
     "react-dom": "19.0.0",
     "tailwind-merge": "^2.6.0"
   },

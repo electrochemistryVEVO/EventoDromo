@@ -1,9 +1,22 @@
 import React, { useState, useEffect, useMemo } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { registerLocale } from "react-datepicker";
+import es from "date-fns/locale/es";
+registerLocale("es", es);
 import "./BookingPanel.css";
+
+const formatDate = (date) => {
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // getMonth() es 0-indexed
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
   // --- ESTADOS ---
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState(null);
   const [selectedFunctionId, setSelectedFunctionId] = useState("");
   const [ticketQuantities, setTicketQuantities] = useState(() => {
     const initialQuantities = {};
@@ -31,8 +44,29 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
     return dates;
   }, [functions]);
 
-  const uniqueDates = Object.keys(availableDates);
-  const timesForSelectedDate = selectedDate ? availableDates[selectedDate] : [];
+  // 2. CREAMOS UN ARRAY DE FECHAS HABILITADAS PARA EL CALENDARIO
+  // Convertimos las fechas de string a objetos Date
+  const enabledDates = useMemo(() => {
+    return Object.keys(availableDates).map((dateStr) => {
+      // CAMBIO CLAVE: Dividimos el string "YYYY-MM-DD" en sus partes
+      const [year, month, day] = dateStr.split("-").map(Number);
+
+      // Creamos la fecha usando new Date(año, mes - 1, día).
+      // El mes es 0-indexado en JavaScript (Enero=0, Diciembre=11), por eso restamos 1.
+      // Este método SIEMPRE usa la zona horaria local del navegador.
+      return new Date(year, month - 1, day);
+    });
+  }, [availableDates]);
+
+  // Obtenemos la fecha seleccionada en formato string para buscar las horas
+  // Usamos nuestra función auxiliar para evitar problemas de timezone
+  const selectedDateString = formatDate(selectedDate);
+
+  // Ahora, si la fecha seleccionada es correcta, availableDates[selectedDateString]
+  // nunca será undefined, sino un array (posiblemente vacío, pero no undefined).
+  const timesForSelectedDate = selectedDateString
+    ? availableDates[selectedDateString]
+    : [];
 
   // --- EFECTOS ---
   // Recalcula el precio total cuando cambian las cantidades.
@@ -45,10 +79,9 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
   }, [ticketQuantities, ticketTiers]);
 
   // --- MANEJADORES DE EVENTOS ---
-  const handleDateChange = (e) => {
-    const newDate = e.target.value;
-    setSelectedDate(newDate);
-    setSelectedFunctionId(""); // Reinicia la hora al cambiar la fecha
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    setSelectedFunctionId(""); // Reinicia la hora
   };
 
   const handleTimeChange = (e) => {
@@ -81,24 +114,22 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
   return (
     <div className="booking-panel">
       <h3 className="booking-title">{eventName}</h3>
-
+      <hr className="booking-divider" />
       <div className="booking-selectors">
         <div className="selector-group">
-          <label htmlFor="date-select">Fecha:</label>
-          <select
-            id="date-select"
-            value={selectedDate}
-            onChange={handleDateChange}
-          >
-            <option value="" disabled>
-              Seleccionar Fecha
-            </option>
-            {uniqueDates.map((date) => (
-              <option key={date} value={date}>
-                {date}
-              </option>
-            ))}
-          </select>
+          <label htmlFor="date-picker">Fecha:</label>
+
+          {/* 3. REEMPLAZAMOS EL <select> POR <DatePicker> */}
+          <DatePicker
+            id="date-picker"
+            locale="es" // Calendario en español
+            selected={selectedDate} // Fecha seleccionada
+            onChange={handleDateChange} // Función que se llama al seleccionar
+            includeDates={enabledDates} // ¡CLAVE! Solo habilita estas fechas
+            placeholderText="Seleccionar Fecha"
+            dateFormat="dd-MM-yyyy" // Formato de texto en el input
+            className="custom-datepicker-input" // Clase para darle estilos
+          />
         </div>
         <div className="selector-group">
           <label htmlFor="time-select">Horario:</label>
@@ -111,11 +142,13 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
             <option value="" disabled>
               Seleccionar Hora
             </option>
-            {timesForSelectedDate.map((timeInfo) => (
-              <option key={timeInfo.id} value={timeInfo.id}>
-                {timeInfo.time}
-              </option>
-            ))}
+            {/* Comprobación de seguridad para evitar el error .map() */}
+            {Array.isArray(timesForSelectedDate) &&
+              timesForSelectedDate.map((timeInfo) => (
+                <option key={timeInfo.id} value={timeInfo.id}>
+                  {timeInfo.time}
+                </option>
+              ))}
           </select>
         </div>
       </div>
