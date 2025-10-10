@@ -24,6 +24,7 @@ namespace EventodromoRest.Mappers
                 return listaTipoEvento;
             }
         }
+
         public int InsertarTipoEvento(TipoEvento tipoEvento)
         {
             lock (DB)

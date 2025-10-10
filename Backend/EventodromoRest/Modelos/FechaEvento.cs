@@ -7,4 +7,8 @@
         public int? idEvento { get; set; }
         public Evento? Evento { get; set; }
     }
+    public class RequestListarFechaEventoPorEvento
+    {
+        public required int idEvento { get; set; } 
+    }
 }

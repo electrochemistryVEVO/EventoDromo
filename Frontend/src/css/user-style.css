@@ -1,7 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
 
 .search-bar{
-    @apply bg-gray-300
+    --tw-bg-opacity:1;
+    background-color:rgb(209 213 219 / var(--tw-bg-opacity, 1));
 }
 
 .dynamic-bg{
@@ -11,78 +12,83 @@
 }
 
 .titulo-destacado {
-  font-family: 'Nunito', sans-serif;
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 60px;
-  color: #000000;
+  font-family: 'Nunito', sans-serif; 
+  font-size: 40px; 
+  font-weight: 700; 
+  line-height: 60px; 
+  color: #000000; 
 
 }
-/* ------------------------------------------------ */
-/* 2. MODIFICACIÓN DE LA CLASE CARD DE BOOTSTRAP */
-/* Aplica la clase custom al contenedor principal de la tarjeta */
-/* ------------------------------------------------ */
-.card-evento-custom.card {
+
+/* --- Estilos para EventCard --- */
+.card-evento-custom {
+    text-decoration: none; /* Quita el subrayado del Link */
+    color: inherit; /* Hereda el color de texto normal */
     border: none;
-    border-radius: 6px;
-    background: #EAE8E8; /* Fondo gris claro */
+    overflow: hidden; /* Necesario para que el zoom de la imagen no se salga de la card */
+    display: block; /* Asegura que el Link ocupe todo el espacio */
+    border-radius: 6px; /* Bordes redondeados para toda la tarjeta */
+    background: #EAE8E8;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    display: flex; /* Asegura el apilamiento y espaciado */
 }
 
-/* Modifica la imagen (LazyImage se renderiza como el elemento superior) */
-.card-evento-custom .LazyImage {
-    height: 45%; /* La imagen ocupa el 45% del alto */
-    /* Asegúrate de que el componente LazyImage le aplique un width: 100% y object-fit: cover */
+.card-evento-custom .card-img-container {
+    height: 230px; /* Altura aumentada para la imagen */
     overflow: hidden;
+    position: relative;
+}
+
+.card-evento-custom .card-img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Asegura que la imagen cubra el contenedor sin deformarse */
+    transition: transform 0.3s ease-in-out; /* Transición suave para el zoom */
+}
+
+.card-evento-custom:hover .card-img-container img {
+    transform: scale(1.05); /* Efecto de zoom al pasar el mouse */
 }
 
 /* Cuerpo de la tarjeta */
 .card-evento-custom .card-body {
-    height: 55%; /* El cuerpo ocupa el 55% restante */
+    background: #EAE8E8; /* Fondo gris claro para la sección de texto */
+    height: 130px; /* Altura fija para la sección de texto */
     font-family: 'Nunito', sans-serif;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
 }
 
 /* Ícono (la imagen triangleRight) */
 .card-evento-custom .card-icon-play {
-    width: 14px; /* Ancho del triángulo */
-    height: 14px; /* Altura del triángulo */
-    /* El color y forma del triángulo deben ser manejados por tu archivo triangleRight.png */
+    height: 40px !important; /* Altura del ícono */
+    width: auto !important;  /* Ancho automático para mantener la proporción */
 }
 
 /* Título */
 .card-evento-custom .card-title-custom {
-    font-size: 1.3rem;
+    font-size: 1.3rem; 
     font-weight: 700;
     margin: 0;
     color: #333;
+}
+
+.card-info-title {
+    font-size: 0.9rem;
+    color: #6c757d; /* Un gris sutil */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-info-title .categoria-highlight {
+    color: #00C49A;
+    font-weight: 500;
 }
 
 /* Fecha */
 .card-evento-custom .card-date-text {
     font-size: 1rem;
     color: #777;
-    margin: 0;
+    margin: 0; 
     text-align: left;
-}
-
-/* Botón "View options" */
-.btn-custom-outline.btn-outline-dark {
-    border: 1px solid #777 !important; /* Forzamos el borde gris */
-    color: #333 !important;
-    padding: 8px 16px;
-    font-size: 0.9rem;
-    width: 100%; /* El botón ocupa todo el ancho del padding */
-}
-/* Estilo hover */
-.btn-custom-outline.btn-outline-dark:hover {
-    background-color: #00A699 !important;
-    color: white !important;
-    border-color: #00A699 !important;
-}
-
-.evento-detalle-imagen{
-    object-fit: cover;
-    width: 800px;
-    height: 500px;
 }
