@@ -36,6 +36,42 @@ namespace EventodromoRest.Mappers
 
         }
 
+        public List<Evento> ListarEventosPorTipo(int idTipoEvento)
+        {
+            List<Evento> listaEvento = new List<Evento>();
+            lock (DB)
+            {
+                string query = "SELECT * FROM Evento WHERE idTipoEvento=@ID_TIPO_EVENTO";
+                var parametros = new ParameterList();
+                parametros.Add("@ID_TIPO_EVENTO",idTipoEvento);
+                DB.Select(query, parametros);
+                while (DB.Read())
+                {
+                    Evento evento = new()
+                    {
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        descripcion = DB.GetString("DESCRIPCION"),
+                        idTipoEvento = DB.GetInt("IDTIPOEVENTO"),
+                        idLocal = DB.GetInt("IDLOCAL"),
+                        creadoPor = DB.GetInt("CREADOPOR"),
+                        fechaPublicacion = DB.GetDateTime("FECHAPUBLICACION"),
+                        fechaCompra = DB.GetDateTime("FECHACOMPRA"),
+                        isDeleted = DB.GetBoolean("ISDELETED"),
+                        imagenURL = DB.GetString("IMAGENURL"),
+
+                    };
+                    listaEvento.Add(evento);
+                }
+                //NOTA: Hacer las solicitudes anidadas despues de completar toda la lectura
+                //Aparentemente, cuando el DB hace otra solicitud, se olvida de esta
+                foreach(Evento evento in listaEvento){
+                    evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento ?? 0);
+                    evento.Local = ObtenerLocalPorId(evento.idLocal ?? 0);
+                }
+                return listaEvento;
+            }
+        }
         public int InsertarEvento(Evento evento)
         {
             lock (DB)

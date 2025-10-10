@@ -1,5 +1,7 @@
 ﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
+using EventodromoRest.Negocio;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace EventodromoRest.Mappers
@@ -61,18 +63,16 @@ namespace EventodromoRest.Mappers
                 DB.Select(query, parametros);
                 if (DB.Read())
                 {
-                    Local local = new()
-                    {
-                        id = DB.GetInt("ID"),
-                        nombre = DB.GetString("NOMBRE"),
-                        idCiudad = DB.GetInt("IDCIUDAD"),
-                        ciudad = ObtenerCiudadPorId(DB.GetInt("IDCIUDAD")),
-                        direccion = DB.GetString("DIRECCION"),
-                        capacidad = DB.GetInt("CAPACIDAD"),
-                        isDeleted = DB.GetBoolean("ISDELETED"),
-                        idAdministrador = DB.GetInt("CREADOPOR"),
-                        administrador = ObtenerAdministradorPorId(DB.GetInt("CREADOPOR")),
-                    };
+                    Local local = new Local();
+                    local.id = DB.GetInt("ID");
+                    local.nombre = DB.GetString("NOMBRE");
+                    local.idCiudad = DB.GetInt("IDCIUDAD");
+                    local.direccion = DB.GetString("DIRECCION");
+                    local.capacidad = DB.GetInt("CAPACIDAD");
+                    local.isDeleted = DB.GetBoolean("ISDELETED");
+                    local.idAdministrador = DB.GetInt("CREADOPOR");
+                    local.ciudad = ObtenerCiudadPorId(local.idCiudad ?? 0);
+                    local.administrador = ObtenerAdministradorPorId(local.idAdministrador ?? 0);
                     return local;
                 }
                 else

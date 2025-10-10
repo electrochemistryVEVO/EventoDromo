@@ -16,4 +16,8 @@
         public string? imagenURL { get; set; }
     }
 
+    public class RequestListarEventosPorTipo
+    {
+        public required int idTipoEvento { get; set; }
+    }
 }
