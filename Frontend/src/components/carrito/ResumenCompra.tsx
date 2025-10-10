@@ -2,9 +2,9 @@
 
 import { FilaResumenCompra } from "./FilaResumenCompra";
 import "@/css/checkboxCarrito.css";
-import { EntradaDTO } from "@/lib/dto";
+import { CartItem } from "./filaEntrada";
 
-type Props = { items?: EntradaDTO[] };
+type Props = { items?: CartItem[] };
 
 export const ResumenCompra: React.FC<Props> = ({ items = [] }) => {
     return (
