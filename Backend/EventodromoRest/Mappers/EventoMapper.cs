@@ -4,7 +4,7 @@ namespace EventodromoRest.Mappers
 {
     public class EventoMapper(Globales.Globales globales, DBManager.DBManager DB)
     {
-        public List<Evento> ListarEvento()
+        public List<Evento> ListarEventos()
         {
             List<Evento> listaEvento = new List<Evento>();
             lock (DB)
@@ -19,22 +19,19 @@ namespace EventodromoRest.Mappers
                         nombre = DB.GetString("NOMBRE"),
                         descripcion = DB.GetString("DESCRIPCION"),
                         idTipoEvento = DB.GetInt("IDTIPOEVENTO"),
-                        
                         idLocal = DB.GetInt("IDLOCAL"),
-                        
                         creadoPor = DB.GetInt("CREADOPOR"),
                         fechaPublicacion = DB.GetDateTime("FECHAPUBLICACION"), 
                         fechaCompra = DB.GetDateTime("FECHACOMPRA"),
                         isDeleted = DB.GetBoolean("ISDELETED"),
                         imagenURL = DB.GetString("IMAGENURL"),
-
                     };
                     listaEvento.Add(evento);
                 }
-                foreach(Evento evento in listaEvento)
+                foreach (Evento evento in listaEvento)
                 {
-                    evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento ?? 0);
-                    evento.Local = ObtenerLocalPorId(evento.idLocal ?? 0);
+                    evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento);
+                    evento.Local = ObtenerLocalPorId(evento.idLocal);
                 }
                 return listaEvento;
             }
@@ -71,8 +68,8 @@ namespace EventodromoRest.Mappers
                 //NOTA: Hacer las solicitudes anidadas despues de completar toda la lectura
                 //Aparentemente, cuando el DB hace otra solicitud, se olvida de esta
                 foreach(Evento evento in listaEvento){
-                    evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento ?? 0);
-                    evento.Local = ObtenerLocalPorId(evento.idLocal ?? 0);
+                    evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento);
+                    evento.Local = ObtenerLocalPorId(evento.idLocal);
                 }
                 return listaEvento;
             }
@@ -124,8 +121,8 @@ namespace EventodromoRest.Mappers
                         imagenURL = DB.GetString("IMAGENURL"),
 
                     };
-                    evento.Local = ObtenerLocalPorId(evento.idLocal ?? 0);
-                    evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento ?? 0);
+                    evento.Local = ObtenerLocalPorId(evento.idLocal);
+                    evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento);
                     return evento;
                 }
                 else
@@ -180,6 +177,42 @@ namespace EventodromoRest.Mappers
         {
             var localMapper = new LocalMapper(globales, DB);
             return localMapper.ObtenerLocalPorId(v);
+        }
+
+        public List<EventoActivoProxFechaDTO> ListarEventosActivos()
+        {
+            lock (DB)
+            {
+                List<EventoActivoProxFechaDTO> listaEventos = new List<EventoActivoProxFechaDTO>();
+                string query = "SELECT e.*, MIN(f.fechaHora) AS proximaFecha " +
+                    "FROM Evento AS e " +
+                    "INNER JOIN FechaEvento f ON e.id = f.idEvento " +
+                    "WHERE e.fechaPublicacion < @fechaActual AND f.fechaHora > @fechaActual " +
+                    "GROUP BY e.id, e.nombre, e.descripcion, e.fechaPublicacion " +
+                    "ORDER BY proximaFecha ASC;";
+                var parametros = new ParameterList();
+                parametros.Add("@fechaActual", DateTime.Now);
+                DB.Select(query, parametros);
+                while (DB.Read())
+                {
+                    EventoActivoProxFechaDTO evento = new()
+                    {
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        descripcion = DB.GetString("DESCRIPCION"),
+                        idTipoEvento = DB.GetInt("IDTIPOEVENTO"),
+                        idLocal = DB.GetInt("IDLOCAL"),
+                        creadoPor = DB.GetInt("CREADOPOR"),
+                        fechaPublicacion = DB.GetDateTime("FECHAPUBLICACION"),
+                        fechaCompra = DB.GetDateTime("FECHACOMPRA"),
+                        isDeleted = DB.GetBoolean("ISDELETED"),
+                        imagenURL = DB.GetString("IMAGENURL"),
+                        fechaProximoEvento = DB.GetDateTime("proximaFecha")
+                    };
+                    listaEventos.Add(evento);
+                }
+                return listaEventos;
+            }
         }
     }
 }

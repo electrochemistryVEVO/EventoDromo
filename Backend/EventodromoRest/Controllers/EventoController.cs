@@ -37,5 +37,27 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
+
+        [HttpGet]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<ResponseListarEventosYLocales> ListarEventosYLocales()
+        {
+            try
+            {
+                return new EventoBO(globales, BD).ListarEventosYLocales();
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<ResponseListarEventosYLocales>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, "", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
     }
 }

@@ -8,7 +8,7 @@ namespace EventodromoRest.Mappers
 {
     public class LocalMapper(Globales.Globales globales, DBManager.DBManager DB)
     {
-        public List<Local> ListarLocal()
+        public List<Local> ListarLocales()
         {
             List<Local> listaLocal = new List<Local>();
             lock (DB)
@@ -71,8 +71,8 @@ namespace EventodromoRest.Mappers
                     local.capacidad = DB.GetInt("CAPACIDAD");
                     local.isDeleted = DB.GetBoolean("ISDELETED");
                     local.idAdministrador = DB.GetInt("CREADOPOR");
-                    local.ciudad = ObtenerCiudadPorId(local.idCiudad ?? 0);
-                    local.administrador = ObtenerAdministradorPorId(local.idAdministrador ?? 0);
+                    local.ciudad = ObtenerCiudadPorId(local.idCiudad);
+                    local.administrador = ObtenerAdministradorPorId(local.idAdministrador);
                     return local;
                 }
                 else
