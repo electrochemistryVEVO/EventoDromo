@@ -1,0 +1,119 @@
+{
+    "success": true,
+    "mensaje": "Eventos obtenidos correctamente",
+    "data": {
+        "eventos": [
+            {
+                "id": 0,
+                "nombre": "Festival Overpass Lima",
+                "direccion": "Av. Principal 123",
+                "ciudad": "Lima",
+                "categoria": "Concierto",
+                "fecha": "2025-09-14",
+                "imagen": "/festival-overpass-lima.png"
+            },
+            {
+                "id": 1,
+                "nombre": "Noches de Folklore",
+                "direccion": "Plaza de Armas",
+                "ciudad": "Cusco",
+                "categoria": "Cultural",
+                "fecha": "2025-09-06",
+                "imagen": "noches-de-folklore.jpg"
+            },
+            {
+                "id": 2,
+                "nombre": "Carmen Ópera de Georges Bizet",
+                "direccion": "Teatro Municipal",
+                "ciudad": "Lima",
+                "categoria": "Cultural",
+                "fecha": "2025-09-11",
+                "imagen": "carmen-opera.jpg"
+            },
+            {
+                "id": 3,
+                "nombre": "Tour + Museo Monumental",
+                "direccion": "Estadio Monumental",
+                "ciudad": "Lima",
+                "categoria": "Deportivo",
+                "fecha": "2025-09-11",
+                "imagen": "tour-museo-monumental.jpg"
+            },
+            {
+                "id": 4,
+                "nombre": "Daniela Darcourt",
+                "direccion": "Anfiteatro del Parque de la Exposición",
+                "ciudad": "Lima",
+                "categoria": "Concierto",
+                "fecha": "2025-09-15",
+                "imagen": "daniela-darcourt.png"
+            },
+            {
+                "id": 5,
+                "nombre": "Linkin Park",
+                "direccion": "Estadio Nacional",
+                "ciudad": "Lima",
+                "categoria": "Concierto",
+                "fecha": "2025-09-19",
+                "imagen": "linkin-park.jpg"
+            },
+            {
+                "id": 6,
+                "nombre": "Imagine Dragons",
+                "direccion": "Estadio Nacional",
+                "ciudad": "Lima",
+                "categoria": "Concierto",
+                "fecha": "2025-09-21",
+                "imagen": "imagine-dragons.jpg"
+            },
+            {
+                "id": 7,
+                "nombre": "Carrera 10 Kilómetros",
+                "direccion": "Pentagonito",
+                "ciudad": "Lima",
+                "categoria": "Deportivo",
+                "fecha": "2025-09-22",
+                "imagen": "carrera-10k.png"
+            },
+            {
+                "id": 8,
+                "nombre": "Rimac Sports Festival",
+                "direccion": "Costa Verde",
+                "ciudad": "Lima",
+                "categoria": "Deportivo",
+                "fecha": "2025-09-24",
+                "imagen": "rimac-sports-festival.png"
+            },
+            {
+                "id": 9,
+                "nombre": "Marinera y Show Peruano",
+                "direccion": "Restaurante La Dama Juana",
+                "ciudad": "Lima",
+                "categoria": "Cultural",
+                "fecha": "2025-09-26",
+                "imagen": "marinera-show.png"
+            }
+        ],
+        "locales": [
+            {
+                "id": 1,
+                "nombre": "Estadio Nacional",
+                "ciudad": "Lima",
+                "imagen": "estadio-nacional.jpg"
+            },
+            {
+                "id": 2,
+                "nombre": "Anfiteatro del Parque de la Exposición",
+                "ciudad": "Lima",
+                "imagen": "parque-exposicion.jpg"
+            },
+            {
+                "id": 3,
+                "nombre": "Jockey Club del Perú",
+                "ciudad": "Lima",
+                "imagen": "jockey-club.jpg"
+            }
+        ]
+    },
+    "error": null
+}

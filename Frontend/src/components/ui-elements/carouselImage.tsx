@@ -8,6 +8,6 @@ type CarouselItemProps = {
 }
 export default function CarouselImage(props:CarouselItemProps){
   return(
-    <LazyImage imageUrl={props.evento.imagenURL} className="w-100"/>
+    <LazyImage imageUrl={props.evento.imagen} className="w-100"/>
   )
 }

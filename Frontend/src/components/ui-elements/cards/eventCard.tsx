@@ -11,13 +11,15 @@ type PropsWithEvento = {
 export default function EventCard(props: PropsWithEvento) {
   let evento: Evento = props.event;
 
+  // Convertimos la cadena de fecha a un objeto Date.
+  // El 'T00:00:00' es para asegurar que se interprete en la zona horaria local y no en UTC.
   let fechaPublicacionFormat: string = new Intl.DateTimeFormat("es-419", {
     dateStyle: "full"
-  }).format(evento.fechaPublicacion)
+  }).format(new Date(evento.fecha + "T00:00:00"));
 
   return (
     <div className="card h-100 card-evento-custom">
-      <LazyImage imageUrl={evento.imagenURL} /> {/* IMAGEN: card-img-top */}
+      <LazyImage imageUrl={evento.imagen} /> {/* IMAGEN: card-img-top */}
 
       <div className="card-body p-4 d-flex flex-column justify-content-between">
 
