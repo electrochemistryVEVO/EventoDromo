@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '@/css/compraConLogin.module.css';
 import { ResumenCompra } from "@/components/carrito/ResumenCompra";
-import arrow_left from '@/assets/icons/arrow_left.svg';
-import accountCircle from '@/assets/icons/account_circle.svg';
-import paymentCard from '@/assets/icons/payment_card.svg';
+import arrow_left from '@/assets/icons/arrow_left.svg'; 
+import LogoUsuarioEncendido from '@/assets/icons/LogoUsuarioEncendido.svg';
+import LogoPagoApagado from '@/assets/icons/LogoPagoApagado.svg';
 import Image from 'next/image';
 
 function App() {
@@ -66,12 +66,14 @@ function App() {
                 </div>
                 <div className={styles.steps}>
                     <div className="flex flex-row items-center gap-2">
-                        <Image src={accountCircle} alt="Account Circle" width={32} height={32} />
+                        <Image src={LogoUsuarioEncendido} alt="Identificación" width={36} height={36} />
                         <div className={styles.stepActive}>Identificación</div>
                     </div>
                     <div className="flex flex-row items-center gap-2">
-                        <Image className="fill-[#9ca3af]" src={paymentCard} alt="Payment Card" width={32} height={32} />
-                        <div className={styles.stepInactive}>Método de Pago</div>
+                        <div className="w-8 h-8 rounded-full border-2 border-[#d9d9d9] flex items-center justify-center">
+                            <Image src={LogoPagoApagado} alt="Método de Pago" width={20} height={20} />
+                        </div>
+                        <div className={styles.stepInactive}>Método de pago</div>
                     </div>
                 </div>
                 <div /> {/* Elemento vacío para centrar el título */}
