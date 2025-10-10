@@ -9,23 +9,23 @@ namespace EventodromoRest.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    public class FechaEventoController (Globales.Globales globales, DBManager.DBManager BD) : BaseController
+    public class TipoEntradaController (Globales.Globales globales, DBManager.DBManager BD) : BaseController
     {
         //private readonly DBManager.DBManager BD = BD;
         //private readonly Globales.Globales globales = globales; 
 
         [HttpPost]
         [Route("/api/[controller]/[action]")]
-        public GenericResponse<IEnumerable<FechaEvento>> ListarFechaEventoPorEvento([FromBody] RequestListarFechaEventoPorEvento request)
+        public GenericResponse<IEnumerable<TipoEntrada>> ListarTipoEntradaPorFechaEvento([FromBody] RequestListarTipoEntradaPorFechaEvento request)
         {
             try
             { 
                 ValidarBody(request); 
-                return new FechaEventoBO(globales, BD).ListarFechaEventoPorEvento(request.idEvento);
+                return new TipoEntradaBO(globales, BD).ListarTipoEntradaPorFechaEvento(request.idFechaEvento);
             }
             catch (Exception e)
             {
-                var response = new GenericResponse<IEnumerable<FechaEvento>>
+                var response = new GenericResponse<IEnumerable<TipoEntrada>>
                 {
                     Success = false,
                     Message = null,

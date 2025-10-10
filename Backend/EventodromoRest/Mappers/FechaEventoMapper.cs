@@ -71,6 +71,33 @@ namespace EventodromoRest.Mappers
                 }
             }
         }
+        public List<FechaEvento> ListarFechaEventoPorEvento(int idEvento)
+        {
+            lock (DB)
+            {
+                string query = "SELECT * FROM FechaEvento WHERE IDEVENTO = @IDEVENTO";
+                var parametros = new ParameterList();
+                parametros.Add("@IDEVENTO", idEvento);
+                DB.Select(query, parametros);
+                List<FechaEvento> fechaEventos = new List<FechaEvento>();
+                while (DB.Read())
+                {
+                    FechaEvento fechaEvento = new()
+                    {
+                        id = DB.GetInt("ID"),
+                        fechaHora = DB.GetDateTime("FECHAHORA"),
+                        idEvento = DB.GetInt("IDEVENTO"),
+                    };
+                    fechaEventos.Add(fechaEvento);
+                }
+                
+                foreach (FechaEvento fechaEvento in fechaEventos)
+                {
+                    fechaEvento.Evento = ObtenerEventoPorId(fechaEvento.idEvento ?? 0);
+                }
+                return fechaEventos;
+            }
+        }
 
         public int EliminarFechaEventoPorId(int id)
         {
