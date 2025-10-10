@@ -29,6 +29,7 @@ const UserInfo = () => {
         }
     }, []);
 
+    
     return (
     <section className={styles.card}>
         <h2 className={styles.cardTitle}>Identificación</h2>
@@ -167,17 +168,17 @@ function App() {
             <header className={styles.header}>
                 <div>
                     <Link href="/user/carrito/identificacion" className={styles.backButton}>
-                        <Image src={arrow_left} alt="Flecha izquierda" width={36} height={36} />
+                        <Image  src={arrow_left} alt="Flecha izquierda" width={36} height={36} />
                     </Link>
                 </div>
                 <div className={styles.steps}>
                     <div className="flex flex-row items-center gap-2">
-                        <Image src={accountCircle} alt="Account Circle" width={32} height={32} />
-                        <div className={styles.stepActive}>Identificación</div>
+                        <Image className="fill-[#9ca3af]"  src={accountCircle} alt="Account Circle" width={32} height={32} />
+                        <div className={styles.stepInactive}>Identificación</div>
                     </div>
                     <div className="flex flex-row items-center gap-2">
-                        <Image className="fill-[#9ca3af]" src={paymentCard} alt="Payment Card" width={32} height={32} />
-                        <div className={styles.stepInactive}>Método de Pago</div>
+                        <Image className="fill-[#00C49C]"src={paymentCard} alt="Payment Card" width={32} height={32} />
+                        <div className={styles.stepActive}>Método de Pago</div>
                     </div>
                 </div>
                 <div /> {/* Elemento vacío para centrar el título */}
