@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+
+.search-bar{
+    @apply bg-gray-300
+}
+
+
+.dynamic-bg{
+    position:absolute;
+    filter:blur(4px);
+    z-index: -1;
+
+}
+
+.titulo-destacado {
+  font-family: 'Nunito', sans-serif; 
+  font-size: 40px; 
+  font-weight: 700; 
+  line-height: 60px; 
+  color: #000000; 
+
+}
+/* ------------------------------------------------ */
+/* 2. MODIFICACIÓN DE LA CLASE CARD DE BOOTSTRAP */
+/* Aplica la clase custom al contenedor principal de la tarjeta */
+/* ------------------------------------------------ */
+.card-evento-custom.card {
+    border: none;
+    border-radius: 6px;
+    background: #EAE8E8; /* Fondo gris claro */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+    display: flex; /* Asegura el apilamiento y espaciado */
+}
+
+/* Modifica la imagen (LazyImage se renderiza como el elemento superior) */
+.card-evento-custom .LazyImage { 
+    height: 45%; /* La imagen ocupa el 45% del alto */
+    /* Asegúrate de que el componente LazyImage le aplique un width: 100% y object-fit: cover */
+    overflow: hidden;
+}
+
+/* Cuerpo de la tarjeta */
+.card-evento-custom .card-body {
+    height: 55%; /* El cuerpo ocupa el 55% restante */
+    font-family: 'Nunito', sans-serif;
+}
+
+/* Ícono (la imagen triangleRight) */
+.card-evento-custom .card-icon-play {
+    width: 14px; /* Ancho del triángulo */
+    height: 14px; /* Altura del triángulo */
+    /* El color y forma del triángulo deben ser manejados por tu archivo triangleRight.png */
+}
+
+/* Título */
+.card-evento-custom .card-title-custom {
+    font-size: 1.3rem; 
+    font-weight: 700;
+    margin: 0;
+    color: #333;
+}
+
+/* Fecha */
+.card-evento-custom .card-date-text {
+    font-size: 1rem;
+    color: #777;
+    margin: 0; 
+    text-align: left;
+}
+
+/* Botón "View options" */
+.btn-custom-outline.btn-outline-dark {
+    border: 1px solid #777 !important; /* Forzamos el borde gris */
+    color: #333 !important;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    width: 100%; /* El botón ocupa todo el ancho del padding */
+}
+/* Estilo hover */
+.btn-custom-outline.btn-outline-dark:hover {
+    background-color: #00A699 !important;
+    color: white !important;
+    border-color: #00A699 !important;
+}
