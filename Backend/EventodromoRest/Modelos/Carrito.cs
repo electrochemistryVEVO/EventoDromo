@@ -24,7 +24,11 @@
     }
 
     public class ResponseObtenerCarritoEntradas
-    { 
+    {
+        public int idCarrito { get; set; }
+        public int idCliente { get; set; }
+        public DateTime fechaCreacion { get; set; }
+        public DateTime fechaExpiracion { get; set; }
         public List<EntradaxCarritoDTO> entradas { get; set; }
     }
 

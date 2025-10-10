@@ -4,7 +4,7 @@ using EventodromoRest.Modelos.Utiles;
 
 namespace EventodromoRest.Negocio
 {
-    public class CarritoBO (Globales.Globales globales, DBManager.DBManager DB)
+    public class CarritoBO(Globales.Globales globales, DBManager.DBManager DB)
     {
         public GenericResponse<ResponseObtenerCarritoEventos> ObtenerCarritoEventos(RequestObtenerCarrito request)
         {
@@ -102,29 +102,26 @@ namespace EventodromoRest.Negocio
                 foreach (Entrada e in entradas)
                 {
                     var tipoEntrada = tipoEntradaMapper.ObtenerTipoEntradaPorId(e.idTipoEntrada);
-                    var entradaExistente = listaEntradas.FirstOrDefault(x => x.idTipoEntrada == tipoEntrada.id);
+                    var nuevaEntrada = new EntradaxCarritoDTO();
+                    nuevaEntrada.nombreTipoEntrada = tipoEntrada.nombre;
+                    nuevaEntrada.precio = tipoEntrada.precio;
+                    var fechaEvento = fechaEventoMapper.ObtenerFechaEventoPorId(tipoEntrada.idFechaEvento);
+                    var evento = eventoMapper.ObtenerEventoPorId(fechaEvento.idEvento);
+                    var local = localMapper.ObtenerLocalPorId(evento.idLocal);
+                    nuevaEntrada.nombreEvento = evento.nombre;
+                    nuevaEntrada.imagenURL = evento.imagenURL;
+                    nuevaEntrada.nombreLocal = local.nombre;
+                    nuevaEntrada.idEntrada = e.id;
+                    listaEntradas.Add(nuevaEntrada);
 
-                    if (entradaExistente != null)
-                    {
-                        entradaExistente.cantidad++;
-                    }
-                    else
-                    {
-                        var nuevaEntrada = new EntradaxCarritoDTO();
-                        nuevaEntrada.idTipoEntrada = tipoEntrada.id;
-                        nuevaEntrada.nombreTipoEntrada = tipoEntrada.nombre;
-                        nuevaEntrada.cantidad = 1;
-                        nuevaEntrada.precio = tipoEntrada.precio;
-                        var fechaEvento = fechaEventoMapper.ObtenerFechaEventoPorId(tipoEntrada.idFechaEvento);
-                        var evento = eventoMapper.ObtenerEventoPorId(fechaEvento.idEvento);
-                        nuevaEntrada.nombreEvento = evento.nombre;
-                        nuevaEntrada.imagenURL = evento.imagenURL;
-                        listaEntradas.Add(nuevaEntrada);
-                    }
                 }
 
                 var response = new ResponseObtenerCarritoEntradas
                 {
+                    idCarrito = carrito.id,
+                    idCliente = request.idCliente,
+                    fechaCreacion = carrito.fechaCreacion,
+                    fechaExpiracion = carrito.fechaExpiracion,
                     entradas = listaEntradas
                 };
 
