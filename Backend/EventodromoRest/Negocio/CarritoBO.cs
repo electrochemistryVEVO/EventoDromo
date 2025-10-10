@@ -95,45 +95,60 @@ namespace EventodromoRest.Negocio
             var localMapper = new LocalMapper(globales, DB);
 
             var carrito = carritoMapper.ObtenerCarritoPorIdCliente(request.idCliente);
-            List<Entrada> entradas = entradaMapper.ObtenerEntradasPorIdCarrito(carrito.id);
-            foreach (Entrada e in entradas)
-            {
-                var tipoEntrada = tipoEntradaMapper.ObtenerTipoEntradaPorId(e.idTipoEntrada);
-                var entradaExistente = listaEntradas.FirstOrDefault(x => x.idTipoEntrada == tipoEntrada.id);
 
-                if (entradaExistente != null)
+            if (carrito != null)
+            {
+                List<Entrada> entradas = entradaMapper.ObtenerEntradasPorIdCarrito(carrito.id);
+                foreach (Entrada e in entradas)
                 {
-                    entradaExistente.cantidad++;
+                    var tipoEntrada = tipoEntradaMapper.ObtenerTipoEntradaPorId(e.idTipoEntrada);
+                    var entradaExistente = listaEntradas.FirstOrDefault(x => x.idTipoEntrada == tipoEntrada.id);
+
+                    if (entradaExistente != null)
+                    {
+                        entradaExistente.cantidad++;
+                    }
+                    else
+                    {
+                        var nuevaEntrada = new EntradaxCarritoDTO();
+                        nuevaEntrada.idTipoEntrada = tipoEntrada.id;
+                        nuevaEntrada.nombreTipoEntrada = tipoEntrada.nombre;
+                        nuevaEntrada.cantidad = 1;
+                        nuevaEntrada.precio = tipoEntrada.precio;
+                        var fechaEvento = fechaEventoMapper.ObtenerFechaEventoPorId(tipoEntrada.idFechaEvento);
+                        var evento = eventoMapper.ObtenerEventoPorId(fechaEvento.idEvento);
+                        nuevaEntrada.nombreEvento = evento.nombre;
+                        nuevaEntrada.imagenURL = evento.imagenURL;
+                        listaEntradas.Add(nuevaEntrada);
+                    }
                 }
-                else
+
+                var response = new ResponseObtenerCarritoEntradas
                 {
-                    var nuevaEntrada = new EntradaxCarritoDTO();
-                    nuevaEntrada.idTipoEntrada = tipoEntrada.id;
-                    nuevaEntrada.nombreTipoEntrada = tipoEntrada.nombre;
-                    nuevaEntrada.cantidad = 1;
-                    nuevaEntrada.precio = tipoEntrada.precio;
-                    var fechaEvento = fechaEventoMapper.ObtenerFechaEventoPorId(tipoEntrada.idFechaEvento);
-                    var evento = eventoMapper.ObtenerEventoPorId(fechaEvento.idEvento);
-                    nuevaEntrada.nombreEvento = evento.nombre;
-                    nuevaEntrada.imagenURL = evento.imagenURL;
-                    listaEntradas.Add(nuevaEntrada);
-                }
+                    entradas = listaEntradas
+                };
+
+                var genericResponse = new GenericResponse<ResponseObtenerCarritoEntradas>
+                {
+                    Success = true,
+                    Message = "Carrito obtenido correctamente",
+                    Error = null,
+                    Data = response
+                };
+
+                return genericResponse;
             }
-
-            var response = new ResponseObtenerCarritoEntradas
+            else
             {
-                entradas = listaEntradas
-            };
-
-            var genericResponse = new GenericResponse<ResponseObtenerCarritoEntradas>
-            {
-                Success = true,
-                Message = "Carrito obtenido correctamente",
-                Error = null,
-                Data = response
-            };
-
-            return genericResponse;
+                var genericResponse = new GenericResponse<ResponseObtenerCarritoEntradas>
+                {
+                    Success = true,
+                    Message = "No hay carrito activo.",
+                    Error = null,
+                    Data = null
+                };
+                return genericResponse;
+            }
         }
     }
 }
