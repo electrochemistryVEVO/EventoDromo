@@ -1,0 +1,14 @@
+.banner-container {
+  width: 100%;
+  height: 500px; /* Esta altura puede ajustarse según el diseño general */
+  overflow: hidden; /* Oculta cualquier parte de la imagen que se desborde */
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Clave para que la imagen cubra el contenedor sin perder proporción */
+  object-position: center; /* Centra la imagen dentro del contenedor */
+  filter: blur(8px);
+  transform: scale(1.05);
+}
