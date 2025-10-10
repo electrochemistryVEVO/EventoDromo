@@ -14,7 +14,7 @@ export default function CheckboxCarrito({ checked, onChange, label, required }) 
                 required={required}
             />
             <span className="checkbox-carrito-custom" />
-            <span className="checkbox-carrito-text">{label}</span>
+            <span className="checkbox-carrito-text ">{label}</span>
         </label>
     );
 }

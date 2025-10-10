@@ -1,6 +1,6 @@
 "use client"
-import '@/css/styles.css'
-import styles from './page.module.css';
+// import '@/css/styles.css' // Comentado para evitar sobreescritura de estilos
+import styles from '@/css/entradaDetalle.module.css';
 import { TablaEntradas } from "@/components/carrito/tablaEntradas.tsx";
 // --- PASO 1: Importa los datos de guía (estáticos) ---
 import { items as mockItems } from './controller';
@@ -63,7 +63,8 @@ function App() {
     const handleAutoriza = (e) => setAutorizaDatos(e.target.checked);
 
     return (
-        <div className="px-40">
+        // Se envuelve el contenido en pageContainer para unificar el layout con las otras páginas
+        <div className={styles.pageContainer}>
             <div className={styles.header}>
                 {/* Icono de Carrito de Compras */}
                 <svg 
@@ -88,7 +89,7 @@ function App() {
                         <p className="text-red-500">{error}</p>
                     ) : (
                         <>
-                            <div className="pt-4 pb-2 text-4xl font-semibold text-gray-700">
+                            <div className="pt-4 pb-2 text-xl font-semibold text-gray-700">
                                 {/* Ajustamos el cálculo para que funcione con ambos tipos de datos */}
                                 Tienes {items.reduce((acc, item) => {
                                     // Los datos de guía usan 'quantity', los reales 'cantidadTotal'
@@ -101,9 +102,9 @@ function App() {
                 </div>
                 {/* Columna Derecha (más angosta y con fondo) */}
                 <div id="colDerechaPrecuenta" className="w-full lg:w-1/3 rounded-lg bg-[#EFECEC] p-8 self-start">
-                    <h2 className="pt-4 text-4xl font-semibold ">Detalle de pago</h2>
+                    <h2 className="pt-4 text-xl font-semibold ">Detalle de pago</h2>
                     <CostoDetalleEntradas entradas={items} />
-                    <div className="mt-8 flex flex-col gap-6 text-xl">
+                    <div className="mt-8 flex flex-col gap-6 text-xs">
                         <CheckboxCarrito
                             checked={aceptaTerminos}
                             onChange={handleTerminos}
@@ -119,7 +120,7 @@ function App() {
                     </div>
                     <div className="mt-10 flex flex-col items-center gap-5">
                         <button 
-                            className="flex w-full max-w-sm items-center justify-center gap-4 rounded-2xl bg-[#00C49A] py-10 text-3xl font-bold text-white transition hover:bg-[#00b07e] disabled:cursor-not-allowed disabled:bg-gray-400"
+                            className="flex w-full max-w-sm items-center justify-center gap-4 rounded-2xl bg-[#00C49A] py-10 text-lg font-bold text-white transition hover:bg-[#00b07e] disabled:cursor-not-allowed disabled:bg-gray-400"
                             disabled={!aceptaTerminos || isLoading || items.length === 0}
                             onClick={() => {
                                 if (aceptaTerminos) {
@@ -127,11 +128,11 @@ function App() {
                                 }
                             }}
                         >
-                            <Image src={iconoCarrito} alt="" width={30} height={30} />
+                            <Image src={iconoCarrito} alt="" width={24} height={24} />
                             Finalizar Pedido
                         </button>
                         <button
-                            className="w-full flex flex-row  justify-center items-center  gap-4 max-w-sm rounded-2xl bg-[#EFECEC] py-4 text-2xl font-bold text-gray-500 transition border-gray-400 border-2"
+                            className="w-full flex flex-row  justify-center items-center  gap-4 max-w-sm rounded-2xl bg-[#EFECEC] py-4 text-base font-bold text-gray-500 transition border-gray-400 border-2"
                         >
                             <Image src={iconoFlechaIzq} alt="" width={30} height={30} />    
                             Elegir más eventos

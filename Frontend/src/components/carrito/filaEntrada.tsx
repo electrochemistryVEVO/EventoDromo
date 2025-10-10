@@ -48,22 +48,22 @@ export const FilaEntrada: React.FC<CartRowProps> = ({ item, selected, onToggle, 
                     alt={`${item.title} ${item.subtitle}`}
                     width={112}
                     height={112}
-                    className="h-40 w-40 flex-shrink-0 rounded-lg object-cover"
+                    className="h-20 w-20 flex-shrink-0 rounded-lg object-cover"
                     loading="lazy"
                 />
                 <div className="leading-tight">
-                    <div className="text-4xl font-bold text-gray-800">{item.title}</div>
-                    <div className="text-2xl text-gray-500">{item.subtitle}</div>
+                    <div className="text-xl font-bold text-gray-800">{item.title}</div>
+                    <div className="text-base text-gray-500">{item.subtitle}</div>
                 </div>
             </div>
 
             {/* Cantidad */}
-            <div className="text-center text-2xl font-medium text-gray-800 tabular-nums">
+            <div className="text-center text-lg font-medium text-gray-800 tabular-nums">
                 {item.quantity}
             </div>
 
             {/* Precio */}
-            <div className="text-right text-2xl font-normal text-gray-900 tabular-nums">
+            <div className="text-right text-lg font-normal text-gray-900 tabular-nums">
                 {pen.format(item.price)}
             </div>
 

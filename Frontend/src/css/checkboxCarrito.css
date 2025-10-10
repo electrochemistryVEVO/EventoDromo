@@ -91,7 +91,7 @@
 }
 
 .checkbox-carrito-text {
-    font-size: 1.25rem; /* 20px, para coincidir con text-xl */
+    font-size: 1rem; /* 20px, para coincidir con text-xl */
     color: #333;
     user-select: none;
     font-weight: normal;

@@ -51,7 +51,7 @@ export const TablaEntradas: React.FC<TablaEntradasProps> = ({ items, onRemoveIte
     return (
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
             {/* Encabezado de la Tabla */}
-            <header className="grid grid-cols-[auto_1fr_128px_160px_auto] items-center gap-x-4 bg-[#EEECEC] px-4 py-5 text-lg font-bold uppercase text-slate-600">
+            <header className="grid grid-cols-[auto_1fr_128px_160px_auto] items-center gap-x-4 bg-[#EEECEC] px-4 py-5 text-sm font-bold uppercase text-slate-600">
                 {/* Checkbox "Seleccionar Todo" */}
                 <div>
                     <input
@@ -64,11 +64,11 @@ export const TablaEntradas: React.FC<TablaEntradasProps> = ({ items, onRemoveIte
                     />
                 </div>
                 {/* Título de Producto */}
-                <div className="text-2xl" >Evento</div>
+                <div className="text-base" >Evento</div>
                 {/* Título de Cantidad */}
-                <div className="text-center text-2xl tracking-wider">Cantidad</div>
+                <div className="text-center text-base tracking-wider">Cantidad</div>
                 {/* Título de Precio */}
-                <div className="text-right text-2xl tracking-wider">Precio</div>
+                <div className="text-right text-base tracking-wider">Precio</div>
                 {/* Columna vacía para alinear el botón de eliminar (debe coincidir con el ancho del botón) */}
                 <div className="w-16" />
             </header>
@@ -88,7 +88,7 @@ export const TablaEntradas: React.FC<TablaEntradasProps> = ({ items, onRemoveIte
                 <button
                     onClick={handleRemoveSelected}
                     disabled={selectedIds.size === 0}
-                    className="rounded-md bg-red-600 px-8 py-3 text-2xl font-bold text-white shadow-sm transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:opacity-70"
+                    className="rounded-md bg-red-600 px-8 py-3 text-lg font-bold text-white shadow-sm transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:opacity-70"
                 >
                     Borrar seleccionados
                 </button>

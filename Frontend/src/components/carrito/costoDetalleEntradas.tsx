@@ -29,14 +29,14 @@ const CostoDetalleEntradas: React.FC<Props> = ({ entradas }) => {
             <table className="w-full border-collapse ">
                 <thead>
                     <tr>
-                        <th className="pb-3 text-left text-2xl font-semibold text-gray-600">Entrada</th>
-                        <th className="pb-3 text-center text-2xl font-semibold text-gray-600">Costo Unitario</th>
-                        <th className="pb-3 text-center text-2xl font-semibold text-gray-600">Subtotal</th>
+                        <th className="pb-3 text-left text-base font-semibold text-gray-600">Entrada</th>
+                        <th className="pb-3 text-center text-base font-semibold text-gray-600">Costo Unitario</th>
+                        <th className="pb-3 text-center text-base font-semibold text-gray-600">Subtotal</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-300">
                     {entradasArray.map((entrada, idx) => (
-                        <tr key={idx} className="text-xl">
+                        <tr key={idx} className="text-sm">
                             <td className="py-4"> x {entrada.quantity} {entrada.subtitle}</td>
                             <td className="py-4 text-center">S/. {entrada.price.toFixed(2)}</td>
                             <td className="py-4 text-center">S/. {(entrada.quantity * entrada.price).toFixed(2)}</td>
@@ -44,10 +44,10 @@ const CostoDetalleEntradas: React.FC<Props> = ({ entradas }) => {
                     ))}
                 </tbody>
             </table>
-            <div className="mt-6 border-t-2 border-gray-300 pt-4 text-right text-3xl font-bold text-gray-800">
+            <div className="mt-6 border-t-2 border-gray-300 pt-4 text-right text-xl font-bold text-gray-800">
                 Total: S/. {total.toFixed(2)}
             </div>
-            <div className="mt-8 w-fit rounded-lg bg-[#00C49A] px-8 py-3 text-center text-xl font-semibold text-white shadow-md mx-auto">
+            <div className="mt-8 w-fit rounded-lg bg-[#00C49A] px-8 py-3 text-center text-base font-semibold text-white shadow-md mx-auto">
                 ¡En esta compra ganarás {dromoPuntosGanar.toFixed(0)} DromoPuntos!
             </div>
         </div>
