@@ -29,7 +29,7 @@ namespace EventodromoRest.Mappers
 
                     };
                     evento.TipoEvento= ObtenerTipoEventoPorId(evento.idTipoEvento ?? 0);
-                    evento.Local = ObtenerLocalPorId(evento.idLocal ?? 0);
+                    evento.Local = ObtenerLocalPorId(evento.idLocal);
                     listaEvento.Add(evento);
                 }
                 return listaEvento;
@@ -84,7 +84,7 @@ namespace EventodromoRest.Mappers
                         imagenURL = DB.GetString("IMAGENURL"),
 
                     };
-                    evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento);
+                    evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento ?? 0);
                     evento.Local = ObtenerLocalPorId(evento.idLocal);
                     return evento;
                 }

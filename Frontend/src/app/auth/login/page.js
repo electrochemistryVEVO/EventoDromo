@@ -40,7 +40,7 @@ function App() {
           router.push("/data/loginHardCodeo.json"); 
           // 📍 Si el rol es "A" (admin), lo enviamos a la página principal del administrador.
         } else if (result.rol === "C") {
-          router.push("/user/paginaClienteLoginPrueba");
+          router.push("/user/eventos/lista");
           // 📍 Si el rol es "U" (usuario normal), lo enviamos a la sección de eventos.
         } else {
           // ⚠️ Si el rol no coincide con ninguno esperado, mostramos un error.
@@ -68,7 +68,7 @@ function App() {
         </div>
 
         {/* 🔙 Link para volver a la página principal */}
-        <Link href="/" className="volver-inicio">Volver al inicio</Link>
+        <Link href="/user/eventos/lista" className="volver-inicio">Volver al inicio</Link>
 
         {/* 📩 Formulario de login */}
         <form className="login-text" onSubmit={handleSubmit}>

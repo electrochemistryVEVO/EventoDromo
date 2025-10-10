@@ -4,7 +4,7 @@ using EventodromoRest.Modelos.Utiles;
 
 namespace EventodromoRest.Negocio
 {
-    public class CarritoBO (Globales.Globales globales, DBManager.DBManager DB)
+    public class CarritoBO(Globales.Globales globales, DBManager.DBManager DB)
     {
         public GenericResponse<ResponseObtenerCarritoEventos> ObtenerCarritoEventos(RequestObtenerCarrito request)
         {
