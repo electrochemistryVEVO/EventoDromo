@@ -29,8 +29,8 @@ const UserInfo = () => {
         }
     }, []);
 
+    
     return (
-<<<<<<< HEAD
     <section className={styles.card}>
         <h2 className={styles.cardTitle}>Identificación</h2>
         {/* Se usa un div adicional para mantener el espaciado de 'gap' de la tarjeta */}
@@ -40,17 +40,6 @@ const UserInfo = () => {
             <p>{user.ciudad}, {user.pais}</p>
         </div>
     </section>
-=======
-        <section className={styles.card}>
-            <h2 className={styles.cardTitle}>Identificación</h2>
-            {/* Se usa un div adicional para mantener el espaciado de 'gap' de la tarjeta */}
-            <div className="flex flex-col text-base gap-1 text-gray-700 -mt-2">
-                <p>{user.email}</p>
-                <p>{user.name}</p>
-                <p>Perú, Callao</p>
-            </div>
-        </section>
->>>>>>> 3084690fd143caa8cf8be413eadfcd81ce4a46d3
     );
 };
 
@@ -179,17 +168,17 @@ function App() {
             <header className={styles.header}>
                 <div>
                     <Link href="/user/carrito/identificacion" className={styles.backButton}>
-                        <Image src={arrow_left} alt="Flecha izquierda" width={36} height={36} />
+                        <Image  src={arrow_left} alt="Flecha izquierda" width={36} height={36} />
                     </Link>
                 </div>
                 <div className={styles.steps}>
                     <div className="flex flex-row items-center gap-2">
-                        <Image src={accountCircle} alt="Account Circle" width={32} height={32} />
-                        <div className={styles.stepActive}>Identificación</div>
+                        <Image className="fill-[#9ca3af]"  src={accountCircle} alt="Account Circle" width={32} height={32} />
+                        <div className={styles.stepInactive}>Identificación</div>
                     </div>
                     <div className="flex flex-row items-center gap-2">
-                        <Image className="fill-[#9ca3af]" src={paymentCard} alt="Payment Card" width={32} height={32} />
-                        <div className={styles.stepInactive}>Método de Pago</div>
+                        <Image className="fill-[#00C49C]"src={paymentCard} alt="Payment Card" width={32} height={32} />
+                        <div className={styles.stepActive}>Método de Pago</div>
                     </div>
                 </div>
                 <div /> {/* Elemento vacío para centrar el título */}
