@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '@/css/compraConLogin.module.css';
 import { ResumenCompra } from "@/components/carrito/ResumenCompra";
+import arrow_left from '@/assets/icons/arrow_left.svg';
+import accountCircle from '@/assets/icons/account_circle.svg';
+import paymentCard from '@/assets/icons/payment_card.svg';
+import Image from 'next/image';
 
 function App() {
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
@@ -62,13 +66,19 @@ function App() {
             {/* --- ENCABEZADO DE LA PÁGINA --- */}
             <header className={styles.header}>
                 <div>
-                    <Link href="/user/carrito/identificacion" className={styles.backButton}>
-                        Regresar
+                    <Link href="/user/carrito/entradaDetalle" className={styles.backButton}>
+                        <Image src={arrow_left} alt="Flecha izquierda" width={36} height={36} />
                     </Link>
                 </div>
                 <div className={styles.steps}>
-                    <div className={styles.stepActive}>Identificación</div>
-                    <div className={styles.stepInactive}>Método de Pago</div>
+                    <div className="flex flex-row items-center gap-2">
+                        <Image src={accountCircle} alt="Account Circle" width={32} height={32} />
+                        <div className={styles.stepActive}>Identificación</div>
+                    </div>
+                    <div className="flex flex-row items-center gap-2">
+                        <Image className="fill-[#9ca3af]" src={paymentCard} alt="Payment Card" width={32} height={32} />
+                        <div className={styles.stepInactive}>Método de Pago</div>
+                    </div>
                 </div>
                 <div /> {/* Elemento vacío para centrar el título */}
             </header>

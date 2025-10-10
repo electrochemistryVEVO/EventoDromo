@@ -4,6 +4,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ResumenCompra } from "@/components/carrito/ResumenCompra";
 import styles from '@/css/compraPagoConLogin.module.css';
+import arrow_left from '@/assets/icons/arrow_left.svg';
+import accountCircle from '@/assets/icons/account_circle.svg';
+import paymentCard from '@/assets/icons/payment_card.svg';
+import Image from 'next/image';
+import Link from 'next/link';
 
 const UserInfo = () => {
     const [user, setUser] = useState({ email: '', name: 'Cargando...' });
@@ -23,15 +28,15 @@ const UserInfo = () => {
     }, []);
 
     return (
-    <section className={styles.card}>
-        <h2 className={styles.cardTitle}>Identificación</h2>
-        {/* Se usa un div adicional para mantener el espaciado de 'gap' de la tarjeta */}
-        <div className="flex flex-col text-base gap-1 text-gray-700 -mt-2">
-            <p>{user.email}</p>
-            <p>{user.name}</p>
-            <p>Perú, Callao</p>
-        </div>
-    </section>
+        <section className={styles.card}>
+            <h2 className={styles.cardTitle}>Identificación</h2>
+            {/* Se usa un div adicional para mantener el espaciado de 'gap' de la tarjeta */}
+            <div className="flex flex-col text-base gap-1 text-gray-700 -mt-2">
+                <p>{user.email}</p>
+                <p>{user.name}</p>
+                <p>Perú, Callao</p>
+            </div>
+        </section>
     );
 };
 
@@ -159,19 +164,25 @@ function App() {
         <div className={styles.pageContainer}>
             <header className={styles.header}>
                 <div>
-                    <button onClick={() => router.back()} className={styles.backButton}>
-                        Regresar
-                    </button>
+                    <Link href="/user/carrito/identificacion" className={styles.backButton}>
+                        <Image src={arrow_left} alt="Flecha izquierda" width={36} height={36} />
+                    </Link>
                 </div>
                 <div className={styles.steps}>
-                    <div className={styles.stepInactive}>Identificación</div>
-                    <div className={styles.stepActive}>Método de Pago</div>
+                    <div className="flex flex-row items-center gap-2">
+                        <Image src={accountCircle} alt="Account Circle" width={32} height={32} />
+                        <div className={styles.stepActive}>Identificación</div>
+                    </div>
+                    <div className="flex flex-row items-center gap-2">
+                        <Image className="fill-[#9ca3af]" src={paymentCard} alt="Payment Card" width={32} height={32} />
+                        <div className={styles.stepInactive}>Método de Pago</div>
+                    </div>
                 </div>
                 <div /> {/* Elemento vacío para centrar el título */}
             </header>
             <main className={styles.mainGrid}>
                 <UserInfo />
-                <PaymentMethod 
+                <PaymentMethod
                     selectedPaymentMethod={selectedPaymentMethod}
                     handlePaymentMethodChange={handlePaymentMethodChange}
                 />
