@@ -1,0 +1,56 @@
+{
+  "success": true,
+  "mensaje": "Carrito cargado correctamente.",
+  "data": [
+    {
+      "id": "1",
+      "idCliente": "1",
+      "fechaExpiracion": "2025-12-31T23:59:59Z",
+      "fechaCreacion": "2025-10-01T12:00:00Z",
+      "entradas": [
+        {
+          "id":"312",
+          "Evento":"Overpass Lima",
+          "ubicacion":"Estadio San Marcos, LIMA, PE",
+          "TipoEntrada": "General",
+          "precio": 300,
+          "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/ulises-web.png"
+        },
+        {
+          "id":"313",
+          "Evento":"Overpass Lima",
+          "ubicacion":"Estadio San Marcos, LIMA, PE",
+          "TipoEntrada": "General",
+          "precio": 300,
+          "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/ulises-web.png"
+        },
+        {
+          "id":"314",
+          "Evento":"Overpass Lima",
+          "ubicacion":"Estadio San Marcos, LIMA, PE",
+          "TipoEntrada": "VIP",
+          "precio": 400,
+          "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/ulises-web.png"
+        },
+        {
+          "id":"315",
+          "Evento":"Overpass Lima",
+          "ubicacion":"Estadio San Marcos, LIMA, PE",
+          "TipoEntrada": "General",
+          "precio": 300,
+          "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/ulises-web.png"
+        },
+        {
+          "id":"413",
+          "Evento":"Linkin Park",
+          "ubicacion":"Estadio San Marcos, LIMA, PE",
+          "TipoEntrada": "General",
+          "precio": 400,
+          "imagen": "https://0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev/img/Linkin%20Park.png"
+        }
+
+      ]
+    }
+  ],
+  "error": null
+}

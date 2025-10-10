@@ -1,11 +1,14 @@
 import styles from '@/css/identificacion.module.css';
 import Link from 'next/link';
 import { ResumenCompra } from '@/components/carrito/ResumenCompra';
+<<<<<<< HEAD
+=======
 import { items } from './controller';
 import arrow_left from '@/assets/icons/arrow_left.svg';
 import accountCircle from '@/assets/icons/account_circle.svg';
 import paymentCard from '@/assets/icons/payment_card.svg';
 import Image from 'next/image';
+>>>>>>> 3084690fd143caa8cf8be413eadfcd81ce4a46d3
 
 function App() {
     return (
@@ -59,7 +62,8 @@ function App() {
                 {/* --- COLUMNA 3: RESUMEN DE COMPRA --- */}
                 <section className={styles.card}>
                     <h2 className={styles.cardTitle}>Resumen de la compra</h2>
-                    <ResumenCompra items={items} />
+                    {/* ResumenCompra ahora es autónomo y obtiene sus propios datos */}
+                    <ResumenCompra />
                 </section>
             </main>
         </div>
