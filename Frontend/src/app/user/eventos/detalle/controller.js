@@ -262,10 +262,10 @@ function SelectTipoEntrada(props){
     if(tipoEntrada.idFechaEvento===fechaEvento.id)cartasTiposEntrada.push(
       <Row className="bg-gray-3 rounded-2 px-2 py-2 my-2 mx-2" >
         <Col>
-          {tipoEntrada.nombre} <br/>
-          S/.{tipoEntrada.precio}
+          <b>{tipoEntrada.nombre}<br/>
+          S/.{tipoEntrada.precio}</b>
         </Col>
-        <Col>
+        <Col className="d-flex justify-content-end align-items-center gap-3">
           {hayEntradasDisponibles(tipoEntrada)?(<button onClick={() => {agregarEntrada(tipoEntrada)}}>
           <Image src={iconMasEntrada} alt='...'/>
         </button>):(<Image src={iconMasEntradaDeshabilitado} alt='...'/>)}
@@ -338,7 +338,7 @@ function SelectFechaHora(props){
       {optionHorarios}
     </select></p>
       <Suspense>
-        <SelectTipoEntrada fechaEvento={currentHora}/>
+        <SelectTipoEntrada fechaEvento={currentHora} _fecha={currentFecha}/>
       </Suspense>
       </>
   )
@@ -358,24 +358,21 @@ export function InfoEvento(){
   let fechaPublicacionHora = hh + ':' + (mm[1]?mm:'0'+mm)
   return (
     <>
-      <LazyImage imageUrl={evento.imagenURL} className="dynamic-bg"/>
-      <Stack direction="horizontal" className="gx-2">
-        <Container className="bg-gray-2 mx-5 rounded-1">
-          <Row className="my-3">
-            <LazyImage imageUrl={evento.imagenURL}/>
+      <LazyImage imageUrl={evento.imagenURL} className="w-100 dynamic-bg"/>
+      <Stack direction="horizontal" className="gx-2 justify-content-evenly">
+        <Container className="mx-5 rounded-1 w-auto">
+          <Row className="my-4">
+            <LazyImage imageUrl={evento.imagenURL} className="evento-detalle-imagen"/>
           </Row>
-          <Row className="my-3">
+          <Row className="bg-gray-2  my-4 row rounded-1 py-3 gy-2">
             <h4>{evento.nombre}</h4>
-          </Row>
-          <hr/>
-          <Row className="my-3">
+            <hr/>
             <h4>Descripcion</h4>
-            <hl/>
             <p>{evento.descripcion}</p>
           </Row>
         </Container>
-        <Container className="bg-gray-2 mx-5 rounded-1">
-          <Row className="my-3">
+        <Container fluid className="bg-gray-2 mx-5 rounded-1 w-25">
+          <Row className="my-3 gy-2">
             <h4>{evento.nombre}</h4>
             <hr/>
             <Suspense fallback={(<SelectFechaHora evento={eventoMockData[idEventoActual]}/>)}>

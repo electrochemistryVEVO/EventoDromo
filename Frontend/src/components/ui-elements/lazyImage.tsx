@@ -7,9 +7,9 @@ type LazyImageProps = {
 //Usa este componente si quieres cargar una imagen dinamicamente
 export default function LazyImage(props:LazyImageProps){
   const img = import('@/assets/pictures/'+props.imageUrl);
-  const finalClassName = "img-fluid d-block w-100 "+(props?.className ?? "")
+  const finalClassName = "img-fluid d-block "+(props?.className ?? "")
   return (
-    <div>
+    <div className="w-auto">
       <Suspense fallback={<Image
         className={finalClassName}
         src={"https://placehold.co/400"}
