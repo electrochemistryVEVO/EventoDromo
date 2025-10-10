@@ -31,82 +31,7 @@
 }
 
 .tabla-entradas-carrito {
-    width: 100%;
-    max-width: 520px;
-    min-width: 420px;
-    margin: 0 auto 24px auto;
     font-size: 1.08rem;
-}
-/* Botones de la página de carrito */
-.botones-carrito-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 22px;
-    margin-top: 32px;
-}
-
-.boton-pedido-finalizar {
-    background: #00C49A;
-    color: #fff;
-    text-align: center;
-    font-weight: bold;
-    font-size: 1.7rem;
-    padding: 18px 40px;
-    border-radius: 14px;
-    border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    transition: background 0.2s;
-    width: 100%;
-    max-width: 340px;
-    cursor: pointer;
-}
-
-.boton-verde-activo {
-    background: #00C49A;
-    text-align: center;
-    color: #fff;
-    font-weight: bold;
-    padding: 18px 40px;
-    border-radius: 14px;
-    border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    transition: background 0.2s;
-    cursor: pointer;
-}
-
-.boton-borde-verde {
-    background: transparent;
-    text-align: center;
-    color: #00C49A;
-    font-weight: bold;
-    padding: 18px 40px;
-    border-radius: 14px;
-    border: 2px solid #00C49A;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    transition: background 0.2s;
-    cursor: pointer;
-}
-
-.boton-pedido-finalizar-disabled {
-    background: #bbb !important;
-    color: #fff;
-    cursor: not-allowed;
-}
-
-.boton-pedido-eventos {
-    background: #888;
-    color: #fff;
-    font-weight: bold;
-    font-size: 1.7rem;
-    padding: 18px 40px;
-    border-radius: 14px;
-    border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    transition: background 0.2s;
-    width: 100%;
-    max-width: 340px;
-    cursor: pointer;
 }
 .checkbox-carrito-label {
     display: flex;
@@ -166,7 +91,7 @@
 }
 
 .checkbox-carrito-text {
-    font-size: 1.13rem;
+    font-size: 1.25rem; /* 20px, para coincidir con text-xl */
     color: #333;
     user-select: none;
     font-weight: normal;

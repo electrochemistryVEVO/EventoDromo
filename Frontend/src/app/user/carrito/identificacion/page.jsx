@@ -1,70 +1,57 @@
-"use client";
-import '@/css/styles.css'
+import styles from '@/css/identificacion.module.css';
 import Link from 'next/link';
 import { ResumenCompra } from '@/components/carrito/ResumenCompra';
 import { items } from './controller';
 
 function App() {
     return (
-        <div className="flex flex-col mx-5">
-            <section className="flex flex-row h-20 items-center ">
+        <div className={styles.pageContainer}>
+            {/* --- ENCABEZADO DE LA PÁGINA --- */}
+            <header className={styles.header}>
                 <div>
-                    <Link
-                        href="/user/carrito/entradaDetalle"
-                        className={""}
-                    >
-                        Finalizar Pedido
+                    <Link href="/user/carrito/entradaDetalle" className={styles.backButton}>
+                        Regresar
                     </Link>
                 </div>
-                <div className="flex flex-row gap-2 w-100 justify-center items-center">
-                    <div className="flex flex-row gap-2 items-center">
-                        <div className="text-[#00C49A] font-bold text-4xl">Identificación</div>
-                    </div>
-                    <div className="flex flex-row gap-2 items-center">
-                        <div className="text-[#00C49A] font-extrabold text-3xl">Metodo de Pago</div>
-                    </div>
+                <div className={styles.steps}>
+                    <div className={styles.stepActive}>Identificación</div>
+                    <div className={styles.stepInactive}>Método de Pago</div>
                 </div>
-            </section>
-            <section className="flex flex-row gap-7 justify-between">
-                <section className="flex flex-col bg-[#EFECEC] w-1/3 rounded-3 p-4 gap-3">
-                    <div className="flex flex-row gap-2 items-center">
-                        <div className="text-[#00C49A] font-semibold text-3xl text-center">Identificación</div>
-                    </div>
-                    <span className="text-justify text-xl">
+                <div /> {/* Elemento vacío para centrar el título */}
+            </header>
+
+            {/* --- CONTENIDO PRINCIPAL EN 3 COLUMNAS --- */}
+            <main className={styles.mainGrid}>
+                {/* --- COLUMNA 1: IDENTIFICACIÓN --- */}
+                <section className={styles.card}>
+                    <h2 className={styles.cardTitle}>Identificación</h2>
+                    <p className={styles.cardText}>
                         Para poder comprar tus entradas inicia sesion o registrate.
-                    </span>
-                    <div className="flex flex-col items-center gap-3">
-                        <button
-                            className="w-3/5 text-2xl font-bold bg-[#00C49A] text-white rounded-lg py-3 mb-2 shadow hover:bg-[#00b07e] transition"
-                            onClick={() => window.location.href = '/auth/login'}
-                        >
-                            Inicia Sesión
-                        </button>
-                        <button
-                            className="w-3/5 text-2xl font-bold border-2 border-[#00C49A] text-[#00C49A] rounded-lg py-3 bg-white hover:bg-[#e6fff7] transition"
-                            onClick={() => window.location.href = '/auth/signup'}
-                        >
-                            Regístrate
-                        </button>
+                    </p>
+                    <div className={styles.buttonContainer}>
+                        <Link href="/auth/login" className={`${styles.button} ${styles.buttonPrimary}`}>
+                            Inicia Sesion
+                        </Link>
+                        <Link href="/auth/signup" className={`${styles.button} ${styles.buttonSecondary}`}>
+                            Registrate
+                        </Link>
                     </div>
                 </section>
-                <section className="flex flex-col bg-[#EFECEC] w-1/3 rounded-3 p-4 gap-3">
-                    <div className="flex flex-row gap-2 items-center">
-                        <div className="text-[#00C49A] font-semibold text-3xl">Metodo de Pago</div>
-                    </div>
-                    <span className="text-justify text-xl">
+
+                {/* --- COLUMNA 2: MÉTODO DE PAGO --- */}
+                <section className={styles.card}>
+                    <h2 className={styles.cardTitle}>Método de Pago</h2>
+                    <p className={styles.cardText}>
                         Esperando a que se complete la informacion.
-                    </span>
+                    </p>
                 </section>
-                <section className="flex flex-col bg-[#EFECEC] w-1/3 rounded-3 p-4 gap-3">
-                    <div className="flex flex-row gap-2 items-center">
-                        <div className="text-[#00C49A] font-semibold text-3xl">Resumen de la compra</div>
-                    </div>
-                    <span className="text-center">
-                        <ResumenCompra items={items} />
-                    </span>
+
+                {/* --- COLUMNA 3: RESUMEN DE COMPRA --- */}
+                <section className={styles.card}>
+                    <h2 className={styles.cardTitle}>Resumen de la compra</h2>
+                    <ResumenCompra items={items} />
                 </section>
-            </section>
+            </main>
         </div>
     );
 }

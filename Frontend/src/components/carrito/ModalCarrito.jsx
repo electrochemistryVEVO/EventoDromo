@@ -41,8 +41,8 @@ export default function ModalCarritoView({
             {items.map((item) => (
               <li key={item.id} className="modal-carrito__item">
                 <div className="modal-carrito__item-details flex flex-row">
-                  <img
-                    src={item.imagen} // Asumimos que la imagen viene en esta propiedad
+                  <img // Usamos un ternario para evitar src=""
+                    src={item.imagen || "/images/placeholder.png"} // Fallback a una imagen por defecto
                     alt={item.titulo}
                     className="modal-carrito__item-image"
                   />

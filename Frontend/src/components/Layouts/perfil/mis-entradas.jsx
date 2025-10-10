@@ -98,7 +98,7 @@ export default function MisEntradas({
               <div className="mef-item-left">
                 <div className="mef-thumb">
                   {entrada.imagen ? (
-                    <img
+                    <img // Aseguramos que `src` no sea una cadena vacía
                       src={entrada.imagen}
                       alt={entrada.titulo}
                       onError={(e) => {
