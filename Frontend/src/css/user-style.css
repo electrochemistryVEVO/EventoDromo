@@ -1,157 +1,93 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap");
 
-.search-bar{
-<<<<<<< HEAD
-    @apply bg-gray-300
+.search-bar {
+  --tw-bg-opacity: 1;
+  background-color: rgb(209 213 219 / var(--tw-bg-opacity, 1));
 }
 
-
-=======
-    --tw-bg-opacity:1;
-    background-color:rgb(209 213 219 / var(--tw-bg-opacity, 1));
-}
-
->>>>>>> origin/grupo3
-.dynamic-bg{
-    position:absolute;
-    filter:blur(4px);
-    z-index: -1;
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/grupo3
+.dynamic-bg {
+  position: absolute;
+  filter: blur(4px);
+  z-index: -1;
 }
 
 .titulo-destacado {
-  font-family: 'Nunito', sans-serif; 
-  font-size: 40px; 
-  font-weight: 700; 
-  line-height: 60px; 
-  color: #000000; 
-
+  font-family: "Nunito", sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 60px;
+  color: #000000;
 }
-<<<<<<< HEAD
-/* ------------------------------------------------ */
-/* 2. MODIFICACIÓN DE LA CLASE CARD DE BOOTSTRAP */
-/* Aplica la clase custom al contenedor principal de la tarjeta */
-/* ------------------------------------------------ */
-.card-evento-custom.card {
-    border: none;
-    border-radius: 6px;
-    background: #EAE8E8; /* Fondo gris claro */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
-    display: flex; /* Asegura el apilamiento y espaciado */
-}
-
-/* Modifica la imagen (LazyImage se renderiza como el elemento superior) */
-.card-evento-custom .LazyImage { 
-    height: 45%; /* La imagen ocupa el 45% del alto */
-    /* Asegúrate de que el componente LazyImage le aplique un width: 100% y object-fit: cover */
-    overflow: hidden;
-=======
 
 /* --- Estilos para EventCard --- */
 .card-evento-custom {
-    text-decoration: none; /* Quita el subrayado del Link */
-    color: inherit; /* Hereda el color de texto normal */
-    border: none;
-    overflow: hidden; /* Necesario para que el zoom de la imagen no se salga de la card */
-    display: block; /* Asegura que el Link ocupe todo el espacio */
-    border-radius: 6px; /* Bordes redondeados para toda la tarjeta */
-    background: #EAE8E8;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-decoration: none; /* Quita el subrayado del Link */
+  color: inherit; /* Hereda el color de texto normal */
+  border: none;
+  overflow: hidden; /* Necesario para que el zoom de la imagen no se salga de la card */
+  display: block; /* Asegura que el Link ocupe todo el espacio */
+  border-radius: 6px; /* Bordes redondeados para toda la tarjeta */
+  background: #eae8e8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .card-evento-custom .card-img-container {
-    height: 230px; /* Altura aumentada para la imagen */
-    overflow: hidden;
-    position: relative;
+  height: 230px; /* Altura aumentada para la imagen */
+  overflow: hidden;
+  position: relative;
 }
 
 .card-evento-custom .card-img-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Asegura que la imagen cubra el contenedor sin deformarse */
-    transition: transform 0.3s ease-in-out; /* Transición suave para el zoom */
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Asegura que la imagen cubra el contenedor sin deformarse */
+  transition: transform 0.3s ease-in-out; /* Transición suave para el zoom */
 }
 
 .card-evento-custom:hover .card-img-container img {
-    transform: scale(1.05); /* Efecto de zoom al pasar el mouse */
->>>>>>> origin/grupo3
+  transform: scale(1.05); /* Efecto de zoom al pasar el mouse */
 }
 
 /* Cuerpo de la tarjeta */
 .card-evento-custom .card-body {
-<<<<<<< HEAD
-    height: 55%; /* El cuerpo ocupa el 55% restante */
-    font-family: 'Nunito', sans-serif;
-=======
-    background: #EAE8E8; /* Fondo gris claro para la sección de texto */
-    height: 130px; /* Altura fija para la sección de texto */
-    font-family: 'Nunito', sans-serif;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
->>>>>>> origin/grupo3
+  background: #eae8e8; /* Fondo gris claro para la sección de texto */
+  height: 130px; /* Altura fija para la sección de texto */
+  font-family: "Nunito", sans-serif;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
 
 /* Ícono (la imagen triangleRight) */
 .card-evento-custom .card-icon-play {
-<<<<<<< HEAD
-    width: 14px; /* Ancho del triángulo */
-    height: 14px; /* Altura del triángulo */
-    /* El color y forma del triángulo deben ser manejados por tu archivo triangleRight.png */
-=======
-    height: 40px !important; /* Altura del ícono */
-    width: auto !important;  /* Ancho automático para mantener la proporción */
->>>>>>> origin/grupo3
+  height: 40px !important; /* Altura del ícono */
+  width: auto !important; /* Ancho automático para mantener la proporción */
 }
 
 /* Título */
 .card-evento-custom .card-title-custom {
-    font-size: 1.3rem; 
-    font-weight: 700;
-    margin: 0;
-    color: #333;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+  color: #333;
 }
 
-<<<<<<< HEAD
-=======
 .card-info-title {
-    font-size: 0.9rem;
-    color: #6c757d; /* Un gris sutil */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: 0.9rem;
+  color: #6c757d; /* Un gris sutil */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-info-title .categoria-highlight {
-    color: #00C49A;
-    font-weight: 500;
+  color: #00c49a;
+  font-weight: 500;
 }
 
->>>>>>> origin/grupo3
 /* Fecha */
 .card-evento-custom .card-date-text {
-    font-size: 1rem;
-    color: #777;
-    margin: 0; 
-    text-align: left;
-<<<<<<< HEAD
-}
-
-/* Botón "View options" */
-.btn-custom-outline.btn-outline-dark {
-    border: 1px solid #777 !important; /* Forzamos el borde gris */
-    color: #333 !important;
-    padding: 8px 16px;
-    font-size: 0.9rem;
-    width: 100%; /* El botón ocupa todo el ancho del padding */
-}
-/* Estilo hover */
-.btn-custom-outline.btn-outline-dark:hover {
-    background-color: #00A699 !important;
-    color: white !important;
-    border-color: #00A699 !important;
-=======
->>>>>>> origin/grupo3
+  font-size: 1rem;
+  color: #777;
+  margin: 0;
+  text-align: left;
 }

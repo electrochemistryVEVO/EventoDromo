@@ -33,7 +33,7 @@ function App() {
           <div className="logo-container">
             <Image src={logo} alt="Logo" className="login-logo" priority />
           </div>
-          <Link href="/" className="volver-inicio">
+          <Link href="/user/eventos/lista" className="volver-inicio">
             Volver a iniciar sesión
           </Link>
           <h1>Bienvenido a Eventódromo</h1>
