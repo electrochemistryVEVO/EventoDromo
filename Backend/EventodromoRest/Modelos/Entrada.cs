@@ -11,11 +11,11 @@
 
     public class EntradaxCarritoDTO
     {
-        public int idEntrada { get; set; }
-        public string nombreEvento { get; set; }
-        public string nombreLocal { get; set; }
-        public int cantidad { get; set; }
-        public decimal? precio { get; set; }
+        public int idTipoEntrada { get; set; }
         public string imagenURL { get; set; }
+        public string nombreEvento { get; set; }
+        public string nombreTipoEntrada { get; set; }
+        public int cantidad { get; set; }
+        public decimal precio { get; set; }
     }
 }

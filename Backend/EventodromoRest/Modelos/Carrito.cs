@@ -9,17 +9,22 @@
         public DateTime fechaExpiracion { get; set; }
     }
 
-    public class RequestObtenerCarritoPorIdCliente
+    public class RequestObtenerCarrito
     {
         public required int idCliente { get; set; }
     }
 
-    public class ResponseObtenerCarritoPorIdCliente
+    public class ResponseObtenerCarritoEventos
     {
         public int idCarrito { get; set; }
         public int idCliente { get; set; }
         public DateTime fechaCreacion { get; set; }
         public DateTime fechaExpiracion { get; set; }
+        public List<EventoxCarritoDTO> eventos { get; set; }
+    }
+
+    public class ResponseObtenerCarritoEntradas
+    { 
         public List<EntradaxCarritoDTO> entradas { get; set; }
     }
 

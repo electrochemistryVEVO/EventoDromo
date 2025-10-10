@@ -15,16 +15,39 @@ namespace EventodromoRest.Controllers
 
         [HttpPost]
         [Route("/api/[controller]/[action]")]
-        public GenericResponse<ResponseObtenerCarritoPorIdCliente> ObtenerCarritoPorIdCliente([FromBody] RequestObtenerCarritoPorIdCliente request)
+        public GenericResponse<ResponseObtenerCarritoEventos> ObtenerCarritoEventos([FromBody] RequestObtenerCarrito request)
         {
             try
             {
                 ValidarBody(request);
-                return new CarritoBO(globales, BD).ObtenerCarritoPorIdCliente(request);
+                return new CarritoBO(globales, BD).ObtenerCarritoEventos(request);
             }
             catch (Exception e)
             {
-                var response = new GenericResponse<ResponseObtenerCarritoPorIdCliente>
+                var response = new GenericResponse<ResponseObtenerCarritoEventos>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<ResponseObtenerCarritoEntradas> ObtenerCarritoEntradas([FromBody] RequestObtenerCarrito request)
+        {
+            try
+            {
+                ValidarBody(request);
+                return new CarritoBO(globales, BD).ObtenerCarritoEntradas(request);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<ResponseObtenerCarritoEntradas>
                 {
                     Success = false,
                     Message = null,
@@ -36,4 +59,6 @@ namespace EventodromoRest.Controllers
             }
         }
     }
+
+
 }

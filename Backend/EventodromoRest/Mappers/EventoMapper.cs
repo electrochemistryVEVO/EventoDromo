@@ -140,5 +140,6 @@ namespace EventodromoRest.Mappers
             var localMapper = new LocalMapper(globales, DB);
             return localMapper.ObtenerLocalPorId(v);
         }
+
     }
 }

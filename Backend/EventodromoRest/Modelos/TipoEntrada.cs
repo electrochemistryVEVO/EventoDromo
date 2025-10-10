@@ -3,7 +3,7 @@
     public class TipoEntrada
     {
         public int id { get; set; }
-        public decimal? precio { get; set; }
+        public decimal precio { get; set; }
         public int? limiteCompra { get; set; }
         public int? puntos { get; set; }
         public string? nombre { get; set; }
