@@ -1,3 +1,4 @@
+"use client";
 import '@/css/styles.css'
 import Link from 'next/link';
 import { ResumenCompra } from '@/components/carrito/ResumenCompra';
@@ -33,14 +34,18 @@ function App() {
                         Para poder comprar tus entradas inicia sesion o registrate.
                     </span>
                     <div className="flex flex-col items-center gap-3">
-                        <Link href=""
-                            className={"boton-verde-activo w-3/5 text-xl no-underline"}>
-                            Inicia Sesion
-                        </Link>
-                        <Link href=""
-                            className={"boton-borde-verde w-3/5 text-xl no-underline"}>
-                            Registrate
-                        </Link>
+                        <button
+                            className="w-3/5 text-2xl font-bold bg-[#00C49A] text-white rounded-lg py-3 mb-2 shadow hover:bg-[#00b07e] transition"
+                            onClick={() => window.location.href = '/auth/login'}
+                        >
+                            Inicia Sesión
+                        </button>
+                        <button
+                            className="w-3/5 text-2xl font-bold border-2 border-[#00C49A] text-[#00C49A] rounded-lg py-3 bg-white hover:bg-[#e6fff7] transition"
+                            onClick={() => window.location.href = '/auth/signup'}
+                        >
+                            Regístrate
+                        </button>
                     </div>
                 </section>
                 <section className="flex flex-col bg-[#EFECEC] w-1/3 rounded-3 p-4 gap-3">
