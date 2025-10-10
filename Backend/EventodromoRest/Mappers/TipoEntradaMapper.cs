@@ -1,6 +1,10 @@
 ﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
+<<<<<<< HEAD
 using Microsoft.EntityFrameworkCore.Internal;
+=======
+using EventodromoRest.Negocio;
+>>>>>>> origin/grupo3
 
 namespace EventodromoRest.Mappers
 {
@@ -28,6 +32,39 @@ namespace EventodromoRest.Mappers
                     };
                     tipoEntrada.FechaEvento = ObtenerFechaEventoPorId(tipoEntrada.idFechaEvento);
                     listaTipoEntrada.Add(tipoEntrada);
+                }
+                return listaTipoEntrada;
+            }
+
+        }
+
+        public List<TipoEntrada> ListarTipoEntradaPorFechaEvento(int idFechaEvento)
+        {
+            List<TipoEntrada> listaTipoEntrada = new List<TipoEntrada>();
+            lock (DB)
+            {
+                string query = "SELECT * FROM TipoEntrada WHERE IDFECHAEVENTO=@IDFECHAEVENTO";
+                var parametros = new ParameterList();
+                parametros.Add("@IDFECHAEVENTO", idFechaEvento);
+                DB.Select(query, parametros);
+                while (DB.Read())
+                {
+                    TipoEntrada tipoEntrada = new()
+                    {
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        cantidadEntradas = DB.GetInt("CANTIDADENTRADAS"),
+                        cantidadVendida = DB.GetInt("CANTIDADVENDIDA"),
+                        precio = DB.GetDecimal("PRECIO"),
+                        limiteCompra = DB.GetInt("LIMITECOMPRA"),
+                        puntos = DB.GetInt("PUNTOS"),
+                        idFechaEvento = DB.GetInt("IDFECHAEVENTO")
+                    };
+                    listaTipoEntrada.Add(tipoEntrada);
+                }
+                foreach(TipoEntrada tipoEntrada in listaTipoEntrada)
+                {
+                    tipoEntrada.FechaEvento = ObtenerFechaEventoPorId(tipoEntrada.idFechaEvento ?? 0);
                 }
                 return listaTipoEntrada;
             }

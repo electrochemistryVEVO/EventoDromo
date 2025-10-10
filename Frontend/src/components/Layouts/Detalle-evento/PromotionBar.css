@@ -1,0 +1,39 @@
+.promo-container {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* Espacio entre el ícono y el texto */
+  background-color: #f0fdf8; /* Un verde muy claro, casi blanco */
+  border: 1px solid #d1fae5; /* Borde verde claro */
+  border-radius: 8px;
+  padding: 16px;
+  margin: 0; /* Espacio vertical para separarlo de otros elementos */
+  /*max-width: 600px;*/ /* Ajusta el ancho máximo según tu diseño */
+}
+
+.promo-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0; /* Evita que el ícono se encoja si el texto es largo */
+}
+
+.promo-text-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.promo-title {
+  margin: 0;
+  font-size: 1rem; /* 16px */
+  font-weight: 500;
+  color: #064e3b; /* Un verde oscuro para el texto principal */
+}
+
+.promo-title strong {
+  font-weight: 700; /* Hace que el número y la palabra 'DromoPuntos' resalten */
+}
+
+.promo-description {
+  margin: 4px 0 0 0;
+  font-size: 0.875rem; /* 14px */
+  color: #059669; /* Un verde medio para la descripción */
+}

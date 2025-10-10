@@ -1,5 +1,5 @@
 import darkLogo from "@/assets/logos/dark.svg";
-import logo from "@/assets/logos/main.svg";
+import logo from "@/assets/logos/eventodromo.png";
 import Image from "next/image";
 
 export function Logo() {

@@ -12,4 +12,8 @@
         public int idFechaEvento { get; set; }
         public FechaEvento? FechaEvento { get; set; }
     }
+    public class RequestListarTipoEntradaPorFechaEvento
+    {
+        public required int idFechaEvento { get; set; }
+    }
 }

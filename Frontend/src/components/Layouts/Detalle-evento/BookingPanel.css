@@ -1,0 +1,243 @@
+.booking-panel {
+  background-color: #f9fafb;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 450px;
+  margin: 0;
+  font-family: "Nunito";
+}
+
+.booking-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  color: #111827;
+}
+
+.booking-selectors {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.booking-divider {
+  border: 1.5px solid hwb(0 4% 96%);
+  border-top: none;
+  height: 1px;
+  opacity: 1;
+  margin-top: -12px;
+}
+
+.selector-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+}
+
+.selector-group label {
+  font-size: 0.9rem;
+  color: #000;
+  margin-bottom: 2px;
+  width: 60px; /* 1. Añade un ancho fijo */
+  flex-shrink: 0; /* 2. Evita que la etiqueta se encoja */
+  margin-right: 15px;
+}
+
+.selector-group select {
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: #fff;
+  font-size: 1rem;
+  flex-grow: 1;
+}
+
+.selector-group select:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.tickets-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.ticket-tier-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-radius: 6px;
+  background-color: #d9d9d9;
+  margin-bottom: 10px;
+}
+
+.ticket-tier-row:last-child {
+  border-bottom: none;
+}
+
+.ticket-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ticket-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.ticket-price {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quantity-control span {
+  font-size: 1.1rem;
+  font-weight: 500;
+  min-width: 20px;
+  text-align: center;
+}
+
+.quantity-control button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px;
+  background-color: #00c49a;
+  color: #fff; /* Verde */
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 1;
+}
+
+.quantity-control button:disabled {
+  color: #fff;
+  cursor: not-allowed;
+  background-color: #878484;
+}
+
+.booking-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: 20px 8px;
+  margin-top: 16px;
+  color: #111827;
+}
+
+.add-to-cart-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 15px;
+  background-color: #00c49a; /* Verde esmeralda */
+  color: white;
+  font-size: 1.3rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #059669;
+}
+
+/* Estilo para toda la fila cuando la entrada está agotada */
+.ticket-tier-row--agotado {
+  cursor: not-allowed;
+  background-color: #c4c2c2;
+  user-select: none; /* Evita que el texto se pueda seleccionar */
+}
+
+/* Contenedor para el nuevo icono de "no disponible" */
+.ban-icon-button {
+  background-color: transparent !important; /* Quita el fondo del botón */
+  border: none !important; /* Quita el borde */
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Estilos para el icono SVG */
+.ban-icon {
+  width: 28px;
+  height: 28px;
+  fill: #6b7280; /* Un color gris oscuro, similar al de la imagen */
+}
+/* --- ESTILOS PARA EL NUEVO DATEPICKER --- */
+
+/* Estilo para el input que muestra la fecha seleccionada */
+.custom-datepicker-input {
+  padding: 10px;
+  border: 1px solid #babdc2;
+  border-radius: 6px;
+  color: #000;
+  opacity: 1;
+  background-color: #fff;
+  font-size: 1rem;
+  width: 100%; /* Hacemos que ocupe el espacio disponible */
+  flex-grow: 1;
+  font-family: "Nunito", sans-serif;
+}
+.custom-datepicker-input::placeholder {
+  color: #282626; /* Le decimos que el color sea negro */
+  opacity: 1; /* Aseguramos que no sea semi-transparente */
+}
+/* Contenedor principal del calendario popup */
+.react-datepicker-popper {
+  z-index: 10; /* Asegura que se muestre por encima de otros elementos */
+}
+
+/* Estilo para el encabezado del calendario (ej: "Septiembre 2025") */
+.react-datepicker__header {
+  background-color: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* ¡CLAVE! Estilo para el hover de los días HABILITADOS */
+.react-datepicker__day:not(.react-datepicker__day--disabled):hover {
+  background-color: #00c49a;
+  color: #fff;
+  border-radius: 50%;
+}
+
+/* Estilo para el día seleccionado */
+.react-datepicker__day--selected {
+  background-color: #00c49a;
+  color: #fff;
+  border-radius: 50%;
+}
+
+/* Estilo para el día de hoy (opcional, para que no entre en conflicto) */
+.react-datepicker__day--today {
+  font-weight: bold;
+}
+.react-datepicker-wrapper {
+  width: 100%;
+  flex-grow: 1; /* Hace que ocupe todo el espacio sobrante, igual que el select */
+}
+
+.custom-datepicker-input:-ms-input-placeholder {
+  /* Microsoft Edge */
+  color: #000;
+}

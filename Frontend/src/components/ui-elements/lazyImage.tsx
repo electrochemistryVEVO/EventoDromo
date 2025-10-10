@@ -1,24 +1,33 @@
+"use client"
 import Image from "next/image";
-import { Suspense,use } from "react";
+import { useState } from "react";
+
 type LazyImageProps = {
   imageUrl:string;
+  className?:string;
 }
+
+const PLACEHOLDER_IMAGE = "https://placehold.co/800x400?text=Evento";
+
 //Usa este componente si quieres cargar una imagen dinamicamente
 export default function LazyImage(props:LazyImageProps){
-  const img = import('@/assets/pictures/'+props.imageUrl);
+  const [imgSrc, setImgSrc] = useState(
+    // Si la URL ya es una ruta completa (empieza con /), la usamos.
+    // Si no, asumimos que está en /images/.
+    props.imageUrl.startsWith('/') ? props.imageUrl : `/images/${props.imageUrl}`
+  );
+
+  const finalClassName = "img-fluid d-block "+(props?.className ?? "")
+
   return (
-    <div>
-      <Suspense fallback={<Image
-        className="img-fluid d-block w-100"
-        src={"https://placehold.co/400"}
-        alt="..."
-      />}>
+    <div className="w-auto">
         <Image
-          className="img-fluid d-block w-100"
-          src={use(img)}
-          alt="..."
+          className={finalClassName}
+          src={imgSrc}
+          layout="fill" // <-- La clave está aquí: la imagen llenará el contenedor
+          alt="Imagen del evento"
+          onError={() => setImgSrc(PLACEHOLDER_IMAGE)} // Si hay un error al cargar, usamos el placeholder
         />
-      </Suspense>
     </div>
   )
 }

@@ -1,13 +1,14 @@
 ﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace EventodromoRest.Mappers
 {
     public class LocalMapper(Globales.Globales globales, DBManager.DBManager DB)
     {
-        public List<Local> ListarLocal()
+        public List<Local> ListarLocales()
         {
             List<Local> listaLocal = new List<Local>();
             lock (DB)
@@ -62,16 +63,14 @@ namespace EventodromoRest.Mappers
                 DB.Select(query, parametros);
                 if (DB.Read())
                 {
-                    Local local = new()
-                    {
-                        id = DB.GetInt("ID"),
-                        nombre = DB.GetString("NOMBRE"),
-                        idCiudad = DB.GetInt("IDCIUDAD"),
-                        direccion = DB.GetString("DIRECCION"),
-                        capacidad = DB.GetInt("CAPACIDAD"),
-                        isDeleted = DB.GetBoolean("ISDELETED"),
-                        idAdministrador = DB.GetInt("CREADOPOR")
-                    };
+                    Local local = new Local();
+                    local.id = DB.GetInt("ID");
+                    local.nombre = DB.GetString("NOMBRE");
+                    local.idCiudad = DB.GetInt("IDCIUDAD");
+                    local.direccion = DB.GetString("DIRECCION");
+                    local.capacidad = DB.GetInt("CAPACIDAD");
+                    local.isDeleted = DB.GetBoolean("ISDELETED");
+                    local.idAdministrador = DB.GetInt("CREADOPOR");
                     local.ciudad = ObtenerCiudadPorId(local.idCiudad);
                     local.administrador = ObtenerAdministradorPorId(local.idAdministrador);
                     return local;
