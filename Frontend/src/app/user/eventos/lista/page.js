@@ -1,18 +1,20 @@
-import { CarruselEventos, ListaEventos } from "./controller";
+import { obtenerDatosParaPagina } from "./controller";
+import { CarruselView } from "./CarruselView";
+import { EventosListView } from "./EventosListView";
+import { LocalesView } from "./LocalesView.jsx";
 
-//NOTA: En lo posible, usar componentes de react-bootstrap en vez de usar las clases manualmente
-//Usar las clases manualmente no implementa el javascript necesario para el funcionamiento de algunos elementos
-//Procurar usar .jsx en vez de .js para las paginas
+async function EventosPage() {
+  // 1. El 'page' (orquestador) llama al controller para obtener los datos.
+  const { destacados, conciertos, culturales, deportes, locales } = await obtenerDatosParaPagina();
 
-function App() {
+  // 2. El 'page' pasa los datos a los componentes de la 'vista'.
   return (
     <div>
-      <CarruselEventos></CarruselEventos>
-      <section className="py-5">
-        <ListaEventos></ListaEventos>
-      </section>
+      <CarruselView eventos={destacados} />
+      <EventosListView destacados={destacados} conciertos={conciertos} culturales={culturales} deportes={deportes} />
+      <LocalesView locales={locales} />
     </div>
   );
 }
 
-export default App;
+export default EventosPage;

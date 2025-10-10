@@ -1,0 +1,119 @@
+{
+    "success": true,
+    "mensaje": "Eventos obtenidos correctamente",
+    "data": {
+        "eventos": [
+            {
+                "id": 0,
+                "nombre": "Festival Overpass Lima",
+                "nombreLocal": "Estadio Nacional",
+                "ciudad": "Lima",
+                "categoria": "Concierto",
+                "fecha": "2025-09-14",
+                "imagen": "/images/eventos/festival-overpass-lima.png"
+            },
+            {
+                "id": 1,
+                "nombre": "Noches de Folklore",
+                "nombreLocal": "Gran Teatro Nacional",
+                "ciudad": "Cusco",
+                "categoria": "Cultural",
+                "fecha": "2025-09-06",
+                "imagen": "/images/eventos/noches-de-folklore.jpg"
+            },
+            {
+                "id": 2,
+                "nombre": "Carmen Ópera de Georges Bizet",
+                "nombreLocal": "Teatro Municipal",
+                "ciudad": "Lima",
+                "categoria": "Cultural",
+                "fecha": "2025-09-11",
+                "imagen": "/images/eventos/carmen-opera.jpg"
+            },
+            {
+                "id": 3,
+                "nombre": "Tour + Museo Monumental",
+                "nombreLocal": "Estadio Monumental",
+                "ciudad": "Lima",
+                "categoria": "Deportivo",
+                "fecha": "2025-09-11",
+                "imagen": "/images/eventos/tour-museo-monumental.jpg"
+            },
+            {
+                "id": 4,
+                "nombre": "Daniela Darcourt",
+                "nombreLocal": "Anfiteatro del Parque de la Exposición",
+                "ciudad": "Lima",
+                "categoria": "Concierto",
+                "fecha": "2025-09-15",
+                "imagen": "/images/eventos/daniela-darcourt.png"
+            },
+            {
+                "id": 5,
+                "nombre": "Linkin Park",
+                "nombreLocal": "Estadio Nacional",
+                "ciudad": "Lima",
+                "categoria": "Concierto",
+                "fecha": "2025-09-19",
+                "imagen": "/images/eventos/linkin-park.jpg"
+            },
+            {
+                "id": 6,
+                "nombre": "Imagine Dragons",
+                "nombreLocal": "Estadio Nacional",
+                "ciudad": "Lima",
+                "categoria": "Concierto",
+                "fecha": "2025-09-21",
+                "imagen": "/images/eventos/imagine-dragons.jpg"
+            },
+            {
+                "id": 7,
+                "nombre": "Carrera 10 Kilómetros",
+                "nombreLocal": "Pentagonito",
+                "ciudad": "Lima",
+                "categoria": "Deportivo",
+                "fecha": "2025-09-22",
+                "imagen": "/images/eventos/carrera-10k.png"
+            },
+            {
+                "id": 8,
+                "nombre": "Rimac Sports Festival",
+                "nombreLocal": "Costa Verde",
+                "ciudad": "Lima",
+                "categoria": "Deportivo",
+                "fecha": "2025-09-24",
+                "imagen": "/images/eventos/rimac-sports-festival.png"
+            },
+            {
+                "id": 9,
+                "nombre": "Marinera y Show Peruano",
+                "nombreLocal": "Restaurante La Dama Juana",
+                "ciudad": "Lima",
+                "categoria": "Cultural",
+                "fecha": "2025-09-26",
+                "imagen": "/images/eventos/marinera-show.png"
+            }
+        ],
+        "locales": [
+            {
+                "id": 1,
+                "nombre": "Estadio Monumental",
+                "ciudad": "Lima",
+                "imagen": "/images/locales/EstadioMonumental.png"
+            },
+            {
+                "id": 2,
+                "nombre": "Arena 1",
+                "ciudad": "Lima",
+                "imagen": "/images/locales/arena1.png"
+            },
+            {
+                "id": 3,
+                "nombre": "Centro de Conv. Barranco",
+                "ciudad": "Lima",
+                "imagen": "/images/locales/convencionesBarranco.png"
+            }
+        ]
+    },
+    "error": null
+}

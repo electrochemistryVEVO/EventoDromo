@@ -11,33 +11,37 @@ type PropsWithEvento = {
 export default function EventCard(props: PropsWithEvento) {
   let evento: Evento = props.event;
 
+  // Convertimos la cadena de fecha a un objeto Date.
+  // El 'T00:00:00' es para asegurar que se interprete en la zona horaria local y no en UTC.
   let fechaPublicacionFormat: string = new Intl.DateTimeFormat("es-419", {
     dateStyle: "full"
-  }).format(evento.fechaPublicacion)
+  }).format(new Date(evento.fecha + "T00:00:00"));
 
   return (
-    <div className="card h-100 card-evento-custom">
-      <LazyImage imageUrl={evento.imagenURL} /> {/* IMAGEN: card-img-top */}
-
-      <div className="card-body p-4 d-flex flex-column justify-content-between">
-
-        <div className="d-flex align-items-center mb-2">
-          <Image className="card-icon-play me-2" src={triangleRight} alt={"Icono"} />
-          <h5 className="fw-bolder card-title-custom">{evento.nombre}</h5>
+    <Link href={`/user/eventos/detalle?id=${evento.id}`} className="card h-100 card-evento-custom">
+      {/* Contenedor para la imagen para controlar el overflow del zoom */}
+      <div className="card-img-container">
+        <LazyImage imageUrl={evento.imagen} />
+      </div>
+      
+      <div className="card-body p-3 d-flex align-items-center">
+        {/* Columna del icono */}
+        <div className="me-3">
+          <Image className="card-icon-play" src={triangleRight} alt="Icono de play" width={40} height={40} />
         </div>
 
-        {/* FECHA */}
-        <p className="card-date-text mt-auto mb-3">
-          {fechaPublicacionFormat}
-        </p>
-
-        <Link
-          className="btn btn-outline-dark mt-auto btn-custom-outline"
-          href={"/user/eventos/detalle?id=" + evento.id.toString()}
-        >
-          Ver evento
-        </Link>
+        {/* Columna del texto */}
+        <div className="d-flex flex-column text-truncate">
+          {/* Fila 1: Local - Ciudad / Categoría */}
+          <div className="card-info-title text-truncate">
+            {evento.nombreLocal} - {evento.ciudad} / <span className="categoria-highlight">{evento.categoria}</span>
+          </div>
+          {/* Fila 2: Nombre del Evento */}
+          <h5 className="fw-bolder card-title-custom my-1 text-truncate">{evento.nombre}</h5>
+          {/* Fila 3: Fecha */}
+          <p className="card-date-text mb-0">{fechaPublicacionFormat}</p>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }
