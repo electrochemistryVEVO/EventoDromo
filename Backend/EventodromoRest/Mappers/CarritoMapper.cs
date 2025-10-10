@@ -67,10 +67,6 @@ namespace EventodromoRest.Mappers
                     {
                         id = DB.GetInt("id"),
                         idCliente = DB.GetInt("idCliente"),
-<<<<<<< HEAD
-                        //cliente = ObtenerClientePorId(DB.GetInt("idCliente")),
-=======
->>>>>>> origin/grupo1
                         fechaExpiracion = DB.GetDateTime("fechaExpiracion"),
                         fechaCreacion = DB.GetDateTime("fechaCreacion")
                     };
