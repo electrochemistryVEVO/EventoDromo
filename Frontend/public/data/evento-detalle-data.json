@@ -1,0 +1,80 @@
+{
+  "success": true,
+  "mensaje": "Datos del evento cargados correctamente.",
+  "data": {
+    "evento": {
+      "id": 1,
+      "nombre": "Carmen",
+      "descripcion": "La aclamada ópera de Georges Bizet...",
+      "imagenUrl": "/images/eventos/carmen-opera.jpg",
+      "tipoEvento": {
+        "id": 1,
+        "nombre": "Ópera"
+      }
+    },
+    "local": {
+      "id": 1,
+      "nombre": "Teatro Municipal de Lima",
+      "direccion": "Jirón Ica 377, Lima 15001",
+      "ciudad": {
+        "id": 1,
+        "nombre": "Lima",
+        "pais": { "id": 1, "nombre": "PE" }
+      },
+      "googleMapsEmbed": "<iframe src=\"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3901.9705727105875!2d-77.037574524449!3d-12.045545688191202!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c8ca3c54dd11%3A0x40b0447dcf24a5c8!2sTeatro%20Municipal%20de%20Lima!5e0!3m2!1ses!2spe!4v1760080206514!5m2!1ses!2spe\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\" referrerpolicy=\"no-referrer-when-downgrade\"></iframe>"
+    },
+    "funciones": [
+      {
+        "id": 101,
+        "fecha": "2025-11-20",
+        "hora": "20:00"
+      },
+      {
+        "id": 102,
+        "fecha": "2025-11-21",
+        "hora": "20:00"
+      },
+      {
+        "id": 103,
+        "fecha": "2025-11-22",
+        "hora": "19:00"
+      },
+      {
+        "id": 104,
+        "fecha": "2025-11-22",
+        "hora": "22:00"
+      }
+    ],
+    "tiposDeEntrada": [
+      {
+        "id": 1,
+        "nombre": "Super VIP",
+        "precio": 500.0,
+        "puntos": 2,
+        "agotado": false
+      },
+      {
+        "id": 2,
+        "nombre": "VIP",
+        "precio": 400.0,
+        "puntos": 2,
+        "agotado": false
+      },
+      {
+        "id": 3,
+        "nombre": "Exclusivo",
+        "precio": 300.0,
+        "puntos": 1,
+        "agotado": false
+      },
+      {
+        "id": 4,
+        "nombre": "General",
+        "precio": 259.0,
+        "puntos": 1,
+        "agotado": true
+      }
+    ]
+  },
+  "error": null
+}

@@ -1,0 +1,171 @@
+.booking-panel {
+  background-color: #f9fafb;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 450px;
+  margin: 0;
+  font-family: "Nunito";
+}
+
+.booking-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 0 0 20px 0;
+  color: #111827;
+}
+
+.booking-selectors {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.selector-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.selector-group label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.selector-group select {
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: #fff;
+  font-size: 1rem;
+}
+
+.selector-group select:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.tickets-title {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.ticket-tier-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ticket-tier-row:last-child {
+  border-bottom: none;
+}
+
+.ticket-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ticket-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.ticket-price {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quantity-control span {
+  font-size: 1.1rem;
+  font-weight: 500;
+  min-width: 20px;
+  text-align: center;
+}
+
+.quantity-control button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #d1d5db;
+  background-color: #fff;
+  color: #16a34a; /* Verde */
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 1;
+}
+
+.quantity-control button:disabled {
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+  background-color: #f9fafb;
+}
+
+.booking-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: 20px 8px;
+  margin-top: 16px;
+  color: #111827;
+}
+
+.add-to-cart-btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: #10b981; /* Verde esmeralda */
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #059669;
+}
+
+/* Estilo para toda la fila cuando la entrada está agotada */
+.ticket-tier-row--agotado {
+  opacity: 0.6; /* Le da un aspecto "deshabilitado" */
+  cursor: not-allowed;
+  user-select: none; /* Evita que el texto se pueda seleccionar */
+}
+
+/* Contenedor para el nuevo icono de "no disponible" */
+.ban-icon-button {
+  background-color: transparent !important; /* Quita el fondo del botón */
+  border: none !important; /* Quita el borde */
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Estilos para el icono SVG */
+.ban-icon {
+  width: 28px;
+  height: 28px;
+  fill: #6b7280; /* Un color gris oscuro, similar al de la imagen */
+}

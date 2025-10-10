@@ -1,0 +1,53 @@
+.location-panel {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 450px; /* Mismo ancho que el panel de booking para consistencia */
+  margin: 0;
+  font-family: "Nunito";
+  overflow: hidden; /* Clave para que los bordes redondeados afecten al mapa */
+}
+
+.location-text-info {
+  padding: 24px;
+}
+
+.location-city {
+  font-size: 0.875rem; /* 14px */
+  font-weight: 500;
+  color: #6b7280; /* Gris */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 4px 0;
+}
+
+.location-venue {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 700;
+  color: #111827; /* Casi negro */
+  margin: 0 0 8px 0;
+}
+
+.location-address {
+  font-size: 1rem; /* 16px */
+  color: #4b5563;
+  margin: 0;
+}
+
+.location-map-container {
+  /* Contenedor responsivo para el iframe */
+  position: relative;
+  width: 100%;
+  padding-top: 75%; /* Proporción 4:3 (height/width * 100). Ajustar si es necesario */
+  background-color: #e5e7eb; /* Color de fondo mientras carga el mapa */
+}
+
+.location-map-container iframe {
+  /* El iframe ocupará todo el espacio del contenedor */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0; /* Quita el borde por defecto del iframe */
+}
