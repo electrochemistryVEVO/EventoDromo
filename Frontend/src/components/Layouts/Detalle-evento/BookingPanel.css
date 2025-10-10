@@ -40,7 +40,9 @@
   font-size: 0.9rem;
   color: #000;
   margin-bottom: 2px;
-  margin-right: 35px;
+  width: 60px; /* 1. Añade un ancho fijo */
+  flex-shrink: 0; /* 2. Evita que la etiqueta se encoja */
+  margin-right: 15px;
 }
 
 .selector-group select {
