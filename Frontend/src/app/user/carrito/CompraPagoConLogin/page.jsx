@@ -30,7 +30,6 @@ const UserInfo = () => {
     }, []);
 
     return (
-<<<<<<< HEAD
     <section className={styles.card}>
         <h2 className={styles.cardTitle}>Identificación</h2>
         {/* Se usa un div adicional para mantener el espaciado de 'gap' de la tarjeta */}
@@ -40,17 +39,6 @@ const UserInfo = () => {
             <p>{user.ciudad}, {user.pais}</p>
         </div>
     </section>
-=======
-        <section className={styles.card}>
-            <h2 className={styles.cardTitle}>Identificación</h2>
-            {/* Se usa un div adicional para mantener el espaciado de 'gap' de la tarjeta */}
-            <div className="flex flex-col text-base gap-1 text-gray-700 -mt-2">
-                <p>{user.email}</p>
-                <p>{user.name}</p>
-                <p>Perú, Callao</p>
-            </div>
-        </section>
->>>>>>> 3084690fd143caa8cf8be413eadfcd81ce4a46d3
     );
 };
 
