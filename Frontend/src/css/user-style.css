@@ -11,11 +11,11 @@
 }
 
 .titulo-destacado {
-  font-family: 'Nunito', sans-serif; 
-  font-size: 40px; 
-  font-weight: 700; 
-  line-height: 60px; 
-  color: #000000; 
+  font-family: 'Nunito', sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 60px;
+  color: #000000;
 
 }
 /* ------------------------------------------------ */
@@ -26,12 +26,12 @@
     border: none;
     border-radius: 6px;
     background: #EAE8E8; /* Fondo gris claro */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     display: flex; /* Asegura el apilamiento y espaciado */
 }
 
 /* Modifica la imagen (LazyImage se renderiza como el elemento superior) */
-.card-evento-custom .LazyImage { 
+.card-evento-custom .LazyImage {
     height: 45%; /* La imagen ocupa el 45% del alto */
     /* Asegúrate de que el componente LazyImage le aplique un width: 100% y object-fit: cover */
     overflow: hidden;
@@ -52,7 +52,7 @@
 
 /* Título */
 .card-evento-custom .card-title-custom {
-    font-size: 1.3rem; 
+    font-size: 1.3rem;
     font-weight: 700;
     margin: 0;
     color: #333;
@@ -62,7 +62,7 @@
 .card-evento-custom .card-date-text {
     font-size: 1rem;
     color: #777;
-    margin: 0; 
+    margin: 0;
     text-align: left;
 }
 
@@ -83,6 +83,6 @@
 
 .evento-detalle-imagen{
     object-fit: cover;
-    width:800px;
+    width: 800px;
     height: 500px;
 }
