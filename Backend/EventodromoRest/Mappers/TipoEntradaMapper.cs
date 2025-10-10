@@ -1,5 +1,6 @@
 ﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace EventodromoRest.Mappers
 {
@@ -19,13 +20,13 @@ namespace EventodromoRest.Mappers
                         id = DB.GetInt("ID"),
                         nombre = DB.GetString("NOMBRE"),
                         cantidadEntradas = DB.GetInt("CANTIDADENTRADAS"),
-                        cantidadVendida = DB.GetInt("CANTIDADVENDIDA"),
+                        cantidadVendida = DB.GetInt("CANTIDADVENIDA"),
                         precio = DB.GetDecimal("PRECIO"),
                         limiteCompra = DB.GetInt("LIMITECOMPRA"),
                         puntos = DB.GetInt("PUNTOS"),
-                        idFechaEvento = DB.GetInt("IDFECHAEVENTO"),
-                        FechaEvento = ObtenerFechaEventoPorId(DB.GetInt("IDFECHAEVENTO")),
+                        idFechaEvento = DB.GetInt("IDFECHAEVENTO")
                     };
+                    tipoEntrada.FechaEvento = ObtenerFechaEventoPorId(tipoEntrada.idFechaEvento);
                     listaTipoEntrada.Add(tipoEntrada);
                 }
                 return listaTipoEntrada;
@@ -59,26 +60,24 @@ namespace EventodromoRest.Mappers
         {
             lock (DB)
             {
-                string query = "SELECT * FROM TipoEntrada WHERE ID = @ID";
+                string query = "SELECT * FROM TipoEntrada WHERE id = @id";
                 var parametros = new ParameterList();
-                parametros.Add("@ID", id);
+                parametros.Add("@id", id);
                 DB.Select(query, parametros);
                 if (DB.Read())
                 {
                     TipoEntrada tipoEntrada = new()
                     {
-                        id = DB.GetInt("ID"),
-                        nombre = DB.GetString("NOMBRE"),
-                        cantidadEntradas = DB.GetInt("CANTIDADENTRADAS"),
-                        cantidadVendida = DB.GetInt("CANTIDADVENDIDA"),
-                        precio = DB.GetDecimal("PRECIO"),
-                        limiteCompra = DB.GetInt("LIMITECOMPRA"),
-                        puntos = DB.GetInt("PUNTOS"),
-                        idFechaEvento = DB.GetInt("IDFECHAEVENTO"),
-                        FechaEvento = ObtenerFechaEventoPorId(DB.GetInt("IDFECHAEVENTO")),
-
-
+                        id = DB.GetInt("id"),
+                        nombre = DB.GetString("nombre"),
+                        cantidadEntradas = DB.GetInt("cantidadEntradas"),
+                        cantidadVendida = DB.GetInt("cantidadVendida"),
+                        precio = DB.GetDecimal("precio"),
+                        limiteCompra = DB.GetInt("limiteCompra"),
+                        puntos = DB.GetInt("puntos"),
+                        idFechaEvento = DB.GetInt("idFechaEvento")
                     };
+                    tipoEntrada.FechaEvento = ObtenerFechaEventoPorId(tipoEntrada.idFechaEvento);
                     return tipoEntrada;
                 }
                 else

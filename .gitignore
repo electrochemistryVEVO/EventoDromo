@@ -48,3 +48,7 @@ Dockerfile*
 
 # Archivos de configuración de equipo
 .vscode/
+
+# Archivos de compilación
+bin/
+obj/

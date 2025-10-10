@@ -9,22 +9,27 @@ namespace EventodromoRest.Mappers
         public List<LineaTransaccion> ListarLineaTransaccion()
         {
             List<LineaTransaccion> listaLineaTransaccion = new List<LineaTransaccion>();
+            var parametros = new ParameterList();
             lock (DB)
             {
                 string query = "SELECT * FROM LineaTransaccion";
-                DB.Select(query, null);
+
+                DB.Select(query, parametros);
                 while (DB.Read())
                 {
                     LineaTransaccion lineaTransaccion = new()
                     {
                         id = DB.GetInt("ID"),
                         idTransaccion = DB.GetInt("IDTRANSACCION"),
-                        transaccion = ObtenerTransaccionPorId(DB.GetInt("IDTRANSACCION")),
+                        //transaccion = ObtenerTransaccionPorId(DB.GetInt("IDTRANSACCION")),
                         idEntrada = DB.GetInt("IDENTRADA"),
-                        entrada = ObtenerEntradaPorId(DB.GetInt("IDENTRADA")),
+                        //entrada = ObtenerEntradaPorId(DB.GetInt("IDENTRADA")),
                         precio = DB.GetDecimal("PRECIO"),
                         puntosGanados = DB.GetInt("PUNTOSGANADOS"),
                     };
+                    lineaTransaccion.transaccion = ObtenerTransaccionPorId(lineaTransaccion.idTransaccion??0);
+                    lineaTransaccion.entrada = ObtenerEntradaPorId(lineaTransaccion.idEntrada ?? 0);
+
                     listaLineaTransaccion.Add(lineaTransaccion);
                 }
                 return listaLineaTransaccion;

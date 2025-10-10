@@ -5,6 +5,9 @@ import Image from "next/image";
 import imagenMitad from "@/assets/pictures/imagenMitad.png";
 import { useState } from "react";
 import { onSubmit } from "./controller";
+
+import Link from "next/link"; // Asegúrate de tener esta importación al inicio
+
 function App() {
   const [error, setError] = useState("");
 
@@ -30,9 +33,9 @@ function App() {
           <div className="logo-container">
             <Image src={logo} alt="Logo" className="login-logo" priority />
           </div>
-          <a href="/" className="volver-inicio">
+          <Link href="/" className="volver-inicio">
             Volver a iniciar sesión
-          </a>
+          </Link>
           <h1>Bienvenido a Eventódromo</h1>
         </div>
         <div className="form-content">
@@ -183,7 +186,7 @@ function App() {
             <button type="submit">Registrar</button>
             <div className="login-hipervinculos-container">
               <p>¿Ya tienes cuenta?</p>
-              <a href="/auth/login">Ingresa aquí</a>
+              <Link href="/auth/login">Ingresa aquí</Link>
             </div>
           </form>
         </div>

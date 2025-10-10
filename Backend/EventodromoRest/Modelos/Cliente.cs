@@ -29,4 +29,32 @@
         public required string Password { get; set; }
     }
 
+    public class LoginResponse
+    {
+        public required bool success { get; set; }
+        public required char rol { get; set; }
+    }
+
+    public class RequestSignUpCliente
+    {
+        public string? nombres { get; set; }
+        public string? apellidos { get; set; }
+        public string? email { get; set; }
+        public string? password { get; set; }
+        public string? sexo { get; set; } // puedes cambiar a int si envías IDs
+        public string? tipoDocumento { get; set; } // o int si envías IDs
+        public string? numeroDocumento { get; set; }
+        public string? telefono { get; set; }
+        public string? ciudad { get; set; } // o int si envías IDs
+        public string? pais { get; set; }
+        public DateTime? fechaNacimiento { get; set; }
+        public bool politicadeprivacidad { get; set; }
+        public bool enviodepublicidad { get; set; }
+    }
+
+    public class SignUpResponse
+    {
+        public required bool success { get; set; }
+    }
+
 }

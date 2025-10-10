@@ -8,4 +8,14 @@
         public int idTipoEntrada { get; set; }
         public TipoEntrada tipoEntrada { get; set; }
     }
+
+    public class EntradaxCarritoDTO
+    {
+        public int idTipoEntrada { get; set; }
+        public string imagenURL { get; set; }
+        public string nombreEvento { get; set; }
+        public string nombreTipoEntrada { get; set; }
+        public int cantidad { get; set; }
+        public decimal precio { get; set; }
+    }
 }

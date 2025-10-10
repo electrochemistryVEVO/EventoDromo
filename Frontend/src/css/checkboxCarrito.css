@@ -1,0 +1,102 @@
+/* Header de la página de carrito */
+
+.carrito-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 32px;
+    padding-left: 32px;
+}
+.carrito-header-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+}
+/* Estilos para la tabla de entradas y columnas principales */
+.carrito-main-row {
+    justify-content: center;
+    align-items: flex-start;
+    gap: 48px;
+    width: 100%;
+    margin: 0 auto;
+    max-width: 1200px;
+}
+
+.carrito-col {
+    min-width: 420px;
+    max-width: 520px;
+    width: 100%;
+    align-items: center;
+}
+
+.tabla-entradas-carrito {
+    font-size: 1.08rem;
+}
+.checkbox-carrito-label {
+    display: flex;
+    align-items: flex-start;
+    cursor: pointer;
+    margin-bottom: 12px;
+    max-width: 480px;
+    flex-direction: row;
+    gap: 12px;
+}
+
+.checkbox-carrito-input {
+    display: none;
+}
+
+.checkbox-carrito-custom {
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    position: relative;
+    border: 2px solid #bbb;
+    background: transparent;
+    margin-right: 12px;
+    position: relative;
+    transition: background 0.2s, border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.checkbox-carrito-label:hover .checkbox-carrito-custom {
+    background: #eee;
+    border-color: #888;
+}
+
+.checkbox-carrito-input:checked + .checkbox-carrito-custom {
+    background: #00C49A;
+    border-color: #00C49A;
+}
+
+.checkbox-carrito-custom:after {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 3.5px;
+    top: 0px;
+    width: 8px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    opacity: 0;
+    transform: rotate(45deg) scale(0.7);
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.checkbox-carrito-input:checked + .checkbox-carrito-custom:after {
+    opacity: 1;
+    transform: rotate(45deg) scale(1);
+}
+
+.checkbox-carrito-text {
+    font-size: 1rem; /* 20px, para coincidir con text-xl */
+    color: #333;
+    user-select: none;
+    font-weight: normal;
+    white-space: normal;
+    line-height: 1.4;
+    word-break: break-word;
+    flex: 1;
+}

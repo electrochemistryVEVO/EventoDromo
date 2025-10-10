@@ -1,0 +1,143 @@
+/* Estilos aislados para cada item de la lista (prefijo mei-) */
+
+.mei-item {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 0;
+}
+
+.mei-card {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.02);
+  border: 1px solid #f0f0f0;
+}
+
+/* left block */
+.mei-item-left {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mei-thumb {
+  width: 150px;   /* más grande */
+  height: 150px;  /* más grande */
+  background: #f7f7f7;
+  border-radius: 10px; /* un poco más redondeado */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #eee;
+  flex: 0 0 auto;
+}
+
+.mei-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 6px;
+}
+
+/* meta text */
+.mei-meta { min-width: 0; overflow: hidden; }
+
+.mei-title {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111;
+  /* --- truncar texto si es muy largo --- */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mei-sub { font-size: 14px; color: #666; display: flex; flex-direction: column; gap: 6px; }
+
+.mei-row { display: flex; gap: 8px; align-items: baseline; }
+.mei-label { font-weight: 600; color: #333; min-width: 90px; }
+.mei-value { color: #444; min-width: 0; } /* min-width para que flexbox lo pueda encoger */
+
+.mei-value--location {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* transacción estilo más tenue */
+.mei-transaccion .mei-value { color: #777; font-size: 13px; }
+
+/* vertical divider between left and right */
+.mei-divider {
+  width: 1px;
+  background: rgba(0,0,0,0.12); /* más oscuro */
+  margin: 6px 8px;
+  align-self: stretch;
+  flex: 0 0 1px;
+}
+
+/* right panel */
+.mei-item-right {
+  flex: 0 0 290px; /* un poco más de espacio */
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* más separación vertical */
+  justify-content: space-between; /* distribuye el contenido verticalmente */
+  box-sizing: border-box;
+}
+
+/* --- nuevo layout para la info derecha --- */
+.mei-info-grid {
+  display: grid;
+  grid-template-columns: auto 1fr; /* labels a la izquierda, valores a la derecha */
+  gap: 8px 12px;
+  align-items: center;
+  font-size: 14px;
+  width: 100%;
+}
+.mei-info-grid > strong { font-weight: 700; color: #333; text-align: left; }
+.mei-info-grid > div, .mei-info-grid > span { text-align: right; }
+
+.mei-status-badge { display:flex; align-items:center; justify-content: flex-end; gap:8px; }
+
+.mei-dot { width:12px; height:12px; border-radius:50%; display:inline-block; }
+.mei-dot--green { background: #00c49a; }
+.mei-dot--gray { background: #bdbdbd; }
+
+.mei-status-text { color:#00c49a; font-weight:700; }
+
+/* buttons */
+.mei-buttons { display:flex; gap:10px; align-items:center; }
+
+/* button base (use variant classes for colors) */
+.mei-btn {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* color variants */
+.mei-btn--descargar { background: #bfeaff; color: #075b7a; } /* light blue */
+.mei-btn--transferir { background: #ffd27a; color: #7a5b00; } /* orange/yellow */
+.mei-btn--ver { background: #00c49a; color: #fff; }
+
+/* small shadow for buttons */
+.mei-btn { box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+
+/* responsiveness */
+@media (max-width: 900px) {
+  .mei-item-right { flex: 0 0 140px; max-width: 140px; }
+  .mei-title { font-size: 18px; }
+  .mei-label { min-width: 70px; }
+}

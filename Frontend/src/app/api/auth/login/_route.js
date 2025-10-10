@@ -1,3 +1,4 @@
+/*
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { autenticarUsuario } from "../../service";
@@ -38,3 +39,4 @@ export async function POST(request) {
     );
   }
 }
+*/

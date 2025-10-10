@@ -1,0 +1,35 @@
+const url =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5189/api/Cliente";
+export async function insertarUsuario(loginInfo) {
+
+  //link q funciona en individual: http://localhost:5189/api/Cliente/AutenticarLoginCliente"
+  const res = await fetch("http://localhost:8081/api/Cliente/InsertarClienteSignUp", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(loginInfo),
+  });
+  console.log(res);
+  if (!res.ok) throw new Error("Error al insertar cliente signUp (status:" + res.status + ")");
+  const json = await res.json();
+  if(!json) throw new Error("Error al insertar cliente signUp (json vacio)");
+  if(json.success===false){
+    throw new Error(json.error || json.mensaje || "Error en respuesta del servicio");
+  }
+  return json.data; 
+
+  /*
+  return await fetch(url + "/InsertarCliente", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(loginInfo),
+  });
+  */
+<<<<<<< HEAD
+}
+=======
+}
+>>>>>>> origin/grupo2

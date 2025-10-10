@@ -57,8 +57,9 @@ namespace EventodromoRest.Mappers
                         id = DB.GetInt("ID"),
                         nombre = DB.GetString("NOMBRE"),
                         idPais = DB.GetInt("IDPAIS"),
-                        pais = ObtenerPaisPorId(DB.GetInt("IDPAIS")),
+                        //pais = ObtenerPaisPorId(DB.GetInt("IDPAIS")),
                     };
+                    ciudad.pais  = ObtenerPaisPorId(ciudad.idPais ?? 0);
                     return ciudad;
                 }
                 else
