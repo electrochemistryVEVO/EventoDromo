@@ -14,7 +14,7 @@ import logoMinimo from "@/assets/logos/logo_eventodromo_minimo.png";
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
-    <div className="relative min-h-screen bg-gray-100">
+    <div className="relative bg-gray-100">
       {/* Barra verde superior */}
       <div className="bg-[#00C49A] w-full h-[78px]" />
 
@@ -41,7 +41,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
       </div>
 
       {/* Contenido de la página con padding superior para no ser tapado por el logo */}
-      <main className="px-8 pt-24">{children}</main>
+      <main className="px-8 pt-24 pb-8">{children}</main>
     </div>
   );
 }
