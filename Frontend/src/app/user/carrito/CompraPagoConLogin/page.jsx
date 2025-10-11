@@ -118,7 +118,7 @@ const SuccessModal = ({ onClose }) => {
     const router = useRouter();
 
     const handleRedirect = () => {
-        router.push('/mis-entradas');
+        router.push('/user/perfil?tab=entradas');
     };
 
     return (
