@@ -6,13 +6,14 @@ import "./App.css"; // 📁 Importa los estilos CSS para esta página.
 import logo from "@/assets/logos/logo_eventodromo.png"; // 📷 Logo de tu aplicación.
 import Image from "next/image"; // 🖼️ Componente optimizado de Next.js para imágenes.
 import imagenMitad from "@/assets/pictures/imagenMitad.png"; // 📷 Imagen decorativa lateral.
-import { useRouter } from "next/navigation"; // 🚀 Hook de Next.js para redirigir a otras rutas.
+import { useRouter, useSearchParams } from "next/navigation"; // 🚀 Hook de Next.js para redirigir a otras rutas.
 import { useState } from "react"; // 🧠 Hook de React para manejar estados (como el error).
 import { onSubmit } from "./controller"; // 📡 Función que procesa el login (definida en controller.js).
 
 import Link from "next/link"; // Asegúrate de tener esta importación al inicio
 
 function App() {
+  const searchParams = useSearchParams();
   const router = useRouter(); // 🔄 Permite navegar a otras páginas desde el código.
   const [error, setError] = useState(""); // 📍 Estado para guardar el mensaje de error (si lo hay).
 
@@ -34,6 +35,13 @@ function App() {
         setError(result.error);
       } else if (result?.success) {
         // ✅ Si el login fue exitoso (result.success === true):
+        const redirectUrl = searchParams.get('redirect');
+
+        if (redirectUrl) {
+          // Si hay una URL de redirección, la usamos.
+          router.push(redirectUrl);
+          return;
+        }
 
         // 👤 Redirigimos según el rol del usuario:
         if (result.rol === "A") {

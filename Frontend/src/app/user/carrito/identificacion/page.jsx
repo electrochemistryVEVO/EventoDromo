@@ -1,6 +1,6 @@
 import styles from '@/css/identificacion.module.css';
 import Link from 'next/link';
-import { ResumenCompra } from '@/components/carrito/ResumenCompra';
+import CostoDetalleEntradas from '@/components/carrito/costoDetalleEntradas';
 
 import { items } from './controller';
 import arrow_left from '@/assets/icons/arrow_left.svg'; 
@@ -42,7 +42,7 @@ function App() {
                         Para poder comprar tus entradas inicia sesion o registrate.
                     </p>
                     <div className={styles.buttonContainer}>
-                        <Link href="/auth/login" className={`${styles.button} ${styles.buttonPrimary}`}>
+                        <Link href="/auth/login?redirect=/user/carrito/compraConLogin" className={`${styles.button} ${styles.buttonPrimary}`}>
                             Inicia Sesion
                         </Link>
                         <Link href="/auth/signup" className={`${styles.button} ${styles.buttonSecondary}`}>
@@ -62,8 +62,8 @@ function App() {
                 {/* --- COLUMNA 3: RESUMEN DE COMPRA --- */}
                 <section className={styles.card}>
                     <h2 className={styles.cardTitle}>Resumen de la compra</h2>
-                    {/* ResumenCompra ahora es autónomo y obtiene sus propios datos */}
-                    <ResumenCompra />
+                    {/* CostoDetalleEntradas ahora es autónomo y obtiene sus propios datos */}
+                    <CostoDetalleEntradas />
                 </section>
             </main>
         </div>

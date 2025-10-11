@@ -1,7 +1,8 @@
 // src/components/carrito/ModalCarrito.controller.jsx
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { fetchCart, removeCartItem } from "../../services/ModalCarrito.service";
 import ModalCarritoView from "./ModalCarrito";
 
@@ -19,6 +20,7 @@ export default function ModalCarritoController({ isOpen, onClose }) {
   // 2. Estado para la animación
   const [isAnimating, setIsAnimating] = useState(false);
   const modalRef = useRef(null);
+  const router = useRouter();
 
   // 3. Lógica para cargar los datos del carrito cuando se abre el modal
   const loadCart = async () => {
@@ -88,6 +90,12 @@ export default function ModalCarritoController({ isOpen, onClose }) {
     setTimeout(() => {
       onClose(); // Llama a la función del padre para actualizar el estado
     }, 300); // Debe coincidir con la duración de la animación en CSS
+  };
+
+  // Nueva función para manejar la finalización del pedido
+  const handleCheckout = () => {
+    handleClose(); // Cierra el modal
+    router.push('/user/carrito/entradaDetalle'); // Navega a la página de detalle
   };
 
   // 5. Lógica para eliminar un item
@@ -161,6 +169,7 @@ export default function ModalCarritoController({ isOpen, onClose }) {
           total={total}
           onClose={handleClose}
           onRemoveItem={handleRemoveItem}
+          onCheckout={handleCheckout}
         />
       </div>
     </div>

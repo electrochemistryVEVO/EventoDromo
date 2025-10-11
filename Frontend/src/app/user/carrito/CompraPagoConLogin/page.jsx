@@ -2,8 +2,8 @@
 import { cantidadEntradas, importeTotal } from "./controller";
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ResumenCompra } from "@/components/carrito/ResumenCompra";
-import styles from '@/css/compraPagoConLogin.module.css';
+import CostoDetalleEntradas from '@/components/carrito/costoDetalleEntradas';
+import styles from '@/css/compraPagoConLogin.module.css'; 
 import arrow_left from '@/assets/icons/arrow_left.svg'; 
 import LogoUsuarioApagado from '@/assets/icons/LogoUsuarioApagado.svg';
 import LogoPagoEncendido from '@/assets/icons/LogoPagoEncendido.svg';
@@ -193,11 +193,8 @@ function App() {
                 />
                 <section className={styles.card}>
                     <h2 className={styles.cardTitle}>Resumen de la compra</h2>
-                    <div className="flex flex-col h-full">
-                        <div className="text-base text-gray-600 font-medium">
-                            Tienes {cantidadEntradas()} entradas
-                        </div>
-                        <ResumenCompra items={cartItems} />
+                    <div className="flex flex-col h-full gap-4">
+                        <CostoDetalleEntradas />
                         <div className="mt-auto pt-4 border-t border-gray-300 flex flex-col items-center gap-4">
                             {selectedPaymentMethod === 'dromopuntos' && (
                                 <span className="flex items-center gap-2 ml-6">

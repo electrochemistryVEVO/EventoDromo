@@ -14,6 +14,7 @@ export default function ModalCarritoView({
   total,
   onClose, // Función para cerrar el modal
   onRemoveItem, // Función para eliminar un item
+  onCheckout, // Función para finalizar el pedido
 }) {
   // Manejo de estados de carga y error
   if (isLoading) {
@@ -74,7 +75,7 @@ export default function ModalCarritoView({
               <span>Total:</span>
               <span>S/ {total.toFixed(2)}</span>
             </div>
-            <button className="modal-carrito__checkout-button">
+            <button onClick={onCheckout} className="modal-carrito__checkout-button">
               FINALIZAR PEDIDO
             </button>
           </div>

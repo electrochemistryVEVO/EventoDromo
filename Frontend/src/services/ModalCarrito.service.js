@@ -12,10 +12,21 @@
  */
 export async function fetchCart() {
   try {
-    // Simulamos que a veces el carrito está vacío y a veces no.
-    // En una app real, la URL sería siempre la misma.
-    const url = Math.random() > 0.5 ? "/data/carrito.json" : "/data/carritoVacio.json";
-    console.log(`Fetching cart from: ${url}`); // Para depuración
+    // Lógica para la presentación: El carrito se muestra lleno solo en páginas específicas.
+    const currentPath = window.location.pathname;
+    const searchParams = window.location.search;
+
+    const isCartFlowPage = currentPath.startsWith('/user/carrito/');
+    const isSpecificDetailPage = currentPath.startsWith('/user/eventos/detalle') && searchParams.includes('id=2');
+
+    let url;
+    if (isCartFlowPage || isSpecificDetailPage) {
+      url = "/data/carrito.json"; // Carrito con items para el flujo de compra.
+    } else {
+      url = "/data/carritoVacio.json"; // Carrito vacío para el resto de páginas.
+    }
+
+    console.log(`[Modo Presentación] Fetching cart from: ${url} for path: ${currentPath}`); // Para depuración
     
     const res = await fetch(url);
     if (!res.ok) throw new Error("Error cargando el carrito");

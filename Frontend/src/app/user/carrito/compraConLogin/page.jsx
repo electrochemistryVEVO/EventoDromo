@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '@/css/compraConLogin.module.css';
-import { ResumenCompra } from "@/components/carrito/ResumenCompra";
-import arrow_left from '@/assets/icons/arrow_left.svg'; 
+import CostoDetalleEntradas from '@/components/carrito/costoDetalleEntradas';
+import arrow_left from '@/assets/icons/arrow_left.svg';
 import LogoUsuarioEncendido from '@/assets/icons/LogoUsuarioEncendido.svg';
 import LogoPagoApagado from '@/assets/icons/LogoPagoApagado.svg';
 import Image from 'next/image';
@@ -162,8 +162,8 @@ function App() {
                 {/* --- COLUMNA 3: RESUMEN DE COMPRA --- */}
                 <section className={styles.card}>
                     <h2 className={styles.cardTitle}>Resumen de la compra</h2>
-                    {/* ResumenCompra ahora es autónomo. El total de entradas se podría obtener de un contexto global en el futuro. */}
-                    <ResumenCompra />
+                    {/* CostoDetalleEntradas ahora es autónomo y obtiene sus propios datos */}
+                    <CostoDetalleEntradas />
                     <div className="mt-4 flex flex-col items-center gap-4">
                         {selectedPaymentMethod ? (
                             <button className={styles.payButton} disabled={true}>

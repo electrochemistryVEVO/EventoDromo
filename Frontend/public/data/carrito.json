@@ -10,11 +10,11 @@
       "entradas": [
         {
           "id":"312",
-          "titulo":"Overpass Lima",
-          "ubicacion":"Estadio San Marcos, LIMA, PE",
-          "cantidadTotal" : 3,
-          "precioTotal": 900,
-          "imagen": "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/ulises-web.png"
+          "titulo":"Carmen, Opera de Georges Bizet",
+          "ubicacion":"Teatro Municipal de Lima. LIMA, PE",
+          "cantidadTotal" : 1,
+          "precioTotal": 300,
+          "imagen": "/images/eventos/carmen-opera.jpg"
         }
       ]
     }
