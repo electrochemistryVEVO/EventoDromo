@@ -1,5 +1,7 @@
-﻿using EventodromoRest.Modelos;  
+﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
+using System.Data;
+
 namespace EventodromoRest.Mappers
 {
     public class EventoMapper(Globales.Globales globales, DBManager.DBManager DB)
@@ -214,5 +216,38 @@ namespace EventodromoRest.Mappers
                 return listaEventos;
             }
         }
+
+        public List<Evento> ListarEventosPorBusqueda(string terminoBusqueda)
+        {
+            string sql = @"
+        SELECT 
+            id, nombre, descripcion, idTipoEvento, idLocal, creadoPor, 
+            fechaPublicacion, fechaCompra, isDeleted, imagenURL
+        FROM 
+            Evento
+        WHERE 
+            (nombre LIKE @termino OR descripcion LIKE @termino)
+            AND isDeleted = 0";
+
+            var parameters = new ParameterList();
+            parameters.Add("@termino", $"%{terminoBusqueda}%"); // El '%' es para buscar coincidencias parciales
+
+            return DB.Query(sql, map: reader => new Evento
+            {
+                id = reader.GetInt32(reader.GetOrdinal("id")),
+                nombre = reader.GetString(reader.GetOrdinal("nombre")),
+                descripcion = reader.GetString(reader.GetOrdinal("descripcion")),
+                idTipoEvento = reader.GetInt32(reader.GetOrdinal("idTipoEvento")),
+                idLocal = reader.GetInt32(reader.GetOrdinal("idLocal")),
+                creadoPor = reader.GetInt32(reader.GetOrdinal("creadoPor")),
+                fechaPublicacion = reader.GetDateTime(reader.GetOrdinal("fechaPublicacion")),
+                fechaCompra = reader.GetDateTime(reader.GetOrdinal("fechaCompra")),
+                isDeleted = reader.GetBoolean(reader.GetOrdinal("isDeleted")),
+                imagenURL = reader.IsDBNull(reader.GetOrdinal("imagenURL")) ? null : reader.GetString(reader.GetOrdinal("imagenURL"))
+            }, parameters);
+        }
+
+
+
     }
 }

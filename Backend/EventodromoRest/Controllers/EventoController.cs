@@ -59,5 +59,64 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
+
+        [HttpGet]
+        [Route("/api/[controller]/[action]/{id}")]
+        public GenericResponse<Evento> ObtenerEventoPorId([FromRoute] int id)
+        {
+            try
+            {
+                if (id <= 0)
+                {
+                    throw new ArgumentException("El ID del evento debe ser un valor positivo.");
+                }
+                return new EventoBO(globales, BD).ObtenerEventoPorId(id);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<Evento>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, $"id: {id}", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+        [HttpGet]
+        [Route("/api/[controller]/Buscar")] 
+        public GenericResponse<IEnumerable<Evento>> BuscarEventos([FromQuery] string termino)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(termino))
+                {
+                    return new GenericResponse<IEnumerable<Evento>>
+                    {
+                        Success = true,
+                        Data = new List<Evento>(),
+                        Message = "No se proporcionó un término de búsqueda."
+                    };
+                }
+
+                return new EventoBO(globales, BD).ListarEventosPorBusqueda(termino);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<IEnumerable<Evento>>
+                {
+                    Success = false,
+                    Message = "Ocurrió un error al realizar la búsqueda.",
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, $"termino: {termino}", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
     }
 }

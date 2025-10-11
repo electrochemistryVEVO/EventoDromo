@@ -76,5 +76,46 @@ namespace EventodromoRest.Negocio
                 };
             }
         }
+
+        public GenericResponse<Evento> ObtenerEventoPorId(int eventoId)
+        {
+            EventoMapper mapper = new EventoMapper(globales, DB);
+            Evento evento = mapper.ObtenerEventoPorId(eventoId);
+
+            if (evento == null)
+            {
+                return new GenericResponse<Evento>
+                {
+                    Success = false,
+                    Message = $"No se encontró un evento con el ID: {eventoId}.",
+                    Error = "Not Found",
+                    Data = null
+                };
+            }
+
+            return new GenericResponse<Evento>
+            {
+                Success = true,
+                Message = "Evento obtenido correctamente.",
+                Error = null,
+                Data = evento
+            };
+        }
+
+        public GenericResponse<IEnumerable<Evento>> ListarEventosPorBusqueda(string terminoBusqueda)
+        {
+            EventoMapper mapper = new EventoMapper(globales, DB);
+            List<Evento> eventos = mapper.ListarEventosPorBusqueda(terminoBusqueda);
+
+            GenericResponse<IEnumerable<Evento>> response = new GenericResponse<IEnumerable<Evento>>
+            {
+                Success = true,
+                Data = eventos,
+                Message = eventos.Count > 0 ? $"Se encontraron {eventos.Count} eventos." : "No se encontraron eventos para el término de búsqueda."
+            };
+            return response;
+        }
+
+
     }
 }
