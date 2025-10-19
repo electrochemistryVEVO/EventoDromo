@@ -170,7 +170,7 @@ namespace EventodromoRest.Mappers
                         politicadeprivacidad = DB.GetBoolean("politicaDePrivacidad"),
                         enviodepublicidad = DB.GetBoolean("envioDePublicidad"),
                         fechacreacion = DB.GetDateTime("fechaCreacion"),
-                        fechaultimaedicion = DB.IsDBNull("fechaUltimaEdicion") ? (DateTime?)null : DB.GetDateTime("fecha_ultima_edicion"),
+                        fechaultimaedicion = DB.IsDBNull("fechaUltimaEdicion") ? (DateTime?)null : DB.GetDateTime("fechaUltimaSesion"),
                         fechaultimasession = DB.GetDateTime("fechaUltimaSesion"),
                     };
                     cliente.sexo = ObtenerSexoPorId(cliente.idsexo ?? 0);

@@ -1,6 +1,8 @@
 export async function getEntradas() {
-  const res = await fetch("/data/entradas.json"); 
-  // const res = await fetch("https://localhost:44372/api/EntradaEventoAuxiliar/ListarTodasLasEntradas"); // para cambiar al back
+  // link test const res = await fetch("/data/entradas.json"); 
+  //link q funciona en individual: http://localhost:5189/api/EntradaEventoAuxiliar/ListarTodasLasEntradas"
+  //link q funciona en docker: http://localhost:8081/api/EntradaEventoAuxiliar/ListarTodasLasEntradas"
+  const res = await fetch("http://localhost:5189/api/EntradaEventoAuxiliar/ListarTodasLasEntradas"); // para cambiar al back
   console.log(res);
   if (!res.ok) throw new Error("Error cargando entradas (status " + res.status + ")");
   const json = await res.json();
