@@ -8,19 +8,6 @@ namespace EventodromoRest.Negocio
 {
     public class EventoBO(Globales.Globales globales, DBManager.DBManager DB)
     {
-<<<<<<< HEAD
-        public GenericResponse<List<Evento>> ListarEventos()
-        {
-            var eventoMapper = new EventoMapper(globales, DB);
-
-            return new GenericResponse<List<Evento>>
-            {
-                Success = true,
-                Message = "Eventos obtenidos correctamente.",
-                Data = eventoMapper.ListarEvento(),
-                Error = null
-            };
-=======
         public GenericResponse<IEnumerable<Evento>> ListarEventosPorTipo(int tipoEventoId)
         {
             EventoMapper mapper = new EventoMapper(globales, DB);
@@ -88,7 +75,6 @@ namespace EventodromoRest.Negocio
                     }
                 };
             }
->>>>>>> origin/grupo3
         }
     }
 }

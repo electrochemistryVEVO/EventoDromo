@@ -93,7 +93,7 @@ namespace EventodromoRest.Mappers
                 
                 foreach (FechaEvento fechaEvento in fechaEventos)
                 {
-                    fechaEvento.Evento = ObtenerEventoPorId(fechaEvento.idEvento ?? 0);
+                    fechaEvento.Evento = ObtenerEventoPorId(fechaEvento.idEvento);
                 }
                 return fechaEventos;
             }

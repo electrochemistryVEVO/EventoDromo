@@ -15,6 +15,15 @@
         public bool isDeleted { get; set; }
         public string? imagenURL { get; set; }
     }
+    public class EventoxCarritoDTO
+    {
+        public int idEvento { get; set; }
+        public string nombreEvento { get; set; }
+        public string nombreLocal { get; set; }
+        public int cantidadTotal { get; set; }
+        public decimal? precioTotal { get; set; }
+        public string imagenURL { get; set; }
+    }
 
     public class RequestListarEventosPorTipo
     {

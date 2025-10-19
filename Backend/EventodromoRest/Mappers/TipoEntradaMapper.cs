@@ -1,10 +1,6 @@
 ﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
-<<<<<<< HEAD
-using Microsoft.EntityFrameworkCore.Internal;
-=======
 using EventodromoRest.Negocio;
->>>>>>> origin/grupo3
 
 namespace EventodromoRest.Mappers
 {
@@ -64,7 +60,7 @@ namespace EventodromoRest.Mappers
                 }
                 foreach(TipoEntrada tipoEntrada in listaTipoEntrada)
                 {
-                    tipoEntrada.FechaEvento = ObtenerFechaEventoPorId(tipoEntrada.idFechaEvento ?? 0);
+                    tipoEntrada.FechaEvento = ObtenerFechaEventoPorId(tipoEntrada.idFechaEvento);
                 }
                 return listaTipoEntrada;
             }
