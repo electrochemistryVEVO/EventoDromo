@@ -1,0 +1,57 @@
+.carousel-image-container {
+  position: relative;
+  width: 100%;
+  height: 500px; /* Puedes ajustar esta altura según tus necesidades */
+  color: white;
+}
+
+.carousel-image-container .background-image {
+  object-fit: cover; /* Asegura que la imagen cubra todo el contenedor */
+  filter: brightness(
+    60%
+  ); /* Oscurece la imagen para que el texto sea legible */
+}
+
+.carousel-content-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* Mueve el contenido hacia abajo */
+  align-items: flex-start; /* Alinea el contenido a la izquierda */
+  text-align: left; /* Alinea el texto a la izquierda */
+  padding-left: 9rem; /* Aumenta el espacio a la izquierda para no superponer la flecha */
+  padding-bottom: 4rem;
+}
+
+.carousel-event-name {
+  font-size: 2.2rem; /* Tamaño del título ligeramente reducido */
+  font-weight: bold;
+  color: #f2f2f2;
+  margin-bottom: 0.5rem;
+}
+
+.carousel-venue-name {
+  font-size: 1.2rem;
+  margin-bottom: 1rem; /* Espacio reducido entre el local y el botón */
+}
+
+.carousel-buy-button {
+  width: 190px;
+  height: 52px;
+  border-radius: 6px;
+  background: #00c49a;
+  color: white;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.carousel-buy-button:hover {
+  background: #00a986; /* Un tono ligeramente más oscuro al pasar el mouse */
+}

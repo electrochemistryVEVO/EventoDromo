@@ -1,0 +1,51 @@
+/* Select visual moderno para carrito */
+.select-carrito {
+    width: 100%;
+    max-width: 100%;
+    background: #D9D9D9;
+    border: none;
+    border-radius: 14px;
+    padding: 16px 18px;
+    font-size: 1.18rem;
+    font-weight: 500;
+    color: #656565;
+    box-sizing: border-box;
+    margin-bottom: 18px;
+    outline: none;
+    transition: box-shadow 0.2s, background 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    appearance: none;
+}
+.select-carrito:focus {
+    background: #e3e3e3;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+.select-carrito option {
+    color: #b0b0b0;
+    background: #fff;
+    font-weight: 400;
+}
+.select-carrito option:first-child {
+    color: #cccccc;
+    font-style: italic;
+}
+.input-carrito {
+    width: 100%;
+    max-width: 100%;
+    background: #D9D9D9;
+    border: none;
+    border-radius: 14px;
+    padding: 16px 18px;
+    font-size: 1.18rem;
+    font-weight: 500;
+    color: #222;
+    box-sizing: border-box;
+    margin-bottom: 18px;
+    outline: none;
+    transition: box-shadow 0.2s, background 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+.input-carrito:focus {
+    background: #e3e3e3;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}

@@ -1,0 +1,52 @@
+/* Estilos generales del footer */
+.footer-main-container {
+  background: #1C1C1E;
+  height: 289px;
+  width: 100%; /* Ocupa todo el ancho */
+  display: flex;
+  justify-content: center; /* Centra el contenido principal */
+  align-items: center;
+  color: #DEDBDB;
+  padding: 2rem 1.5rem;
+}
+
+.footer-main-container .container {
+  max-width: 1440px;
+  width: 100%;
+}
+
+/* Contenedor de la fila principal (logo y redes) */
+.footer-content-row {
+  display: flex;
+  justify-content: left; /* Logo a la izquierda, redes a la derecha */
+  align-items: center;
+  width: 100%;
+}
+
+/* Sección de redes sociales */
+.social-section {
+  text-align: left; /* Alinea "Conversemos" a la derecha */
+}
+
+.social-section h2 {
+  margin-bottom: 1rem; /* Espacio entre "Conversemos" y los íconos */
+  color: #DEDBDB;
+}
+
+.social-icons-list {
+  display: inline-flex;
+  align-items: left;
+  gap: 12px;
+}
+
+/* Estilo para cada ícono social */
+.social-icons-list a img {
+  width: 35px;
+  height: 35px;
+}
+
+.footer-bottom-text {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #DEDBDB;
+}

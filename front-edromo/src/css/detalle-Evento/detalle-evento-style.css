@@ -1,0 +1,56 @@
+body {
+  margin: 0;
+  font-family: "Nunito";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f3f4f6; /* Un gris muy claro de fondo */
+}
+/* --- Contenedor Principal de la Página --- */
+.event-page-container {
+  background-color: #f3f4f6;
+  padding-bottom: 40px; /* Añade espacio al final de la página */
+}
+
+.page-layout {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  /* El align-items: flex-start es clave para que las columnas empiecen arriba */
+  align-items: flex-start;
+  gap: 24px;
+  padding: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  position: relative;
+  /* Hacemos la superposición más agresiva para que empiece más arriba */
+  margin-top: -500px;
+  z-index: 10;
+}
+
+.main-column {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.sidebar-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 24px;
+  align-self: flex-start;
+}
+
+@media (max-width: 960px) {
+  .page-layout {
+    flex-direction: column;
+    margin-top: -120px; /* Reducimos la superposición en móvil */
+  }
+  .sidebar-column {
+    position: static;
+  }
+}

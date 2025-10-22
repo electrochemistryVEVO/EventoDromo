@@ -1,5 +1,5 @@
-'use client'
-import EventCard from "@/components/ui-elements/cards/eventCard";
+"use client";
+import EventCard from "../../../../../../front-edromo/src/components/eventCard";
 import { useSearchParams } from "next/navigation";
 
 const eventoMockData = [
@@ -13,7 +13,7 @@ const eventoMockData = [
     fechaPublicacion: new Date("2025-09-14"),
     fechaCompra: new Date("2025-09-14"),
     isDeleted: 1,
-    imagenURL: "festival-overpass-lima.png"
+    imagenURL: "festival-overpass-lima.png",
   },
   {
     id: 1,
@@ -25,7 +25,7 @@ const eventoMockData = [
     fechaPublicacion: new Date("2025-09-06"),
     fechaCompra: new Date("2025-09-06"),
     isDeleted: 1,
-    imagenURL: "noches-de-folklore.jpg"
+    imagenURL: "noches-de-folklore.jpg",
   },
   {
     id: 2,
@@ -37,7 +37,7 @@ const eventoMockData = [
     fechaPublicacion: new Date("2025-09-11"),
     fechaCompra: new Date("2025-09-11"),
     isDeleted: 1,
-    imagenURL: "carmen-opera.jpg"
+    imagenURL: "carmen-opera.jpg",
   },
   {
     id: 3,
@@ -49,7 +49,7 @@ const eventoMockData = [
     fechaPublicacion: new Date("2025-09-11"),
     fechaCompra: new Date("2025-09-11"),
     isDeleted: 1,
-    imagenURL: "tour-museo-monumental.jpg"
+    imagenURL: "tour-museo-monumental.jpg",
   },
   {
     id: 4,
@@ -61,7 +61,7 @@ const eventoMockData = [
     fechaPublicacion: new Date("2025-09-15"),
     fechaCompra: new Date("2025-09-15"),
     isDeleted: 1,
-    imagenURL: "daniela-darcourt.png"
+    imagenURL: "daniela-darcourt.png",
   },
   {
     id: 5,
@@ -73,7 +73,7 @@ const eventoMockData = [
     fechaPublicacion: new Date("2025-09-19"),
     fechaCompra: new Date("2025-09-19"),
     isDeleted: 1,
-    imagenURL: "linkin-park.jpg"
+    imagenURL: "linkin-park.jpg",
   },
   {
     id: 6,
@@ -85,7 +85,7 @@ const eventoMockData = [
     fechaPublicacion: new Date("2025-09-21"),
     fechaCompra: new Date("2025-09-21"),
     isDeleted: 1,
-    imagenURL: "imagine-dragons.jpg"
+    imagenURL: "imagine-dragons.jpg",
   },
   {
     id: 7,
@@ -97,7 +97,7 @@ const eventoMockData = [
     fechaPublicacion: new Date("2025-09-22"),
     fechaCompra: new Date("2025-09-22"),
     isDeleted: 1,
-    imagenURL: "carrera-10k.png"
+    imagenURL: "carrera-10k.png",
   },
   {
     id: 8,
@@ -109,45 +109,50 @@ const eventoMockData = [
     fechaPublicacion: new Date("2025-09-24"),
     fechaCompra: new Date("2025-09-24"),
     isDeleted: 1,
-    imagenURL: "rimac-sports-festival.png"
+    imagenURL: "rimac-sports-festival.png",
   },
   {
     id: 9,
     nombre: "Marinera y Show Peruano",
-    descripcion: "Evento cultural con baile de marinera y espectáculos típicos.",
+    descripcion:
+      "Evento cultural con baile de marinera y espectáculos típicos.",
     idTipoEvento: 3, // Teatro / Cultural
     idLocal: 1,
     creadoPor: 1,
     fechaPublicacion: new Date("2025-09-26"),
     fechaCompra: new Date("2025-09-26"),
     isDeleted: 1,
-    imagenURL: "marinera-show.png"
-  }
+    imagenURL: "marinera-show.png",
+  },
 ];
 
-function obtenerEventosBusqueda(str){
-  let eventos = []
-  for(let evento of eventoMockData){
-    if(evento.nombre.toLowerCase().indexOf(str.toLowerCase())>0)eventos.push(evento)
+function obtenerEventosBusqueda(str) {
+  let eventos = [];
+  for (let evento of eventoMockData) {
+    if (evento.nombre.toLowerCase().indexOf(str.toLowerCase()) > 0)
+      eventos.push(evento);
   }
-  return eventos
+  return eventos;
 }
 
-export function ListaEventosBusqueda(){
-  let params = useSearchParams()
-  let searchstr = params.get("search")
-  let resultados = obtenerEventosBusqueda(searchstr)
-  const _eventCard = (evento) => (<EventCard event={evento}/>)
-  return(
+export function ListaEventosBusqueda() {
+  let params = useSearchParams();
+  let searchstr = params.get("search");
+  let resultados = obtenerEventosBusqueda(searchstr);
+  const _eventCard = (evento) => <EventCard event={evento} />;
+  return (
     <section className="py-5">
-      <div className="container px-4 px-lg-5 mt-5">
+      <div className="px-lg-5 container mt-5 px-4">
         <h2>Resultados de busqueda</h2>
-        <div className="col gx-4 gx-lg-5  justify-content-center">
-          <div id="lista-destacados" className="row px-lg-5 container mt-5 px-4">
+        <div className="col gx-4 gx-lg-5 justify-content-center">
+          <div
+            id="lista-destacados"
+            className="row px-lg-5 container mt-5 px-4"
+          >
             {resultados.map(_eventCard)}
           </div>
         </div>
       </div>
     </section>
-  )
+  );
 }

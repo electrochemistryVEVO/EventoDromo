@@ -1,0 +1,213 @@
+/* ==========================================================================
+   Configuración General y Fuentes
+   ========================================================================== */
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --primary-color: #00ba88;
+  --primary-color-hover: #00a67a;
+  --text-color-dark: #333;
+  --text-color-light: #666;
+  --background-color-input: #f5f5f5;
+  --border-color-light: #e0e0e0;
+}
+
+body {
+  margin: 0;
+  font-family: "Nunito", sans-serif;
+  background-color: white;
+}
+
+/* ==========================================================================
+   Layout Principal (Contenedor de dos columnas)
+   ========================================================================== */
+.App-signup {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Contenedor Izquierdo: El Formulario */
+.login-form-container-signup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 7rem; /* Más padding para un look premium */
+  max-width: 850px; /* Ancho máximo para el contenido */
+  margin: 0 auto; /* Centra el contenedor en pantallas muy grandes */
+}
+
+/* Contenedor Derecho: La Imagen de Fondo */
+.imagen-mitad-signup {
+  flex: 1;
+  position: relative;
+  min-width: 40%;
+}
+
+/* ==========================================================================
+   Sección del Encabezado (Logo, Link y Título)
+   ========================================================================== */
+.form-header-signup {
+  margin-bottom: 2rem;
+}
+
+.logo-container-signup {
+  width: 400px;
+  height: 250px;
+  position: relative;
+  margin-bottom: -3rem;
+  margin-top: -2rem;
+  margin-left: -4rem;
+}
+
+.volver-inicio-signup {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  display: block;
+  position: relative; /* Le da su propio contexto de apilamiento */
+  z-index: 10;
+}
+.volver-inicio-signup:hover {
+  text-decoration: underline;
+}
+
+.form-header-signup h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--text-color-dark);
+  margin: 0;
+}
+
+/* ==========================================================================
+   Estilos del Formulario
+   ========================================================================== */
+.login-text-signup {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+  gap: 1.5rem 1.5rem; /* Espacio vertical y horizontal */
+}
+
+/* Hace que un elemento ocupe las dos columnas */
+.full-width {
+  grid-column: 1 / -1;
+}
+/* Para el campo "Sexo" que va centrado */
+.center-field {
+  grid-column: 1 / -1; /* Ocupa el espacio de las dos columnas para poder centrarse... */
+  width: 50%; /* ...pero su ancho es solo la mitad... */
+  justify-self: center; /* ...y se centra a sí mismo dentro del espacio de la grid. */
+}
+.login-text-signup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-color-light);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.login-text-signup input,
+.login-text-signup select {
+  width: 100%;
+  padding: 1rem;
+  font-size: 0.9rem;
+  border: 1px solid #e2e8f0; /* Sin bordes para un look más limpio */
+  border-radius: 8px;
+  background-color: var(--background-color-input);
+  color: var(--text-color-dark);
+  font-family: "Nunito", sans-serif;
+  box-sizing: border-box; /* Importante para que el padding no afecte el tamaño */
+}
+
+.login-text-signup input::placeholder {
+  color: #a0a0a0;
+}
+
+.select-custom {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2300BA88' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+/* ==========================================================================
+   Checkboxes y Botón de Registro
+   ========================================================================== */
+.checkbox-group {
+  grid-column: 1 / -1; /* Ocupa todo el ancho */
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.checkbox-group label {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--text-color-light);
+  margin-bottom: -5rem;
+}
+
+button[type="submit"] {
+  grid-column: 1 / -1;
+  width: 100%;
+  padding: 0.875rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin: 1rem 0;
+  font-family: "Nunito", sans-serif;
+  transition: background-color 0.2s ease;
+}
+
+button[type="submit"]:hover {
+  background-color: var(--primary-color-hover);
+}
+
+.error-message-signup {
+  grid-column: 1 / -1;
+  color: #dc3545;
+  background-color: #fce6e6;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+/* ==========================================================================
+   Responsividad (Móviles y Tablets)
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .imagen-mitad-signup {
+    display: none; /* Ocultamos la imagen en tablets y móviles */
+  }
+
+  .login-form-container-signup {
+    padding: 2rem; /* Reducimos el padding */
+    max-width: 600px; /* Limitamos el ancho para que no se vea tan estirado */
+  }
+}
+
+@media (max-width: 600px) {
+  .login-text-signup {
+    grid-template-columns: 1fr; /* Una sola columna en móviles */
+  }
+
+  /* En móviles, todos los campos ocupan el ancho completo */
+  .login-text-signup > div {
+    grid-column: 1 / -1;
+  }
+}

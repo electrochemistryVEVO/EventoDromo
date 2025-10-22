@@ -1,0 +1,40 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;700&display=swap");
+.info-section-container {
+  background-color: #ffffff;
+  padding: 24px;
+  font-family: "Nunito";
+  color: #333; /* Un color de texto oscuro pero no negro puro */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  margin: 0;
+}
+
+.info-event-name {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 700;
+  margin: 0 0 16px 0;
+}
+
+.info-divider {
+  border: 1.5px solid hwb(0 4% 96%); /* Un gris claro para la línea */
+  height: 2px;
+  opacity: 1;
+  margin: 0 0 24px 0;
+}
+
+.info-description-title {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 500;
+  margin: 0 0 12px 0;
+}
+
+.info-description-paragraph {
+  font-size: 1rem; /* 16px */
+  line-height: 1.6; /* Espaciado entre líneas para mejor legibilidad */
+  color: #555; /* Un gris ligeramente más claro para el cuerpo del texto */
+  margin: 0 0 16px 0;
+}
+
+/* Elimina el margen inferior del último párrafo para un espaciado perfecto */
+.info-description-paragraph:last-child {
+  margin-bottom: 0;
+}

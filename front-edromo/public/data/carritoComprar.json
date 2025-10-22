@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "mensaje": "Carrito cargado correctamente.",
+  "data": [
+    {
+      "id": "1",
+      "idCliente": "1",
+      "fechaExpiracion": "2025-12-31T23:59:59Z",
+      "fechaCreacion": "2025-10-01T12:00:00Z",
+      "entradas": [
+        {
+          "id":"312",
+          "titulo":"Carmen, Opera de Georges Bizet",
+          "ubicacion":"Teatro Municipal de Lima. LIMA, PE",
+          "TipoEntrada" : "Exclusivo",
+          "precio": 300,
+          "imagen": "/images/eventos/carmen-opera.jpg"}
+      ]
+    }
+  ],
+  "error": null
+}
