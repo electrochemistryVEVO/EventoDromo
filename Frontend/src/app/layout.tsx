@@ -24,8 +24,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
-  <html>
-    <body>{children}</body>
-  </html>
+    <html>
+      <body>
+        {children}
+      </body>
+    </html>
   );
 }
