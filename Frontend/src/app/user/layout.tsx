@@ -3,10 +3,8 @@ import 'bootstrap/dist/css/bootstrap.css';
 import "@/css/user-style.css"
 import type { Metadata } from "next";
 import type { PropsWithChildren } from "react";
-import Image from "next/image";
 import Navbar from '@/components/Layouts/Navbar';
 import Footer from '@/components/Layouts/Footer';
-// import { Footer } from "@/components/Layouts/footer"; // Importamos el nuevo Footer
 
 export const metadata: Metadata = {
   title: {
