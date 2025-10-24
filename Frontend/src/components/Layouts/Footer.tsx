@@ -42,7 +42,7 @@ const Footer = () => {
                                 className="transition-opacity hover:opacity-80"
                             >
                                 {/* Tamaño de ícono responsive */}
-                                <FaFacebookSquare className="h-9 w-9 md:h-10 md:w-10 text-[#3fc499]" />
+                                <FaFacebookSquare className="h-9 w-9 md:h-10 md:w-10 text-[#4ad9bf]" />
                             </a>
                             <a
                                 href="https://twitter.com"
@@ -50,7 +50,7 @@ const Footer = () => {
                                 rel="noopener noreferrer"
                                 className="transition-opacity hover:opacity-80"
                             >
-                                <FaSquareXTwitter className="h-9 w-9 md:h-10 md:w-10 text-[#3fc499]" />
+                                <FaSquareXTwitter className="h-9 w-9 md:h-10 md:w-10 text-[#4ad9bf]" />
                             </a>
                             <a
                                 href="https://instagram.com"
@@ -58,7 +58,7 @@ const Footer = () => {
                                 rel="noopener noreferrer"
                                 className="transition-opacity hover:opacity-80"
                             >
-                                <FaSquareInstagram className="h-9 w-9 md:h-10 md:w-10 text-[#3fc499]" />
+                                <FaSquareInstagram className="h-9 w-9 md:h-10 md:w-10 text-[#4ad9bf]" />
                             </a>
                             <a
                                 href="https://tiktok.com"
@@ -66,7 +66,7 @@ const Footer = () => {
                                 rel="noopener noreferrer"
                                 className="transition-opacity hover:opacity-80"
                             >
-                                <AiFillTikTok className="h-9 w-9 md:h-10 md:w-10 text-[#3fc499]" />
+                                <AiFillTikTok className="h-9 w-9 md:h-10 md:w-10 text-[#4ad9bf]" />
                             </a>
                         </div>
                     </div>
