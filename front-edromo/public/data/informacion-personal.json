@@ -1,0 +1,106 @@
+{
+    "success": true,
+    "mensaje": "Informacion personal cargada correctamente.",
+    "data": [
+        {
+            "datosCliente": {
+                "idCliente": "1",
+                "nombres": "Carlos",
+                "apellidos": "Perez",
+                "email": "cperez@email.com",
+                "idCiudad": 1,
+                "idSexo": 1,
+                "telefono": "993782658",
+                "fechaNacimiento": "2004-05-05"
+            },
+            "paises": [
+                {
+                    "id": 1,
+                    "nombre": "Peru"
+                },
+                {
+                    "id": 2,
+                    "nombre": "Chile"
+                },
+                {
+                    "id": 3,
+                    "nombre": "Argentina"
+                },
+                {
+                    "id": 4,
+                    "nombre": "Colombia"
+                },
+                {
+                    "id": 5,
+                    "nombre": "Ecuador"
+                },
+                {
+                    "id": 6,
+                    "nombre": "Bolivia"
+                },
+                {
+                    "id": 7,
+                    "nombre": "Uruguay"
+                },
+                {
+                    "id": 8,
+                    "nombre": "Paraguay"
+                },
+                {
+                    "id": 9,
+                    "nombre": "Venezuela"
+                },
+                {
+                    "id": 10,
+                    "nombre": "Brasil"
+                },
+                {
+                    "id": 11,
+                    "nombre": "Mexico"
+                }
+            ],
+            "ciudades": [
+                {
+                    "id": 1,
+                    "nombre": "Lima",
+                    "idPais": 1
+                },
+                {
+                    "id": 2,
+                    "nombre": "Cusco",
+                    "idPais": 1
+                },
+                {
+                    "id": 3,
+                    "nombre": "Arequipa",
+                    "idPais": 1
+                },
+                {
+                    "id": 4,
+                    "nombre": "Trujillo",
+                    "idPais": 1
+                },
+                {
+                    "id": 5,
+                    "nombre": "Chiclayo",
+                    "idPais": 1
+                }
+            ],
+            "sexos": [
+                {
+                    "id": 1,
+                    "descripcion": "Masculino"
+                },
+                {
+                    "id": 2,
+                    "descripcion": "Femenino"
+                },
+                {
+                    "id": 3,
+                    "descripcion": "Otro"
+                }
+            ]
+        }
+    ],
+    "error": null
+}
