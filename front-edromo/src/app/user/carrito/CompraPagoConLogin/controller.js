@@ -1,15 +1,21 @@
 // controller.js or the file defining the component class
 import React, { useState } from 'react';
-import { entradas } from "@/lib/mock-data";
+import { entradas } from "public/data/entradas";
 
-export const items = entradas;
+// Asegurar que items siempre sea un array
+export const items = Array.isArray(entradas) ? entradas : [];
 
 export function cantidadEntradas() {
     return items.length;
 }
 
 export function importeTotal() {
-    return items.reduce((total, item) => total + item.precioEntrada * item.cantidadEntradas, 0);
+    if (!Array.isArray(items) || items.length === 0) return 0;
+    return items.reduce((total, item) => {
+        const precio = Number(item?.precioEntrada) || 0;
+        const qty = Number(item?.cantidadEntradas) || 0;
+        return total + precio * qty;
+    }, 0);
 }
 
 class AppController extends React.Component {
