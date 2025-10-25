@@ -57,6 +57,88 @@ namespace EventodromoRest.Negocio
             return signUpResponse;
         }
 
+        public InformacionPersonal GetInformacionPersonal(int idCliente)
+        {
+            InformacionPersonal response = null;
 
+            //obtengo los datos Cliente
+            Cliente cliente = new ClienteMapper(globales, DB).ObtenerClientePorId(idCliente);
+            //Por aqui valido tokens y demas...
+
+            if (cliente == null)
+            {
+                // El controlador atrapará esta excepción
+                throw new Exception("Cliente no encontrado con ID: " + idCliente);
+            }
+            
+            //Obtengo los paises, ciudades y sexos
+            List<Pais> paises = new PaisMapper(globales, DB).ListarPais();
+            List<Ciudad> ciudades = new CiudadMapper(globales, DB).ListarCiudad();
+            List<Sexo> sexos = new SexoMapper(globales, DB).ListarSexos();
+
+            response = new InformacionPersonal()
+            {
+                ciudades = ciudades.Select(c => new CiudadDTO
+                {
+                    id = c.id,
+                    nombre = c.nombre,
+                    idPais = c.idPais
+                }).ToList(),
+                paises = paises,
+                sexos = sexos,
+                datosCliente = new DatosCliente()
+                {
+                    id = cliente.id,
+                    nombres = cliente.nombres,
+                    apellidos = cliente.apellidos,
+                    email = cliente.email,
+                    idciudad = cliente.idciudad,
+                    idsexo = cliente.idsexo,
+                    telefono = cliente.telefono,
+                    fechanacimiento = cliente.fechanacimiento?.ToString("yyyy-MM-dd"),
+                }
+            };
+            
+
+            return response;
+        }
+
+        public bool ActualizarInformacionPersonal(int idCliente, DatosCliente datosCliente)
+        {
+            if (string.IsNullOrWhiteSpace(datosCliente.nombres))
+            {
+                throw new Exception("El campo 'nombres' no puede estar vacío.");
+            }
+            if (string.IsNullOrWhiteSpace(datosCliente.apellidos))
+            {
+                throw new Exception("El campo 'apellidos' no puede estar vacío.");
+            }
+
+            //obtengo los datos Cliente
+            Cliente cliente = new ClienteMapper(globales, DB).ObtenerClientePorId(idCliente);
+            if (cliente == null)
+            {
+                // El controlador atrapará esta excepción
+                throw new Exception("Cliente no encontrado con ID: " + idCliente);
+            }
+
+            cliente.idciudad = datosCliente.idciudad;
+            cliente.apellidos = datosCliente.apellidos;
+            cliente.fechanacimiento = DateTime.Parse(datosCliente.fechanacimiento);
+            cliente.idsexo = datosCliente.idsexo;
+            cliente.nombres = datosCliente.nombres;
+            cliente.telefono = datosCliente.telefono;
+            cliente.fechaultimaedicion = DateTime.Now;
+
+            int fueModificado = new ClienteMapper(globales, DB).ModificarCliente(cliente);
+
+            if (fueModificado <= 0)
+            {
+                // El controlador atrapará esta excepción
+                throw new Exception("No se modifico al cliente con ID: " + idCliente);
+            } 
+
+            return true;
+        }
     }
 }

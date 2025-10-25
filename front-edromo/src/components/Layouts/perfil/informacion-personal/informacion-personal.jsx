@@ -9,8 +9,8 @@ export default function PerfilPage() {
     nombres: '',
     apellidos: '',
     email: '',
-    idCiudad: '',
-    idSexo: '',
+    idciudad: '',
+    idsexo: '',
     telefono: '',
     fechaNacimiento: '',
   });
@@ -69,7 +69,7 @@ export default function PerfilPage() {
         });
 
         // Encontrar el país inicial basado en la ciudad
-        const ciudadActual = (data.ciudades || []).find(c => c.id === data.datosCliente.idCiudad);
+        const ciudadActual = (data.ciudades || []).find(c => c.id === data.datosCliente.idciudad);
         if (ciudadActual) {
           setSelectedPaisId(ciudadActual.idPais);
         }
@@ -94,7 +94,7 @@ export default function PerfilPage() {
     const { name, value } = e.target;
 
     // Convertir a número si es un ID de las listas
-    const newValue = (name === 'idCiudad' || name === 'idSexo') ? (value ? parseInt(value, 10) : '') : value;
+    const newValue = (name === 'idciudad' || name === 'idsexo') ? (value ? parseInt(value, 10) : '') : value;
 
     setFormData(prevState => ({
       ...prevState,
@@ -110,7 +110,7 @@ export default function PerfilPage() {
     // Al cambiar de país, reseteamos la ciudad en el formulario
     setFormData(prevState => ({
       ...prevState,
-      idCiudad: '', // Resetea la ciudad seleccionada
+      idciudad: '', // Resetea la ciudad seleccionada
     }));
   };
 
@@ -141,7 +141,7 @@ export default function PerfilPage() {
       setFormData(originalFormData);
 
       // Resetea también el país seleccionado
-      const ciudadActual = selectOptions.ciudades.find(c => c.id === originalFormData.idCiudad);
+      const ciudadActual = selectOptions.ciudades.find(c => c.id === originalFormData.idciudad);
       if (ciudadActual) {
         setSelectedPaisId(ciudadActual.idPais);
       } else {
@@ -252,13 +252,13 @@ export default function PerfilPage() {
 
             {/* Campo Ciudad */}
             <div className="md:col-span-2">
-              <label htmlFor="idCiudad" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="idciudad" className="block text-sm font-medium text-gray-700 mb-1">
                 Ciudad
               </label>
               <select
-                id="idCiudad"
-                name="idCiudad"
-                value={formData.idCiudad}
+                id="idciudad"
+                name="idciudad"
+                value={formData.idciudad}
                 onChange={handleChange}
                 disabled={!selectedPaisId || filteredCiudades.length === 0} // Deshabilitado si no hay país o ciudades
                 className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
@@ -274,20 +274,20 @@ export default function PerfilPage() {
 
             {/* Campo Sexo */}
             <div className="md:col-span-2">
-              <label htmlFor="idSexo" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="idsexo" className="block text-sm font-medium text-gray-700 mb-1">
                 Sexo
               </label>
               <select
-                id="idSexo"
-                name="idSexo"
-                value={formData.idSexo}
+                id="idsexo"
+                name="idsexo"
+                value={formData.idsexo}
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
               >
                 <option value="" disabled>Seleccione un sexo</option>
                 {selectOptions.sexos.map(sexo => (
                   <option key={sexo.id} value={sexo.id}>
-                    {sexo.descripcion}
+                    {sexo.nombre}
                   </option>
                 ))}
               </select>
@@ -318,7 +318,7 @@ export default function PerfilPage() {
                   type="date"
                   id="fechaNacimiento"
                   name="fechaNacimiento"
-                  value={formData.fechaNacimiento}
+                  value={formData.fechanacimiento}
                   onChange={handleChange}
                   max={maxDate}
                   className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"

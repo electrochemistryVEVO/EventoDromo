@@ -151,37 +151,23 @@ namespace EventodromoRest.Mappers
                 var parametros = new ParameterList();
                 parametros.Add("@id", id);
                 DB.Select(query, parametros);
+                Cliente cliente = null;
+
                 if (DB.Read())
                 {
-                   
-                    Cliente cliente = new()
-                    {
-                        id = DB.GetInt("id"),
-                        nombres = DB.GetString("nombres"),
-                        apellidos = DB.GetString("apellidos"),
-                        email = DB.GetString("email"),
-                        passwordhash = DB.GetString("passwordHash"),
-                        fechanacimiento = DB.GetDateTime("fechaNacimiento"),
-                        idsexo = DB.GetInt("idSexo"),
-                        idtipodocumento = DB.GetInt("idTipoDocumento"),
-                        numerodocumento = DB.GetString("numeroDocumento"),
-                        telefono = DB.GetString("telefono"),
-                        idciudad = DB.GetInt("idCiudad"),
-                        politicadeprivacidad = DB.GetBoolean("politicaDePrivacidad"),
-                        enviodepublicidad = DB.GetBoolean("envioDePublicidad"),
-                        fechacreacion = DB.GetDateTime("fechaCreacion"),
-                        fechaultimaedicion = DB.IsDBNull("fechaUltimaEdicion") ? (DateTime?)null : DB.GetDateTime("fechaUltimaSesion"),
-                        fechaultimasession = DB.GetDateTime("fechaUltimaSesion"),
-                    };
+                    cliente = MapearClienteDesdeReader(); // Usamos método auxiliar
+                }
+
+                DB.CloseReader();
+
+                if (cliente != null)
+                {
                     cliente.sexo = ObtenerSexoPorId(cliente.idsexo ?? 0);
                     cliente.tipodocumento = ObtenerTipoDocumentoPorId(cliente.idtipodocumento ?? 0);
                     cliente.ciudad = ObtenerCiudadPorId(cliente.idciudad ?? 0);
-                    return cliente;
                 }
-                else
-                {
-                    return null;
-                }
+
+                return cliente;
             }
         }
 
@@ -239,6 +225,30 @@ namespace EventodromoRest.Mappers
         {
             var ciudadMapper = new CiudadMapper(globales, DB);
             return ciudadMapper.ObtenerCiudadPorId(id);
+        }
+
+        private Cliente MapearClienteDesdeReader()
+        {
+            return new()
+            {
+                id = DB.GetInt("id"),
+                nombres = DB.GetString("nombres"),
+                apellidos = DB.GetString("apellidos"),
+                email = DB.GetString("email"),
+                passwordhash = DB.GetString("passwordHash"),
+                // Usa DB.GetDateTimeNull si tu DBManager lo tiene, o IsDBNull
+                fechanacimiento = DB.IsDBNull("fechaNacimiento") ? (DateTime?)null : DB.GetDateTime("fechaNacimiento"),
+                idsexo = DB.IsDBNull("idSexo") ? (int?)null : DB.GetInt("idSexo"),
+                idtipodocumento = DB.IsDBNull("idTipoDocumento") ? (int?)null : DB.GetInt("idTipoDocumento"),
+                numerodocumento = DB.GetString("numeroDocumento"),
+                telefono = DB.GetString("telefono"),
+                idciudad = DB.IsDBNull("idCiudad") ? (int?)null : DB.GetInt("idCiudad"),
+                politicadeprivacidad = DB.GetBoolean("politicaDePrivacidad"),
+                enviodepublicidad = DB.IsDBNull("envioDePublicidad") ? (bool?)null : DB.GetBoolean("envioDePublicidad"),
+                fechacreacion = DB.GetDateTime("fechaCreacion"),
+                fechaultimaedicion = DB.IsDBNull("fechaUltimaEdicion") ? (DateTime?)null : DB.GetDateTime("fechaUltimaEdicion"),
+                fechaultimasession = DB.IsDBNull("fechaUltimaSesion") ? (DateTime?)null : DB.GetDateTime("fechaUltimaSesion"),
+            };
         }
     }
 }

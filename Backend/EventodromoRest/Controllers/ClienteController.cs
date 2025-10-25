@@ -80,6 +80,98 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
-        
+
+        [HttpGet]
+        [Route("/api/[controller]/[action]/{idCliente}")]
+        public GenericResponse<InformacionPersonal> InformacionPersonal([FromRoute] int idCliente)
+        {
+            try
+            {
+                InformacionPersonal informacionPersonal = new ClienteBO(globales, BD).GetInformacionPersonal(idCliente);
+
+                if (informacionPersonal == null)
+                {
+                    throw new Exception("No se encontró información para el cliente solicitado.");
+                }
+
+                GenericResponse<InformacionPersonal> response = new GenericResponse<InformacionPersonal>()
+                {
+                    Success = true,
+                    Message = "Informacion personal cargada correctamente",
+                    Data = informacionPersonal,
+                    Error = null,
+                };
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                GenericResponse<InformacionPersonal> response = new GenericResponse<InformacionPersonal>()
+                {
+                    Success = false,
+                    Message = null,
+                    Data = null,
+                    Error = ex.Message,
+                };
+                var requestLog = JsonSerializer.Serialize(new { IdCliente = idCliente });
+                AgregarEntradaBitacora(ex, requestLog, JsonSerializer.Serialize(response));
+
+                return response;
+            }
+        }
+
+        [HttpPut]
+        [Route("/api/[controller]/[action]/{idCliente}")]
+        public GenericResponse<bool> ActualizarInformacionPersonal([FromRoute] int idCliente, [FromBody] DatosCliente datosCliente)
+        {
+            try
+            {
+                if (datosCliente == null)
+                {
+                    throw new ArgumentNullException(nameof(datosCliente), "El cuerpo de la solicitud no puede estar vacío.");
+                }
+                // TODO: Validar que el idCliente del token (cuando lo tengas) 
+                // coincida con el idCliente de la ruta.
+
+                bool actualizacionExitosa = new ClienteBO(globales, BD).ActualizarInformacionPersonal(idCliente, datosCliente);
+
+                if (!actualizacionExitosa)
+                {
+                    // Esto es un error de lógica de negocio, no una excepción
+                    return new GenericResponse<bool>
+                    {
+                        Success = false,
+                        Message = "No se pudo actualizar la información. Verifique los datos.",
+                        Error = null,
+                        Data = actualizacionExitosa
+                    };
+                }
+
+                GenericResponse<bool> response = new GenericResponse<bool>
+                {
+                    Success = true,
+                    Message = "Usuario actualizado correctamente",
+                    Error = null,
+                    Data = actualizacionExitosa 
+                };
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                var response = new GenericResponse<bool>
+                {
+                    Success = false,
+                    Message = "Error inesperado en el servidor.",
+                    Error = ex.Message,
+                    Data = false
+                };
+
+                var requestLog = JsonSerializer.Serialize(new { IdCliente = idCliente, Body = datosCliente });
+                AgregarEntradaBitacora(ex, requestLog, JsonSerializer.Serialize(response));
+
+                return response;
+            }
+        }
     }
 }
