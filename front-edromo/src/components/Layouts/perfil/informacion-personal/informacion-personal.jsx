@@ -9,8 +9,8 @@ export default function PerfilPage() {
     nombres: '',
     apellidos: '',
     email: '',
-    idCiudad: '',
-    idSexo: '',
+    idciudad: '',
+    idsexo: '',
     telefono: '',
     fechaNacimiento: '',
   });
@@ -32,18 +32,36 @@ export default function PerfilPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState(null); // { type: 'success' | 'error', text: string }
+  const [maxDate, setMaxDate] = useState(''); // Para la restricción de fecha de nacimiento
 
   // Función para cargar los datos iniciales
   const fetchData = async () => {
     setIsLoading(true);
     setMessage(null);
     try {
-      // Invoca al controlador para cargar datos
+      // Invoca al controlador (ahora el simulado) para cargar datos
       const data = await controllerPerfil.onPageLoad();
 
       if (data && data.datosCliente) {
-        setFormData(data.datosCliente);
-        setOriginalFormData(data.datosCliente); // Guarda el original para "Cancelar"
+        
+        // Formatear la fecha para el input type="date" (YYYY-MM-DD)
+        let fechaFormateada = data.datosCliente.fechaNacimiento;
+        if (fechaFormateada && fechaFormateada.includes('/')) {
+           const partes = fechaFormateada.split('/');
+           if (partes.length === 3) {
+             fechaFormateada = `${partes[2]}-${partes[1]}-${partes[0]}`;
+           }
+        }
+
+        const datosClienteFormateados = {
+            ...data.datosCliente,
+            fechaNacimiento: fechaFormateada
+        };
+
+        setFormData(datosClienteFormateados);
+        setOriginalFormData(datosClienteFormateados); // Guarda el original para "Cancelar"
+        setMaxDate(data.maxDate || '');
+        
         setSelectOptions({
           paises: data.paises || [],
           ciudades: data.ciudades || [],
@@ -51,7 +69,7 @@ export default function PerfilPage() {
         });
 
         // Encontrar el país inicial basado en la ciudad
-        const ciudadActual = (data.ciudades || []).find(c => c.id === data.datosCliente.idCiudad);
+        const ciudadActual = (data.ciudades || []).find(c => c.id === data.datosCliente.idciudad);
         if (ciudadActual) {
           setSelectedPaisId(ciudadActual.idPais);
         }
@@ -76,7 +94,7 @@ export default function PerfilPage() {
     const { name, value } = e.target;
 
     // Convertir a número si es un ID de las listas
-    const newValue = (name === 'idCiudad' || name === 'idSexo') ? (value ? parseInt(value, 10) : '') : value;
+    const newValue = (name === 'idciudad' || name === 'idsexo') ? (value ? parseInt(value, 10) : '') : value;
 
     setFormData(prevState => ({
       ...prevState,
@@ -92,7 +110,7 @@ export default function PerfilPage() {
     // Al cambiar de país, reseteamos la ciudad en el formulario
     setFormData(prevState => ({
       ...prevState,
-      idCiudad: '', // Resetea la ciudad seleccionada
+      idciudad: '', // Resetea la ciudad seleccionada
     }));
   };
 
@@ -102,7 +120,7 @@ export default function PerfilPage() {
     setIsSaving(true);
     setMessage(null);
 
-    // Invoca a la función onSubmit() del controlador
+    // Invoca a la función onSubmit() del controlador (simulado)
     const response = await controllerPerfil.onSubmit(formData);
 
     setIsSaving(false);
@@ -123,7 +141,7 @@ export default function PerfilPage() {
       setFormData(originalFormData);
 
       // Resetea también el país seleccionado
-      const ciudadActual = selectOptions.ciudades.find(c => c.id === originalFormData.idCiudad);
+      const ciudadActual = selectOptions.ciudades.find(c => c.id === originalFormData.idciudad);
       if (ciudadActual) {
         setSelectedPaisId(ciudadActual.idPais);
       } else {
@@ -177,7 +195,7 @@ export default function PerfilPage() {
                 name="nombres"
                 value={formData.nombres}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
               />
             </div>
 
@@ -192,7 +210,7 @@ export default function PerfilPage() {
                 name="apellidos"
                 value={formData.apellidos}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
               />
             </div>
 
@@ -207,7 +225,7 @@ export default function PerfilPage() {
                 name="email"
                 value={formData.email}
                 readOnly // El email parece no editable
-                className="w-full px-3 py-2 border-none bg-gray-100 text-gray-500 rounded-md"
+                className="w-full px-3 py-2 bg-transparent text-gray-700 border-b border-gray-300 rounded-md"
               />
             </div>
 
@@ -221,7 +239,7 @@ export default function PerfilPage() {
                 name="pais"
                 value={selectedPaisId}
                 onChange={handlePaisChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
               >
                 <option value="" disabled>Seleccione un país</option>
                 {selectOptions.paises.map(pais => (
@@ -234,16 +252,16 @@ export default function PerfilPage() {
 
             {/* Campo Ciudad */}
             <div className="md:col-span-2">
-              <label htmlFor="idCiudad" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="idciudad" className="block text-sm font-medium text-gray-700 mb-1">
                 Ciudad
               </label>
               <select
-                id="idCiudad"
-                name="idCiudad"
-                value={formData.idCiudad}
+                id="idciudad"
+                name="idciudad"
+                value={formData.idciudad}
                 onChange={handleChange}
                 disabled={!selectedPaisId || filteredCiudades.length === 0} // Deshabilitado si no hay país o ciudades
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
+                className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
               >
                 <option value="" disabled>Seleccione una ciudad</option>
                 {filteredCiudades.map(ciudad => (
@@ -256,20 +274,20 @@ export default function PerfilPage() {
 
             {/* Campo Sexo */}
             <div className="md:col-span-2">
-              <label htmlFor="idSexo" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="idsexo" className="block text-sm font-medium text-gray-700 mb-1">
                 Sexo
               </label>
               <select
-                id="idSexo"
-                name="idSexo"
-                value={formData.idSexo}
+                id="idsexo"
+                name="idsexo"
+                value={formData.idsexo}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
               >
                 <option value="" disabled>Seleccione un sexo</option>
                 {selectOptions.sexos.map(sexo => (
                   <option key={sexo.id} value={sexo.id}>
-                    {sexo.descripcion}
+                    {sexo.nombre}
                   </option>
                 ))}
               </select>
@@ -286,7 +304,7 @@ export default function PerfilPage() {
                 name="telefono"
                 value={formData.telefono}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
               />
             </div>
 
@@ -300,20 +318,19 @@ export default function PerfilPage() {
                   type="date"
                   id="fechaNacimiento"
                   name="fechaNacimiento"
-                  value={formData.fechaNacimiento}
+                  value={formData.fechanacimiento}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 pr-10"
+                  max={maxDate}
+                  className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
                 />
-                <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-500">
-                  <CalendarIcon />
-                </span>
+                {/* Se elimina el icono SVG personalizado para permitir el icono nativo del input 'date' */}
               </div>
             </div>
           </div>
 
           {/* Mensajes de estado (Guardado) */}
           {message && (message.type === 'success' || (message.type === 'error' && isSaving)) && (
-            <div className={`mt-6 p-3 rounded-md text-sm ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            <div className={`mt-6 p-3 rounded-md text-sm ${message.type === 'success' ? 'bg-[#00C49A]/10 text-[#007A60]' : 'bg-red-100 text-red-800'
               }`}>
               {message.text}
             </div>
@@ -325,13 +342,15 @@ export default function PerfilPage() {
               type="button"
               onClick={handleCancel}
               className="px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+              style={{ borderRadius: '6px' }}
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50"
+              className="px-6 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-[#00C49A] hover:bg-[#00b08a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00C49A] transition-colors disabled:opacity-50"
+              style={{ borderRadius: '6px' }}
             >
               {isSaving ? 'Guardando...' : 'Guardar Cambios'}
             </button>

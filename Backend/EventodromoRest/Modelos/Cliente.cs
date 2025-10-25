@@ -57,4 +57,24 @@
         public required bool success { get; set; }
     }
 
+    public class DatosCliente
+    {
+        public int? id { get; set; }
+        public string? nombres { get; set; }
+        public string? apellidos { get; set; }
+        public string? email { get; set; }
+        public int? idciudad { get; set; }
+        public int? idsexo { get; set; }
+        public string? telefono { get; set; }
+        public string? fechanacimiento { get; set; }
+    }
+
+    //Para la pagina de informacion personal del cliente
+    public class InformacionPersonal
+    {
+        public DatosCliente? datosCliente { get; set; }
+        public List<Pais>? paises { get; set; }
+        public List<CiudadDTO>? ciudades { get; set; }
+        public List<Sexo>? sexos { get; set; }
+    }
 }

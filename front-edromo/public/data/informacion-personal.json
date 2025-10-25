@@ -4,14 +4,14 @@
     "data": [
         {
             "datosCliente": {
-                "idCliente": "1",
+                "id": "1",
                 "nombres": "Carlos",
                 "apellidos": "Perez",
                 "email": "cperez@email.com",
-                "idCiudad": 1,
-                "idSexo": 1,
+                "idciudad": 1,
+                "idsexo": 1,
                 "telefono": "993782658",
-                "fechaNacimiento": "2004-05-05"
+                "fechanacimiento": "2004-05-05"
             },
             "paises": [
                 {
@@ -89,15 +89,15 @@
             "sexos": [
                 {
                     "id": 1,
-                    "descripcion": "Masculino"
+                    "nombre": "Masculino"
                 },
                 {
                     "id": 2,
-                    "descripcion": "Femenino"
+                    "nombre": "Femenino"
                 },
                 {
                     "id": 3,
-                    "descripcion": "Otro"
+                    "nombre": "Otro"
                 }
             ]
         }
