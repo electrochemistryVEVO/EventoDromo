@@ -21,6 +21,7 @@ namespace EventodromoRest.Mappers
                     };
                     listaSexos.Add(sexo);
                 }
+                DB.CloseReader();
                 return listaSexos;
             }
         }
@@ -47,19 +48,19 @@ namespace EventodromoRest.Mappers
                 var parametros = new ParameterList();
                 parametros.Add("@id", id);
                 DB.Select(query, parametros);
+
+                Sexo sexo = null;
                 if (DB.Read())
                 {
-                    Sexo sexo = new()
+                    sexo = new()
                     {
                         id = DB.GetInt("id"),
                         nombre = DB.GetString("nombre")
                     };
-                    return sexo;
                 }
-                else
-                {
-                    return null;
-                }
+                
+                DB.CloseReader();
+                return sexo;
             }
         }
 
