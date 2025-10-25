@@ -5,7 +5,8 @@ import CostoDetalleEntradas from "@/components/carrito/costoDetalleEntradas";
 import CheckboxCarrito from "@/components/carrito/CheckboxCarrito";
 import { useState } from "react";
 // Importamos los archivos SVG directamente. Next.js nos dará un objeto con la ruta en .src
-import iconoFlechaIzq from "@/assets/icons/flecha_izquierda.svg";
+import iconoFlechaIzq from "@/../public/images/icon/arrow_left.svg";
+
 
 function EntradaDetallePage() {
   // Estados para los checkboxes
