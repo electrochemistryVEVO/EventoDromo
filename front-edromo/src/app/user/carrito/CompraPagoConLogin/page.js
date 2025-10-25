@@ -4,9 +4,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import CostoDetalleEntradas from '@/components/carrito/costoDetalleEntradas';
 import styles from '@/css/compraPagoConLogin.module.css'; 
-import arrow_left from '@/assets/icons/arrow_left.svg'; 
-import LogoUsuarioApagado from '@/assets/icons/LogoUsuarioApagado.svg';
-import LogoPagoEncendido from '@/assets/icons/LogoPagoEncendido.svg';
+import arrow_left from 'public/images/icon/arrow_left.svg'; 
+import LogoUsuarioApagado from 'public/images/icon/LogoUsuarioApagado.svg';
+import LogoPagoEncendido from 'public/images/icon/LogoPagoEncendido.svg';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -43,31 +43,272 @@ const UserInfo = () => {
     );
 };
 
-const CreditCardForm = () => (
-    <div className="flex flex-col gap-4 ml-7">
-        <div className={styles.formField}>
-            <label htmlFor="cardNumber" className={styles.formLabel}>Número</label>
-            <input id="cardNumber" type="text" className={styles.input} placeholder="Número de tarjeta" />
-        </div>
-        <div className={styles.formField}>
-            <label htmlFor="cardName" className={styles.formLabel}>Nombre Completo</label>
-            <input id="cardName" type="text" className={styles.input} placeholder="Nombre como aparece en la tarjeta" />
-        </div>
-        <div className="flex gap-4">
-            <div className={`w-full ${styles.formField}`}>
-                <label htmlFor="cardExpiryMonth" className={styles.formLabel}>Vencimiento</label>
-                <div className="flex gap-2">
-                    <input id="cardExpiryMonth" type="text" className={styles.input} placeholder="MM" />
-                    <input id="cardExpiryYear" aria-label="Año de vencimiento" type="text" className={styles.input} placeholder="AA" />
+const CreditCardForm = () => {
+    const [cardNumber, setCardNumber] = useState('');
+    const [formattedNumber, setFormattedNumber] = useState('');
+    const [cardType, setCardType] = useState('');
+    const [error, setError] = useState('');
+
+    const [expiryMonth, setExpiryMonth] = useState('');
+    const [expiryYear, setExpiryYear] = useState('');
+    const [expiryError, setExpiryError] = useState('');
+
+    const [cvv, setCvv] = useState('');
+    const [cvvError, setCvvError] = useState('');
+
+    const detectCardType = (num) => {
+        if (/^4/.test(num)) return 'Visa';
+        if (/^3[47]/.test(num)) return 'Amex';
+        if (/^(5[1-5]|2(2[2-9]|[3-7][0-9]))/.test(num)) return 'Mastercard';
+        if (/^6(?:011|5)/.test(num)) return 'Discover';
+        if (/^35/.test(num)) return 'JCB';
+        if (/^3(?:0[0-5]|[689])/.test(num)) return 'Diners';
+        return 'Desconocida';
+    };
+
+    const validLengthsFor = (type) => {
+        switch (type) {
+            case 'Amex': return [15];
+            case 'Diners': return [14];
+            case 'Visa': return [13, 16, 19];
+            default: return [16];
+        }
+    };
+
+    const luhnCheck = (num) => {
+        let sum = 0;
+        let shouldDouble = false;
+        for (let i = num.length - 1; i >= 0; i--) {
+            let digit = parseInt(num.charAt(i), 10);
+            if (shouldDouble) {
+                digit *= 2;
+                if (digit > 9) digit -= 9;
+            }
+            sum += digit;
+            shouldDouble = !shouldDouble;
+        }
+        return sum % 10 === 0;
+    };
+
+    const formatCard = (num, type) => {
+        if (type === 'Amex') {
+            // 4 - 6 - 5
+            return num.replace(/(\d{1,4})(\d{1,6})?(\d{1,5})?/, (m, g1, g2, g3) => {
+                return [g1, g2, g3].filter(Boolean).join(' ');
+            }).trim();
+        }
+        // default group by 4
+        return num.replace(/(\d{1,4})/g, '$1 ').trim();
+    };
+
+    const normalizeYear = (y) => {
+        if (!y) return null;
+        if (y.length === 2) {
+            const v = parseInt(y, 10);
+            if (Number.isNaN(v)) return null;
+            return 2000 + v; // '24' -> 2024
+        }
+        if (y.length === 4) {
+            const v = parseInt(y, 10);
+            return Number.isNaN(v) ? null : v;
+        }
+        return null;
+    };
+
+    const validateExpiry = (m = expiryMonth, y = expiryYear) => {
+        setExpiryError('');
+        if (!m || !y) return false;
+        const mm = parseInt(m, 10);
+        if (Number.isNaN(mm) || mm < 1 || mm > 12) {
+            setExpiryError('Mes inválido. Use 01 a 12.');
+            return false;
+        }
+        const yearNum = normalizeYear(y);
+        if (!yearNum) {
+            setExpiryError('Año inválido. Use AA o AAAA.');
+            return false;
+        }
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1; // 1..12
+
+        // tarjeta válida si (year > currentYear) o (year == currentYear && month >= currentMonth)
+        if (yearNum < currentYear || (yearNum === currentYear && mm < currentMonth)) {
+            setExpiryError('La tarjeta ha expirado.');
+            return false;
+        }
+        setExpiryError('');
+        return true;
+    };
+
+    const handleExpiryMonthChange = (e) => {
+        const digits = e.target.value.replace(/\D/g, '').slice(0, 2);
+        setExpiryMonth(digits);
+        if (digits.length === 2 && expiryYear.length >= 2) validateExpiry(digits, expiryYear);
+        else setExpiryError('');
+    };
+
+    const handleExpiryYearChange = (e) => {
+        const digits = e.target.value.replace(/\D/g, '').slice(0, 4); // accept AA or AAAA
+        setExpiryYear(digits);
+        if ((digits.length === 2 || digits.length === 4) && expiryMonth.length === 2) validateExpiry(expiryMonth, digits);
+        else setExpiryError('');
+    };
+
+    const handleChange = (e) => {
+        const raw = e.target.value;
+        const digits = raw.replace(/\D/g, '');
+        const detected = detectCardType(digits);
+        const lengths = validLengthsFor(detected);
+        const maxLen = Math.max(...lengths);
+
+        const truncated = digits.slice(0, maxLen);
+        setCardNumber(truncated);
+        setCardType(detected);
+        setFormattedNumber(formatCard(truncated, detected));
+
+        // Validations
+        if (truncated.length === 0) {
+            setError('');
+            return;
+        }
+
+        // basic length check (if less than min expected, prompt)
+        const minLen = Math.min(...lengths);
+        if (truncated.length < minLen) {
+            setError(`Número incompleto. Longitud esperada: ${lengths.join('/')} dígitos.`);
+            return;
+        }
+
+        // Luhn validation (run when length matches one of valid lengths)
+        if (lengths.includes(truncated.length)) {
+            if (!luhnCheck(truncated)) {
+                setError('Número inválido (verificación Luhn fallida).');
+                return;
+            }
+        } else {
+            setError(`Longitud inválida para ${detected}.`);
+            return;
+        }
+
+        // all good
+        setError('');
+    };
+
+    const expectedCvvLength = (type) => (type === 'Amex' ? 4 : 3);
+
+    const handleCvvChange = (e) => {
+        // permitir solo dígitos, cortar a 4 (Amex usa 4)
+        const digits = e.target.value.replace(/\D/g, '').slice(0, 4);
+        setCvv(digits);
+
+        // validar longitud según tipo de tarjeta detectado
+        const expected = expectedCvvLength(cardType);
+        if (digits.length === 0) {
+            setCvvError('');
+            return;
+        }
+        if (digits.length < expected) {
+            setCvvError(`CVV incompleto. Se esperan ${expected} dígitos.`);
+            return;
+        }
+        if (digits.length > expected) {
+            setCvvError(`CVV inválido para ${cardType || 'esta tarjeta'}.`);
+            return;
+        }
+        setCvvError('');
+    };
+
+    return (
+        <div className="flex flex-col gap-4 ml-7">
+            <div className={styles.formField}>
+                <label htmlFor="cardNumber" className={styles.formLabel}>Número</label>
+                <input
+                    id="cardNumber"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="cc-number"
+                    className={styles.input}
+                    placeholder="Número de tarjeta"
+                    value={formattedNumber}
+                    onChange={handleChange}
+                    aria-invalid={!!error}
+                    aria-describedby="cardNumberHelp"
+                />
+                <div className="flex items-center justify-between mt-2">
+                    <div className="text-sm text-gray-600">
+                        {cardType && <span className="font-semibold mr-2">{cardType}</span>}
+                        <span id="cardNumberHelp" className={`text-xs ${error ? 'text-red-600' : 'text-gray-500'}`}>
+                            {error || 'Ingrese el número sin espacios (se formatea automáticamente).'}
+                        </span>
+                    </div>
+                    <div className="text-xs text-gray-400">
+                        {cardNumber.length}/{Math.max(...validLengthsFor(cardType || ''))}
+                    </div>
                 </div>
             </div>
-            <div className={`w-1/2 ${styles.formField}`}>
-                <label htmlFor="cardCVV" className={styles.formLabel}>CVV</label>
-                <input id="cardCVV" type="text" className={styles.input} placeholder="CVV" />
+            <div className={styles.formField}>
+                <label htmlFor="cardName" className={styles.formLabel}>Nombre Completo</label>
+                <input id="cardName" type="text" className={styles.input} placeholder="Nombre como aparece en la tarjeta" />
+            </div>
+            <div className="flex gap-4">
+                <div className={`w-full ${styles.formField}`}>
+                    <label htmlFor="cardExpiryMonth" className={styles.formLabel}>Vencimiento</label>
+                    <div className="flex gap-2 items-center">
+                        <input
+                            id="cardExpiryMonth"
+                            type="text"
+                            inputMode="numeric"
+                            className={styles.input}
+                            placeholder="MM"
+                            maxLength={2}
+                            value={expiryMonth}
+                            onChange={handleExpiryMonthChange}
+                            aria-label="Mes de vencimiento (MM)"
+                        />
+                        <input
+                            id="cardExpiryYear"
+                            aria-label="Año de vencimiento (AA o AAAA)"
+                            type="text"
+                            inputMode="numeric"
+                            className={styles.input}
+                            placeholder="AA"
+                            maxLength={4}
+                            value={expiryYear}
+                            onChange={handleExpiryYearChange}
+                        />
+                    </div>
+                    {expiryError && (
+                        <p className="text-xs text-red-600 mt-1" role="alert">
+                            {expiryError}
+                        </p>
+                    )}
+                </div>
+                <div className={`w-1/2 ${styles.formField}`}>
+                    <label htmlFor="cardCVV" className={styles.formLabel}>CVV</label>
+                    <input
+                        id="cardCVV"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="\d*"
+                        className={styles.input}
+                        placeholder="CVV"
+                        maxLength={cardType === 'Amex' ? 4 : 3}
+                        value={cvv}
+                        onChange={handleCvvChange}
+                        aria-invalid={!!cvvError}
+                        aria-describedby="cvvHelp"
+                    />
+                    {cvvError && (
+                        <p id="cvvHelp" className="text-xs text-red-600 mt-1" role="alert">
+                            {cvvError}
+                        </p>
+                    )}
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 const DromoPuntosInfo = () => (
     <div className="p-4 rounded-lg border-2 border-gray-300 flex flex-col items-start bg-white w-full max-w-[340px] ml-7">
