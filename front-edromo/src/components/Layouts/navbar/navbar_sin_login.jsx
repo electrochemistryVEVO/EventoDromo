@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import "@/css/navbar-style.css"; // Importamos los estilos dedicados
-import ModalCarritoController from "../carrito/ModalCarrito.controller";
+import ModalCarritoController from "@/components/carrito/ModalCarrito.controller";
 
 const Navbar = () => {
   const [isCartOpen, setCartOpen] = useState(false);

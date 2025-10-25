@@ -17,7 +17,7 @@ async function EventosPage() {
         conciertos={conciertos}
         culturales={culturales}
         deportes={deportes}
-        isAuthenticated={false}
+        isAuthenticated={true}
       />
       <LocalesView locales={locales} />
     </div>

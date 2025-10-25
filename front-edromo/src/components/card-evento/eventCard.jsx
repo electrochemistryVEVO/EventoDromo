@@ -2,18 +2,18 @@ import Image from "next/image";
 import LazyImage from "./lazyImage";
 import Link from "next/link";
 
-export default function EventCard({ event }) {
+export default function EventCard({ event, isAuthenticated = false }) {
   // Convertimos la cadena de fecha a un objeto Date.
   // El 'T00:00:00' es para asegurar que se interprete en la zona horaria local y no en UTC.
   const fechaPublicacionFormat = new Intl.DateTimeFormat("es-419", {
     dateStyle: "full",
   }).format(new Date(event.fecha + "T00:00:00"));
 
+  const basePath = isAuthenticated ? "/user-login/web" : "/user";
+  const detailUrl = `${basePath}/eventos/detalle?id=${event.id}`;
+
   return (
-    <Link
-      href={`/user/eventos/detalle?id=${event.id}`}
-      className="card h-100 card-evento-custom"
-    >
+    <Link href={detailUrl} className="card h-100 card-evento-custom">
       {/* Contenedor para la imagen para controlar el overflow del zoom */}
       <div className="card-img-container">
         <LazyImage imageUrl={event.imagen} />

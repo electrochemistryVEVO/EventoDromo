@@ -1,0 +1,86 @@
+/* src/css/navbar-logged-in.css */
+
+/* Contenedor relativo para posicionar el menú desplegable */
+.user-profile-section {
+  position: relative;
+}
+
+.user-avatar-btn {
+  border-radius: 50%; /* Para hacer el fondo del ícono circular si se desea */
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.user-avatar-btn img {
+  width: 80px; /* Aumentamos el ancho */
+  height: 60px; /* Aumentamos el alto */
+}
+
+/* Estilos para el menú desplegable */
+.dropdown-menu {
+  position: absolute;
+  top: 60px; /* Ajusta esta distancia según sea necesario */
+  right: 0;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 220px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  color: var(--primary-text);
+  text-decoration: none;
+  background-color: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5;
+}
+
+/* Estilo para el botón de cerrar sesión para diferenciarlo */
+.dropdown-item-logout {
+  color: #e53e3e; /* Un color rojo para indicar una acción destructiva */
+}
+
+/* Línea divisora dentro del menú */
+.dropdown-divider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 0.5rem 0;
+}
+
+/* Estilo para el contador del carrito */
+.cart-btn {
+  position: relative;
+}
+
+.cart-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: var(--accent-color);
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}

@@ -1,6 +1,6 @@
-import MisEntradas from "../../../components/Layouts/perfil/mis-entradas.controller";
-import InformacionPersonal from "../../../components/Layouts/perfil/informacion-personal/informacion-personal";
-import MisDromoPuntos from "../../../components/Layouts/perfil/mis-dromopuntos";
+import MisEntradas from "@/components/Layouts/perfil/mis-entradas.controller";
+import InformacionPersonal from "@/components/Layouts/perfil/informacion-personal/informacion-personal";
+import MisDromoPuntos from "@/components/Layouts/perfil/mis-dromopuntos";
 
 export const metadata = {
   title: "Perfil — Usuario",
