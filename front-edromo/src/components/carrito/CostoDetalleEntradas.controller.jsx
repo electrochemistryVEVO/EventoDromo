@@ -14,7 +14,7 @@ export const CostoDetalleEntradasController = () => {
       try {
         setIsLoading(true);
         const data = await fetchCostoDetalle();
-x
+
         // Procesamos la data para agruparla y asignarle un ID único a cada evento.
         // Esta lógica debería estar idealmente en el servicio, pero la ponemos aquí para ilustrar.
         const eventosAgrupados = data.reduce((acc, evento) => {
