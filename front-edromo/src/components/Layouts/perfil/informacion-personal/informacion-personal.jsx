@@ -32,6 +32,7 @@ export default function PerfilPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState(null); // { type: 'success' | 'error', text: string }
+  const [maxDate, setMaxDate] = useState(''); // Para la restricción de fecha de nacimiento
 
   // Función para cargar los datos iniciales
   const fetchData = async () => {
@@ -59,6 +60,7 @@ export default function PerfilPage() {
 
         setFormData(datosClienteFormateados);
         setOriginalFormData(datosClienteFormateados); // Guarda el original para "Cancelar"
+        setMaxDate(data.maxDate || '');
         
         setSelectOptions({
           paises: data.paises || [],
@@ -193,7 +195,7 @@ export default function PerfilPage() {
                 name="nombres"
                 value={formData.nombres}
                 onChange={handleChange}
-                className="w-full px-1 py-2 bg-transparent border-b border-gray-300 rounded-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
+                className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
               />
             </div>
 
@@ -208,7 +210,7 @@ export default function PerfilPage() {
                 name="apellidos"
                 value={formData.apellidos}
                 onChange={handleChange}
-                className="w-full px-1 py-2 bg-transparent border-b border-gray-300 rounded-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
+                className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
               />
             </div>
 
@@ -223,7 +225,7 @@ export default function PerfilPage() {
                 name="email"
                 value={formData.email}
                 readOnly // El email parece no editable
-                className="w-full px-1 py-2 bg-zinc-100 text-gray-700 border-b border-gray-300 rounded-none"
+                className="w-full px-3 py-2 bg-transparent text-gray-700 border-b border-gray-300 rounded-md"
               />
             </div>
 
@@ -237,7 +239,7 @@ export default function PerfilPage() {
                 name="pais"
                 value={selectedPaisId}
                 onChange={handlePaisChange}
-                className="w-full px-1 py-2 bg-transparent border-b border-gray-300 rounded-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
+                className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
               >
                 <option value="" disabled>Seleccione un país</option>
                 {selectOptions.paises.map(pais => (
@@ -259,7 +261,7 @@ export default function PerfilPage() {
                 value={formData.idCiudad}
                 onChange={handleChange}
                 disabled={!selectedPaisId || filteredCiudades.length === 0} // Deshabilitado si no hay país o ciudades
-                className="w-full px-1 py-2 bg-transparent border-b border-gray-300 rounded-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A] disabled:bg-transparent disabled:text-gray-400"
+                className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
               >
                 <option value="" disabled>Seleccione una ciudad</option>
                 {filteredCiudades.map(ciudad => (
@@ -280,7 +282,7 @@ export default function PerfilPage() {
                 name="idSexo"
                 value={formData.idSexo}
                 onChange={handleChange}
-                className="w-full px-1 py-2 bg-transparent border-b border-gray-300 rounded-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
+                className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
               >
                 <option value="" disabled>Seleccione un sexo</option>
                 {selectOptions.sexos.map(sexo => (
@@ -302,7 +304,7 @@ export default function PerfilPage() {
                 name="telefono"
                 value={formData.telefono}
                 onChange={handleChange}
-                className="w-full px-1 py-2 bg-transparent border-b border-gray-300 rounded-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
+                className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
               />
             </div>
 
@@ -318,11 +320,10 @@ export default function PerfilPage() {
                   name="fechaNacimiento"
                   value={formData.fechaNacimiento}
                   onChange={handleChange}
-                  className="w-full px-1 py-2 bg-transparent border-b border-gray-300 rounded-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A] pr-10 [&::-webkit-calendar-picker-indicator]:hidden"
+                  max={maxDate}
+                  className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
                 />
-                <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-500">
-                  <CalendarIcon />
-                </span>
+                {/* Se elimina el icono SVG personalizado para permitir el icono nativo del input 'date' */}
               </div>
             </div>
           </div>
@@ -341,6 +342,7 @@ export default function PerfilPage() {
               type="button"
               onClick={handleCancel}
               className="px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+              style={{ borderRadius: '6px' }}
             >
               Cancelar
             </button>
@@ -348,6 +350,7 @@ export default function PerfilPage() {
               type="submit"
               disabled={isSaving}
               className="px-6 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-[#00C49A] hover:bg-[#00b08a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00C49A] transition-colors disabled:opacity-50"
+              style={{ borderRadius: '6px' }}
             >
               {isSaving ? 'Guardando...' : 'Guardar Cambios'}
             </button>

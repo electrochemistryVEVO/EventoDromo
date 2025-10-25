@@ -8,7 +8,15 @@ export const controllerPerfil = {
   onPageLoad: async () => {
     try {
       const responseData = await servicePerfil.getInformacionPersonal();
-      return responseData;
+
+      // --- INICIO: Lógica para +18 (Movida aquí) ---
+      const today = new Date();
+      const maxYear = today.getFullYear() - 18;
+      const month = String(today.getMonth() + 1).padStart(2, '0'); // Enero es 0
+      const day = String(today.getDate()).padStart(2, '0');
+      const maxDate = `${maxYear}-${month}-${day}`;
+
+      return { ...responseData, maxDate: maxDate }; 
     } catch (error) {
       console.error('Error en controllerPerfil.onPageLoad:', error);
       throw error; // Lanza el error para que el page.js lo atrape
