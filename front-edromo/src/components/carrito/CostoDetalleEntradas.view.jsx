@@ -23,7 +23,7 @@ export const CostoDetalleEntradasView = ({
       // Contenedor desplazable si el contenido excede la altura máxima
       <div className="max-h-96 overflow-y-auto pr-2">
         {eventos.map((evento) => (
-          <div key={evento.eventoNombre} className="mb-6">
+          <div key={evento.eventoId} className="mb-6">
             <h3 className="text-lg font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-3">
               {evento.eventoNombre}
             </h3>
