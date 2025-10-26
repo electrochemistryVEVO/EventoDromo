@@ -1,5 +1,6 @@
 ﻿using EventodromoRest.Modelos;  
 using EventodromoRest.Modelos.Utiles;
+using System.Diagnostics;
 namespace EventodromoRest.Mappers
 {
     public class EventoMapper(Globales.Globales globales, DBManager.DBManager DB)
@@ -99,6 +100,7 @@ namespace EventodromoRest.Mappers
 
         public Evento ObtenerEventoPorId(int id)
         {
+            Debug.WriteLine("meow");
             lock (DB)
             {
                 string query = "SELECT * FROM Evento WHERE ID = @ID";
@@ -107,6 +109,7 @@ namespace EventodromoRest.Mappers
                 DB.Select(query, parametros);
                 if (DB.Read())
                 {
+                    Debug.WriteLine("mroooow");
                     Evento evento = new()
                     {
                         id = DB.GetInt("ID"),
@@ -123,6 +126,7 @@ namespace EventodromoRest.Mappers
                     };
                     evento.Local = ObtenerLocalPorId(evento.idLocal);
                     evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento);
+                    Debug.WriteLine("hola mundo");
                     return evento;
                 }
                 else
