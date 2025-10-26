@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchCart, removeCartItem } from "../../services/ModalCarrito.service";
+import { fetchCart, removeCartItem } from "@/services/ModalCarrito.service";
 import ModalCarritoView from "./ModalCarrito";
 
 /**

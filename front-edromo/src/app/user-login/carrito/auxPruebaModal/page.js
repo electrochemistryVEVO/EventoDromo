@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
-import ModalCarritoController from "../../../../components/carrito/ModalCarrito.controller";
+import ModalCarritoController from "@/components/carrito/ModalCarrito.controller";
 
 export default function AuxPruebaModalPage() {
   const [isModalOpen, setModalOpen] = useState(false);

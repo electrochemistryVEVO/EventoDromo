@@ -1,9 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense} from "react";
 
 // 1. IMPORTACIONES
 // Importamos el service que se encarga de traer los datos.
 import { getEventDetails } from "@/services/DetalleEventoServices";
+import { obtenerDetallePorId } from "@/services/EntradaDetalle.service"
 
 // Importamos todos los componentes visuales que hemos creado.
 import EventBanner from "@/components/detalle-evento/EventoBanner";
@@ -11,7 +12,8 @@ import EventImage from "@/components/detalle-evento/EventoImagen";
 import PromotionBar from "@/components/detalle-evento/PromotionBar";
 import EventInfo from "@/components/detalle-evento/EventoInfo";
 import BookingPanel from "@/components/detalle-evento/BookingPanel";
-import LocationInfo from "@/components/detalle-evento/LocationInfo";
+import LocationInfo from "@/components/detalle-evento/LocationInfo"
+
 
 const EventPageController = () => {
   // 2. ESTADO
@@ -29,7 +31,7 @@ const EventPageController = () => {
       try {
         // Llamamos a la función `fetch` de nuestro service. Le pasamos un ID de ejemplo.
         // El service se encargará de traer los datos (del JSON local o de la API).
-        const data = await getEventDetails.fetch(1);
+        const data = await obtenerDetallePorId(1);
         setEventData(data); // Guardamos la respuesta en el estado.
       } catch (error) {
         console.error(
@@ -87,25 +89,31 @@ const EventPageController = () => {
   // 6. PREPARACIÓN DE DATOS PARA LOS COMPONENTES
   // Si llegamos aquí, significa que tenemos datos válidos.
   // Destructuramos los datos para que sea más fácil pasarlos a los componentes.
-  const { evento, funciones, tiposDeEntrada, local } = eventData.data;
+  const evento = eventData.data;
+  let local = evento.local
+  let funciones = evento.fechasEvento
+  let tiposDeEntrada = evento.tiposEntrada
 
   // Calculamos el máximo de puntos para la barra de promoción.
   const maxPuntos = Math.max(
     ...tiposDeEntrada.map((entrada) => entrada.puntos)
   );
-
+  let url = evento.imagenURL
   // 7. RENDERIZADO FINAL
   // Devolvemos el JSX que ensambla todos nuestros componentes, pasándoles
   // los datos que necesitan a través de los props.
   return (
     <main className="event-page-container">
       {/* 1. El banner de fondo no cambia */}
-      <EventBanner imageUrl={evento.imagenUrl} eventName={evento.nombre} />
+      <EventBanner imageUrl={url} eventName={evento.nombre} />
       <div className="page-layout">
         {/* 2. COLUMNA IZQUIERDA (AHORA CON LA IMAGEN NÍTIDA PRIMERO) */}
         <div className="main-column">
           {/* ¡NUEVO COMPONENTE AQUÍ! */}
-          <EventImage imageUrl={evento.imagenUrl} eventName={evento.nombre} />
+          <Suspense fallback={(<div></div>)}>
+            <EventImage imageUrl={url} eventName={evento.nombre} />
+          </Suspense>
+
           <PromotionBar maxPoints={maxPuntos} />
           <EventInfo
             eventName={evento.nombre}

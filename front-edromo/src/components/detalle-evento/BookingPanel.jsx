@@ -5,7 +5,7 @@ import { registerLocale } from "react-datepicker";
 import es from "date-fns/locale/es";
 registerLocale("es", es);
 import "@/css/detalle-Evento/BookingPanel.css";
-
+import { dateFormat,timeFormat } from "@/lib/format-number";
 const formatDate = (date) => {
   if (!date) return "";
   const year = date.getFullYear();
@@ -32,13 +32,13 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
   const availableDates = useMemo(() => {
     const dates = {};
     functions.forEach((func) => {
-      const date = func.fecha;
+      const date = dateFormat(func.fechaHora);
       if (!dates[date]) {
         dates[date] = [];
       }
       dates[date].push({
         id: func.id,
-        time: func.hora,
+        time: timeFormat(func.fechaHora),
       });
     });
     return dates;
@@ -85,6 +85,7 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
   };
 
   const handleTimeChange = (e) => {
+    console.log(e.target.value)
     setSelectedFunctionId(e.target.value);
   };
 
@@ -155,7 +156,9 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
 
       <div className="tickets-section">
         <h4 className="tickets-title">Entradas</h4>
-        {ticketTiers.map((tier) => (
+        {ticketTiers.map((tier) => {console.log(tier.idFechaEvento===selectedFunctionId);return (
+            tier.idFechaEvento.toString() === selectedFunctionId
+            ?
           <div
             key={tier.id}
             className={`ticket-tier-row ${
@@ -194,7 +197,8 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
               )}
             </div>
           </div>
-        ))}
+        :
+        <div></div>)})}
       </div>
 
       <div className="booking-total">

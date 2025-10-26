@@ -1,4 +1,5 @@
 import React from "react";
+import LazyImage from "@/components/card-evento/lazyImage";
 import "@/css/detalle-Evento/EventoImagen.css";
 
 /**
@@ -7,14 +8,10 @@ import "@/css/detalle-Evento/EventoImagen.css";
  * @param {string} props.imageUrl - URL de la imagen.
  * @param {string} props.eventName - Nombre del evento para el texto alternativo.
  */
-const EventImage = ({ imageUrl, eventName }) => {
+const EventImage = async ({ imageUrl, eventName }) => {
   return (
     <div className="event-image-container">
-      <img
-        src={imageUrl}
-        alt={`Imagen principal de ${eventName}`}
-        className="event-image"
-      />
+      <LazyImage imageUrl={imageUrl} className="event-image-container"/>
     </div>
   );
 };
