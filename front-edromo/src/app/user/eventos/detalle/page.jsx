@@ -29,8 +29,7 @@ const EventPage = () => {
     return (
       <div className="event-page-background">
         <div className="event-page-container">
-          Error: No se pudo cargar la información del evento. Por favor, intente
-          más tarde.
+          Error: No se pudo cargar la información del evento. Por favor, intente más tarde.
         </div>
       </div>
     );
@@ -46,7 +45,7 @@ const EventPage = () => {
       <div className="event-page-container">
         <>
           <EventBanner imageUrl={evento.imagenUrl} eventName={evento.nombre} />
-          
+
           <div className="page-layout">
             <div className="main-column">
               <EventImage imageUrl={evento.imagenUrl} eventName={evento.nombre} />
@@ -62,7 +61,7 @@ const EventPage = () => {
                 eventName={evento.nombre}
                 functions={funciones}
                 ticketTiers={tiposDeEntrada}
-                onAddToCart={handleAddToCart} 
+                onAddToCart={handleAddToCart}
               />
               <LocationInfo
                 city={`${local.ciudad.nombre}, ${local.ciudad.pais.nombre}`}

@@ -4,11 +4,11 @@ import MisDromoPuntos from "@/components/Layouts/perfil/mis-dromopuntos";
 
 export const metadata = {
   title: "Perfil — Usuario",
-  description: "Sección de perfil del usuario",
+  description: "Seccion de perfil del usuario",
 };
 
 export default async function Page({ searchParams }) {
-  const params = await searchParams; // resolver el proxy antes de leer propiedades
+  const params = await searchParams;
   const tab = (params?.tab || "entradas").toString();
 
   return (

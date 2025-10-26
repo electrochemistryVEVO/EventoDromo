@@ -23,7 +23,7 @@ import { FaCalendarDay } from "react-icons/fa";
 import { FaUser } from "react-icons/fa";
 import { IoReorderThree } from "react-icons/io5";
 import { IoClose } from "react-icons/io5";
-import { MdOutlineSpaceDashboard, MdOutlineLogout, MdPassword } from "react-icons/md";
+import { MdOutlineSpaceDashboard, MdOutlineLogout } from "react-icons/md";
 import { HiMiniTicket } from "react-icons/hi2";
 import { GiShadowFollower } from "react-icons/gi";
 
@@ -82,7 +82,7 @@ const Navbar = () => {
       <div className="flex items-center justify-between h-20 px-2 bg-white border-b border-[#EAE8E8]">
         {/* 1. Logo */}
         <div className="shrink-0">
-          <Link href={isAuthenticated ? "/user-login/eventos/lista" : "/user/eventos/lista"}>
+          <Link href="/user/eventos/lista">
             <Image
               src={logo}
               alt="EventoDromo Logo"
@@ -160,17 +160,14 @@ const Navbar = () => {
               {/* Menú Desplegable (Desktop) */}
               {isDropdownOpen && (
                 <div className="absolute right-0 z-50 flex flex-col py-2 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg top-full w-60">
-                  <Link href="/user-login/web/perfil?tab=info" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-800 hover:bg-gray-100">
+                  <Link href="/user/perfil?tab=info" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-800 hover:bg-gray-100">
                     <MdOutlineSpaceDashboard className="w-5 h-5" /> Mis datos
                   </Link>
-                  <Link href="/user-login/web/perfil" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-800 hover:bg-gray-100">
+                  <Link href="/user/perfil" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-800 hover:bg-gray-100">
                     <HiMiniTicket className="w-5 h-5" /> Mis Entradas
                   </Link>
-                  <Link href="/user-login/web/perfil?tab=dromopuntos" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-800 hover:bg-gray-100">
+                  <Link href="/user/perfil?tab=dromopuntos" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-800 hover:bg-gray-100">
                     <GiShadowFollower className="w-5 h-5" /> Mis puntos
-                  </Link>
-                  <Link href="/user-login/web/cambiar-contrasena" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-800 hover:bg-gray-100">
-                    <MdPassword className="w-5 h-5" /> Cambiar Contraseña
                   </Link>
                   <div className="h-px my-2 bg-gray-200"></div>
                   <button onClick={handleLogout} className="flex items-center w-full gap-3 px-4 py-3 text-sm text-left text-red-600 hover:bg-gray-100">
@@ -256,17 +253,14 @@ const Navbar = () => {
             // 5a. SI ESTÁ LOGUEADO (Móvil)
             <div className="flex flex-col gap-1">
               <h3 className="px-2 text-sm font-bold text-gray-500 uppercase">Mi Cuenta</h3>
-              <Link href="/user-login/web/perfil?tab=info" className="flex items-center gap-3 p-2 rounded-md text-base font-bold text-[#333] hover:bg-gray-100">
+              <Link href="/user/perfil?tab=info" className="flex items-center gap-3 p-2 rounded-md text-base font-bold text-[#333] hover:bg-gray-100">
                 <MdOutlineSpaceDashboard className="w-6 h-6 text-[#4ad9bf]" /> Mis datos
               </Link>
-              <Link href="/user-login/web/perfil" className="flex items-center gap-3 p-2 rounded-md text-base font-bold text-[#333] hover:bg-gray-100">
+              <Link href="/user/perfil" className="flex items-center gap-3 p-2 rounded-md text-base font-bold text-[#333] hover:bg-gray-100">
                 <HiMiniTicket className="w-6 h-6 text-[#4ad9bf]" /> Mis Entradas
               </Link>
-              <Link href="/user-login/web/perfil?tab=dromopuntos" className="flex items-center gap-3 p-2 rounded-md text-base font-bold text-[#333] hover:bg-gray-100">
+              <Link href="/user/perfil?tab=dromopuntos" className="flex items-center gap-3 p-2 rounded-md text-base font-bold text-[#333] hover:bg-gray-100">
                 <GiShadowFollower className="w-6 h-6 text-[#4ad9bf]" /> Mis puntos
-              </Link>
-              <Link href="/user-login/web/cambiar-contrasena" className="flex items-center gap-3 p-2 rounded-md text-base font-bold text-[#333] hover:bg-gray-100">
-                <MdPassword className="w-6 h-6 text-[#4ad9bf]" /> Cambiar Contraseña
               </Link>
               <button onClick={handleLogout} className="flex items-center w-full gap-3 p-2 text-base font-bold text-left text-red-600 rounded-md hover:bg-gray-100">
                 <MdOutlineLogout className="w-6 h-6" /> Cerrar Sesión

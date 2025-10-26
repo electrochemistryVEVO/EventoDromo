@@ -1,20 +1,52 @@
+"use client";
+
 import styles from "@/css/identificacion.module.css";
 import Link from "next/link";
+import Image from "next/image";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useCart } from "@/context/CartContext";
+import { useUser } from "@/context/UserContext";
 import CostoDetalleEntradas from "@/components/carrito/costoDetalleEntradas";
 
-import { items } from "./controller";
-import Image from "next/image";
+function IdentificacionPage() {
+  const router = useRouter();
+  const cartContext = useCart();
+  const userContext = useUser();
 
-function App() {
+  const { isLoading: isCartLoading, itemCount } = cartContext;
+  const { isAuthenticated, isLoading: isUserLoading } = userContext;
+
+  const isLoading = isCartLoading || isUserLoading;
+
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
+    if (isAuthenticated) {
+      router.replace("/user/carrito/compraConLogin");
+      return;
+    }
+
+    if (itemCount === 0) {
+      router.replace("/user/carrito/entradaDetalle");
+    }
+  }, [isLoading, isAuthenticated, itemCount, router, isCartLoading, isUserLoading]);
+
+  if (isLoading || isAuthenticated || itemCount === 0) {
+    return (
+      <div className={styles.pageContainer}>
+        <h1 className={styles.cardTitle}>Cargando...</h1>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.pageContainer}>
-      {/* --- ENCABEZADO DE LA PÁGINA --- */}
       <header className={styles.header}>
         <div>
-          <Link
-            href="/user/carrito/entradaDetalle"
-            className={styles.backButton}
-          >
+          <Link href="/user/carrito/entradaDetalle" className={styles.backButton}>
             <Image
               src={"/images/icon/arrow_left.svg"}
               alt="Flecha izquierda"
@@ -45,12 +77,10 @@ function App() {
             <div className={styles.stepInactive}>Método de pago</div>
           </div>
         </div>
-        <div /> {/* Elemento vacío para centrar el título */}
+        <div />
       </header>
 
-      {/* --- CONTENIDO PRINCIPAL EN 3 COLUMNAS --- */}
       <main className={styles.mainGrid}>
-        {/* --- COLUMNA 1: IDENTIFICACIÓN --- */}
         <section className={styles.card}>
           <h2 className={styles.cardTitle}>Identificación</h2>
           <p className={styles.cardText}>
@@ -72,7 +102,6 @@ function App() {
           </div>
         </section>
 
-        {/* --- COLUMNA 2: MÉTODO DE PAGO --- */}
         <section className={styles.card}>
           <h2 className={styles.cardTitle}>Método de Pago</h2>
           <p className={styles.cardText}>
@@ -80,10 +109,8 @@ function App() {
           </p>
         </section>
 
-        {/* --- COLUMNA 3: RESUMEN DE COMPRA --- */}
         <section className={styles.card}>
           <h2 className={styles.cardTitle}>Resumen de la compra</h2>
-          {/* CostoDetalleEntradas ahora es autónomo y obtiene sus propios datos */}
           <CostoDetalleEntradas />
         </section>
       </main>
@@ -91,4 +118,4 @@ function App() {
   );
 }
 
-export default App;
+export default IdentificacionPage;

@@ -1,57 +1,63 @@
 "use client";
 import styles from "@/css/entradaDetalle.module.css";
-import { TablaEntradas } from "@/components/carrito/TablaEntradas";
-import CostoDetalleEntradas from "@/components/carrito/costoDetalleEntradas";
-import CheckboxCarrito from "@/components/carrito/CheckboxCarrito";
-import { useState } from "react";
-// Importamos los archivos SVG directamente. Next.js nos dará un objeto con la ruta en .src
-import iconoFlechaIzq from "@/../public/images/icon/arrow_left.svg";
-import { useUser } from "@/context/UserContext.jsx";
-import { useEffect } from "react";
+
 import { TablaEntradasController } from "@/components/carrito/TablaEntradas.controller";
 import { CostoDetalleEntradasController } from "@/components/carrito/CostoDetalleEntradas.controller";
 
+import CheckboxCarrito from "@/components/carrito/CheckboxCarrito";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCart } from "@/context/CartContext";
 
 function EntradaDetallePage() {
-  // Estados para los checkboxes
+  const { isLoading, itemCount } = useCart();
+  const router = useRouter();
+
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [autorizaDatos, setAutorizaDatos] = useState(false);
-  const { user, isAuthenticated } = useUser();
 
-  // Handlers para los checkboxes
   const handleTerminos = (e) => setAceptaTerminos(e.target.checked);
   const handleAutoriza = (e) => setAutorizaDatos(e.target.checked);
-  useEffect(() => {
-    if (isAuthenticated) {
-      console.log("✅ Usuario autenticado desde el contexto:", user);
-    } else {
-      console.log("⚠️ No hay usuario autenticado en el contexto");
-    }
-  }, [isAuthenticated, user]);
+
+  if (isLoading) {
+    return (
+      <div className={styles.pageContainer}>
+        <h1 className={styles.title}>Cargando Carrito...</h1>
+      </div>
+    );
+  }
+
+  if (itemCount === 0) {
+    return (
+      <div className={styles.pageContainer}>
+        <div className={styles.header}>
+          <svg /* ... (ícono de carrito) ... */ />
+          <h1 className={styles.title}>Mi Carrito está vacío</h1>
+        </div>
+        <button
+          onClick={() => router.push("/user/eventos/lista")}
+          className="w-full flex flex-row justify-center items-center gap-4 max-w-sm rounded-2xl bg-[#EFECEC] py-4 text-base font-bold text-gray-500 transition border-gray-400 border-2"
+        >
+          <img
+            src={"/images/icon/flecha_izquierda.svg"}
+            alt=""
+            width="30"
+            height="30"
+          />
+          Elegir eventos
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.pageContainer}>
       <div className={styles.header}>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-10 h-10 text-gray-700"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-          />
-        </svg>
+        {/* ... (ícono de carrito svg) ... */}
         <h1 className={styles.title}>Mi Carrito</h1>
       </div>
       <section className="flex flex-col gap-8 lg:flex-row lg:gap-20">
         <div className="w-full lg:w-2/3">
-          {/* TablaEntradas ahora es autónomo y se encarga de su propia data */}
           <TablaEntradasController />
         </div>
         <div
@@ -59,14 +65,13 @@ function EntradaDetallePage() {
           className="w-full lg:w-1/3 rounded-lg bg-[#EFECEC] p-8 self-start"
         >
           <h2 className="pt-4 text-xl font-semibold ">Detalle de pago</h2>
-          {/* CostoDetalleEntradas ahora es autónomo y obtiene sus propios datos */}
           <CostoDetalleEntradasController />
           <div className="flex flex-col gap-6 mt-8 text-xs">
             <CheckboxCarrito
               checked={aceptaTerminos}
               onChange={handleTerminos}
               required={true}
-              label="He leído y acepto los términos y condiciones de compra en Eventódromo. Acepto igualmente la política de privacidad y seguridad, y la política de cookies"
+              label="He leído y acepto los términos y condiciones de compra..."
             />
             <CheckboxCarrito
               checked={autorizaDatos}
@@ -78,14 +83,13 @@ function EntradaDetallePage() {
           <div className="flex flex-col items-center gap-5 mt-10">
             <button
               className="flex w-full max-w-sm items-center justify-center gap-4 rounded-2xl bg-[#00C49A] py-10 text-lg font-bold text-white transition hover:bg-[#00b07e] disabled:cursor-not-allowed disabled:bg-gray-400"
-              disabled={!aceptaTerminos}
+              disabled={!aceptaTerminos || itemCount === 0}
               onClick={() => {
                 if (aceptaTerminos) {
-                  window.location.href = "/user/carrito/identificacion";
+                  router.push("/user/carrito/identificacion");
                 }
               }}
             >
-              {/* Usamos la etiqueta <img> con la ruta del SVG importado */}
               <img
                 src="/assets/logos/icono_carrito.svg"
                 alt=""
@@ -95,8 +99,11 @@ function EntradaDetallePage() {
               />
               Finalizar Pedido
             </button>
-            <button className="w-full flex flex-row  justify-center items-center  gap-4 max-w-sm rounded-2xl bg-[#EFECEC] py-4 text-base font-bold text-gray-500 transition border-gray-400 border-2">
-              <img src={iconoFlechaIzq.src} alt="" width="30" height="30" />
+            <button
+              onClick={() => router.push("/user/eventos/lista")}
+              className="w-full flex flex-row justify-center items-center gap-4 max-w-sm rounded-2xl bg-[#EFECEC] py-4 text-base font-bold text-gray-500 transition border-gray-400 border-2"
+            >
+              <img src={"/images/icon/flecha_izquierda.svg"} alt="" width="30" height="30" />
               Elegir más eventos
             </button>
           </div>

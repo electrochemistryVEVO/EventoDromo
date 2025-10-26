@@ -60,7 +60,7 @@ function App() {
         if (result.rol === "A") {
           router.push("/data/loginHardCodeo.json");
         } else if (result.rol === "C") {
-          router.push("/user-login/web/eventos/lista");
+          router.push("/user/eventos/lista");
         } else {
           setError("Rol de usuario no válido");
         }
