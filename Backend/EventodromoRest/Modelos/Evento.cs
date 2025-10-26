@@ -54,11 +54,12 @@
     public class EventosLocalCiudadCategoriaDTO
     {
         public int id { get; set; }
-        public string nombreEvento { get; set; }
+        public string nombre { get; set; }
         public string nombreLocal { get; set; }
-        public string nombreCiudad { get; set; }
-        public string nombreCategoria { get; set; }
-        public DateTime fechaEvento { get; set; }
-        public string imagenURL { get; set; }
+        public string ciudad { get; set; }
+        public string categoria { get; set; }
+        public string fecha { get; set; }
+        public double precio { get; set; }
+        public string imagen { get; set; }
     }
 }

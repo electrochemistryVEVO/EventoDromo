@@ -40,7 +40,7 @@ namespace EventodromoRest.Controllers
 
         [HttpGet]
         [Route("/api/[controller]/[action]")]
-        public GenericResponse<ResponseListarEventosYLocales> ListarEventosYLocales()
+        public GenericResponse<ResponseListarEventosYLocales> ListarFiltradosConLocales()
         {
             try
             {
