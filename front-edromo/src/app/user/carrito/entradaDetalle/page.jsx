@@ -1,26 +1,40 @@
 "use client";
 import styles from "@/css/entradaDetalle.module.css";
-import { TablaEntradas } from "@/components/carrito/tablaEntradas";
+import { TablaEntradas } from "@/components/carrito/TablaEntradas";
 import CostoDetalleEntradas from "@/components/carrito/costoDetalleEntradas";
 import CheckboxCarrito from "@/components/carrito/CheckboxCarrito";
 import { useState } from "react";
 // Importamos los archivos SVG directamente. Next.js nos dará un objeto con la ruta en .src
+import iconoFlechaIzq from "@/../public/images/icon/arrow_left.svg";
+import { useUser } from "@/context/UserContext.jsx";
+import { useEffect } from "react";
+import { TablaEntradasController } from "@/components/carrito/TablaEntradas.controller";
+import { CostoDetalleEntradasController } from "@/components/carrito/CostoDetalleEntradas.controller";
+
 
 function EntradaDetallePage() {
   // Estados para los checkboxes
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [autorizaDatos, setAutorizaDatos] = useState(false);
+  const { user, isAuthenticated } = useUser();
 
   // Handlers para los checkboxes
   const handleTerminos = (e) => setAceptaTerminos(e.target.checked);
   const handleAutoriza = (e) => setAutorizaDatos(e.target.checked);
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log("✅ Usuario autenticado desde el contexto:", user);
+    } else {
+      console.log("⚠️ No hay usuario autenticado en el contexto");
+    }
+  }, [isAuthenticated, user]);
 
   return (
     <div className={styles.pageContainer}>
       <div className={styles.header}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-10 w-10 text-gray-700"
+          className="w-10 h-10 text-gray-700"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -38,7 +52,7 @@ function EntradaDetallePage() {
       <section className="flex flex-col gap-8 lg:flex-row lg:gap-20">
         <div className="w-full lg:w-2/3">
           {/* TablaEntradas ahora es autónomo y se encarga de su propia data */}
-          <TablaEntradas />
+          <TablaEntradasController />
         </div>
         <div
           id="colDerechaPrecuenta"
@@ -46,8 +60,8 @@ function EntradaDetallePage() {
         >
           <h2 className="pt-4 text-xl font-semibold ">Detalle de pago</h2>
           {/* CostoDetalleEntradas ahora es autónomo y obtiene sus propios datos */}
-          <CostoDetalleEntradas />
-          <div className="mt-8 flex flex-col gap-6 text-xs">
+          <CostoDetalleEntradasController />
+          <div className="flex flex-col gap-6 mt-8 text-xs">
             <CheckboxCarrito
               checked={aceptaTerminos}
               onChange={handleTerminos}
@@ -61,7 +75,7 @@ function EntradaDetallePage() {
               label="Autorizo el uso de mis datos para finalidades adicionales"
             />
           </div>
-          <div className="mt-10 flex flex-col items-center gap-5">
+          <div className="flex flex-col items-center gap-5 mt-10">
             <button
               className="flex w-full max-w-sm items-center justify-center gap-4 rounded-2xl bg-[#00C49A] py-10 text-lg font-bold text-white transition hover:bg-[#00b07e] disabled:cursor-not-allowed disabled:bg-gray-400"
               disabled={!aceptaTerminos}
@@ -82,12 +96,7 @@ function EntradaDetallePage() {
               Finalizar Pedido
             </button>
             <button className="w-full flex flex-row  justify-center items-center  gap-4 max-w-sm rounded-2xl bg-[#EFECEC] py-4 text-base font-bold text-gray-500 transition border-gray-400 border-2">
-              <img
-                src={"/images/icon/flecha_izquierda.svg"}
-                alt=""
-                width="30"
-                height="30"
-              />
+              <img src={iconoFlechaIzq.src} alt="" width="30" height="30" />
               Elegir más eventos
             </button>
           </div>

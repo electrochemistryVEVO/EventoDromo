@@ -1,35 +1,17 @@
 // src/components/carrito/TablaEntradas.controller.js
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { fetchTablaEntradas } from "@/services/TablaEntradas.service";
-import { TablaEntradasView } from "./TablaEntradas.view";
+import React, { useState } from "react";
+import { useCart } from "@/context/CartContext"; 
+// 1. MODIFICADO: Importa la nueva vista desde 'tablaEntradas.jsx'
+import { TablaEntradas } from "./TablaEntradas";
 
-/**
- * Controller para TablaEntradas.
- * Maneja la obtención de datos, el estado de selección y la lógica de eliminación.
- */
 export const TablaEntradasController = () => {
-  const [items, setItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Obtenemos todo del contexto (sin cambios)
+  const { cartItems, isLoading, removeFromCart } = useCart();
+  
+  // Lógica de selección (sin cambios)
   const [selectedIds, setSelectedIds] = useState(new Set());
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        const data = await fetchTablaEntradas();
-        setItems(data);
-      } catch (err) {
-        setError("Error al cargar las entradas. Inténtalo de nuevo más tarde.");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadData();
-  }, []);
 
   const handleToggle = (id) => {
     setSelectedIds((prev) => {
@@ -44,30 +26,32 @@ export const TablaEntradasController = () => {
   };
 
   const handleToggleAll = () => {
-    if (selectedIds.size === items.length) {
+    if (selectedIds.size === cartItems.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(items.map((item) => item.id)));
+      setSelectedIds(new Set(cartItems.map((item) => item.cartItemId)));
     }
   };
 
-  // Simula la eliminación de un item. En una app real, llamaría a un servicio.
   const handleRemoveItem = (id) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+    removeFromCart(id);
   };
 
   const handleRemoveSelected = () => {
-    setItems((prev) => prev.filter((item) => !selectedIds.has(item.id)));
+    selectedIds.forEach(id => {
+      removeFromCart(id);
+    });
     setSelectedIds(new Set());
   };
 
-  const isAllSelected = items.length > 0 && selectedIds.size === items.length;
+  const isAllSelected = cartItems.length > 0 && selectedIds.size === cartItems.length;
   const isIndeterminate =
-    selectedIds.size > 0 && selectedIds.size < items.length;
+    selectedIds.size > 0 && selectedIds.size < cartItems.length;
 
+  // 2. MODIFICADO: Renderiza el componente 'TablaEntradas'
   return (
-    <TablaEntradasView
-      items={items}
+    <TablaEntradas
+      items={cartItems} 
       selectedIds={selectedIds}
       isAllSelected={isAllSelected}
       isIndeterminate={isIndeterminate}
@@ -75,8 +59,8 @@ export const TablaEntradasController = () => {
       onToggleAll={handleToggleAll}
       onRemoveItem={handleRemoveItem}
       onRemoveSelected={handleRemoveSelected}
-      isLoading={isLoading}
-      error={error}
+      isLoading={isLoading} 
+      error={null}
     />
   );
 };

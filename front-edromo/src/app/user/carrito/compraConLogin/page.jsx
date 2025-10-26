@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '@/css/compraConLogin.module.css';
 import CostoDetalleEntradas from '@/components/carrito/costoDetalleEntradas';
-import arrow_left from '@/assets/icons/arrow_left.svg';
-import LogoUsuarioEncendido from '@/assets/icons/LogoUsuarioEncendido.svg';
-import LogoPagoApagado from '@/assets/icons/LogoPagoApagado.svg';
+import arrow_left from 'public/images/icon/arrow_left.svg';
+import LogoUsuarioEncendido from "public/images/icon/LogoUsuarioEncendido.svg";
+import LogoPagoApagado from "public/images/icon/LogoUsuarioApagado.svg";
 import Image from 'next/image';
+import { CostoDetalleEntradasController } from '@/components/carrito/CostoDetalleEntradas.controller';
 
 function App() {
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
@@ -91,7 +92,7 @@ function App() {
                         </p>
                         <div className="flex flex-col gap-4">
                             {/* Fila Nombre y Apellido */}
-                            <div className='flex flex-col sm:flex-row gap-4'>
+                            <div className='flex flex-col gap-4 sm:flex-row'>
                                 <div className={`w-full ${styles.formField}`}>
                                     <label htmlFor="nombre" className={styles.formLabel}>Nombre</label>
                                     <input id="nombre" name="nombre" type="text" className={styles.input} placeholder="Ingresa tu nombre" /> 
@@ -107,7 +108,7 @@ function App() {
                                 <input id="email" name="email" type="email" className={styles.input} placeholder="Ingresa tu correo electrónico" /> 
                             </div>
                             {/* Fila Tipo y Número de Documento */}
-                            <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="flex flex-col gap-4 sm:flex-row">
                                 <div className={`w-full ${styles.formField}`}>
                                     <label htmlFor="tipoDoc" className={styles.formLabel}>Tipo de Documento</label>
                                     <select id="tipoDoc" name="tipoDoc" className={styles.select}>
@@ -121,7 +122,7 @@ function App() {
                                 </div>
                             </div>
                             {/* Fila País y Ciudad */}
-                            <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="flex flex-col gap-4 sm:flex-row">
                                 <div className={`w-full ${styles.formField}`}>
                                     <label htmlFor="pais" className={styles.formLabel}>País</label>
                                     <select id="pais" name="pais" className={styles.select}>
@@ -163,8 +164,8 @@ function App() {
                 <section className={styles.card}>
                     <h2 className={styles.cardTitle}>Resumen de la compra</h2>
                     {/* CostoDetalleEntradas ahora es autónomo y obtiene sus propios datos */}
-                    <CostoDetalleEntradas />
-                    <div className="mt-4 flex flex-col items-center gap-4">
+                    <CostoDetalleEntradasController />
+                    <div className="flex flex-col items-center gap-4 mt-4">
                         {selectedPaymentMethod ? (
                             <button className={styles.payButton} disabled={true}>
                                 Complete su identificación

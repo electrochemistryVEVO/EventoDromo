@@ -48,7 +48,7 @@ export default function ModalCarritoController({ isOpen, onClose }) {
   // 7. Lógica para navegar al checkout (sin cambios)
   const handleCheckout = () => {
     handleClose(); 
-    router.push('/user/carrito/entradaDetalle');
+    router.push('/user-login/carrito/entradaDetalle');
   };
 
   // 8. Lógica para eliminar un item (MODIFICADA)
