@@ -33,6 +33,8 @@
     {
         public required bool success { get; set; }
         public required char rol { get; set; }
+        public string? token { get; set; } // Token JWT
+        public int idCliente { get; set; } // ID del cliente autenticado
     }
 
     public class RequestSignUpCliente

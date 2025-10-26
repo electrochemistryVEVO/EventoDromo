@@ -25,24 +25,24 @@ export async function onSubmit(formData) {
     // En lugar de usar cookies del servidor, aquí se usa sessionStorage (propio del navegador)
     // Esto permite que la sesión se mantenga mientras la pestaña esté abierta.
     if (response.success) {
-      //const cliente = response.cliente;
       const rol = response.rol;
+      const token = response.token; // 🔹 Capturamos el token recibido del backend
 
-      // Guarda toda la información del cliente
+      // Guardamos toda la info de sesión
       sessionStorage.setItem(
         "session",
         JSON.stringify({
-          //cliente,
           rol,
+          token, // 🔹 Guardamos el token
         })
       );
 
       return {
-        success: true, //es obligatorio para que page.js sepa que fue exitoso aunque en el json de respuesta ya se envia un succes true porque si no no entra al if en page.js
+        success: true,
         rol,
-        //cliente,
+        token, // 🔹 Lo devolvemos también al page.js
       };
-    } else {
+    }else {
       // ❌ Si el backend respondió que las credenciales son incorrectas:
       return { error: "Credenciales inválidas" };
     }

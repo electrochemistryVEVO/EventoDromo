@@ -9,16 +9,19 @@ namespace EventodromoRest.Negocio
         {
             var mapper = new ClienteMapper(globales, DB);
             char tipoUsuario;
-            Cliente cliente = mapper.ObtenerClientePorEmailPassword(email, password, out tipoUsuario);
+            int idCliente;
+            Cliente cliente = mapper.ObtenerClientePorEmailPassword(email, password, out tipoUsuario,out idCliente);
             LoginResponse loginResponse = new LoginResponse
             {
                 success = false,
-                rol = ' '
+                rol = ' ',
+                idCliente = 0//dps de token
             };
             if (cliente != null)
             {
                 loginResponse.success = true;
                 loginResponse.rol = tipoUsuario;
+                loginResponse.idCliente = idCliente;
             }
             return loginResponse;
 

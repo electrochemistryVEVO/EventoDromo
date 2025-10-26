@@ -19,7 +19,7 @@ namespace EventodromoRest.Mappers
             }
         }
 
-        public Cliente ObtenerClientePorEmailPassword(string email, string password, out char tipoUsuario)
+        public Cliente ObtenerClientePorEmailPassword(string email, string password, out char tipoUsuario, out int idCliente)
         {
             lock (DB)
             {
@@ -55,7 +55,7 @@ namespace EventodromoRest.Mappers
                         //tipodocumento = ObtenerTipoDocumentoPorId(DB.GetInt("idTipoDocumento")),
                         //ciudad = ObtenerCiudadPorId(DB.GetInt("idCiudad"))
                     };
-
+                    idCliente= cliente.id ?? 0;
                     tipoUsuario = 'C'; // Cliente
                     return cliente;
                 }
@@ -76,12 +76,13 @@ namespace EventodromoRest.Mappers
                             passwordhash = DB.GetString("passwordHash"),
                             fechacreacion = DB.GetDateTime("fechaCreacion")
                         };
-
+                        idCliente = admin.id ?? 0;
                         tipoUsuario = 'A'; // Administrador
                         return admin;
                     }
                     else
                     {
+                        idCliente = 0;
                         tipoUsuario = ' '; // Ninguno
                         return null;
                     }
