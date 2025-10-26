@@ -6,6 +6,18 @@ namespace EventodromoRest.Mappers
 {
     public class ClienteMapper(Globales.Globales globales, DBManager.DBManager DB)
     {
+        public bool ExisteClienteConEmail(string email)
+        {
+            lock (DB)
+            {
+                string query = "SELECT COUNT(*) FROM Cliente WHERE email = @email";
+                var parametros = new ParameterList();
+                parametros.Add("@email", email);
+                object result = DB.ExecuteScalar(query, parametros);
+                int count = Convert.ToInt32(result);
+                return count > 0;
+            }
+        }
 
         public Cliente ObtenerClientePorEmailPassword(string email, string password, out char tipoUsuario)
         {
@@ -120,24 +132,34 @@ namespace EventodromoRest.Mappers
         {
             lock (DB)
             {
-                string query = "INSERT INTO Cliente (nombres, apellidos, email, passwordHash, fechaNacimiento, idSexo, idTipoDocumento, numeroDocumento, telefono, idCiudad, politicaDePrivacidad, envioDePublicidad, fechaCreacion, fechaUltimaEdicion, fechaUltimaSesion) VALUES (@nombres, @apellidos, @email, @passwordHash, @fechaNacimiento, @idSexo, @idTipoDocumento, @numeroDocumento, @telefono, @idCiudad, @politicaDePrivacidad, @envioDePublicidad, @fechaCreacion, @fechaUltimaEdicion, @fechaUltimaSesion); SELECT LAST_INSERT_ID();";
+                // La consulta utiliza el comando CALL de MySQL para ejecutar el SP.
+                // Se añade 'SELECT LAST_INSERT_ID()' en la misma cadena para que ExecuteScalar
+                // pueda devolver el nuevo ID, ya que el SP lo selecciona como resultado.
+                string query = "CALL sp_InsertarCliente(@p_nombres, @p_apellidos, @p_email, @p_passwordHash, @p_fechaNacimiento, @p_idSexo, @p_idTipoDocumento, @p_numeroDocumento, @p_telefono, @p_idCiudad, @p_politicaDePrivacidad, @p_envioDePublicidad); SELECT LAST_INSERT_ID();";
+
                 var parametros = new ParameterList();
-                parametros.Add("@nombres", cliente.nombres);
-                parametros.Add("@apellidos", cliente.apellidos);
-                parametros.Add("@email", cliente.email);
-                parametros.Add("@passwordHash", cliente.passwordhash);
-                parametros.Add("@fechaNacimiento", cliente.fechanacimiento);
-                parametros.Add("@idSexo", cliente.idsexo);
-                parametros.Add("@idTipoDocumento", cliente.idtipodocumento);
-                parametros.Add("@numeroDocumento", cliente.numerodocumento);
-                parametros.Add("@telefono", cliente.telefono);
-                parametros.Add("@idCiudad", cliente.idciudad);
-                parametros.Add("@politicaDePrivacidad", cliente.politicadeprivacidad);
-                parametros.Add("@envioDePublicidad", cliente.enviodepublicidad);
-                parametros.Add("@fechaCreacion", cliente.fechacreacion);
-                parametros.Add("@fechaUltimaEdicion", cliente.fechaultimaedicion);
-                parametros.Add("@fechaUltimaSesion", cliente.fechaultimasession);
+
+                // Los nombres de los parámetros deben coincidir con los de tu stored procedure (p_prefijo)
+                parametros.Add("@p_nombres", cliente.nombres);
+                parametros.Add("@p_apellidos", cliente.apellidos);
+                parametros.Add("@p_email", cliente.email);
+                parametros.Add("@p_passwordHash", cliente.passwordhash);
+
+                // Los parámetros de la BD para la inserción (ya mapeados en el BO)
+                parametros.Add("@p_fechaNacimiento", cliente.fechanacimiento);
+                parametros.Add("@p_idSexo", cliente.idsexo);
+                parametros.Add("@p_idTipoDocumento", cliente.idtipodocumento);
+                parametros.Add("@p_numeroDocumento", cliente.numerodocumento);
+                parametros.Add("@p_telefono", cliente.telefono);
+                parametros.Add("@p_idCiudad", cliente.idciudad);
+                parametros.Add("@p_politicaDePrivacidad", cliente.politicadeprivacidad);
+                parametros.Add("@p_envioDePublicidad", cliente.enviodepublicidad);
+
+                // Ejecución: DB.ExecuteScalar toma la primera columna del primer conjunto de resultados.
+                // En este caso, el resultado de SELECT LAST_INSERT_ID().
                 object result = DB.ExecuteScalar(query, parametros);
+
+                // Conversión a entero
                 int newId = Convert.ToInt32(result);
                 return newId;
             }

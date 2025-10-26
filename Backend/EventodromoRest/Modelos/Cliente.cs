@@ -41,15 +41,22 @@
         public string? apellidos { get; set; }
         public string? email { get; set; }
         public string? password { get; set; }
-        public string? sexo { get; set; } // puedes cambiar a int si envías IDs
-        public string? tipoDocumento { get; set; } // o int si envías IDs
+
+        // Coincidencia exacta con el frontend: idsexo (camelCase y minúscula en 'id')
+        public int idsexo { get; set; }
+
+        // Coincidencia exacta: idtipoDocumento
+        public int idtipoDocumento { get; set; }
+
         public string? numeroDocumento { get; set; }
         public string? telefono { get; set; }
-        public string? ciudad { get; set; } // o int si envías IDs
-        public string? pais { get; set; }
+
+        // Coincidencia exacta: idciudad
+        public int idciudad { get; set; }
+
         public DateTime? fechaNacimiento { get; set; }
-        public bool politicadeprivacidad { get; set; }
-        public bool enviodepublicidad { get; set; }
+        public bool politicaDePrivacidad { get; set; } // Nota: Ya estaba en camelCase/PascalCase
+        public bool envioDePublicidad { get; set; }     // Nota: Ya estaba en camelCase/PascalCase
     }
 
     public class SignUpResponse
