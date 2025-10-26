@@ -82,6 +82,38 @@ namespace EventodromoRest.Controllers
         }
 
         [HttpGet]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<DatosSignUp> ObtenerDatosSignUp()
+        {
+            try
+            {
+                var datos = new ClienteBO(globales, BD).ObtenerDatosSignUp();
+
+                return new GenericResponse<DatosSignUp>
+                {
+                    Success = true,
+                    Message = "Datos obtenidos correctamente",
+                    Error = null,
+                    Data = datos
+                };
+            }
+            catch (Exception ex)
+            {
+                var response = new GenericResponse<DatosSignUp>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = ex.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(ex, "{}", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+
+        [HttpGet]
         [Route("/api/[controller]/[action]/{idCliente}")]
         public GenericResponse<InformacionPersonal> InformacionPersonal([FromRoute] int idCliente)
         {

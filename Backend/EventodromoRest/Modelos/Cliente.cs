@@ -84,4 +84,13 @@
         public List<CiudadDTO>? ciudades { get; set; }
         public List<Sexo>? sexos { get; set; }
     }
+
+    public class DatosSignUp
+    {
+        public List<Sexo> sexos { get; set; } = new();
+        public List<TipoDocumento> tiposDocumento { get; set; } = new();
+        public List<Pais> paises { get; set; } = new();
+        public List<Ciudad> ciudades { get; set; } = new();
+
+    }
 }

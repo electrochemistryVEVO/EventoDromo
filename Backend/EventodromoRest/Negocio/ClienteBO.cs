@@ -24,6 +24,7 @@ namespace EventodromoRest.Negocio
 
         }
 
+
         public SignUpResponse InsertarCliente(RequestSignUpCliente request)
         {
             var mapper = new ClienteMapper(globales, DB);
@@ -151,5 +152,31 @@ namespace EventodromoRest.Negocio
 
             return true;
         }
+
+        public DatosSignUp ObtenerDatosSignUp()
+        {
+            var paisMapper = new PaisMapper(globales, DB);
+            var ciudadMapper = new CiudadMapper(globales, DB);
+            var sexoMapper = new SexoMapper(globales, DB);
+            var tipoDocumentoMapper = new TipoDocumentoMapper(globales, DB);
+
+            // Obtener listas desde la base de datos
+            List<Pais> paises = paisMapper.ListarPais();
+            List<Ciudad> ciudades = ciudadMapper.ListarCiudad();
+            List<Sexo> sexos = sexoMapper.ListarSexos();
+            List<TipoDocumento> tiposDocumento = tipoDocumentoMapper.ListarTipoDocumento();
+
+            // Construir el objeto de salida
+            DatosSignUp datos = new DatosSignUp
+            {
+                paises = paises,
+                ciudades = ciudades,
+                sexos = sexos,
+                tiposDocumento = tiposDocumento
+            };
+
+            return datos;
+        }
+
     }
 }

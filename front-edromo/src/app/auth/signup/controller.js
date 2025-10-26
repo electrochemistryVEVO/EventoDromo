@@ -8,16 +8,13 @@ export async function onSubmit(formData) {
       apellidos: formData.get("apellidos"),
       email: formData.get("email"),
       password: formData.get("password"),
-      //sexo: formData.get("sexo"),
-      idsexo: 1,
-      
-      //tipoDocumento se debe obtener por convertir lo que se ingresa en el formulario a su id correspondiente
-      idtipoDocumento: 1,
+      idsexo: parseInt(formData.get("idsexo")),           // ✅ viene del mapeo en page.js
+      idtipoDocumento: parseInt(formData.get("idtipoDocumento")),
+      idciudad: parseInt(formData.get("idciudad")),
       
       numeroDocumento: formData.get("numeroDocumento"),
       telefono: formData.get("telefono"),
-      //ciudad  se debe obtener por convertir lo que se ingresa en el formulario a su id correspondiente,,
-      idciudad: 1,
+      
       
       fechaNacimiento: formData.get("fechaNacimiento"),
       politicaDePrivacidad: formData.get("terminos") === "on",
