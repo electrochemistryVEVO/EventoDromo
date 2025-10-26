@@ -13,14 +13,14 @@ export async function onSubmit(formData) {
 
     if (response.success) {
       const rol = response.rol;
-      // const cliente = response.cliente; // <- cuando tu backend lo devuelva
+      const token = response.token; // 🔹 Capturamos el token recibido del backend
 
-      // Guardar en sessionStorage si quieres mantener tu lógica anterior
+      // Guardamos toda la info de sesión
       sessionStorage.setItem(
         "session",
         JSON.stringify({
           rol,
-          // cliente,
+          token, // 🔹 Guardamos el token
         })
       );
 
@@ -28,9 +28,10 @@ export async function onSubmit(formData) {
       return {
         success: true,
         rol,
-        // clientData: cliente, // opcional futuro
+        token, // 🔹 Lo devolvemos también al page.js
       };
-    } else {
+    }else {
+      // ❌ Si el backend respondió que las credenciales son incorrectas:
       return { error: "Credenciales inválidas" };
     }
   } catch (error) {
