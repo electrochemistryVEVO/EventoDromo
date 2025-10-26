@@ -21,22 +21,22 @@ export const CostoDetalleEntradasView = ({
 
     return (
       // Contenedor desplazable si el contenido excede la altura máxima
-      <div className="max-h-96 overflow-y-auto pr-2">
+      <div className="pr-2 overflow-y-auto max-h-96">
         {eventos.map((evento) => (
-          <div key={evento.eventoNombre} className="mb-6">
-            <h3 className="text-lg font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-3">
+          <div key={evento.id} className="mb-6">
+            <h3 className="pb-2 mb-3 text-lg font-bold text-gray-800 border-b-2 border-gray-300">
               {evento.eventoNombre}
             </h3>
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  <th className="pb-2 text-left text-sm font-semibold text-gray-600">
+                  <th className="pb-2 text-sm font-semibold text-left text-gray-600">
                     Entrada
                   </th>
-                  <th className="pb-2 text-center text-sm font-semibold text-gray-600">
+                  <th className="pb-2 text-sm font-semibold text-center text-gray-600">
                     Costo Unit.
                   </th>
-                  <th className="pb-2 text-right text-sm font-semibold text-gray-600">
+                  <th className="pb-2 text-sm font-semibold text-right text-gray-600">
                     Subtotal
                   </th>
                 </tr>
@@ -64,9 +64,9 @@ export const CostoDetalleEntradasView = ({
   };
 
   return (
-    <div className="mt-6 w-full bg-white p-4 shadow-md rounded-lg">
+    <div className="w-full p-4 mt-6 bg-white rounded-lg shadow-md">
       {renderContent()}
-      <div className="mt-6 border-t-2 border-gray-300 pt-4 text-right text-xl font-bold text-gray-800">
+      <div className="pt-4 mt-6 text-xl font-bold text-right text-gray-800 border-t-2 border-gray-300">
         Total: {formatCurrency(totalGeneral)}
       </div>
       <div className="mt-8 w-fit rounded-lg bg-[#00C49A] px-8 py-3 text-center text-base font-semibold text-white shadow-md mx-auto">
