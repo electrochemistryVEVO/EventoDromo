@@ -100,10 +100,20 @@ namespace EventodromoRest.Mappers
 
         public Evento ObtenerEventoPorId(int id)
         {
+            int lastFechaEvento = -1;
             Debug.WriteLine("meow");
             lock (DB)
             {
-                string query = "SELECT * FROM Evento WHERE ID = @ID";
+                string query = "SELECT E.ID AS 'E.ID',E.NOMBRE AS 'E.NOMBRE', E.DESCRIPCION AS 'E.DESCRIPCION', E.IDTIPOEVENTO AS 'E.IDTIPOEVENTO'," +
+                    "E.IDLOCAL AS 'E.IDLOCAL',E.CREADOPOR AS 'E.CREADOPOR', E.FECHAPUBLICACION AS 'E.FECHAPUBLICACION', E.FECHACOMPRA AS 'E.FECHACOMPRA'," +
+                    "E.ISDELETED AS 'E.ISDELETED', E.IMAGENURL AS 'E.IMAGENURL'," +
+                    "FE.ID AS 'FE.ID', FE.FECHAHORA AS 'FE.FECHAHORA', " +
+                    "TE.ID AS 'TE.ID', TE.PRECIO AS 'TE.PRECIO', TE.LIMITECOMPRA AS 'TE.LIMITECOMPRA', TE.PUNTOS AS 'TE.PUNTOS'," +
+                    "TE.NOMBRE AS 'TE.NOMBRE', TE.CANTIDADENTRADAS AS 'TE.CANTIDADENTRADAS', TE.CANTIDADVENDIDA AS 'TE.CANTIDADVENDIDA' " +
+                    "FROM Evento E"
+                   +" INNER JOIN FechaEvento FE ON E.ID=FE.IDEVENTO"
+                   +" INNER JOIN TipoEntrada TE ON FE.ID=TE.IDFECHAEVENTO"
+                   + " WHERE E.ID = @ID";
                 var parametros = new ParameterList();
                 parametros.Add("@ID", id);
                 DB.Select(query, parametros);
@@ -112,21 +122,47 @@ namespace EventodromoRest.Mappers
                     Debug.WriteLine("mroooow");
                     Evento evento = new()
                     {
-                        id = DB.GetInt("ID"),
-                        nombre = DB.GetString("NOMBRE"),
-                        descripcion = DB.GetString("DESCRIPCION"),
-                        idTipoEvento = DB.GetInt("IDTIPOEVENTO"),
-                        idLocal = DB.GetInt("IDLOCAL"),
-                        creadoPor = DB.GetInt("CREADOPOR"),
-                        fechaPublicacion = DB.GetDateTime("FECHAPUBLICACION"),
-                        fechaCompra = DB.GetDateTime("FECHACOMPRA"),
-                        isDeleted = DB.GetBoolean("ISDELETED"),
-                        imagenURL = DB.GetString("IMAGENURL"),
-
+                        id = DB.GetInt("E.ID"),
+                        nombre = DB.GetString("E.NOMBRE"),
+                        descripcion = DB.GetString("E.DESCRIPCION"),
+                        idTipoEvento = DB.GetInt("E.IDTIPOEVENTO"),
+                        idLocal = DB.GetInt("E.IDLOCAL"),
+                        creadoPor = DB.GetInt("E.CREADOPOR"),
+                        fechaPublicacion = DB.GetDateTime("E.FECHAPUBLICACION"),
+                        fechaCompra = DB.GetDateTime("E.FECHACOMPRA"),
+                        isDeleted = DB.GetBoolean("E.ISDELETED"),
+                        imagenURL = DB.GetString("E.IMAGENURL"),
                     };
+                    List<FechaEvento> listFE = new List<FechaEvento>();
+                    List<TipoEntrada> listTE = new List<TipoEntrada>();
+                    do
+                    {
+                        int _id = DB.GetInt("FE.ID");
+                        if (lastFechaEvento != _id)
+                        {
+                            lastFechaEvento = _id;
+                            listFE.Add(new FechaEvento() { 
+                                id = _id,
+                                fechaHora = DB.GetDateTime("FE.FECHAHORA"),
+                                idEvento = evento.id
+                            });
+                        }
+                        listTE.Add(new TipoEntrada()
+                        {
+                            id=DB.GetInt("TE.ID"),
+                            precio=DB.GetDecimal("TE.PRECIO"),
+                            limiteCompra=DB.GetInt("TE.LIMITECOMPRA"),
+                            puntos=DB.GetInt("TE.PUNTOS"),
+                            nombre=DB.GetString("TE.NOMBRE"),
+                            cantidadEntradas=DB.GetInt("TE.CANTIDADENTRADAS"),
+                            cantidadVendida=DB.GetInt("TE.CANTIDADVENDIDA"),
+                            idFechaEvento=lastFechaEvento
+                        });
+                    } while (DB.Read());
                     evento.Local = ObtenerLocalPorId(evento.idLocal);
                     evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento);
-                    Debug.WriteLine("hola mundo");
+                    evento.fechasEvento = listFE.ToArray();
+                    evento.tiposEntrada = listTE.ToArray();
                     return evento;
                 }
                 else

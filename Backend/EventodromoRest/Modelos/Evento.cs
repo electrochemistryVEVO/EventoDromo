@@ -14,6 +14,8 @@
         public DateTime fechaCompra { get; set; }
         public bool isDeleted { get; set; }
         public string? imagenURL { get; set; }
+        public FechaEvento[]? fechasEvento {get; set;}
+        public TipoEntrada[]? tiposEntrada { get; set; }
     }
     public class EventoxCarritoDTO
     {
