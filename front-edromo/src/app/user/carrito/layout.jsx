@@ -22,7 +22,7 @@ export default function RootLayout({ children }) {
             height: "113px",
           }}
         >
-          <div className="bg-white rounded-full w-full h-full flex items-center justify-center shadow-lg">
+          <div className="flex items-center justify-center w-full h-full bg-white rounded-full shadow-lg">
             <Image
               src={"/images/logo/logo_eventodromo_minimo.png"}
               alt="Eventodromo Logo"
