@@ -95,4 +95,9 @@
         public List<Ciudad> ciudades { get; set; } = new();
 
     }
+
+    public class VerificarCorreoResponse
+    {
+        public required bool exists { get; set; }
+    }
 }

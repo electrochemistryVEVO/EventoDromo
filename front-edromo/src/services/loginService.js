@@ -25,7 +25,32 @@ export async function autenticarUsuario(loginInfo) {
     success: true,
     rol: "C",
   */
-  };
+};
+
+export async function verificarCorreoExistente(email) {
+  try {
+    const res = await fetch(`http://localhost:5189/api/Cliente/VerificarCorreoCliente?email=${encodeURIComponent(email)}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error("Error al consultar el correo (status:" + res.status + ")");
+    }
+
+    const json = await res.json();
+
+    // Asumimos que el backend devuelve { exists: true/false }
+    return json.data;//el propio contenido del json que haré dentro tenga exists como campo.
+  } catch (error) {
+    console.error("Error en el servicio verificarCorreoExistente:", error);
+    throw error;
+  }
+};
+
+
   /*
   try {
     const res = await fetch("http://localhost:5189/api/Cliente/AutenticarLoginCliente", {

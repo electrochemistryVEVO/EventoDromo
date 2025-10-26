@@ -6,7 +6,7 @@ import "@/css/login-style.css"; // 📁 Importa los estilos CSS para esta págin
 import Image from "next/image"; // 🖼️ Componente optimizado de Next.js para imágenes.
 import { useRouter, useSearchParams } from "next/navigation"; // 🚀 Hook de Next.js para redirigir a otras rutas.
 import { useState } from "react"; // 🧠 Hook de React para manejar estados (como el error).
-import { onSubmit } from "./controller"; // 📡 Función que procesa el login (definida en controller.js).
+import { onSubmit, validarCorreo } from "./controller"; // 📡 Función que procesa el login (definida en controller.js).
 
 import Link from "next/link"; // Asegúrate de tener esta importación al inicio
 
@@ -103,9 +103,33 @@ function App() {
           </div>
 
           {/* 🔐 Link para recuperar contraseña */}
-          <Link className="alinear-derecha" href="/forgot-password">
+          <Link
+            className="alinear-derecha"
+            href="/auth/changePassword"
+            onClick={async (e) => {
+              e.preventDefault(); // evitamos la navegación inmediata
+
+              const emailInput = document.getElementById("email");
+              const email = emailInput.value;
+
+              // Llamamos a la función del controller para validar el correo
+              const result = await validarCorreo(email);
+
+              if (result.error) {
+                setError(result.error); // mostramos error si no existe
+                return;
+              }
+
+              // Guardamos el correo en localStorage para la página de cambio de contraseña
+              localStorage.setItem("recoveryEmail", email);
+
+              // Redirigimos a la página de cambio de contraseña
+              window.location.href = "/auth/changePassword";
+            }}
+          >
             ¿Olvidaste tu contraseña?
           </Link>
+
 
           {/* 🔘 Botón para ingresar y links de registro */}
           <div className="login-hipervinculos-container">

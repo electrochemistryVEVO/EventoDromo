@@ -169,6 +169,36 @@ namespace EventodromoRest.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<VerificarCorreoResponse> VerificarCorreoCliente(string email)
+        {
+            try
+            {
+                var rpta = new ClienteBO(globales, BD).verificarCorreoCliente(email);
+
+                return new GenericResponse<VerificarCorreoResponse>
+                {
+                    Success = true,
+                    Message = "Correo existe",
+                    Error = null,
+                    Data = rpta
+                };
+            }
+            catch (Exception ex)
+            {
+                var response = new GenericResponse<VerificarCorreoResponse>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = ex.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(ex, "{}", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
 
         [HttpGet]
         [Route("/api/[controller]/[action]/{idCliente}")]

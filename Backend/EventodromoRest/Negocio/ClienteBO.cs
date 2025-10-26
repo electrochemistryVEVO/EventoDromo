@@ -181,5 +181,16 @@ namespace EventodromoRest.Negocio
             return datos;
         }
 
+        public VerificarCorreoResponse verificarCorreoCliente(string email)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            bool existe = mapper.ExisteClienteConEmail(email);
+            VerificarCorreoResponse response = new VerificarCorreoResponse
+            {
+                exists = existe
+            };
+            return response;
+        }
+
     }
 }
