@@ -1,108 +1,113 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-// Acepta una nueva prop: buttonRef (la referencia al botón)
-const PrecioModal = ({ onClose, onApply, onClear, buttonRef }) => {
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  // Inicializa la posición con valores que no sean 0 para evitar el if (opcional, pero ayuda)
-  const [position, setPosition] = useState({ top: -9999, left: -9999 }); 
-  const popoverRef = useRef(null); // Referencia al div del popover
+const PrecioModal = ({ onClose, onApply, onClear, buttonRef, initialFilters }) => {
+  // Estado inicial desde initialFilters
+  const [minPrice, setMinPrice] = useState(initialFilters?.precioMin || '');
+  const [maxPrice, setMaxPrice] = useState(initialFilters?.precioMax || '');
 
-  // Calcula la posición inicial cuando se monta O cuando cambia el botón de referencia
+  const [position, setPosition] = useState({ top: -9999, left: -9999 });
+  const popoverRef = useRef(null);
+
+  // Calcula la posición con ajuste anti-desbordamiento
   useEffect(() => {
-    // Solo calcula si el popover está visible y las referencias existen
     if (buttonRef.current && popoverRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect();
-      // Asegúrate que el cálculo tenga sentido incluso si el scroll es 0
-      const calculatedTop = buttonRect.bottom + window.scrollY + 5;
-      const calculatedLeft = buttonRect.left + window.scrollX;
-      
+      const popoverRect = popoverRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
+      const margin = 10; // Margen de los bordes
+
+      const calculatedTop = buttonRect.bottom + scrollY + 5;
+      let calculatedLeft = buttonRect.left + scrollX;
+      const rightEdgeIfAlignedLeft = calculatedLeft + popoverRect.width;
+
+      if (rightEdgeIfAlignedLeft > viewportWidth - margin) {
+          calculatedLeft = viewportWidth - popoverRect.width - margin;
+      }
+      if (calculatedLeft < margin) {
+          calculatedLeft = margin;
+      }
+
       setPosition({
-        top: calculatedTop, 
+        top: calculatedTop,
         left: calculatedLeft,
       });
-      // console.log("Calculated Position:", { top: calculatedTop, left: calculatedLeft }); // Descomenta para depurar
     }
-  }, [buttonRef]); // Depende solo de buttonRef para recalcular si el botón cambia
+  }, [buttonRef]);
 
-  // Efecto para detectar clics fuera
+  // Detecta clics fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (popoverRef.current && 
+      if (popoverRef.current &&
           !popoverRef.current.contains(event.target) &&
-          buttonRef.current && 
-          !buttonRef.current.contains(event.target) ) {
-        onClose(); 
+          buttonRef.current &&
+          !buttonRef.current.contains(event.target)) {
+        onClose();
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [onClose, buttonRef]); 
+  }, [onClose, buttonRef]);
 
 
   const handleApply = () => {
+    // Envía null si los campos están vacíos, lo que limpiará el filtro en la URL
     onApply({ tipo: 'precio', min: minPrice || null, max: maxPrice || null });
     onClose();
   };
 
+  // El botón "Eliminar Filtro" llama a esta función directamente
   const handleClear = () => {
-    onClear('precio');
+    onClear('precio'); // Llama a la función del hook para limpiar este filtro específico
     onClose();
   };
 
-  // --- LÍNEA PROBLEMÁTICA COMENTADA ---
-  // if (!position.top) return null; // <--- Comentado temporalmente
-
-  // Si aún así no aparece, podemos devolver algo simple para confirmar que se renderiza
-  // if(position.top === -9999) return <div className="absolute top-10 left-10 bg-red-500 p-4 z-50">Rendering...</div>
-
   return (
     <div
-      ref={popoverRef} 
-      // Añadido 'opacity' y 'transition' para suavizar el salto inicial si ocurre
-      className="absolute bg-gray-100 p-6 rounded-lg shadow-xl w-full max-w-sm z-50 transition-opacity duration-100 opacity-100" 
-      // Aplica posición, incluso si es la inicial (-9999)
-      style={{ top: `${position.top}px`, left: `${position.left}px` }} 
+      ref={popoverRef}
+      className="absolute bg-gray-100 p-6 rounded-lg shadow-xl w-full max-w-sm z-50 transition-opacity duration-100 opacity-100"
+      style={{ top: `${position.top}px`, left: `${position.left}px` }}
     >
       <h3 className="text-lg font-semibold mb-4 text-gray-800">Ingresa un rango de precios</h3>
-
-      <div className="flex items-center space-x-4 mb-6">
-        <span className="font-semibold text-gray-700">S/</span>
-        <input
-          type="number"
-          placeholder="min."
-          value={minPrice}
-          onChange={(e) => setMinPrice(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#00C49A] text-sm"
-          min="0"
-        />
-        <input
-          type="number"
-          placeholder="max."
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#00C49A] text-sm"
-          min="0"
-        />
-      </div>
-
-      <div className="flex justify-between items-center mt-6">
-        <button
-          onClick={handleClear}
-          className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors"
-        >
-          Eliminar Filtro
-        </button>
-        <button
-          onClick={handleApply}
-          className="px-6 py-2 bg-[#00C49A] text-white rounded-full hover:bg-[#00b08a] transition-colors text-sm font-medium"
-        >
-          Aplicar
-        </button>
-      </div>
+       {/* Inputs */}
+       <div className="flex items-center space-x-4 mb-6">
+         <span className="font-semibold text-gray-700">S/</span>
+         <input
+            type="number"
+            placeholder="min."
+            value={minPrice}
+            onChange={(e) => setMinPrice(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#00C49A] text-sm"
+            min="0"
+         />
+         <input
+            type="number"
+            placeholder="max."
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#00C49A] text-sm"
+            min="0"
+         />
+       </div>
+       {/* Botones */}
+       <div className="flex justify-between items-center mt-6">
+         {/* Botón Restaurado */}
+         <button
+            onClick={handleClear}
+            className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors"
+         >
+           Eliminar Filtro
+         </button>
+         <button
+            onClick={handleApply}
+            className="px-6 py-2 bg-[#00C49A] text-white rounded-full hover:bg-[#00b08a] transition-colors text-sm font-medium"
+         >
+           Aplicar
+         </button>
+       </div>
     </div>
   );
 };
