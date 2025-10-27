@@ -9,3 +9,14 @@ export async function obtenerDetallePorId(idEvento){
         .then((res)=>res.json())
         .catch((err)=>{console.log(err);return err;})
 }
+
+export async function listarEventosPorBusqueda(busqueda){
+    let url = API_URL + "/Evento/ListarEventosPorBusqueda";
+    return await fetch(url,{
+        method: "POST",
+        headers:{
+            'Content-Type':'application/json'
+        },body:JSON.stringify({busqueda})})
+        .then((res)=>res.json())
+        .catch((err)=>{console.log(err);return err;})
+}

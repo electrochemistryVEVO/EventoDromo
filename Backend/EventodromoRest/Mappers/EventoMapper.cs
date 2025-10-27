@@ -254,5 +254,42 @@ namespace EventodromoRest.Mappers
                 return listaEventos;
             }
         }
+
+        public List<Evento> ListarEventosBusqueda(string busqueda)
+        {
+            lock (DB)
+            {
+                List<Evento> listaEvento = new List<Evento>();
+                string query = "SELECT * FROM  Evento WHERE NOMBRE LIKE CONCAT('%',@busqueda,'%')";
+                var parametros = new ParameterList();
+                parametros.Add("@busqueda", busqueda);
+                DB.Select(query, parametros);
+                while (DB.Read())
+                {
+                    Evento evento = new()
+                    {
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        descripcion = DB.GetString("DESCRIPCION"),
+                        idTipoEvento = DB.GetInt("IDTIPOEVENTO"),
+                        idLocal = DB.GetInt("IDLOCAL"),
+                        creadoPor = DB.GetInt("CREADOPOR"),
+                        fechaPublicacion = DB.GetDateTime("FECHAPUBLICACION"),
+                        fechaCompra = DB.GetDateTime("FECHACOMPRA"),
+                        isDeleted = DB.GetBoolean("ISDELETED"),
+                        imagenURL = DB.GetString("IMAGENURL"),
+
+                    };
+                    listaEvento.Add(evento);
+                }
+                //NOTA: Hacer las solicitudes anidadas despues de completar toda la lectura
+                //Aparentemente, cuando el DB hace otra solicitud, se olvida de esta
+                foreach(Evento evento in listaEvento){
+                    evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento);
+                    evento.Local = ObtenerLocalPorId(evento.idLocal);
+                }
+                return listaEvento;
+            }
+        }
     }
 }

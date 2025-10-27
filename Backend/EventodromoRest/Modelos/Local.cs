@@ -12,6 +12,7 @@
         public int idAdministrador { get; set; }
         public Administrador administrador { get; set; }
     }
+    
 
     public class LocalCiudadImagenDTO
     {

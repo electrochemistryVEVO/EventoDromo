@@ -40,6 +40,30 @@ namespace EventodromoRest.Controllers
 
         [HttpPost]
         [Route("/api/[controller]/[action]")]
+        public GenericResponse<IEnumerable<Evento>> ListarEventosPorBusqueda([FromBody] RequestListarEventosPorBusqueda request)
+        {
+            try
+            {
+                Debug.WriteLine(request.busqueda);
+                ValidarBody(request); 
+                return new EventoBO(globales, BD).ListarEventosPorBusqueda(request.busqueda);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<IEnumerable<Evento>>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+        
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
         public GenericResponse<Evento> ObtenerEventoPorId([FromBody] RequestObtenerEventoPorId request)
         {
             try

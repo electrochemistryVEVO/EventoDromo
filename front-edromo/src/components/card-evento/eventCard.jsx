@@ -7,7 +7,7 @@ export default function EventCard({ event, isAuthenticated = false }) {
   // El 'T00:00:00' es para asegurar que se interprete en la zona horaria local y no en UTC.
   const fechaPublicacionFormat = new Intl.DateTimeFormat("es-419", {
     dateStyle: "full",
-  }).format(new Date(event.fecha + "T00:00:00"));
+  }).format(new Date(event.fechaPublicacion));
 
   const basePath = isAuthenticated ? "/user-login/web" : "/user";
   const detailUrl = `${basePath}/eventos/detalle?id=${event.id}`;
@@ -35,8 +35,8 @@ export default function EventCard({ event, isAuthenticated = false }) {
         <div className="d-flex flex-column text-truncate">
           {/* Fila 1: Local - Ciudad / Categoría */}
           <div className="card-info-title text-truncate">
-            {event.nombreLocal} - {event.ciudad} /{" "}
-            <span className="categoria-highlight">{event.categoria}</span>
+            {event.local.nombre} - {event.local.ciudad.nombre} /{" "}
+            <span className="categoria-highlight">{event.tipoEvento.nombre}</span>
           </div>
           {/* Fila 2: Nombre del Evento */}
           <h5 className="fw-bolder card-title-custom my-1 text-truncate">

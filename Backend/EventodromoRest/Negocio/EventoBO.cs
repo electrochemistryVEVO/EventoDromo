@@ -18,6 +18,15 @@ namespace EventodromoRest.Negocio
             response.Data = eventos;
             return response;
         }
+        public GenericResponse<IEnumerable<Evento>> ListarEventosPorBusqueda(string busqueda)
+        {
+            EventoMapper mapper = new EventoMapper(globales, DB);
+            List<Evento> eventos = mapper.ListarEventosBusqueda(busqueda);
+            GenericResponse<IEnumerable<Evento>> response = new GenericResponse<IEnumerable<Evento>>();
+            response.Success = true;
+            response.Data = eventos;
+            return response;
+        }
         public GenericResponse<Evento> ObtenerEventoPorId(int eventoId)
         {
             EventoMapper mapper = new EventoMapper(globales, DB);

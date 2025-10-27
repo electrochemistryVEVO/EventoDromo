@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
+import { redirect } from 'next/navigation';
 import Link from "next/link";
 import Image from "next/image";
 import "@/css/navbar-style.css"; // Importamos los estilos base que ya tenías
@@ -58,6 +59,7 @@ const NavbarLoggedIn = () => {
           <input
             type="text"
             placeholder="Buscar eventos..."
+            onSubmit={(e)=>{redirect('/user-login/web/eventos/buscar?search='+e.currentTarget.innerText)}}
             className="search-input"
           />
         </div>
