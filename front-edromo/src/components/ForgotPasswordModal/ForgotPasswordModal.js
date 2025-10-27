@@ -1,99 +1,89 @@
+// src/components/ForgotPasswordModal/ForgotPasswordModal.jsx
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import styles from "./ForgotPasswordModal.module.css";
-import {
-  verificarCorreoExistente,
-  enviarCorreoRecuperacion,
-} from "@/services/loginService";
+import { enviarCorreoRecuperacion } from "@/services/loginService";
 
 const ForgotPasswordModal = ({ isOpen, onClose }) => {
-  const router = useRouter();
   const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState(""); // 'success' o 'error'
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleClose = () => {
+    onClose();
+    setTimeout(() => {
+      setEmail("");
+      setMessage("");
+      setMessageType("");
+      setIsLoading(false);
+    }, 300);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess(false);
     setIsLoading(true);
+    setMessage("");
 
     try {
-      // PRIMERO, verificamos que el correo exista para no dar pistas a atacantes
-      const verificationResponse = await verificarCorreoExistente(email);
-
-      if (verificationResponse && verificationResponse.data.exists) {
-        // ✅ SI EL CORREO EXISTE, AHORA PEDIMOS AL BACKEND QUE ENVÍE EL EMAIL
-        await enviarCorreoRecuperacion(email);
-
-        // Si la línea anterior no lanzó un error, todo fue bien
-        setSuccess(true);
-
-        // Redirigimos después de mostrar el mensaje
-        setTimeout(() => {
-          onClose();
-          router.push("/auth/login"); // O la ruta de tu login
-        }, 3000);
-      } else {
-        // Si el correo no existe, mostramos un error genérico por seguridad
-        setError("Si su correo está registrado, recibirá un enlace.");
-        // Opcional: podrías poner setSuccess(true) aquí también para no revelar si un email existe o no.
-      }
+      await enviarCorreoRecuperacion(email);
+      setMessageType("success");
+      setMessage(
+        "Se ha enviado un enlace a tu correo electrónico para restablecer tu contraseña."
+      );
     } catch (err) {
-      setError("Ocurrió un error. Por favor, inténtelo de nuevo más tarde.");
-      console.error(err);
+      setMessageType("error");
+      setMessage(
+        "El correo electrónico no está registrado. Por favor, verifica e intenta de nuevo."
+      );
+      console.error("Error capturado en el modal:", err.message);
     } finally {
-      setIsLoading(false); // Terminamos de cargar
+      setIsLoading(false);
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div
-      className={styles.modalOverlay}
-      onClick={(e) => {
-        // Solo cerrar si se hace clic en el overlay y no hay mensaje de éxito
-        if (e.target === e.currentTarget && !success) {
-          onClose();
-        }
-      }}
-    >
+    <div className={styles.modalOverlay} onClick={handleClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <button
-          className={styles.closeButton}
-          onClick={onClose}
-          style={{ display: success ? "none" : "block" }}
-        >
-          ×
-        </button>
-        <h2>Recuperar Contraseña</h2>
+        <div className={styles.modalHeader}>
+          <h2 className={styles.modalTitle}>Recuperar Contraseña</h2>
+          <button className={styles.closeButton} onClick={handleClose}>
+            ×
+          </button>
+        </div>
 
-        {success ? (
-          <div className={styles.successMessage}>
-            Se ha enviado un enlace a tu correo electrónico para restablecer tu
-            contraseña.
+        {/* El mensaje de éxito o error se mostrará aquí, encima del formulario */}
+        {message && (
+          <div className={`${styles.message} ${styles[messageType]}`}>
+            {message}
           </div>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            {error && <div className={styles.errorMessage}>{error}</div>}
-            <div className={styles.inputGroup}>
-              <label htmlFor="recovery-email">Correo Electrónico</label>
-              <input
-                type="email"
-                id="recovery-email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="Ingresa tu correo electrónico"
-              />
-            </div>
-            <button type="submit" className={styles.submitButton}>
-              Enviar
-            </button>
-          </form>
         )}
+
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <div className={styles.inputGroup}>
+            <label htmlFor="recovery-email" className={styles.label}>
+              Correo Electrónico
+            </label>
+            <input
+              type="email"
+              id="recovery-email"
+              className={styles.input}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="tu-correo@ejemplo.com"
+              disabled={isLoading}
+            />
+          </div>
+          <button
+            type="submit"
+            className={styles.submitButton}
+            disabled={isLoading}
+          >
+            {isLoading ? "Enviando..." : "Enviar"}
+          </button>
+        </form>
       </div>
     </div>
   );
