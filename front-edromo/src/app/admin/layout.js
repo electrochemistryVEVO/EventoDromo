@@ -1,4 +1,5 @@
 import "@/css/user-style.css";
+import Navbar from "@/components/Layouts/navbar/navbar_admin.jsx";
 
 export const metadata = {
   title: "Eventodromo Admin",
@@ -8,7 +9,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <>
-      <body>{children}</body>
+      <body>
+        <Navbar />
+        {children}
+      </body>
     </>
   );
 }

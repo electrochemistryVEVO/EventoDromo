@@ -4,31 +4,6 @@
 
 import { autenticarUsuario } from "@/services/loginService.js";
 // 📡 Importa una función llamada `autenticarUsuario` desde `service.js`.
-// Esa función probablemente hace la llamada al backend (por ejemplo con fetch o axios)
-// para verificar si el correo y contraseña son correctos.
-
-import { verificarCorreoExistente } from "@/services/loginService.js";
-
-export async function validarCorreo(email) {
-  try {
-    if (!email) {
-      return { error: "Debe ingresar un correo antes de continuar" };
-    }
-
-    const response = await verificarCorreoExistente(email);
-
-    if (response.exists) {
-      // ✅ Correo válido
-      return { success: true };
-    } else {
-      return { error: "El correo no está registrado" };
-    }
-  } catch (error) {
-    console.error("Error al validar correo:", error);
-    return { error: "Error al verificar el correo" };
-  }
-}
-
 // 📤 Esta función se exporta y se usa en `page.js` cuando se envía el formulario
 export async function onSubmit(formData) {
   try {
@@ -64,7 +39,7 @@ export async function onSubmit(formData) {
         rol,
         token, // 🔹 Lo devolvemos también al page.js
       };
-    }else {
+    } else {
       // ❌ Si el backend respondió que las credenciales son incorrectas:
       return { error: "Credenciales inválidas" };
     }
