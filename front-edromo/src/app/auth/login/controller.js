@@ -7,6 +7,28 @@ import { autenticarUsuario } from "@/services/loginService.js";
 // Esa función probablemente hace la llamada al backend (por ejemplo con fetch o axios)
 // para verificar si el correo y contraseña son correctos.
 
+import { verificarCorreoExistente } from "@/services/loginService.js";
+
+export async function validarCorreo(email) {
+  try {
+    if (!email) {
+      return { error: "Debe ingresar un correo antes de continuar" };
+    }
+
+    const response = await verificarCorreoExistente(email);
+
+    if (response.exists) {
+      // ✅ Correo válido
+      return { success: true };
+    } else {
+      return { error: "El correo no está registrado" };
+    }
+  } catch (error) {
+    console.error("Error al validar correo:", error);
+    return { error: "Error al verificar el correo" };
+  }
+}
+
 // 📤 Esta función se exporta y se usa en `page.js` cuando se envía el formulario
 export async function onSubmit(formData) {
   try {
@@ -25,24 +47,24 @@ export async function onSubmit(formData) {
     // En lugar de usar cookies del servidor, aquí se usa sessionStorage (propio del navegador)
     // Esto permite que la sesión se mantenga mientras la pestaña esté abierta.
     if (response.success) {
-      //const cliente = response.cliente;
       const rol = response.rol;
+      const token = response.token; // 🔹 Capturamos el token recibido del backend
 
-      // Guarda toda la información del cliente
+      // Guardamos toda la info de sesión
       sessionStorage.setItem(
         "session",
         JSON.stringify({
-          //cliente,
           rol,
+          token, // 🔹 Guardamos el token
         })
       );
 
       return {
-        success: true, //es obligatorio para que page.js sepa que fue exitoso aunque en el json de respuesta ya se envia un succes true porque si no no entra al if en page.js
+        success: true,
         rol,
-        //cliente,
+        token, // 🔹 Lo devolvemos también al page.js
       };
-    } else {
+    }else {
       // ❌ Si el backend respondió que las credenciales son incorrectas:
       return { error: "Credenciales inválidas" };
     }

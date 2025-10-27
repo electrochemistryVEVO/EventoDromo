@@ -1,7 +1,7 @@
 export async function autenticarUsuario(loginInfo) {
   //link q funciona en individual: http://localhost:5189/api/Cliente/AutenticarLoginCliente"
   //link q funciona en docker: http://localhost:8081/api/Cliente/AutenticarLoginCliente"
-  /*const res = await fetch("http://localhost:5189/api/Cliente/AutenticarLoginCliente", {
+  const res = await fetch("http://localhost:5189/api/Cliente/AutenticarLoginCliente", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -15,15 +15,42 @@ export async function autenticarUsuario(loginInfo) {
   if(json.success===false){
     throw new Error(json.error || json.mensaje || "Error en respuesta del servicio");
   }
-  return json.data; */
+  return json.data;
 
+  /*
   // Simulación de una llamada al backend
   console.log(" MODO HARDCODEADO: Devolviendo respuesta de login simulada.");
   await new Promise((resolve) => setTimeout(resolve, 500)); // Espera 0.5 segundos
   return {
     success: true,
     rol: "C",
-  };
+  */
+};
+
+export async function verificarCorreoExistente(email) {
+  try {
+    const res = await fetch(`http://localhost:5189/api/Cliente/VerificarCorreoCliente?email=${encodeURIComponent(email)}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error("Error al consultar el correo (status:" + res.status + ")");
+    }
+
+    const json = await res.json();
+
+    // Asumimos que el backend devuelve { exists: true/false }
+    return json.data;//el propio contenido del json que haré dentro tenga exists como campo.
+  } catch (error) {
+    console.error("Error en el servicio verificarCorreoExistente:", error);
+    throw error;
+  }
+};
+
+
   /*
   try {
     const res = await fetch("http://localhost:5189/api/Cliente/AutenticarLoginCliente", {
@@ -50,4 +77,4 @@ export async function autenticarUsuario(loginInfo) {
     throw error;
   }
     */
-}
+

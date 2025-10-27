@@ -1,4 +1,9 @@
-﻿using EventodromoRest.Modelos;
+﻿//para token
+using EventodromoRest.Servicios;
+using System.IdentityModel.Tokens.Jwt;
+
+
+using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
 using Microsoft.AspNetCore.Mvc;
@@ -8,11 +13,62 @@ namespace EventodromoRest.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    public class ClienteController (Globales.Globales globales, DBManager.DBManager BD) : BaseController
+    public class ClienteController (Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
         private readonly Globales.Globales globales = globales;
+        private readonly TokenService tokenService = tokenService;
 
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<LoginResponse> AutenticarLoginCliente([FromBody] RequestAutenticarCliente request)
+        {
+            try
+            {
+                ValidarBody(request);
+                var loginResponse = new ClienteBO(globales, BD)
+                    .AutenticarCliente(request.Correo, request.Password);
+
+                if (!loginResponse.success)
+                {
+                    return new GenericResponse<LoginResponse>
+                    {
+                        Success = false,
+                        Message = "Credenciales inválidas",
+                        Error = null,
+                        Data = null
+                    };
+                }
+
+                // 🔐 Generar token JWT con el idCliente
+                var token = tokenService.GenerarToken(loginResponse.idCliente);
+                loginResponse.token = token; // Guarda el token en el response
+
+                var response = new GenericResponse<LoginResponse>
+                {
+                    Success = true,
+                    Message = "Autenticación exitosa",
+                    Error = null,
+                    Data = loginResponse
+                };
+
+                return response;
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<LoginResponse>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+        /* sin el token
         [HttpPost]
         [Route("/api/[controller]/[action]")]
         public GenericResponse<LoginResponse> AutenticarLoginCliente([FromBody] RequestAutenticarCliente request)
@@ -46,6 +102,7 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
+        */
         //sin esto no funciona el nuevo servicio
         [HttpPost]
         [Route("/api/[controller]/[action]")]
@@ -77,6 +134,68 @@ namespace EventodromoRest.Controllers
                     Data = null
                 };
                 AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+        [HttpGet]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<DatosSignUp> ObtenerDatosSignUp()
+        {
+            try
+            {
+                var datos = new ClienteBO(globales, BD).ObtenerDatosSignUp();
+
+                return new GenericResponse<DatosSignUp>
+                {
+                    Success = true,
+                    Message = "Datos obtenidos correctamente",
+                    Error = null,
+                    Data = datos
+                };
+            }
+            catch (Exception ex)
+            {
+                var response = new GenericResponse<DatosSignUp>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = ex.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(ex, "{}", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+        [HttpGet]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<VerificarCorreoResponse> VerificarCorreoCliente(string email)
+        {
+            try
+            {
+                var rpta = new ClienteBO(globales, BD).verificarCorreoCliente(email);
+
+                return new GenericResponse<VerificarCorreoResponse>
+                {
+                    Success = true,
+                    Message = "Correo existe",
+                    Error = null,
+                    Data = rpta
+                };
+            }
+            catch (Exception ex)
+            {
+                var response = new GenericResponse<VerificarCorreoResponse>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = ex.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(ex, "{}", JsonSerializer.Serialize(response));
                 return response;
             }
         }
