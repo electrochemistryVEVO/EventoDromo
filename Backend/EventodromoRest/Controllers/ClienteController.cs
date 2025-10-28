@@ -445,5 +445,88 @@ namespace EventodromoRest.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("/api/[controller]/fetchUserData")]
+        public GenericResponse<FetchUserDataResponse> FetchUserData()
+        {
+            try
+            {
+                // 1️⃣ Leer el token de la cabecera
+                var authHeader = Request.Headers["Authorization"].ToString();
+
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<FetchUserDataResponse>
+                    {
+                        Success = false,
+                        Message = "Token no proporcionado o inválido.",
+                        Error = null,
+                        Data = new FetchUserDataResponse
+                        {
+                            status = "error",
+                            message = "Token no proporcionado o inválido."
+                        }
+                    };
+                }
+
+                // 2️⃣ Extraer el token y obtener el ID del cliente
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idCliente = tokenService.ObtenerIdDesdeToken(token);
+
+                if (idCliente == null)
+                {
+                    return new GenericResponse<FetchUserDataResponse>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = null,
+                        Data = new FetchUserDataResponse
+                        {
+                            status = "error",
+                            message = "Token inválido o expirado."
+                        }
+                    };
+                }
+
+                // 3️⃣ Consultar el nombre del cliente
+                var response = new ClienteBO(globales, BD).ObtenerNombrePorId(idCliente.Value);
+
+                if (response.status!="success")
+                {
+                    return new GenericResponse<FetchUserDataResponse>
+                    {
+                        Success = false,
+                        Message = "No se pudo obtener la información del usuario.",
+                        Error = null,
+                        Data = response
+                    };
+                }
+
+                // 4️⃣ Éxito
+                return new GenericResponse<FetchUserDataResponse>
+                {
+                    Success = true,
+                    Message = "Usuario encontrado.",
+                    Error = null,
+                    Data = response
+                };
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<FetchUserDataResponse>
+                {
+                    Success = false,
+                    Message = "Error en el servidor.",
+                    Error = e.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(e, "SinBody", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+
+
     }
 }

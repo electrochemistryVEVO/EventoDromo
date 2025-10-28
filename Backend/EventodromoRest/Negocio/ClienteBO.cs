@@ -216,5 +216,30 @@ namespace EventodromoRest.Negocio
             return response;
         }
 
+        public FetchUserDataResponse ObtenerNombrePorId(int idCliente)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            Cliente cliente = mapper.ObtenerClientePorId(idCliente);
+            if(cliente!=null)
+            {
+                return new FetchUserDataResponse
+                {
+                    status = "success",
+                    message = "Usuario encontrado.",
+                    name = $"{cliente.nombres} {cliente.apellidos}"
+                };
+            }
+            else
+            {
+                return new FetchUserDataResponse
+                {
+                    status = "error",
+                    message = "Usuario no encontrado.",
+                    name = null
+                };
+            }
+            
+        }
+
     }
 }
