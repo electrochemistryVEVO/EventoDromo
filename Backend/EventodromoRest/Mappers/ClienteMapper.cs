@@ -232,6 +232,19 @@ namespace EventodromoRest.Mappers
             }
         }
 
+        public bool ModificarClienteContrasenaPorId(int id, string nuevaContrasena)
+        {
+            lock (DB)
+            {
+                string query = "UPDATE Cliente SET passwordHash = @passwordHash WHERE id = @id";
+                var parametros = new ParameterList();
+                parametros.Add("@passwordHash", nuevaContrasena);
+                parametros.Add("@id", id);
+                int rowsAffected = DB.ExecuteNonQuery(query, parametros);
+                return rowsAffected > 0;
+            }
+        }
+
         private Sexo ObtenerSexoPorId(int id)
         {
             var sexoMapper = new SexoMapper(globales, DB);
@@ -272,6 +285,20 @@ namespace EventodromoRest.Mappers
                 fechaultimaedicion = DB.IsDBNull("fechaUltimaEdicion") ? (DateTime?)null : DB.GetDateTime("fechaUltimaEdicion"),
                 fechaultimasession = DB.IsDBNull("fechaUltimaSesion") ? (DateTime?)null : DB.GetDateTime("fechaUltimaSesion"),
             };
+        }
+
+        public bool VerificarContrasenaPorIdContrasena(int id, string password)
+        {
+            lock (DB)
+            {
+                string query = "SELECT COUNT(*) FROM Cliente WHERE id = @id AND passwordHash = @passwordHash";
+                var parametros = new ParameterList();
+                parametros.Add("@id", id);
+                parametros.Add("@passwordHash", password);//recuerda que de antes en BO se hacen los hasheos.
+                object result = DB.ExecuteScalar(query, parametros);
+                int count = Convert.ToInt32(result);
+                return count > 0;
+            }
         }
     }
 }

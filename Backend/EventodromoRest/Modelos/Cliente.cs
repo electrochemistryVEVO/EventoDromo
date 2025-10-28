@@ -100,4 +100,27 @@
     {
         public required bool exists { get; set; }
     }
+
+    public class RequestVerificarContrasenaRecuperar
+    {
+        public required string currentPassword { get; set; }
+    }
+
+    public class VerificarContrasenaRecuperarResponse
+    {
+        public required string status { get; set; }
+        public required string message { get; set; }
+    }
+
+    public class RequestActualizarContrasena
+    {
+        public required string newPassword { get; set; }
+    }
+
+    public class ActualizarContrasenaResponse
+    {
+        public required string status { get; set; }
+        public required string message { get; set; }
+    }
+
 }
