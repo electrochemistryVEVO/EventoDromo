@@ -47,19 +47,19 @@ namespace EventodromoRest.Negocio
                     var nuevoEvento = new EventosLocalCiudadCategoriaDTO 
                     {
                         id = e.id,
-                        nombre = e.nombre,
+                        nombreEvento = e.nombre,
                         nombreLocal = local.nombre,
-                        ciudad = ciudad.nombre,
-                        categoria = tipoEvento.nombre,
-                        fecha = e.fechaProximoEvento.ToString("yyyy-MM-dd")
+                        nombreCiudad = ciudad.nombre,
+                        nombreCategoria = tipoEvento.nombre,
+                        fechaEvento = e.fechaProximoEvento
                     };
                     eventosResponse.Add(nuevoEvento);
                     var nuevoLocal = new LocalCiudadImagenDTO
                     {
-                        id = local.id,
-                        nombre = local.nombre,
-                        ciudad = ciudad.nombre,
-                        imagen = e.imagenURL
+                        idLocal = local.id,
+                        nombreLocal = local.nombre,
+                        nombreCiudad = ciudad.nombre,
+                        imagenURL = e.imagenURL
                     };
                     localesResponse.Add(nuevoLocal);
                 }
@@ -71,7 +71,7 @@ namespace EventodromoRest.Negocio
                     Data = new ResponseListarEventosYLocales
                     {
                         eventos = eventosResponse,
-                        locales = localesResponse.DistinctBy(l => l.id).ToList()
+                        locales = localesResponse.DistinctBy(l => l.idLocal).ToList()
                     }
                 };
             }
