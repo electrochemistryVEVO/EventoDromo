@@ -18,7 +18,20 @@ export const useChangePasswordController = () => {
     event.preventDefault(); // Evita que la página se recargue.
 
     // Obtienes el token guardado después del login
-    const userToken = sessionStorage.getItem("token");
+    // 1. Obtener el STRING que está guardado bajo la clave "session"
+    const sessionJSON = sessionStorage.getItem("session");
+
+    // Variable para guardar el token final
+    let userToken = null;
+
+    // 2. MUY IMPORTANTE: Verificar que el dato exista antes de continuar
+    if (sessionJSON) {
+      // 3. Convertir (parsear) la cadena JSON a un objeto de JavaScript real
+      const sessionData = JSON.parse(sessionJSON);
+
+      // 4. Ahora sí, acceder a la propiedad "token" del objeto
+      userToken = sessionData.token;
+    }
 
     // Limpiamos errores previos y activamos el estado de carga.
     setError("");
@@ -33,7 +46,10 @@ export const useChangePasswordController = () => {
     try {
       // Llamamos a la función del servicio.
       if (userToken) {
-        const resultado = await verifyCurrentPassword(password, userToken);
+        const resultado = await verifyCurrentPassword(
+          currentPassword,
+          userToken
+        );
         console.log("¡Contraseña verificada con éxito!", resultado);
         // Si la función anterior no lanzó un error, la contraseña es correcta.
         // Navegamos al siguiente paso del flujo.

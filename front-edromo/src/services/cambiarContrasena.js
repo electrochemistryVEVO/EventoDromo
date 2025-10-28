@@ -89,32 +89,13 @@ export const verifyCurrentPassword = async (currentPassword, token) => {
 // ... (la función verifyCurrentPassword que ya tienes se queda igual)
 
 /**
- * --- SIMULACIÓN ---
  * Envía la nueva contraseña para ser actualizada.
  * @param {string} newPassword - La nueva contraseña a guardar.
  * @returns {Promise<Object>} - Una promesa que simula una respuesta exitosa.
  */
-/*
-export const updatePassword = async (newPassword) => {
-  console.log(
-    `Simulando actualización. Nueva contraseña enviada: "${newPassword}"`
-  );
-
-  // Simulamos una llamada a la API que siempre tiene éxito.
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log("Simulación: ¡Contraseña actualizada con éxito!");
-      resolve({
-        status: "success",
-        message: "Tu contraseña ha sido cambiada exitosamente.",
-      });
-    }, 1500); // Simulamos 1.5 segundos de espera.
-  });
-};
-*/
 // --- CÓDIGO REAL PARA EL BACKEND (para el futuro) ---
 
-export const updatePassword = async (newPassword) => {
+export const updatePassword = async (newPassword, token) => {
   const API_URL = "http://localhost:5189/api/Cliente/ActualizarContrasena";
 
   try {
