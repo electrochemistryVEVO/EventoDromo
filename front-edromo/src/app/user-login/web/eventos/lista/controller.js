@@ -1,46 +1,56 @@
-import { getPaginaEventosData } from "@/services/service.js";
-
-//NOTA: En lo posible, usar componentes de react-bootstrap en vez de usar las clases manualmente
-//Usar las clases manualmente no implementa el javascript necesario para el funcionamiento de algunos elementos
+// --- 1. Importa la función principal del servicio ---
+import { getPaginaEventosData } from "@/services/service.js"; // O serviceEventos.js si lo renombraste
 
 /**
- * Controller que obtiene todos los datos necesarios para la página de lista de eventos.
- * Utiliza la nueva función unificada 'getPaginaEventosData'.
+ * Controller que obtiene datos para la página, acepta filtros y agrupa dinámicamente por categoría.
+ * @param {object} searchParams - Objeto con los parámetros de la URL (filtros).
  */
-export async function obtenerDatosParaPagina() {
-  // Hacemos todas las llamadas al servicio en paralelo para mayor eficiencia.
-  // Cada llamada pide los eventos con un filtro de categoría diferente.
-  // NOTA: Asumimos que los nombres de las categorías son "Conciertos", "Deportes", etc.
-  // ¡Debes verificar que estos nombres coincidan con los datos reales en tu JSON o base de datos!
-  const [
-    respuestaDestacados, // Contiene { eventos, locales }
-    respuestaConciertos, // Contiene { eventos, locales }
-    respuestaDeportes,
-    respuestaCulturales,
-  ] = await Promise.all([
-    // Para "destacados", traemos eventos sin filtro de categoría. Podrías añadir un límite si lo necesitas.
-    getPaginaEventosData({}),
+export async function obtenerDatosParaPagina(searchParams) {
+  // Extraer los filtros relevantes de searchParams (sin cambios)
+  const filters = {
+    categoria: searchParams?.categoria,
+    ciudad: searchParams?.ciudad,
+    precioMin: searchParams?.precioMin,
+    precioMax: searchParams?.precioMax,
+    fechaInicio: searchParams?.fechaInicio,
+    fechaFin: searchParams?.fechaFin,
+    busqueda: searchParams?.busqueda,
+  };
 
-    // Equivalente a getEventosPorTipo(1)
-    getPaginaEventosData({ categoria: "Conciertos" }),
+  try {
+    // --- 2. Llama a la nueva función del servicio ---
+    // Obtiene tanto eventos (ya filtrados por el servicio si aplica) como locales
+    const { eventos: eventosFiltrados, locales } = await getPaginaEventosData(
+      filters
+    );
 
-    // Equivalente a getEventosPorTipo(2)
-    getPaginaEventosData({ categoria: "Deportes" }),
+    // 3. Agrupar los eventos filtrados dinámicamente por categoría (sin cambios)
+    const eventosPorCategoria = eventosFiltrados.reduce((acc, evento) => {
+      const categoria = evento.categoria || "Sin Categoría";
+      if (!acc[categoria]) {
+        acc[categoria] = [];
+      }
+      acc[categoria].push(evento);
+      return acc;
+    }, {});
 
-    // Equivalente a getEventosPorTipo(3)
-    getPaginaEventosData({ categoria: "Culturales" }),
-  ]);
+    // 4. Definir los eventos destacados (sin cambios)
+    const destacados = eventosFiltrados.slice(0, 4);
 
-  // Ahora, extraemos las listas de eventos de cada respuesta.
-  const destacados = respuestaDestacados.eventos;
-  const conciertos = respuestaConciertos.eventos;
-  const deportes = respuestaDeportes.eventos;
-  const culturales = respuestaCulturales.eventos;
-
-  // La lista de locales viene en cada respuesta. Tomamos la de la primera llamada,
-  // ya que debería ser la misma en todas.
-  const locales = respuestaDestacados.locales;
-
-  // Devolvemos el objeto final con la misma estructura que tu componente de página espera.
-  return { destacados, conciertos, deportes, culturales, locales };
+    // 5. Devolver un objeto con los datos procesados (sin cambios)
+    return {
+      destacados,
+      eventosPorCategoria,
+      locales,
+    };
+  } catch (error) {
+    // Manejo de error si la llamada al servicio falla
+    console.error("Error en obtenerDatosParaPagina:", error);
+    // Devuelve datos vacíos para que la página no se rompa completamente
+    return {
+      destacados: [],
+      eventosPorCategoria: {},
+      locales: [],
+    };
+  }
 }

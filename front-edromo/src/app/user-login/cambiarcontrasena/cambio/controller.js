@@ -5,7 +5,29 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { updatePassword } from "@/services/cambiarContrasena.js";
 
-// Regex para las validaciones
+// --- BUENA PRÁCTICA: Función auxiliar reutilizable ---
+// Esta función se encarga de una sola cosa: obtener el token de la sesión.
+// La puedes mover a un archivo de utilidades (ej: src/utils/auth.js) para usarla en todo tu proyecto.
+const getTokenFromSession = () => {
+  // Verificamos si estamos en el navegador para evitar errores en el servidor
+  if (typeof window === "undefined" || !window.sessionStorage) {
+    return null;
+  }
+
+  const sessionJSON = sessionStorage.getItem("session");
+  if (sessionJSON) {
+    try {
+      const sessionData = JSON.parse(sessionJSON);
+      return sessionData.token || null; // Devuelve el token o null si no existe
+    } catch (e) {
+      console.error("Error al parsear los datos de la sesión:", e);
+      return null;
+    }
+  }
+  return null;
+};
+
+// Regex para las validaciones (esto está perfecto)
 const REGEX = {
   upper: /[A-Z]/,
   lower: /[a-z]/,
@@ -19,9 +41,8 @@ export const useChangePasswordStep2Controller = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false); // Para mostrar la pantalla de éxito
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  // Estado para las validaciones en tiempo real
   const [validations, setValidations] = useState({
     hasUpper: false,
     hasLower: false,
@@ -29,7 +50,7 @@ export const useChangePasswordStep2Controller = () => {
     hasSpecial: false,
   });
 
-  // Este useEffect se ejecuta cada vez que el usuario escribe en el campo de nueva contraseña
+  // Este useEffect sigue estando perfecto.
   useEffect(() => {
     setValidations({
       hasUpper: REGEX.upper.test(newPassword),
@@ -43,30 +64,41 @@ export const useChangePasswordStep2Controller = () => {
     event.preventDefault();
     setError("");
 
-    // 1. Verificar que las contraseñas no estén vacías
+    // --> PASO 1: Obtener el token usando nuestra nueva función auxiliar.
+    const userToken = getTokenFromSession();
+
+    // --> PASO 2: Validar la existencia del token ANTES de hacer cualquier otra cosa (Fail-Fast).
+    if (!userToken) {
+      setError(
+        "Tu sesión ha expirado o no es válida. Por favor, inicia sesión de nuevo."
+      );
+      // Opcionalmente, podrías redirigir al login aquí.
+      // router.push("/user-login");
+      return;
+    }
+
+    // 3. Validaciones del formulario (esto ya estaba bien).
     if (!newPassword || !confirmPassword) {
       setError("Ambos campos son obligatorios.");
       return;
     }
-
-    // 2. Verificar que las contraseñas coincidan
     if (newPassword !== confirmPassword) {
       setError("Las contraseñas no coinciden.");
       return;
     }
-
-    // 3. Verificar que se cumplan todas las reglas
     const allValid = Object.values(validations).every((v) => v);
     if (!allValid) {
       setError("La contraseña no cumple con todos los requisitos.");
       return;
     }
 
-    // 4. Si todo es correcto, llamar al servicio
+    // 4. Si todo es correcto, llamar al servicio con los datos necesarios.
     setIsLoading(true);
     try {
-      await updatePassword(newPassword);
-      setIsSuccess(true); // ¡Éxito! Cambiamos el estado para mostrar la vista final
+      // --> PASO 3: Llamar al servicio pasando la nueva contraseña Y el token.
+      await updatePassword(newPassword, userToken);
+
+      setIsSuccess(true); // ¡Éxito!
     } catch (err) {
       setError(err.message || "Ocurrió un error al cambiar la contraseña.");
     } finally {
@@ -75,11 +107,10 @@ export const useChangePasswordStep2Controller = () => {
   };
 
   const handleCancel = () => {
-    router.back(); // Vuelve a la página anterior
+    router.back();
   };
 
   const handleFinish = () => {
-    // Redirige al perfil o al dashboard cuando el proceso termina
     router.push("/user-login/web/eventos/lista");
   };
 
