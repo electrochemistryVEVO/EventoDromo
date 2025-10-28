@@ -4,6 +4,7 @@ using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+
 namespace EventodromoRest.Negocio
 {
     public class EventoBO(Globales.Globales globales, DBManager.DBManager DB)
@@ -44,6 +45,9 @@ namespace EventodromoRest.Negocio
                     var local = localMapper.ObtenerLocalPorId(e.idLocal);
                     var ciudad = ciudadMapper.ObtenerCiudadPorId(local.idCiudad);
                     var tipoEvento = tipoEventoMapper.ObtenerTipoEventoPorId(e.idTipoEvento);
+
+                    double precioMinimo = obtenerPrecioMinimoEvento(e);
+
                     var nuevoEvento = new EventosLocalCiudadCategoriaDTO
                     {
                         id = e.id,
@@ -51,7 +55,9 @@ namespace EventodromoRest.Negocio
                         nombreLocal = local.nombre,
                         ciudad = ciudad.nombre,
                         categoria = tipoEvento.nombre,
-                        fecha = e.fechaProximoEvento.ToString("yyyy-MM-dd")
+                        precio = precioMinimo,
+                        fecha = e.fechaProximoEvento.ToString("yyyy-MM-dd"),
+                        imagen = e.imagenURL,
                     };
                     eventosResponse.Add(nuevoEvento);
                     var nuevoLocal = new LocalCiudadImagenDTO
@@ -75,6 +81,14 @@ namespace EventodromoRest.Negocio
                     }
                 };
             }
+        }
+
+        private double obtenerPrecioMinimoEvento(EventoActivoProxFechaDTO e)
+        {
+            FechaEvento fechaEvento = new FechaEventoMapper(globales, DB).ListarFechaEventoPorEvento(e.id)[0];
+            List<TipoEntrada> tipoEntradas = new TipoEntradaMapper(globales, DB).ListarTipoEntradaPorFechaEvento((int)fechaEvento.id); //raro
+
+            return double.Parse(tipoEntradas.Min(t => t.precio).ToString());
         }
     }
 }
