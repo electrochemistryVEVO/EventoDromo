@@ -4,6 +4,7 @@
  * @param {string} currentPassword - La contraseña que el usuario ingresó.
  * @returns {Promise<Object>} - Una promesa que resuelve o se rechaza para simular la respuesta del backend.
  */
+/*
 export const verifyCurrentPassword = async (currentPassword) => {
   // Definimos cuál será la contraseña "correcta" para nuestra simulación.
   const MOCK_CORRECT_PASSWORD = "password123";
@@ -35,15 +36,23 @@ export const verifyCurrentPassword = async (currentPassword) => {
     }, 1500); // Simulamos una espera de 1.5 segundos.
   });
 };
+*/
 /**
  * Verifica la contraseña actual del usuario contra el backend.
  * @param {string} currentPassword - La contraseña que el usuario ingresó.
  * @returns {Promise<Object>} - Una promesa que resuelve con la respuesta del backend.
  */
-/*
-export const verifyCurrentPassword = async (currentPassword) => {
+
+export const verifyCurrentPassword = async (currentPassword, token) => {
   // IMPORTANTE: Reemplaza esta URL con el endpoint real de tu backend.
-  const API_URL = "https://tu-backend.com/api/v1/user/verify-password";
+  const API_URL =
+    "http://localhost:5189/api/Cliente/VerificarContrasenaRecuperar";
+
+  // Verificación: Asegúrate de que el token se está recibiendo.
+  if (!token) {
+    // Si no hay token, no tiene sentido hacer la llamada. Lanza un error.
+    throw new Error("Token de autenticación no proporcionado al servicio.");
+  }
 
   try {
     const response = await fetch(API_URL, {
@@ -51,9 +60,9 @@ export const verifyCurrentPassword = async (currentPassword) => {
       headers: {
         "Content-Type": "application/json",
         // Si usas autenticación por token (JWT), deberías incluirlo aquí.
-        // 'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ password: currentPassword }),
+      body: JSON.stringify({ currentPassword: currentPassword }),
     });
 
     // Si la respuesta no es exitosa (ej: 401 Contraseña incorrecta),
@@ -73,7 +82,7 @@ export const verifyCurrentPassword = async (currentPassword) => {
     console.error("Error en el servicio de verificación:", error);
     throw error;
   }
-};*/
+};
 
 // src/service/service-changePassword.js
 
@@ -85,6 +94,7 @@ export const verifyCurrentPassword = async (currentPassword) => {
  * @param {string} newPassword - La nueva contraseña a guardar.
  * @returns {Promise<Object>} - Una promesa que simula una respuesta exitosa.
  */
+/*
 export const updatePassword = async (newPassword) => {
   console.log(
     `Simulando actualización. Nueva contraseña enviada: "${newPassword}"`
@@ -101,32 +111,33 @@ export const updatePassword = async (newPassword) => {
     }, 1500); // Simulamos 1.5 segundos de espera.
   });
 };
-
-/*
+*/
 // --- CÓDIGO REAL PARA EL BACKEND (para el futuro) ---
 
 export const updatePassword = async (newPassword) => {
-  const API_URL = 'https://tu-backend.com/api/v1/user/update-password';
+  const API_URL = "http://localhost:5189/api/Cliente/ActualizarContrasena";
 
   try {
     const response = await fetch(API_URL, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        // 'Authorization': `Bearer ${token}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ newPassword: newPassword }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || 'No se pudo cambiar la contraseña.');
+      throw new Error(errorData.message || "No se pudo cambiar la contraseña.");
     }
 
     return await response.json();
   } catch (error) {
-    console.error("Error en el servicio de actualización de contraseña:", error);
+    console.error(
+      "Error en el servicio de actualización de contraseña:",
+      error
+    );
     throw error;
   }
 };
-*/

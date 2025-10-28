@@ -17,6 +17,9 @@ export const useChangePasswordController = () => {
   const handleSubmit = async (event) => {
     event.preventDefault(); // Evita que la página se recargue.
 
+    // Obtienes el token guardado después del login
+    const userToken = sessionStorage.getItem("token");
+
     // Limpiamos errores previos y activamos el estado de carga.
     setError("");
     setIsLoading(true);
@@ -29,12 +32,16 @@ export const useChangePasswordController = () => {
 
     try {
       // Llamamos a la función del servicio.
-      await verifyCurrentPassword(currentPassword);
-
-      // Si la función anterior no lanzó un error, la contraseña es correcta.
-      // Navegamos al siguiente paso del flujo.
-      // IMPORTANTE: Ajusta la ruta a la que corresponda.
-      router.push("/user-login/cambiarconstrasena/cambio");
+      if (userToken) {
+        const resultado = await verifyCurrentPassword(password, userToken);
+        console.log("¡Contraseña verificada con éxito!", resultado);
+        // Si la función anterior no lanzó un error, la contraseña es correcta.
+        // Navegamos al siguiente paso del flujo.
+        // IMPORTANTE: Ajusta la ruta a la que corresponda.
+        router.push("/user-login/cambiarcontrasena/cambio");
+      } else {
+        console.error("No se encontró token de usuario. Debes iniciar sesión.");
+      }
     } catch (err) {
       // Si el servicio lanzó un error, lo mostramos al usuario.
       setError(err.message);
