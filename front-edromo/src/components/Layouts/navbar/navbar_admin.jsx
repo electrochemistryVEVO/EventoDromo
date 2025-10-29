@@ -24,7 +24,7 @@ const navLinks = [
   },
   {
     name: "Eventos",
-    href: "/admin/eventos",
+    href: "/admin/eventos/gestion",
     icon: "/images/icon/icon-eventos-white.png",
     activeIcon: "/images/icon/icon-eventos-teal.png",
   },
