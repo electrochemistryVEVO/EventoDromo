@@ -15,17 +15,27 @@ const UserInfo = () => {
 
     useEffect(() => {
         // Asegurarnos de que sessionStorage solo se accede en el lado del cliente
-        if (typeof window !== 'undefined') {
-            const userDataString = sessionStorage.getItem('userData');
-            if (userDataString) {
-                const userData = JSON.parse(userDataString);
-                setUser({
-                    email: userData.email || 'No disponible',
-                    name: `${userData.nombre || ''} ${userData.apellido || ''}`.trim(),
-                    ciudad: userData.ciudad || 'No disponible',
-                    pais: userData.pais || 'No disponible'
-                });
-            }
+        if (typeof window === 'undefined') return;
+
+        const userDataString = sessionStorage.getItem('userData');
+        console.log('sessionStorage.userData ->', userDataString);
+
+        try {
+            const userData = JSON.parse(userDataString);
+            setUser({
+                email: userData.email || 'No disponible',
+                name: `${userData.nombre || ''} ${userData.apellido || ''}`.trim() || 'No disponible',
+                ciudad: userData.ciudad || 'No disponible',
+                pais: userData.pais || 'No disponible'
+            });
+        } catch (err) {
+            console.error('Error parsing sessionStorage userData:', err);
+            setUser({
+                email: 'No disponible',
+                name: 'No disponible',
+                ciudad: 'No disponible',
+                pais: 'No disponible'
+            });
         }
     }, []);
 
