@@ -91,11 +91,10 @@ function EntradaDetallePage() {
               }}
             >
               <img
-                src="/assets/logos/icono_carrito.svg"
-                alt=""
+                src="/images/icon/carrito_blanco.svg"
+                alt="carrito_blanco"
                 width="24"
                 height="24"
-                style={{ filter: "brightness(0) invert(1)" }}
               />
               Finalizar Pedido
             </button>
