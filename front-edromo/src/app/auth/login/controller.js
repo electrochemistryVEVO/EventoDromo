@@ -7,7 +7,7 @@ import { autenticarUsuario } from "@/services/loginService.js";
 // Esa función probablemente hace la llamada al backend (por ejemplo con fetch o axios)
 // para verificar si el correo y contraseña son correctos.
 
-// 📤 Esta función se exporta y se usa en `page.js` cuando se envía el formulario
+// 📤 Esta función se exporta y se usa en `_page.js` cuando se envía el formulario
 export async function onSubmit(formData) {
   try {
     // 🧱 1. Construimos un objeto con los datos del formulario:
@@ -38,7 +38,7 @@ export async function onSubmit(formData) {
       );
 
       return {
-        success: true, //es obligatorio para que page.js sepa que fue exitoso aunque en el json de respuesta ya se envia un succes true porque si no no entra al if en page.js
+        success: true, //es obligatorio para que _page.js sepa que fue exitoso aunque en el json de respuesta ya se envia un succes true porque si no no entra al if en _page.js
         rol,
         //cliente,
       };

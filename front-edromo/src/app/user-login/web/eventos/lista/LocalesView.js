@@ -24,7 +24,7 @@ export function LocalesView({ locales }) {
                     <button className="ver-mas-btn">Ver más</button>
                 </div>
                 <div className="locales-row">
-                    {locales.map(local => (
+                    {locales.map((local) => (
                         <LocalCard key={local.id} local={local} />
                     ))}
                 </div>

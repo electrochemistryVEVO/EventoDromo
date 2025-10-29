@@ -1,21 +1,23 @@
-import { promises as fs } from 'fs';
+//import { readFile } from 'fs';
+//NOTA: Deshabilito funcion para leer de filesystem porque useffect requiere de un client component
 import path from 'path';
 
 // --- CONFIGURACIÓN ---
 // Cambia a 'true' para usar el backend real.
 // Cambia a 'false' para usar el archivo local 'eventos.json'.
 const USE_BACKEND = true;
-const BACKEND_URL = "https://localhost:8080/api/";
+const BACKEND_URL = "http://localhost:8080/api/";
 
 /**
  * Función genérica para obtener los datos, ya sea del backend o del archivo local.
  */
-async function fetchData(idTipoEvento=null,controller='Evento/ListarEventoPorTipo') {
+async function fetchData(idTipoEvento=null,controller='Evento/ListarEventosPorTipo') {
   let json;
 
   if (USE_BACKEND) {
     // --- Lógica para conectar al backend ---
     const res = idTipoEvento? await fetch(BACKEND_URL+controller,{
+      method: "POST",
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({idTipoEvento})
     }) : await fetch(BACKEND_URL+controller); // Aquí iría la URL real del backend
@@ -24,10 +26,13 @@ async function fetchData(idTipoEvento=null,controller='Evento/ListarEventoPorTip
     }
     json = await res.json();
   } else {
+
     // --- Lógica para leer el archivo local ---
+    /*
     const jsonPath = path.join(process.cwd(), 'public', 'data', 'eventos.json');
-    const fileContent = await fs.readFile(jsonPath, 'utf8');
-    json = JSON.parse(fileContent);
+    const fileContent = await readFile(jsonPath, 'utf8');
+    json = JSON.parse(fileContent);*/
+    json = []
   }
 
   // --- Lógica común para procesar la GenericResponse ---
@@ -44,12 +49,12 @@ async function fetchData(idTipoEvento=null,controller='Evento/ListarEventoPorTip
 
 export const getEventos = async () => {
   const data = await getEventosPorTipo(1);
-  return data.eventos ?? [];
+  return data ?? [];
 };
 
 export const getLocales = async () => {
-  const data = await fetchData(null,"Locales/ListarLocales");
-  return data.locales ?? [];
+  const data = await fetchData(null,"Local/ListarLocales");
+  return data ?? [];
 };
 
 export const getEventosPorTipo = async (tipo) => {

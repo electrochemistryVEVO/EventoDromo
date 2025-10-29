@@ -1,4 +1,5 @@
 import { getEventos, getEventosPorTipo, getLocales } from '@/services/service.js';
+import { useEffect } from 'react';
 
 //NOTA: En lo posible, usar componentes de react-bootstrap en vez de usar las clases manualmente
 //Usar las clases manualmente no implementa el javascript necesario para el funcionamiento de algunos elementos
@@ -8,12 +9,19 @@ import { getEventos, getEventosPorTipo, getLocales } from '@/services/service.js
  */
 export async function obtenerDatosParaPagina() {
   // Hacemos todas las llamadas al servicio en paralelo para mayor eficiencia
-  const [destacados, conciertos, deportes, culturales, locales] = await Promise.all([
-    getEventos(), // criterio de destacados pendiente
-    getEventosPorTipo(1),
-    getEventosPorTipo(2),
-    getEventosPorTipo(3),
-    getLocales(),
-  ]);
-  return { destacados, conciertos, deportes, culturales, locales };
+  let destacados = [];
+  let conciertos = [];
+  let deportes = [];
+  let culturales = [];
+  let locales = [];
+  [destacados, conciertos, deportes, culturales, locales] = [
+    await getEventos(), // criterio de destacados pendiente
+    await getEventosPorTipo(1),
+    await getEventosPorTipo(2),
+    await getEventosPorTipo(3),
+    []//await getLocales(),
+  ]
+  let data = { destacados, conciertos, deportes, culturales, locales };
+  console.log(data);
+  return data;
 }

@@ -17,7 +17,6 @@ services:
         networks:
             - backend
         entrypoint: ["/bin/bash", "/init.sh"]
-
     www:
         build: ./front-edromo/
         restart: unless-stopped
@@ -37,7 +36,6 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
-
     aspnet:
         build: ./Backend/EventodromoRest/
         restart: unless-stopped
@@ -46,7 +44,7 @@ services:
             PMA_USER: admin
             PMA_PASSWORD: 12345
         ports:
-            - "0.0.0.0:8080:8080"
+            - "8080:8080"
         depends_on:
             - db
         networks:

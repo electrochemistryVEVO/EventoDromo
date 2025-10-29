@@ -14,7 +14,7 @@ namespace EventodromoRest.Controllers
         //private readonly DBManager.DBManager BD = BD;
         //private readonly Globales.Globales globales = globales; 
 
-        [HttpPost]
+        [HttpGet]
         [Route("/api/[controller]/[action]")]
         public GenericResponse<IEnumerable<Local>> ListarLocales()
         {

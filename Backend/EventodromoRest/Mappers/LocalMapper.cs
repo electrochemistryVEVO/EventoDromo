@@ -22,7 +22,6 @@ namespace EventodromoRest.Mappers
                         id = DB.GetInt("ID"),
                         nombre = DB.GetString("NOMBRE"),
                         idCiudad = DB.GetInt("IDCIUDAD"),
-                        ciudad = ObtenerCiudadPorId(DB.GetInt("IDCIUDAD")),
                         direccion = DB.GetString("DIRECCION"),
                         capacidad = DB.GetInt("CAPACIDAD"),
                         isDeleted = DB.GetBoolean("ISDELETED"),
@@ -30,6 +29,11 @@ namespace EventodromoRest.Mappers
                         administrador = ObtenerAdministradorPorId(DB.GetInt("CREADOPOR")),
                     };
                     listaLocal.Add(local);
+                }
+
+                foreach (Local local in listaLocal)
+                {
+                    local.ciudad = ObtenerCiudadPorId(local.idCiudad);
                 }
                 return listaLocal;
             }

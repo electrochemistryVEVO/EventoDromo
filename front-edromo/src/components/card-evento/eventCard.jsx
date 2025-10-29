@@ -16,7 +16,7 @@ export default function EventCard({ event, isAuthenticated = false }) {
     <Link href={detailUrl} className="card h-100 card-evento-custom">
       {/* Contenedor para la imagen para controlar el overflow del zoom */}
       <div className="card-img-container">
-        <LazyImage imageUrl={event.imagen} />
+        <LazyImage imageUrl={event.imagenURL} />
       </div>
 
       <div className="card-body p-3 d-flex align-items-center">

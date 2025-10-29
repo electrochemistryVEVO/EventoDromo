@@ -144,7 +144,7 @@ export function ListaEventosBusqueda() {
   let params = useSearchParams();
   let searchstr = params.get("search");
   let [eventList,setEventList] = useState([]);
-  const obtenerResultados = async () => {let resultados = await listarEventosPorBusqueda(searchstr);setEventList(resultados?.data ?? []);}
+  const obtenerResultados = async () => {let resultados = await listarEventosPorBusqueda(searchstr);setEventList(resultados ?? {});}
   useEffect(() => {
     obtenerResultados()
   }, []);
