@@ -1,7 +1,7 @@
 // CartContext.jsx
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
-import { useUser } from "./UserContext"; 
+import { useUser } from "./UserContext";
 import {
   mergeGuestCartWithDb,
   addItemToDbCart,
@@ -13,7 +13,7 @@ const CART_EXPIRATION_MINUTES = 10;
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const { isAuthenticated } = useUser();
+  const { user, isAuthenticated } = useUser();
   const [cartItems, setCartItems] = useState([]);
   const [expirationTime, setExpirationTime] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,7 +30,8 @@ export const CartProvider = ({ children }) => {
         if (guestCartJson) {
           guestItems = JSON.parse(guestCartJson);
         }
-        const response = await mergeGuestCartWithDb(guestItems);
+
+        const response = await mergeGuestCartWithDb(guestItems, user?.token);
 
         if (response.success) {
           setCartItems(response.data.items);
@@ -69,7 +70,7 @@ export const CartProvider = ({ children }) => {
     };
 
     loadCart();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user?.token]);
   
   // ... (tus useEffect de persistencia y vigilante están bien) ...
     // --- EFECTOS DE PERSISTENCIA (SOLO PARA INVITADOS) ---
@@ -116,12 +117,12 @@ export const CartProvider = ({ children }) => {
 
     if (isAuthenticated) {
       setIsLoading(true);
-      const response = await addItemToDbCart(entrada, newExpiration);
+      const response = await addItemToDbCart(entrada, newExpiration, user?.token);
       if (response.success) {
         setCartItems(response.data.items);
         setExpirationTime(response.data.expirationTime);
       } else {
-        console.error("Error al agregar item a la BD");
+        console.error("Error al agregar item a la BD", response.error);
       }
       setIsLoading(false);
     } else {

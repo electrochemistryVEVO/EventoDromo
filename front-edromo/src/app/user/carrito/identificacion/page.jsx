@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useUser } from "@/context/UserContext";
 import CostoDetalleEntradas from "@/components/carrito/costoDetalleEntradas";
+import { CostoDetalleEntradasController } from "@/components/carrito/CostoDetalleEntradas.controller";
 
 function IdentificacionPage() {
   const router = useRouter();
@@ -111,7 +112,7 @@ function IdentificacionPage() {
 
         <section className={styles.card}>
           <h2 className={styles.cardTitle}>Resumen de la compra</h2>
-          <CostoDetalleEntradas />
+          <CostoDetalleEntradasController />
         </section>
       </main>
     </div>

@@ -39,10 +39,10 @@ function App() {
         //    Por ahora tenemos el rol. Más adelante puedes agregar idCliente, nombre, email, token, etc.
         const userData = {
           rol: result.rol,
+          ...(result.token ? { token: result.token } : {}),
           // idCliente: result.clientData?.idCliente,
           // nombre: result.clientData?.nombres,
           // email: result.clientData?.correo,
-          // token: result.clientData?.token,
         };
 
         // 👤 2. Guardamos el usuario en el contexto global.

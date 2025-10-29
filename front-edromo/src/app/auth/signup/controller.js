@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { insertarUsuario } from "@/services/signUpService";
+import { insertarUsuario } from "@/services/SignUp.service";
 
 export async function onSubmit(formData) {
   try {
