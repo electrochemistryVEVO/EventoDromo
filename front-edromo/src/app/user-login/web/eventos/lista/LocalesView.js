@@ -1,1 +1,0 @@
-export { LocalesView } from "@/app/user/eventos/lista/LocalesView";
