@@ -11,7 +11,7 @@ export const servicePerfil = {
     const res = await fetch(`http://localhost:5189/api/Cliente/InformacionPersonal/${idCliente}`);
     
     // 3. link q funciona en docker (descomentar para usar)
-    // const res = await fetch(`http://localhost:8081/api/Cliente/InformacionPersonal/${idCliente}`);
+    // const res = await fetch(`http://localhost:8080/api/Cliente/InformacionPersonal/${idCliente}`);
 
     if (!res.ok) {
       throw new Error("Error cargando información personal (status " + res.status + ")");

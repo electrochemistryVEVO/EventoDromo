@@ -105,7 +105,7 @@ function App() {
         </div>
         <div className="form-content">
           <form className="login-text-signup" onSubmit={handleSubmit}>
-            {error && <div className="error-message-signup">{error}</div>}
+            {error ? <div className="error-message-signup">{error}</div> : <div></div>}
             <div>
               <label htmlFor="nombres">Nombres</label>
               <input

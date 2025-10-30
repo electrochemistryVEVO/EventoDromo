@@ -1,5 +1,5 @@
 "use client";
-import EventCard from "../../../../../../front-edromo/src/components/eventCard";
+import EventCard from "@/src/components/eventCard";
 import { useSearchParams } from "next/navigation";
 
 const eventoMockData = [

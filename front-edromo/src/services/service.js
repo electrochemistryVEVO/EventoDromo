@@ -1,30 +1,38 @@
-import { promises as fs } from 'fs';
+//import { readFile } from 'fs';
+//NOTA: Deshabilito funcion para leer de filesystem porque useffect requiere de un client component
 import path from 'path';
 
 // --- CONFIGURACIÓN ---
 // Cambia a 'true' para usar el backend real.
 // Cambia a 'false' para usar el archivo local 'eventos.json'.
-const USE_BACKEND = false; 
-const BACKEND_URL = "https://localhost:44372/api/Evento/ListarTodos";
+const USE_BACKEND = true;
+const BACKEND_URL = "http://localhost:8080/api/";
 
 /**
  * Función genérica para obtener los datos, ya sea del backend o del archivo local.
  */
-async function fetchData() {
+async function fetchData(idTipoEvento=null,controller='Evento/ListarEventosPorTipo') {
   let json;
 
   if (USE_BACKEND) {
     // --- Lógica para conectar al backend ---
-    const res = await fetch(BACKEND_URL); // Aquí iría la URL real del backend
+    const res = idTipoEvento? await fetch(BACKEND_URL+controller,{
+      method: "POST",
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({idTipoEvento})
+    }) : await fetch(BACKEND_URL+controller); // Aquí iría la URL real del backend
     if (!res.ok) {
       throw new Error("Error cargando eventos (status " + res.status + ")");
     }
     json = await res.json();
   } else {
+
     // --- Lógica para leer el archivo local ---
+    /*
     const jsonPath = path.join(process.cwd(), 'public', 'data', 'eventos.json');
-    const fileContent = await fs.readFile(jsonPath, 'utf8');
-    json = JSON.parse(fileContent);
+    const fileContent = await readFile(jsonPath, 'utf8');
+    json = JSON.parse(fileContent);*/
+    json = []
   }
 
   // --- Lógica común para procesar la GenericResponse ---
@@ -40,20 +48,16 @@ async function fetchData() {
 }
 
 export const getEventos = async () => {
-  const data = await fetchData();
-  return data.eventos ?? [];
+  const data = await getEventosPorTipo(1);
+  return data ?? [];
 };
 
 export const getLocales = async () => {
-  const data = await fetchData();
-  return data.locales ?? [];
+  const data = await fetchData(null,"Local/ListarLocales");
+  return data ?? [];
 };
 
 export const getEventosPorTipo = async (tipo) => {
   // Reutilizamos la lógica principal para obtener y validar los datos
-  const todosLosEventos = await getEventos();
-  // Mapeamos los idTipoEvento a las nuevas categorías en string
-  const categoriaMap = { 1: "Concierto", 2: "Deportivo", 3: "Cultural" };
-  const categoriaStr = categoriaMap[tipo];
-  return todosLosEventos.filter(evento => evento.categoria === categoriaStr);
+  return await fetchData(tipo);
 };
