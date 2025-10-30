@@ -90,5 +90,47 @@ namespace EventodromoRest.Negocio
 
             return double.Parse(tipoEntradas.Min(t => t.precio).ToString());
         }
+
+        public int CrearEvento(Evento nuevoEvento, List<string> horarios, List<EntradaRequest> entradas)
+        {
+            // 1️⃣ Insertar el evento principal
+            var eventoMapper = new EventoMapper(globales, DB);
+            int idEvento = eventoMapper.InsertarEvento(nuevoEvento);
+
+            // 2️⃣ Insertar las fechas (horarios)
+            var fechaMapper = new FechaEventoMapper(globales, DB);
+            int idUltimoFecha= 0;
+            foreach (var fecha in horarios)
+            {
+                var fechaEvento = new FechaEvento
+                {
+                    fechaHora = DateTime.Parse(fecha),
+                    idEvento = idEvento
+                };
+                idUltimoFecha=fechaMapper.InsertarFechaEvento(fechaEvento);
+            }
+
+            // 3️⃣ Insertar los tipos de entrada
+            var entradaMapper = new TipoEntradaMapper(globales, DB);
+            foreach (var entrada in entradas)
+            {
+                var nuevaEntrada = new TipoEntrada
+                {
+                    nombre = entrada.nombre,
+                    precio = entrada.precio,
+                    cantidadEntradas = entrada.cantidad,
+                    limiteCompra = entrada.limiteCompra,
+                    puntos = entrada.puntos,
+                    cantidadVendida = 0,
+                    // 🔥 Si tus entradas dependen de una fecha específica, aquí deberías asociar el idFechaEvento correspondiente
+                    // por simplicidad, asumimos que se asocian al primer horario
+                    //idFechaEvento = fechaBO.ObtenerPrimerIdPorEvento(idEvento)
+                    idFechaEvento = idUltimoFecha//HARDCODEADO CAMBIAR
+                };
+                entradaMapper.InsertarTipoEntrada(nuevaEntrada);
+            }
+
+            return idEvento;
+        }
     }
 }
