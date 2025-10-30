@@ -82,7 +82,7 @@ namespace EventodromoRest.Negocio
                         id = local.id,
                         nombre = local.nombre,
                         ciudad = ciudad.nombre,
-                        imagen = e.imagenURL
+                        imagenURL = e.imagenURL
                     };
                     localesResponse.Add(nuevoLocal);
                 }
