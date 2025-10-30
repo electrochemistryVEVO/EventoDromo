@@ -1,7 +1,7 @@
 // CartContext.jsx
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
-import { useUser } from "./UserContext";
+import { useUser } from "./UserContext"; 
 import {
   mergeGuestCartWithDb,
   addItemToDbCart,
@@ -13,7 +13,7 @@ const CART_EXPIRATION_MINUTES = 10;
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const { user, isAuthenticated } = useUser();
+  const { isAuthenticated } = useUser();
   const [cartItems, setCartItems] = useState([]);
   const [expirationTime, setExpirationTime] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -78,6 +78,7 @@ export const CartProvider = ({ children }) => {
         if (guestCartJson) {
           guestItems = JSON.parse(guestCartJson);
         }
+<<<<<<< HEAD
 
         const token = resolveAuthToken();
         if (!token) {
@@ -88,6 +89,9 @@ export const CartProvider = ({ children }) => {
           return;
         }
         const response = await mergeGuestCartWithDb(guestItems, token);
+=======
+        const response = await mergeGuestCartWithDb(guestItems);
+>>>>>>> parent of b7df952 (Se avanzo el carrito, actualmente se obtiene el carrito y se pueden agregar elementos al carrito.)
 
         if (response.success) {
           setCartItems(response.data.items);
@@ -126,7 +130,7 @@ export const CartProvider = ({ children }) => {
     };
 
     loadCart();
-  }, [isAuthenticated, user?.token]);
+  }, [isAuthenticated]);
   
   // ... (tus useEffect de persistencia y vigilante están bien) ...
     // --- EFECTOS DE PERSISTENCIA (SOLO PARA INVITADOS) ---
@@ -173,6 +177,7 @@ export const CartProvider = ({ children }) => {
 
     if (isAuthenticated) {
       setIsLoading(true);
+<<<<<<< HEAD
       const token = resolveAuthToken();
       if (!token) {
         console.warn("[CartContext] No se pudo obtener token para agregar al carrito.");
@@ -180,11 +185,14 @@ export const CartProvider = ({ children }) => {
         return;
       }
       const response = await addItemToDbCart(entrada, newExpiration, token);
+=======
+      const response = await addItemToDbCart(entrada, newExpiration);
+>>>>>>> parent of b7df952 (Se avanzo el carrito, actualmente se obtiene el carrito y se pueden agregar elementos al carrito.)
       if (response.success) {
         setCartItems(response.data.items);
         setExpirationTime(response.data.expirationTime);
       } else {
-        console.error("Error al agregar item a la BD", response.error);
+        console.error("Error al agregar item a la BD");
       }
       setIsLoading(false);
     } else {

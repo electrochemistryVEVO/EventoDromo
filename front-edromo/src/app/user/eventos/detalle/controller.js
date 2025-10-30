@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { getEventDetails } from "@/services/DetalleEvento.service";
+import { getEventDetails } from "@/services/DetalleEventoServices";
 import { useCart } from "@/context/CartContext";
 
 export const useEventPageController = () => {

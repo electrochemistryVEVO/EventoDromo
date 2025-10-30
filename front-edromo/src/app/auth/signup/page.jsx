@@ -3,7 +3,7 @@ import "@/css/signup-style.css";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { onSubmit } from "./controller";
-import { obtenerDatosDeRegistro } from "@/services/SignUp.service";
+import { obtenerDatosDeRegistro } from "@/services/signUpService";
 import Link from "next/link";
 
 const EMPTY_DATA = { 

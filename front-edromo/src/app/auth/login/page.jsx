@@ -28,9 +28,16 @@ function App() {
 
         const userData = {
           rol: result.rol,
+<<<<<<< HEAD
           token: result.token,
           idCliente: result.idCliente,
           email: formData.get("email"),
+=======
+          // idCliente: result.clientData?.idCliente,
+          // nombre: result.clientData?.nombres,
+          // email: result.clientData?.correo,
+          // token: result.clientData?.token,
+>>>>>>> parent of b7df952 (Se avanzo el carrito, actualmente se obtiene el carrito y se pueden agregar elementos al carrito.)
         };
 
         login(userData);
