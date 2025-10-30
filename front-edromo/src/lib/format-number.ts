@@ -14,12 +14,20 @@ export function standardFormat(value: number) {
   });
 }
 
-export function dateFormat(_value: Date){
-    let value = new Date(_value)
-    let yyyy = value.getFullYear()
-    let mm = value.getMonth()
-    let dd = value.getDate()
-    return `${yyyy}-${mm>=10?mm:'0'+mm}-${dd>=10?dd:'0'+dd}`
+export function dateFormat(_value: Date) {
+  const value = new Date(_value);
+  if (Number.isNaN(value.getTime())) {
+    return "";
+  }
+
+  const yyyy = value.getFullYear();
+  const mm = value.getMonth() + 1;
+  const dd = value.getDate();
+
+  const monthLabel = mm >= 10 ? `${mm}` : `0${mm}`;
+  const dayLabel = dd >= 10 ? `${dd}` : `0${dd}`;
+
+  return `${yyyy}-${monthLabel}-${dayLabel}`;
 }
 
 export function timeFormat(_value: Date){

@@ -5,13 +5,32 @@ import { registerLocale } from "react-datepicker";
 import es from "date-fns/locale/es";
 registerLocale("es", es);
 import "@/css/detalle-Evento/BookingPanel.css";
-import { dateFormat,timeFormat } from "@/lib/format-number";
+import { dateFormat, timeFormat } from "@/lib/format-number";
 const formatDate = (date) => {
   if (!date) return "";
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0"); // getMonth() es 0-indexed
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+};
+
+const buildFunctionDate = (func) => {
+  if (!func) return null;
+
+  const directDate = func.fechaHora ? new Date(func.fechaHora) : null;
+  if (directDate && !Number.isNaN(directDate.getTime())) {
+    return directDate;
+  }
+
+  if (func.fecha) {
+    const timeFragment = typeof func.hora === "string" && func.hora.trim().length > 0 ? func.hora : "00:00";
+    const composed = new Date(`${func.fecha}T${timeFragment}`);
+    if (!Number.isNaN(composed.getTime())) {
+      return composed;
+    }
+  }
+
+  return null;
 };
 
 const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
@@ -27,35 +46,53 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
   });
   const [totalPrice, setTotalPrice] = useState(0);
 
-  // --- DATOS DERIVADOS Y MEMOIZADOS ---
+  // --- DATOS DERIVADOS Y MEMORIZADOS ---
   // Procesa las funciones para agruparlas por fecha.
   const availableDates = useMemo(() => {
-    const dates = {};
-    functions.forEach((func) => {
-      const date = dateFormat(func.fechaHora);
-      if (!dates[date]) {
-        dates[date] = [];
+    if (!Array.isArray(functions)) {
+      return {};
+    }
+
+    return functions.reduce((acc, func) => {
+      const dateInstance = buildFunctionDate(func);
+      if (!dateInstance) {
+        return acc;
       }
-      dates[date].push({
-        id: func.id,
-        time: timeFormat(func.fechaHora),
+
+      const dateKey = dateFormat(dateInstance);
+      if (!dateKey) {
+        return acc;
+      }
+
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+
+      acc[dateKey].push({
+        id: func.id ?? `${dateInstance.getTime()}`,
+        time: typeof func.hora === "string" && func.hora.trim().length > 0 ? func.hora : timeFormat(dateInstance),
       });
-    });
-    return dates;
+
+      return acc;
+    }, {});
   }, [functions]);
 
   // 2. CREAMOS UN ARRAY DE FECHAS HABILITADAS PARA EL CALENDARIO
   // Convertimos las fechas de string a objetos Date
   const enabledDates = useMemo(() => {
-    return Object.keys(availableDates).map((dateStr) => {
-      // CAMBIO CLAVE: Dividimos el string "YYYY-MM-DD" en sus partes
+    return Object.keys(availableDates).reduce((acc, dateStr) => {
       const [year, month, day] = dateStr.split("-").map(Number);
+      if (!year || !month || !day) {
+        return acc;
+      }
 
-      // Creamos la fecha usando new Date(año, mes - 1, día).
-      // El mes es 0-indexado en JavaScript (Enero=0, Diciembre=11), por eso restamos 1.
-      // Este método SIEMPRE usa la zona horaria local del navegador.
-      return new Date(year, month - 1, day);
-    });
+      const candidate = new Date(year, month - 1, day);
+      if (!Number.isNaN(candidate.getTime())) {
+        acc.push(candidate);
+      }
+
+      return acc;
+    }, []);
   }, [availableDates]);
 
   // Obtenemos la fecha seleccionada en formato string para buscar las horas
@@ -157,11 +194,6 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
       <div className="tickets-section">
         <h4 className="tickets-title">Entradas</h4>
         {ticketTiers
-          .filter((tier) => {
-            if (!selectedFunctionId) return true;
-            if (tier?.idFechaEvento == null) return false;
-            return tier.idFechaEvento.toString() === selectedFunctionId;
-          })
           .map((tier) => (
             <div
               key={tier.id}

@@ -41,11 +41,9 @@ export const TablaEntradas = ({
       <ul className="p-0 divide-y divide-gray-200">
         {items.map((item) => (
           <FilaEntrada
-            // ¡BUG CORREGIDO! Usa cartItemId del contexto
-            key={item.cartItemId} 
+            key={item.rowId}
             item={item}
-            // ¡BUG CORREGIDO! Usa cartItemId del contexto
-            selected={selectedIds.has(item.cartItemId)} 
+            selected={selectedIds.has(item.rowId)}
             onToggle={onToggle}
             onRemove={onRemoveItem}
           />

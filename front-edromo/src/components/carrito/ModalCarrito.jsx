@@ -52,62 +52,62 @@ export default function ModalCarrito({
   
   // Estado con Items
   return (
-    // Contenedor principal del cuerpo (con scroll)
     <div className="flex-1 overflow-y-auto">
-      {/* Lista de items */}
       <ul className="p-5 list-none">
-        {items.map((item) => (
-          <li 
-            // 1. CORREGIDO: Usamos 'cartItemId'
-            key={item.cartItemId} 
-            className="flex items-start justify-between pb-5 mb-5 border-b border-gray-100 last:mb-0 last:pb-0 last:border-b-0"
-          >
-            {/* Detalles del item */}
-            <div className="flex flex-row items-start gap-4">
-              <img
-                // 2. CORREGIDO: Usamos 'eventoInfo'
-                src={item.eventoInfo.imagenUrl || "/images/placeholder.png"}
-                alt={item.eventoInfo.nombre}
-                className="object-cover w-20 h-20 rounded-lg"
-              />
-              <div className="flex flex-col">
-                <p className="font-semibold text-gray-800">
-                  {/* 3. CORREGIDO: Usamos 'eventoInfo.nombre' */}
-                  {item.eventoInfo.nombre}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {/* 4. CORREGIDO: Mostramos la función */}
-                  {item.funcionInfo.fecha} - {item.funcionInfo.hora}
-                </p>
-                
-                {/* 5. CORREGIDO: Mostramos el desglose de entradas */}
-                <ul className="mt-2 text-xs text-gray-600 list-disc list-inside">
-                  {item.entradas.map(entrada => (
-                    <li key={entrada.tipoEntradaId}>
-                      {entrada.cantidad} x {entrada.nombre}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            
-            {/* Acciones y Precio */}
-            <div className="flex flex-col items-end gap-2 shrink-0">
-              <span className="font-bold text-gray-900">
-                {/* 6. ¡ESTE ES EL ERROR! CORREGIDO de 'precioTotal' a 'totalItem' */}
-                S/ {item.totalItem.toFixed(2)}
-              </span>
-              <button
-                // 7. CORREGIDO: Usamos 'cartItemId'
-                onClick={() => onRemoveItem(item.cartItemId)}
-                className="text-xl bg-transparent border-none cursor-pointer hover:text-red-500"
-                aria-label={`Eliminar ${item.eventoInfo.nombre}`}
+        {items.flatMap((item) => {
+          const imageSrc = item?.eventoInfo?.imagenUrl || "/images/placeholder.png";
+          const eventName = item?.eventoInfo?.nombre || "Evento no disponible";
+          const fecha = item?.funcionInfo?.fecha || "Fecha no disponible";
+          const hora = item?.funcionInfo?.hora || "";
+          const entradas = Array.isArray(item?.entradas) ? item.entradas : [];
+
+          return entradas.map((entrada) => {
+            const tierName = entrada?.nombre || "Entrada";
+            const cantidad = Number(entrada?.cantidad || 0);
+            const totalTierAmount = Number(entrada?.precioUnitario || 0) * cantidad;
+            const rowKey = `${item.cartItemId}-${entrada?.tipoEntradaId ?? tierName}`;
+
+            if (cantidad <= 0) {
+              return null;
+            }
+
+            return (
+              <li
+                key={rowKey}
+                className="flex items-start justify-between pb-5 mb-5 border-b border-gray-100 last:mb-0 last:pb-0 last:border-b-0"
               >
-                🗑️
-              </button>
-            </div>
-          </li>
-        ))}
+                <div className="flex flex-row items-start gap-4">
+                  <img
+                    src={imageSrc}
+                    alt={eventName}
+                    className="object-cover w-20 h-20 rounded-lg"
+                  />
+                  <div className="flex flex-col gap-1">
+                    <p className="font-semibold text-gray-800">{eventName}</p>
+                    <p className="text-sm text-gray-500">
+                      {fecha}
+                      {hora ? ` — ${hora}` : ""}
+                    </p>
+                    <p className="text-sm font-medium text-gray-700">
+                      {tierName} — {cantidad} {cantidad === 1 ? "entrada" : "entradas"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                  <span className="font-bold text-gray-900">S/ {totalTierAmount.toFixed(2)}</span>
+                  <button
+                    onClick={() => onRemoveItem(item.cartItemId)}
+                    className="text-xl bg-transparent border-none cursor-pointer hover:text-red-500"
+                    aria-label={`Eliminar ${eventName} ${tierName}`}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </li>
+            );
+          });
+        })}
       </ul>
       
       {/* Footer con Total y Botón de Checkout */}
