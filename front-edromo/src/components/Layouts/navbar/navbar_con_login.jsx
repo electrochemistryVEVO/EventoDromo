@@ -164,7 +164,7 @@ const NavbarLoggedIn = () => {
                 Mis puntos
               </Link>
               <Link
-                href="/user-login/web/cambiar-contrasena"
+                href="/user-login/cambiarcontrasena/contrasenaActual"
                 className="dropdown-item"
               >
                 <Image

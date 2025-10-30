@@ -33,7 +33,7 @@ namespace EventodromoRest.Controllers
                 // TODO: Validar que el idCliente del token (cuando lo tengas) 
                 // coincida con el idCliente de la ruta.
 
-                bool actualizacionExitosa = new ClienteBO(globales, BD).ActualizarInformacionPersonal(idCliente, datosCliente);
+                bool actualizacionExitosa = new ClienteBO(globales, BD).ActualizarInformacionPersonal(idClienteOrigen, datosCliente);
 
                 if (!actualizacionExitosa)
                 {
@@ -67,7 +67,7 @@ namespace EventodromoRest.Controllers
                     Data = false
                 };
 
-                var requestLog = JsonSerializer.Serialize(new { IdCliente = idCliente, Body = datosCliente });
+                var requestLog = JsonSerializer.Serialize(new { IdCliente = idClienteOrigen, Body = datosCliente });
                 AgregarEntradaBitacora(ex, requestLog, JsonSerializer.Serialize(response));
 
                 return response;
@@ -78,9 +78,9 @@ namespace EventodromoRest.Controllers
         /// Reasigna las entradas del cliente origen al cliente destino.
         /// Si se envía EntradaIds solo se transfieren esas entradas; si no, se transfieren todas las entradas del cliente origen.
         /// </summary>
-        [HttpPost]
-        [Route("transferir/{idClienteOrigen}/{idClienteDestino}")]
-        public GenericResponse<int> TransferirEntradas([FromRoute] int idClienteOrigen, [FromRoute] int idClienteDestino, [FromBody] TransferRequestDto? request)
+        //[HttpPost]
+        //[Route("transferir/{idClienteOrigen}/{idClienteDestino}")]
+        /*public GenericResponse<int> TransferirEntradas([FromRoute] int idClienteOrigen, [FromRoute] int idClienteDestino, [FromBody] TransferRequestDto? request)
         {
             try
             {
@@ -163,6 +163,6 @@ namespace EventodromoRest.Controllers
 
                 return response;
             }
-        }
+        }*/
     }
 }

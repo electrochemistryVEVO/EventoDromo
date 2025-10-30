@@ -1,26 +1,44 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-// Opciones hardcodeadas
 const ciudadesDisponibles = ['Tacna', 'Ica', 'Puno', 'Lima', 'Pucalpa', 'Iquitos','Arequipa', 'Cusco', 'Trujillo', 'Chiclayo'];
 
-// Acepta buttonRef
-const CiudadModal = ({ onClose, onApply, onClear, buttonRef }) => {
-  const [selectedCiudad, setSelectedCiudad] = useState(null);
-  const [position, setPosition] = useState({ top: -9999, left: -9999 }); // Estado de posición
-  const popoverRef = useRef(null); // Ref para el popover
+const CiudadModal = ({ onClose, onApply, onClear, buttonRef, initialFilters }) => {
+  // Estado inicial desde initialFilters
+  const initialSelected = initialFilters?.ciudad ? initialFilters.ciudad.split(',') : [];
+  const [selectedCiudades, setSelectedCiudades] = useState(initialSelected);
 
-  // Calcula la posición
+  const [position, setPosition] = useState({ top: -9999, left: -9999 });
+  const popoverRef = useRef(null);
+
+  // Calcula posición (sin cambios)
   useEffect(() => {
     if (buttonRef.current && popoverRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect();
+      const popoverRect = popoverRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
+      const margin = 10;
+
+      const calculatedTop = buttonRect.bottom + scrollY + 5;
+      let calculatedLeft = buttonRect.left + scrollX;
+      const rightEdgeIfAlignedLeft = calculatedLeft + popoverRect.width;
+
+      if (rightEdgeIfAlignedLeft > viewportWidth - margin) {
+          calculatedLeft = viewportWidth - popoverRect.width - margin;
+      }
+      if (calculatedLeft < margin) {
+          calculatedLeft = margin;
+      }
+
       setPosition({
-        top: buttonRect.bottom + window.scrollY + 5,
-        left: buttonRect.left + window.scrollX,
+        top: calculatedTop,
+        left: calculatedLeft,
       });
     }
   }, [buttonRef]);
 
-  // Detecta clics fuera
+  // Detecta clics fuera (sin cambios)
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (popoverRef.current &&
@@ -36,12 +54,25 @@ const CiudadModal = ({ onClose, onApply, onClear, buttonRef }) => {
     };
   }, [onClose, buttonRef]);
 
+  // Selección Múltiple
+  const toggleCiudad = (ciudad) => {
+    setSelectedCiudades(prevSelected => {
+      if (prevSelected.includes(ciudad)) {
+        return prevSelected.filter(c => c !== ciudad);
+      } else {
+        return [...prevSelected, ciudad];
+      }
+    });
+  };
 
+  // onApply envía array unido por comas o null
   const handleApply = () => {
-    onApply({ tipo: 'ciudad', valor: selectedCiudad });
+    const valorParaUrl = selectedCiudades.length > 0 ? selectedCiudades.join(',') : null;
+    onApply({ tipo: 'ciudad', valor: valorParaUrl });
     onClose();
   };
 
+  // handleClear llama a onClear
   const handleClear = () => {
     onClear('ciudad');
     onClose();
@@ -49,39 +80,41 @@ const CiudadModal = ({ onClose, onApply, onClear, buttonRef }) => {
 
   return (
     <div
-      ref={popoverRef} // Asigna ref
-      className="absolute bg-gray-100 p-6 rounded-lg shadow-xl w-full max-w-sm z-50 transition-opacity duration-100 opacity-100" // Posicionamiento y estilos
-      style={{ top: `${position.top}px`, left: `${position.left}px` }} // Aplica posición
+      ref={popoverRef}
+      className="absolute bg-gray-100 p-6 rounded-lg shadow-xl w-full max-w-sm z-50 transition-opacity duration-100 opacity-100"
+      style={{ top: `${position.top}px`, left: `${position.left}px` }}
     >
       {/* Botones de Ciudad */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        {ciudadesDisponibles.map((ciudad) => (
-          <button
-            key={ciudad}
-            onClick={() => setSelectedCiudad(ciudad)}
-            className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-              selectedCiudad === ciudad
-              ? 'bg-white border-[#00C49A] text-[#00C49A] ring-1 ring-[#00C49A]'
-              : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
-            }`}
-          >
-            {ciudad}
-          </button>
-        ))}
+        {ciudadesDisponibles.map((ciudad) => {
+          const isSelected = selectedCiudades.includes(ciudad);
+          return (
+            <button
+              key={ciudad}
+              onClick={() => toggleCiudad(ciudad)}
+              className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                isSelected
+                ? 'bg-white border-[#00C49A] text-[#00C49A] ring-1 ring-[#00C49A]'
+                : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+              }`}
+            >
+              {ciudad}
+            </button>
+          );
+        })}
       </div>
 
       {/* Botones de Acción */}
       <div className="flex justify-between items-center mt-6">
         <button
-          onClick={handleClear}
+          onClick={handleClear} // Botón para limpiar este filtro
           className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors"
         >
           Eliminar Filtro
         </button>
         <button
-          onClick={handleApply}
-          disabled={!selectedCiudad}
-          className={`px-6 py-2 bg-[#00C49A] text-white rounded-full hover:bg-[#00b08a] transition-colors text-sm font-medium ${!selectedCiudad ? 'opacity-50 cursor-not-allowed' : ''}`}
+          onClick={handleApply} // Aplica estado actual (incluyendo vacío)
+          className={`px-6 py-2 bg-[#00C49A] text-white rounded-full hover:bg-[#00b08a] transition-colors text-sm font-medium`}
         >
           Aplicar
         </button>

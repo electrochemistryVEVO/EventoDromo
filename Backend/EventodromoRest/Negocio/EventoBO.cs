@@ -4,7 +4,7 @@ using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
+
 namespace EventodromoRest.Negocio
 {
     public class EventoBO(Globales.Globales globales, DBManager.DBManager DB)
@@ -18,24 +18,7 @@ namespace EventodromoRest.Negocio
             response.Data = eventos;
             return response;
         }
-        public GenericResponse<IEnumerable<Evento>> ListarEventosPorBusqueda(string busqueda)
-        {
-            EventoMapper mapper = new EventoMapper(globales, DB);
-            List<Evento> eventos = mapper.ListarEventosBusqueda(busqueda);
-            GenericResponse<IEnumerable<Evento>> response = new GenericResponse<IEnumerable<Evento>>();
-            response.Success = true;
-            response.Data = eventos;
-            return response;
-        }
-        public GenericResponse<Evento> ObtenerEventoPorId(int eventoId)
-        {
-            EventoMapper mapper = new EventoMapper(globales, DB);
-            Evento evento = mapper.ObtenerEventoPorId(eventoId); 
-            GenericResponse<Evento> response = new GenericResponse<Evento>();
-            response.Success = true;
-            response.Data = evento;
-            return response;
-        }
+
         public GenericResponse<ResponseListarEventosYLocales> ListarEventosYLocales()
         {
             var eventoMapper = new EventoMapper(globales, DB);
@@ -62,22 +45,27 @@ namespace EventodromoRest.Negocio
                     var local = localMapper.ObtenerLocalPorId(e.idLocal);
                     var ciudad = ciudadMapper.ObtenerCiudadPorId(local.idCiudad);
                     var tipoEvento = tipoEventoMapper.ObtenerTipoEventoPorId(e.idTipoEvento);
-                    var nuevoEvento = new EventosLocalCiudadCategoriaDTO 
+
+                    double precioMinimo = obtenerPrecioMinimoEvento(e);
+
+                    var nuevoEvento = new EventosLocalCiudadCategoriaDTO
                     {
                         id = e.id,
-                        nombreEvento = e.nombre,
+                        nombre = e.nombre,
                         nombreLocal = local.nombre,
-                        nombreCiudad = ciudad.nombre,
-                        nombreCategoria = tipoEvento.nombre,
-                        fechaEvento = e.fechaProximoEvento
+                        ciudad = ciudad.nombre,
+                        categoria = tipoEvento.nombre,
+                        precio = precioMinimo,
+                        fecha = e.fechaProximoEvento.ToString("yyyy-MM-dd"),
+                        imagen = e.imagenURL,
                     };
                     eventosResponse.Add(nuevoEvento);
                     var nuevoLocal = new LocalCiudadImagenDTO
                     {
-                        idLocal = local.id,
-                        nombreLocal = local.nombre,
-                        nombreCiudad = ciudad.nombre,
-                        imagenURL = e.imagenURL
+                        id = local.id,
+                        nombre = local.nombre,
+                        ciudad = ciudad.nombre,
+                        imagen = e.imagenURL
                     };
                     localesResponse.Add(nuevoLocal);
                 }
@@ -89,10 +77,18 @@ namespace EventodromoRest.Negocio
                     Data = new ResponseListarEventosYLocales
                     {
                         eventos = eventosResponse,
-                        locales = localesResponse.DistinctBy(l => l.idLocal).ToList()
+                        locales = localesResponse.DistinctBy(l => l.id).ToList()
                     }
                 };
             }
+        }
+
+        private double obtenerPrecioMinimoEvento(EventoActivoProxFechaDTO e)
+        {
+            FechaEvento fechaEvento = new FechaEventoMapper(globales, DB).ListarFechaEventoPorEvento(e.id)[0];
+            List<TipoEntrada> tipoEntradas = new TipoEntradaMapper(globales, DB).ListarTipoEntradaPorFechaEvento((int)fechaEvento.id); //raro
+
+            return double.Parse(tipoEntradas.Min(t => t.precio).ToString());
         }
     }
 }
