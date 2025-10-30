@@ -8,7 +8,7 @@ import "@/css/detalle-Evento/EventoImagen.css";
  * @param {string} props.imageUrl - URL de la imagen.
  * @param {string} props.eventName - Nombre del evento para el texto alternativo.
  */
-const EventImage = async ({ imageUrl, eventName }) => {
+const EventImage = ({ imageUrl, eventName }) => {
   return (
     <div className="event-image-container">
       <LazyImage imageUrl={imageUrl} className="event-image-container"/>

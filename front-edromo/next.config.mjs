@@ -1,5 +1,4 @@
 import path from "path";
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   webpack: (config) => {
@@ -9,6 +8,23 @@ const nextConfig = {
       "@": path.resolve(process.cwd(), "src"),
     };
     return config;
+  },
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.janeway.replit.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "*.riker.replit.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "*.replit.dev",
+      },
+    ],
   },
 };
 

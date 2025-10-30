@@ -156,49 +156,52 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
 
       <div className="tickets-section">
         <h4 className="tickets-title">Entradas</h4>
-        {ticketTiers.map((tier) => {console.log(tier.idFechaEvento===selectedFunctionId);return (
-            tier.idFechaEvento.toString() === selectedFunctionId
-            ?
-          <div
-            key={tier.id}
-            className={`ticket-tier-row ${
-              tier.agotado ? "ticket-tier-row--agotado" : ""
-            }`}
-          >
-            <div className="ticket-info">
-              <span className="ticket-name">{tier.nombre}</span>
-              <span className="ticket-price">S/ {tier.precio.toFixed(2)}</span>
-            </div>
-            <div className="quantity-control">
-              <button
-                onClick={() => handleQuantityChange(tier.id, -1)}
-                disabled={ticketQuantities[tier.id] === 0 || tier.agotado}
-              >
-                -
-              </button>
-              <span>{ticketQuantities[tier.id]}</span>
-              {tier.agotado ? (
-                <button disabled className="ban-icon-button">
-                  <svg
-                    className="ban-icon"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path
-                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7v-2z"
-                      transform="rotate(45 12 12)"
-                    ></path>
-                  </svg>
+        {ticketTiers
+          .filter((tier) => {
+            if (!selectedFunctionId) return true;
+            if (tier?.idFechaEvento == null) return false;
+            return tier.idFechaEvento.toString() === selectedFunctionId;
+          })
+          .map((tier) => (
+            <div
+              key={tier.id}
+              className={`ticket-tier-row ${
+                tier.agotado ? "ticket-tier-row--agotado" : ""
+              }`}
+            >
+              <div className="ticket-info">
+                <span className="ticket-name">{tier.nombre}</span>
+                <span className="ticket-price">S/ {tier.precio.toFixed(2)}</span>
+              </div>
+              <div className="quantity-control">
+                <button
+                  onClick={() => handleQuantityChange(tier.id, -1)}
+                  disabled={ticketQuantities[tier.id] === 0 || tier.agotado}
+                >
+                  -
                 </button>
-              ) : (
-                <button onClick={() => handleQuantityChange(tier.id, 1)}>
-                  +
-                </button>
-              )}
+                <span>{ticketQuantities[tier.id]}</span>
+                {tier.agotado ? (
+                  <button disabled className="ban-icon-button">
+                    <svg
+                      className="ban-icon"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7v-2z"
+                        transform="rotate(45 12 12)"
+                      ></path>
+                    </svg>
+                  </button>
+                ) : (
+                  <button onClick={() => handleQuantityChange(tier.id, 1)}>
+                    +
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        :
-        <div></div>)})}
+          ))}
       </div>
 
       <div className="booking-total">

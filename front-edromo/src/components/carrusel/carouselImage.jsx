@@ -5,12 +5,26 @@ import "@/css/carousel-image.css"; // Se mantiene la importación de los estilos
 // La función ahora recibe el objeto de props y lo "desestructura"
 // para sacar directamente la propiedad `evento`.
 export default function CarouselImage({ evento }) {
+  if (!evento) return null;
+
+  const imageSrc =
+    evento.imagenUrl ??
+    evento.imagenURL ??
+    evento.imagen ??
+    evento.imagenPrincipal ??
+    '';
+
+  if (!imageSrc) {
+    return null;
+  }
+
   return (
     <div className="carousel-image-container">
       <Image
-        src={evento.imagen} // Ya no necesitas escribir "props.evento..."
+        src={imageSrc}
         alt={`Imagen de ${evento.nombre}`}
-        layout="fill"
+        fill
+        sizes="100vw"
         className="background-image"
       />
       <div className="carousel-content-overlay">
