@@ -1,32 +1,35 @@
-'use client'
-import { obtenerDatosParaPagina } from "./controller";
-import { CarruselView } from "./CarruselView";
-import { EventosListView } from "./EventosListView";
-import { LocalesView } from "./LocalesView.js";
-import { useEffect,useState } from 'react';
+import { obtenerDatosParaPagina } from "./controller.js"; // Añadida extensión .js
+import { CarruselView } from "./CarruselView.js"; // Añadida extensión .jsx
+import { EventosListView } from "./EventosListView.js"; // Añadida extensión .jsx
+import { LocalesView } from "./LocalesView.js"; // Ya tenía extensión .js
 
-async function EventosPage() {
-  // 1. El 'page' (orquestador) llama al controller para obtener los datos.
-    let [datos,setDatos] = useState({})
-    useEffect(async () => {
-        let _datos = await obtenerDatosParaPagina()
-        console.log(_datos)
-        setDatos(_datos);
-    }, []);
-  // 2. El 'page' pasa los datos a los componentes de la 'vista'.
+// 1. La función ahora recibe { searchParams }
+async function EventosPage({ searchParams }) {
+  // 2. Pasamos searchParams al controlador para filtrar
+  // 3. Destructuramos la nueva estructura de datos devuelta:
+  //    destacados, eventosPorCategoria (objeto), locales
+  const { destacados, eventosPorCategoria, locales } =
+    await obtenerDatosParaPagina(searchParams);
+
+  // 4. Pasamos los datos actualizados a los componentes de vista
   return (
     <div>
-      <CarruselView eventos={datos?.destacados ?? []} />
+      {/* Carrusel sigue usando destacados */}
+      <CarruselView eventos={destacados} />
+
+      {/* EventosListView ahora recibe eventosPorCategoria */}
       <EventosListView
-        destacados={datos?.destacados ?? []}
-        conciertos={datos?.conciertos ?? []}
-        culturales={datos?.culturales ?? []}
-        deportes={datos?.deportes ?? []}
-        isAuthenticated={true}
+        destacados={destacados} // Para el grid superior
+        eventosPorCategoria={eventosPorCategoria} // Objeto agrupado dinámicamente
+        // Las props antiguas (conciertos, culturales, deportes) ya no se pasan
+        isAuthenticated={true} // Mantener si se usa
       />
-      <LocalesView locales={datos?.locales ?? []} />
+
+      {/* LocalesView recibe locales */}
+      <LocalesView locales={locales} />
     </div>
   );
 }
 
 export default EventosPage;
+

@@ -1,12 +1,42 @@
-﻿using EventodromoRest.DBManager;
+﻿//con esto se hace el token (JWT)
+using EventodromoRest.DBManager;
 using EventodromoRest.Globales;
+using EventodromoRest.Servicios;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+//PARA EL TOKEN: 
+// 🔐 Configuración de autenticación con JWT
+var key = Encoding.ASCII.GetBytes("ClaveSuperSecretaDeEventodromoConLaQueSeFirmanTokens123!"); // 🔑 Usa algo más largo y seguro
+
+//Le dice a ASP.NET Core:
+//“Cuando alguien acceda a una ruta que requiera autenticación (`[Authorize]`), usa el esquema de autenticación **JWT Bearer**.”
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false; // Solo para desarrollo, en producción debe ser true
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters //Le explica al backend **cómo validar un token recibido**:
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false
+    };
+});
+
 
 // AGREGAR CORS - Esto es lo que necesitas
 builder.Services.AddCors(options =>
@@ -38,7 +68,14 @@ builder.Services.AddDbContext<DBManager>(options =>
 Globales globales = new Globales();
 builder.Services.AddSingleton(globales);
 
+// Registrar TokenService para inyección de dependencias
+builder.Services.AddSingleton<TokenService>(
+    new TokenService("ClaveSuperSecretaDeEventodromoConLaQueSeFirmanTokens123!")
+);
+
 var app = builder.Build();
+
+
 
 using (var scope = app.Services.CreateScope())
 {
@@ -61,7 +98,12 @@ app.UseCors("AllowAll");
 
 //app.UseHttpsRedirection();
 
+//PARA EL TOKEN
+app.UseAuthentication();
+
+
 app.UseAuthorization();
+
 
 app.MapControllers();
 

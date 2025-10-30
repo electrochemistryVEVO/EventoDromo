@@ -9,51 +9,66 @@ namespace EventodromoRest.Negocio
         {
             var mapper = new ClienteMapper(globales, DB);
             char tipoUsuario;
-            Cliente cliente = mapper.ObtenerClientePorEmailPassword(email, password, out tipoUsuario);
+            int idCliente;
+            Cliente cliente = mapper.ObtenerClientePorEmailPassword(email, password, out tipoUsuario,out idCliente);
             LoginResponse loginResponse = new LoginResponse
             {
                 success = false,
-                rol = ' '
+                rol = ' ',
+                idCliente = 0//dps de token
             };
             if (cliente != null)
             {
                 loginResponse.success = true;
                 loginResponse.rol = tipoUsuario;
+                loginResponse.idCliente = idCliente;
             }
             return loginResponse;
 
         }
 
+        //agreggar antes de insertar hashear el password para que se envíe hasheado
         public SignUpResponse InsertarCliente(RequestSignUpCliente request)
         {
             var mapper = new ClienteMapper(globales, DB);
-            /* algo así hacer
+
+            if (mapper.ExisteClienteConEmail(request.email))
+            {
+                throw new Exception("El correo electrónico ya está registrado.");
+            }
+
+
             Cliente nuevoCliente = new Cliente
             {
                 nombres = request.nombres,
                 apellidos = request.apellidos,
                 email = request.email,
-                passwordhash = globales.HashPassword(request.password),
+                passwordhash = request.password,
                 fechanacimiento = request.fechaNacimiento,
-                idsexo = mapper.ObtenerIdSexoPorNombre(request.sexo),
-                idtipodocumento = mapper.ObtenerIdTipoDocumentoPorNombre(request.tipoDocumento),
+
+                idsexo = request.idsexo,
+                idtipodocumento = request.idtipoDocumento,
                 numerodocumento = request.numeroDocumento,
                 telefono = request.telefono,
-                idciudad = mapper.ObtenerIdCiudadPorNombreYPais(request.ciudad, request.pais),
-                politicadeprivacidad = request.politicadeprivacidad,
-                enviodepublicidad = request.enviodepublicidad,
+                idciudad = request.idciudad,
+                politicadeprivacidad = request.politicaDePrivacidad,
+                enviodepublicidad = request.envioDePublicidad
+                /*El procedure ya incluye esto
                 fechacreacion = DateTime.Now,
                 fechaultimaedicion = DateTime.Now,
-                fechaultimasession = null
+                fechaultimasession = null*/
             };
             
             int newId = mapper.InsertarCliente(nuevoCliente);
-            */
+            
             SignUpResponse signUpResponse = new SignUpResponse
             {
-                //success = newId > 0
-                success = true // temporal mientras no se implemente todo
+                success = newId > 0
             };
+            if (!signUpResponse.success)
+            {
+                throw new Exception("La inserción del cliente falló en la base de datos.");
+            }
             return signUpResponse;
         }
 
@@ -140,5 +155,91 @@ namespace EventodromoRest.Negocio
 
             return true;
         }
+
+        public DatosSignUp ObtenerDatosSignUp()
+        {
+            var paisMapper = new PaisMapper(globales, DB);
+            var ciudadMapper = new CiudadMapper(globales, DB);
+            var sexoMapper = new SexoMapper(globales, DB);
+            var tipoDocumentoMapper = new TipoDocumentoMapper(globales, DB);
+
+            // Obtener listas desde la base de datos
+            List<Pais> paises = paisMapper.ListarPais();
+            List<Ciudad> ciudades = ciudadMapper.ListarCiudad();
+            List<Sexo> sexos = sexoMapper.ListarSexos();
+            List<TipoDocumento> tiposDocumento = tipoDocumentoMapper.ListarTipoDocumento();
+
+            // Construir el objeto de salida
+            DatosSignUp datos = new DatosSignUp
+            {
+                paises = paises,
+                ciudades = ciudades,
+                sexos = sexos,
+                tiposDocumento = tiposDocumento
+            };
+
+            return datos;
+        }
+
+        public VerificarCorreoResponse verificarCorreoCliente(string email)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            bool existe = mapper.ExisteClienteConEmail(email);
+            VerificarCorreoResponse response = new VerificarCorreoResponse
+            {
+                exists = existe
+            };
+            return response;
+        }
+
+        public VerificarContrasenaRecuperarResponse VerificarContrasenaRecuperar(int idCliente, string currentPassword)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            bool isMatch = mapper.VerificarContrasenaPorIdContrasena(idCliente, currentPassword);
+            VerificarContrasenaRecuperarResponse response = new VerificarContrasenaRecuperarResponse
+            {
+                status = isMatch ? "success" : "error",
+                message = isMatch ? "Contraseña verificada correctamente." : "La contraseña actual es incorrecta. Intente de nuevo."
+            };
+            return response;
+        }
+
+        public ActualizarContrasenaResponse ActualizarContrasena(int idCliente, string newPassword)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            bool updated = mapper.ModificarClienteContrasenaPorId(idCliente, newPassword);
+            ActualizarContrasenaResponse response = new ActualizarContrasenaResponse
+            {
+                status = updated ? "success" : "error",
+                message = updated ? "Tu contraseña ha sido cambiada exitosamente." : "No se pudo actualizar la contraseña. Por favor, inténtelo más tarde."
+            };
+            return response;
+        }
+
+        public FetchUserDataResponse ObtenerNombrePorId(int idCliente)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            Cliente cliente = mapper.ObtenerClientePorId(idCliente);
+            if(cliente!=null)
+            {
+                return new FetchUserDataResponse
+                {
+                    status = "success",
+                    message = "Usuario encontrado.",
+                    name = $"{cliente.nombres} {cliente.apellidos}"
+                };
+            }
+            else
+            {
+                return new FetchUserDataResponse
+                {
+                    status = "error",
+                    message = "Usuario no encontrado.",
+                    name = null
+                };
+            }
+            
+        }
+
     }
 }

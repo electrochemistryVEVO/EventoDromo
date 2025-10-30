@@ -62,22 +62,27 @@ namespace EventodromoRest.Negocio
                     var local = localMapper.ObtenerLocalPorId(e.idLocal);
                     var ciudad = ciudadMapper.ObtenerCiudadPorId(local.idCiudad);
                     var tipoEvento = tipoEventoMapper.ObtenerTipoEventoPorId(e.idTipoEvento);
-                    var nuevoEvento = new EventosLocalCiudadCategoriaDTO 
+
+                    double precioMinimo = obtenerPrecioMinimoEvento(e);
+
+                    var nuevoEvento = new EventosLocalCiudadCategoriaDTO
                     {
                         id = e.id,
-                        nombreEvento = e.nombre,
+                        nombre = e.nombre,
                         nombreLocal = local.nombre,
-                        nombreCiudad = ciudad.nombre,
-                        nombreCategoria = tipoEvento.nombre,
-                        fechaEvento = e.fechaProximoEvento
+                        ciudad = ciudad.nombre,
+                        categoria = tipoEvento.nombre,
+                        precio = precioMinimo,
+                        fecha = e.fechaProximoEvento.ToString("yyyy-MM-dd"),
+                        imagen = e.imagenURL,
                     };
                     eventosResponse.Add(nuevoEvento);
                     var nuevoLocal = new LocalCiudadImagenDTO
                     {
-                        idLocal = local.id,
-                        nombreLocal = local.nombre,
-                        nombreCiudad = ciudad.nombre,
-                        imagenURL = e.imagenURL
+                        id = local.id,
+                        nombre = local.nombre,
+                        ciudad = ciudad.nombre,
+                        imagen = e.imagenURL
                     };
                     localesResponse.Add(nuevoLocal);
                 }
@@ -89,10 +94,18 @@ namespace EventodromoRest.Negocio
                     Data = new ResponseListarEventosYLocales
                     {
                         eventos = eventosResponse,
-                        locales = localesResponse.DistinctBy(l => l.idLocal).ToList()
+                        locales = [.. localesResponse.DistinctBy(l => l.id).Take(4)]
                     }
                 };
             }
+        }
+
+        private double obtenerPrecioMinimoEvento(EventoActivoProxFechaDTO e)
+        {
+            FechaEvento fechaEvento = new FechaEventoMapper(globales, DB).ListarFechaEventoPorEvento(e.id)[0];
+            List<TipoEntrada> tipoEntradas = new TipoEntradaMapper(globales, DB).ListarTipoEntradaPorFechaEvento((int)fechaEvento.id); //raro
+
+            return double.Parse(tipoEntradas.Min(t => t.precio).ToString());
         }
     }
 }
