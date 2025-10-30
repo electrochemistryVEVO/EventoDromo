@@ -14,7 +14,7 @@ const _getClienteId = () => {
 
 export const controllerPerfil = {
   /**
-  * Función invocada desde el page.js al cargar la página.
+  * Función invocada desde el _page.js al cargar la página.
   * Llama al servicio para obtener los datos iniciales.
   */
   onPageLoad: async () => {
@@ -35,12 +35,12 @@ export const controllerPerfil = {
       return { ...responseData, maxDate: maxDate };
     } catch (error) {
       console.error('Error en controllerPerfil.onPageLoad:', error);
-      throw error; // Lanza el error para que el page.js lo atrape
+      throw error; // Lanza el error para que el _page.js lo atrape
     }
   },
 
   /**
-  * Función invocada desde el page.js al hacer submit.
+  * Función invocada desde el _page.js al hacer submit.
   * Prepara los datos y llama al servicio de actualización.
   * @param {object} formData - Los datos del formulario (el objeto datosCliente).
   */
@@ -53,7 +53,7 @@ export const controllerPerfil = {
 
       // 2. Invocamos al servicio con ambos parámetros
       const response = await servicePerfil.actualizarUsuario(idCliente, formData);
-      return response; // Retorna la respuesta al page.js
+      return response; // Retorna la respuesta al _page.js
       
     } catch (error) {
       console.error('Error en controllerPerfil.onSubmit:', error);

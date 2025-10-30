@@ -1,35 +1,25 @@
 version: "3.8"
 
 services:
-    db:
-        build: ./sql/
-        restart: unless-stopped
-        ports: 
-            - "127.0.0.1:1433:1433"
-        #command: --default-authentication-plugin=mysql_native_password
-        environment:
-            ACCEPT_EULA: "Y" 
-            MSSQL_SA_PASSWORD: T8m!r2xZ
-        volumes:
-            - ./sql/myDb.sql:/myDb.sql
-            - ./sql/init.sh:/init.sh
-            #- persistent:/var/lib/mysql
-        networks:
-            - backend
-        entrypoint: ["/bin/bash", "/init.sh"]
-
     www:
-        build: ./Frontend/
+        build: ./front-edromo/
         restart: unless-stopped
         environment:
             ASPNET_HOST: 127.0.0.1
         ports: 
             - "0.0.0.0:3000:3000"
-       # volumes:
-       #     - ./Frontend:/app
+        develop: 
+            watch:
+                - action: sync
+                  path: ./front-edromo
+                  target: /app
+                  initial_sync: true
+                  ignore:
+                    - node_modules/
+                    - .next/
+                    - .idea/
         depends_on:
             - aspnet
-            - db
         networks:
             - frontend
         healthcheck:
@@ -37,7 +27,6 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
-
     aspnet:
         build: ./Backend/EventodromoRest/
         restart: unless-stopped
@@ -46,9 +35,7 @@ services:
             PMA_USER: admin
             PMA_PASSWORD: 12345
         ports:
-            - "0.0.0.0:8081:8080"
-        depends_on:
-            - db
+            - "8080:8080"
         networks:
             - frontend
             - backend

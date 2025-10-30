@@ -1,4 +1,4 @@
-// Ruta del archivo: src/app/admin/page.js
+// Ruta del archivo: src/app/admin/_page.js
 
 export default function AdminHomePage() {
   return (

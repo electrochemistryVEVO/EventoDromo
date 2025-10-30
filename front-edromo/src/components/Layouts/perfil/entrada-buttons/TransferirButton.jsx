@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { transferTickets } from '../../../../services/transferir.service';
+import { transferByEmail } from '../../../../services/transferir.service.js';
 
 export default function TransferirButton({ entries = [{ id: 1, name: "Super VIP", available: 2 }] }) {
   const [showModal, setShowModal] = useState(false);
@@ -67,7 +67,6 @@ export default function TransferirButton({ entries = [{ id: 1, name: "Super VIP"
       return;
     }
 
-    // construir items a transferir desde selected + quantities
     const itemsToTransfer = Object.entries(selected)
       .filter(([id, sel]) => sel)
       .map(([id]) => ({ id: Number(id), qty: Number(quantities[id] || 0) }))
@@ -79,9 +78,8 @@ export default function TransferirButton({ entries = [{ id: 1, name: "Super VIP"
     }
 
     try {
-      // opcional: enviar token si lo tienes
-      const token = null; // obtener desde contexto / sessionStorage si aplica
-      const resp = await transferTickets({ toEmail: transferEmail, items: itemsToTransfer, token });
+      const token = null; // o obtener token de auth
+      const resp = await transferByEmail(transferEmail, itemsToTransfer, token);
       console.log('transfer result', resp);
 
       setShowConfirmModal(false);

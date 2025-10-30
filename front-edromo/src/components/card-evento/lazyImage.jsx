@@ -18,7 +18,7 @@ export default function LazyImage({ imageUrl, className }) {
 
   return (
     <div className="w-auto">
-      <Image
+      <img
         className={finalClassName}
         src={imgSrc}
         layout="fill" // <-- La clave está aquí: la imagen llenará el contenedor

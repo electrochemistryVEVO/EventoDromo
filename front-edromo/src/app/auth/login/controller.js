@@ -1,6 +1,6 @@
 "use client";
 
-import { autenticarUsuario } from "@/services/Login.service.js";
+import { autenticarUsuario } from "@/services/loginService.js";
 
 export async function onSubmit(formData) {
   try {
