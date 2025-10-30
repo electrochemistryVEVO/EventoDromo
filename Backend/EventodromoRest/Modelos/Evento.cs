@@ -61,4 +61,11 @@
         public DateTime fechaEvento { get; set; }
         public string imagenURL { get; set; }
     }
+
+    public class EventoDTO
+    {
+        public int id { get; set; }
+        public string nombreEvento { get; set; }
+        public string imagenURL { get; set; }
+    }
 }

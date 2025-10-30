@@ -18,4 +18,18 @@
         public int cantidad { get; set; }
         public decimal precio { get; set; }
     }
+
+    public class EntradaDTO
+    {
+        public int idTipoEntrada { get; set; }
+        public string nombreTipoEntrada { get; set; }
+        public decimal precio { get; set; }
+        public int cantidad { get; set; } = 0;
+    }
+
+    public class EntradaAgregarAlCarritoDTO
+    {
+        public int idTipoEntrada { get; set; }
+        public int cantidad { get; set; }
+    }
 }

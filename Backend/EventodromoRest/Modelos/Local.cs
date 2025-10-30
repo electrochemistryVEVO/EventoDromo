@@ -20,4 +20,10 @@
         public string nombreCiudad { get; set; }
         public string imagenURL { get; set; }
     }
+
+    public class LocalDTO
+    {
+        public string nombre { get; set; }
+        public string ciudad { get; set; }
+    }
 }

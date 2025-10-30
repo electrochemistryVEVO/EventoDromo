@@ -40,9 +40,8 @@ namespace EventodromoRest.Controllers
                     };
                 }
 
-                // 🔐 Generar token JWT con el idCliente
                 var token = tokenService.GenerarToken(loginResponse.idCliente);
-                loginResponse.token = token; // Guarda el token en el response
+                loginResponse.token = token;
 
                 var response = new GenericResponse<LoginResponse>
                 {

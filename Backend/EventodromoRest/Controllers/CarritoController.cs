@@ -1,6 +1,7 @@
 ﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -8,46 +9,56 @@ namespace EventodromoRest.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
+    [Authorize]
     public class CarritoController(Globales.Globales globales, DBManager.DBManager BD) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
         private readonly Globales.Globales globales = globales;
 
-        [HttpPost]
+        [HttpGet]
         [Route("/api/[controller]/[action]")]
-        public GenericResponse<ResponseObtenerCarritoEventos> ObtenerCarritoEventos([FromBody] RequestObtenerCarrito request)
+        public GenericResponse<ResponseObtenerCarrito> ObtenerCarrito()
         {
             try
             {
-                ValidarBody(request);
-                return new CarritoBO(globales, BD).ObtenerCarritoEventos(request);
+                var userIdString = User.FindFirst("idCliente")?.Value;
+                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idCliente))
+                {
+                    throw new Exception("ID de cliente inválido en el token.");
+                }
+                return new CarritoBO(globales, BD).ObtenerCarrito(idCliente);
             }
             catch (Exception e)
             {
-                var response = new GenericResponse<ResponseObtenerCarritoEventos>
+                var response = new GenericResponse<ResponseObtenerCarrito>
                 {
                     Success = false,
                     Message = null,
                     Error = e.Message,
                     Data = null
                 };
-                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                AgregarEntradaBitacora(e, null, JsonSerializer.Serialize(response));
                 return response;
             }
         }
 
         [HttpPost]
         [Route("/api/[controller]/[action]")]
-        public GenericResponse<ResponseObtenerCarritoEntradas> ObtenerCarritoEntradas([FromBody] RequestObtenerCarrito request)
+        public GenericResponse<ResponseObtenerCarrito> AgregarItemAlCarrito([FromBody] RequestAgregarItemAlCarrito request)
         {
             try
             {
                 ValidarBody(request);
-                return new CarritoBO(globales, BD).ObtenerCarritoEntradas(request);
+                var userIdString = User.FindFirst("idCliente")?.Value;
+                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idCliente))
+                {
+                    throw new Exception("ID de cliente inválido en el token.");
+                }
+                return new CarritoBO(globales, BD).AgregarItemAlCarrito(idCliente, request);
             }
             catch (Exception e)
             {
-                var response = new GenericResponse<ResponseObtenerCarritoEntradas>
+                var response = new GenericResponse<ResponseObtenerCarrito>
                 {
                     Success = false,
                     Message = null,
@@ -59,6 +70,4 @@ namespace EventodromoRest.Controllers
             }
         }
     }
-
-
 }
