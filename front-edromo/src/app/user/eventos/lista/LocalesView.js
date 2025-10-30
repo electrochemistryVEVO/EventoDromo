@@ -3,14 +3,14 @@ import Image from "next/image";
 const LocalCard = ({ local }) => (
     <div className="local-card-container">
             <Image 
-                src={local.imagen} 
-                alt={local.nombre} 
+                src={local.imagenURL}
+                alt={local.nombreLocal}
                 layout="fill" 
                 className="local-card-image" 
             />
             <div className="local-card-overlay">
-                <h5 className="local-card-name">{local.nombre}</h5>
-                <p className="local-card-city">{local.ciudad}</p>
+                <h5 className="local-card-name">{local.nombreLocal}</h5>
+                <p className="local-card-city">{local.nombreCiudad}</p>
             </div>
     </div>
 );

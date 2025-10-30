@@ -16,7 +16,7 @@ namespace EventodromoRest.Controllers
 
         [HttpGet]
         [Route("/api/[controller]/[action]")]
-        public GenericResponse<IEnumerable<Local>> ListarLocales()
+        public GenericResponse<IEnumerable<LocalCiudadImagenDTO>> ListarLocales()
         {
             try
             {
@@ -24,7 +24,7 @@ namespace EventodromoRest.Controllers
             }
             catch (Exception e)
             {
-                var response = new GenericResponse<IEnumerable<Local>>
+                var response = new GenericResponse<IEnumerable<LocalCiudadImagenDTO>>
                 {
                     Success = false,
                     Message = null,

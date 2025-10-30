@@ -1,19 +1,23 @@
 import Image from "next/image";
+import LazyImage from "@/components/card-evento/lazyImage";
 
-const LocalCard = ({ local }) => (
+const LocalCard = ({ local }) => {
+    //alt={local.nombre}
+    //                 layout="fill"
+    console.log(local);
+    return (
     <div className="local-card-container">
-            <Image 
-                src={local.imagen} 
-                alt={local.nombre} 
-                layout="fill" 
+            <LazyImage
+                imageUrl={local.imagenURL}
+
                 className="local-card-image" 
             />
             <div className="local-card-overlay">
-                <h5 className="local-card-name">{local.nombre}</h5>
-                <p className="local-card-city">{local.ciudad}</p>
+                <h5 className="local-card-name">{local.nombreLocal}</h5>
+                <p className="local-card-city">{local.nombreCiudad}</p>
             </div>
     </div>
-);
+)};
 
 export function LocalesView({ locales }) {
     return (

@@ -10,7 +10,7 @@ const EventPage = () => {
   // Para simplificar, en este ejemplo vamos a duplicar un poco la lógica de render.
   // Si prefieres, puedes simplemente poner <EventPageController /> y aplicar CSS
   // directamente, pero separar las columnas es más robusto.
-
+    console.log("balls")
   return (
     <div className="event-page-background">
       <div className="event-page-container">

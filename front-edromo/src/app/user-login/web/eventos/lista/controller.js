@@ -19,7 +19,7 @@ export async function obtenerDatosParaPagina() {
     await getEventosPorTipo(1),
     await getEventosPorTipo(2),
     await getEventosPorTipo(3),
-    []//await getLocales(),
+    await getLocales(),
   ]
   let data = { destacados, conciertos, deportes, culturales, locales };
   console.log(data);
