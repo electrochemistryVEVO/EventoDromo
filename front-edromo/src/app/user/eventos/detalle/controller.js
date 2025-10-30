@@ -1,136 +1,118 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { getEventDetails } from "@/services/DetalleEvento.service";
+import { useCart } from "@/context/CartContext";
 
-// 1. IMPORTACIONES
-// Importamos el service que se encarga de traer los datos.
-import { getEventDetails } from "../../../../services/DetalleEventoServices";
-
-// Importamos todos los componentes visuales que hemos creado.
-import EventBanner from "@/components/detalle-evento/EventoBanner";
-import EventImage from "@/components/detalle-evento/EventoImagen";
-import PromotionBar from "@/components/detalle-evento/PromotionBar";
-import EventInfo from "@/components/detalle-evento/EventoInfo";
-import BookingPanel from "@/components/detalle-evento/BookingPanel";
-import LocationInfo from "@/components/detalle-evento/LocationInfo";
-
-const EventPageController = () => {
-  // 2. ESTADO
-  // Estado para saber si los datos están cargando. Inicia en `true`.
+export const useEventPageController = () => {
   const [isLoading, setIsLoading] = useState(true);
-  // Estado para guardar la respuesta completa del service (el JSON). Inicia en `null`.
   const [eventData, setEventData] = useState(null);
+  const { addToCart } = useCart();
+  const searchParams = useSearchParams();
+  const eventIdParam = searchParams.get("id");
+  const parsedEventId = eventIdParam ? Number(eventIdParam.trim()) : null;
 
-  // 3. EFECTO PARA OBTENER DATOS
-  // useEffect se ejecuta una sola vez cuando el componente se monta en la pantalla,
-  // gracias al array de dependencias vacío `[]`.
   useEffect(() => {
-    // Definimos una función asíncrona para poder usar await.
     const fetchEventData = async () => {
+      if (!eventIdParam) {
+        setEventData({ success: false, error: "Evento no especificado." });
+        setIsLoading(false);
+        return;
+      }
+
+      if (Number.isNaN(parsedEventId)) {
+        setEventData({ success: false, error: "Identificador de evento invalido." });
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+
       try {
-        // Llamamos a la función `fetch` de nuestro service. Le pasamos un ID de ejemplo.
-        // El service se encargará de traer los datos (del JSON local o de la API).
-        const data = await getEventDetails.fetch(1);
-        setEventData(data); // Guardamos la respuesta en el estado.
+        const data = await getEventDetails.fetch(parsedEventId);
+        setEventData(data);
       } catch (error) {
-        console.error(
-          "Error en el controller al obtener datos del evento:",
-          error
-        );
-        // En caso de un error grave, también lo guardamos para mostrar un mensaje.
-        setEventData({ success: false, error: "Error de conexión." });
+        console.error("Error en el hook al obtener datos del evento:", error);
+        setEventData({ success: false, error: "Error de conexion." });
       } finally {
-        // Se ejecuta siempre, tanto si hubo éxito como si hubo error.
-        setIsLoading(false); // Indicamos que la carga ha terminado.
+        setIsLoading(false);
       }
     };
+    fetchEventData();
+  }, [eventIdParam, parsedEventId]);
 
-    fetchEventData(); // Ejecutamos la función.
-  }, []); // El `[]` asegura que esto se ejecute solo una vez.
-
-  // 4. MANEJADOR DE EVENTOS
-  // Esta función se pasa como prop al BookingPanel. Se ejecutará cuando el usuario
-  // haga clic en "Agregar al Carrito" dentro de ese componente hijo.
   const handleAddToCart = (bookingDetails) => {
-    console.log("--- DETALLES PARA AGREGAR AL CARRITO ---");
-    console.log("Evento:", eventData.data.evento.nombre);
-    console.log(
-      "Función (Fecha y Hora) ID:",
-      bookingDetails.selectedFunctionId
-    );
-    console.log("Entradas seleccionadas:", bookingDetails.ticketQuantities);
-    console.log("Precio Total:", `S/ ${bookingDetails.totalPrice.toFixed(2)}`);
+    if (!eventData || !eventData.data) {
+      console.error("Los datos del evento aun no estan cargados.");
+      return;
+    }
 
-    // Aquí es donde, en un futuro, llamarías a otro servicio para
-    // guardar esta información en el estado global de la aplicación o en el backend.
-    alert(
-      "¡Entradas agregadas al carrito! Revisa la consola para ver los detalles."
+    const { evento, funciones, local, tiposDeEntrada } = eventData.data;
+
+    const selectedFunction = funciones.find(
+      (f) => f.id.toString() === bookingDetails.selectedFunctionId
     );
+
+    if (!selectedFunction) {
+      console.warn("No se encontro la funcion seleccionada para el carrito.");
+      return;
+    }
+
+    const entradasSeleccionadas = Object.keys(bookingDetails.ticketQuantities)
+      .filter((tierId) => bookingDetails.ticketQuantities[tierId] > 0)
+      .map((tierId) => {
+        const tipoEntrada = tiposDeEntrada.find(
+          (t) => t.id.toString() === tierId
+        );
+
+        if (!tipoEntrada) {
+          console.warn("No se encontro el tipo de entrada", tierId);
+          return null;
+        }
+
+        return {
+          tipoEntradaId: tipoEntrada.id,
+          nombre: tipoEntrada.nombre,
+          cantidad: bookingDetails.ticketQuantities[tierId],
+          precioUnitario: tipoEntrada.precio,
+        };
+      })
+      .filter(Boolean);
+
+    if (!entradasSeleccionadas.length) {
+      console.warn("No se agregaron entradas por falta de seleccion valida.");
+      return;
+    }
+
+    // Mantiene la estructura esperada por CartContext al agregar un item.
+    const cartItem = {
+      cartItemId: crypto.randomUUID(),
+      eventoInfo: {
+        id: evento.id,
+        nombre: evento.nombre,
+        imagenUrl: evento.imagenUrl,
+      },
+      localInfo: {
+        nombre: local.nombre,
+        ciudad: local.ciudad.nombre,
+      },
+      funcionInfo: {
+        id: selectedFunction.id,
+        fecha: selectedFunction.fecha,
+        hora: selectedFunction.hora,
+      },
+      entradas: entradasSeleccionadas,
+      totalItem: bookingDetails.totalPrice,
+    };
+
+    addToCart(cartItem);
+
+    alert("Entradas agregadas al carrito!");
   };
 
-  // 5. RENDERIZADO CONDICIONAL
-  // Mientras isLoading sea true, mostramos un mensaje de carga.
-  if (isLoading) {
-    return <div>Cargando información del evento...</div>;
-  }
-
-  // Si la carga terminó pero no hay datos, o la respuesta indica que no tuvo éxito,
-  // mostramos un mensaje de error. Esto previene que la app se rompa.
-  if (!eventData || !eventData.success) {
-    return (
-      <div>
-        Error: No se pudo cargar la información del evento. Por favor, intente
-        más tarde.
-      </div>
-    );
-  }
-
-  // 6. PREPARACIÓN DE DATOS PARA LOS COMPONENTES
-  // Si llegamos aquí, significa que tenemos datos válidos.
-  // Destructuramos los datos para que sea más fácil pasarlos a los componentes.
-  const { evento, funciones, tiposDeEntrada, local } = eventData.data;
-
-  // Calculamos el máximo de puntos para la barra de promoción.
-  const maxPuntos = Math.max(
-    ...tiposDeEntrada.map((entrada) => entrada.puntos)
-  );
-
-  // 7. RENDERIZADO FINAL
-  // Devolvemos el JSX que ensambla todos nuestros componentes, pasándoles
-  // los datos que necesitan a través de los props.
-  return (
-    <main className="event-page-container">
-      {/* 1. El banner de fondo no cambia */}
-      <EventBanner imageUrl={evento.imagenUrl} eventName={evento.nombre} />
-      <div className="page-layout">
-        {/* 2. COLUMNA IZQUIERDA (AHORA CON LA IMAGEN NÍTIDA PRIMERO) */}
-        <div className="main-column">
-          {/* ¡NUEVO COMPONENTE AQUÍ! */}
-          <EventImage imageUrl={evento.imagenUrl} eventName={evento.nombre} />
-          <PromotionBar maxPoints={maxPuntos} />
-          <EventInfo
-            eventName={evento.nombre}
-            description={evento.descripcion}
-          />
-        </div>
-
-        {/* 3. COLUMNA DERECHA (SIN CAMBIOS EN SU CONTENIDO) */}
-        <div className="sidebar-column">
-          <BookingPanel
-            eventName={evento.nombre}
-            functions={funciones}
-            ticketTiers={tiposDeEntrada}
-            onAddToCart={handleAddToCart}
-          />
-          <LocationInfo
-            city={`${local.ciudad.nombre}, ${local.ciudad.pais.nombre}`}
-            venue={local.nombre}
-            address={local.direccion}
-            googleMapsEmbed={local.googleMapsEmbed}
-          />
-        </div>
-      </div>
-    </main>
-  );
+  return {
+    isLoading,
+    eventData,
+    handleAddToCart,
+  };
 };
-
-export default EventPageController;

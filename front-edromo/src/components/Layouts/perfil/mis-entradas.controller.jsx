@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getEntradas } from "../../../services/mis-entradas.service";
+import { getEntradas } from "../../../services/MisEntradas.service";
 import MisEntradasView from "./mis-entradas";
 
 /**
