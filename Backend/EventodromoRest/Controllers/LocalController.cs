@@ -12,15 +12,15 @@ namespace EventodromoRest.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    public class AdministradorController (Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService) : BaseController
+    public class LocalController (Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
         private readonly Globales.Globales globales = globales;
         private readonly TokenService tokenService = tokenService;
 
         [HttpGet]
-        [Route("/api/[controller]/FetchAdminData")]
-        public GenericResponse<FetchUserDataResponse> FetchAdminData()
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<List<getLocalesResponse>> GetLocales()
         {
             try
             {
@@ -29,16 +29,12 @@ namespace EventodromoRest.Controllers
 
                 if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
-                    return new GenericResponse<FetchUserDataResponse>
+                    return new GenericResponse<List<getLocalesResponse>>
                     {
                         Success = false,
                         Message = "Token no proporcionado o inválido.",
                         Error = null,
-                        Data = new FetchUserDataResponse
-                        {
-                            status = "error",
-                            message = "Token no proporcionado o inválido."
-                        }
+                        Data = null
                     };
                 }
 
@@ -48,45 +44,52 @@ namespace EventodromoRest.Controllers
 
                 if (idAdmin == null)
                 {
-                    return new GenericResponse<FetchUserDataResponse>
+                    return new GenericResponse<List<getLocalesResponse>>
                     {
                         Success = false,
                         Message = "Token inválido o expirado.",
                         Error = null,
-                        Data = new FetchUserDataResponse
-                        {
-                            status = "error",
-                            message = "Token inválido o expirado."
-                        }
+                        Data = null
                     };
                 }
 
-                // 3️⃣ Consultar el nombre del cliente
-                var response = new AdministradorBO(globales, BD).ObtenerNombrePorId(idAdmin.Value);
+                // 2️⃣ Obtener los locales desde la capa de negocio
+                var locales = new LocalBO(globales, BD).ListarLocales();
 
-                if (response.status!="success")
+                if (locales == null || locales.Count == 0)
                 {
-                    return new GenericResponse<FetchUserDataResponse>
+                    return new GenericResponse<List<getLocalesResponse>>
                     {
                         Success = false,
-                        Message = "No se pudo obtener la información del admin.",
+                        Message = "No se encontraron locales.",
                         Error = null,
-                        Data = response
+                        Data = null
                     };
                 }
 
-                // 4️⃣ Éxito
-                return new GenericResponse<FetchUserDataResponse>
+                // 3️⃣ Mapear solo los campos requeridos al DTO
+                var data = locales
+                    .Where(l => !l.isDeleted)
+                    .Select(l => new getLocalesResponse
+                    {
+                        id = l.id,
+                        nombre = l.nombre,
+                        capacidad = l.capacidad
+                    })
+                    .ToList();
+
+                // 4️⃣ Respuesta exitosa
+                return new GenericResponse<List<getLocalesResponse>>
                 {
                     Success = true,
-                    Message = "Admin encontrado.",
+                    Message = "Lista de locales obtenida correctamente.",
                     Error = null,
-                    Data = response
+                    Data = data
                 };
             }
             catch (Exception e)
             {
-                var response = new GenericResponse<FetchUserDataResponse>
+                var response = new GenericResponse<List<getLocalesResponse>>
                 {
                     Success = false,
                     Message = "Error en el servidor.",
