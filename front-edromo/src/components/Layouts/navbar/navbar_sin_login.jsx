@@ -3,6 +3,7 @@ import React, { useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import "@/css/navbar-style.css";
+import "@/css/navbar-logged-in.css"; 
 import ModalCarritoController from "@/components/carrito/ModalCarrito.controller";
 import PrecioModal from "@/components/Layouts/navbar/filtros/PrecioModal";
 import CategoriasModal from "@/components/Layouts/navbar/filtros/CategoriasModal";
@@ -68,7 +69,13 @@ const Navbar = () => {
         <div className="navbar-search-section">
           {/* Input de Búsqueda Conectado */}
           <div className="search-bar-wrapper decorative-search">
-            <Image src={"/images/icon/lupa.svg"} alt="Buscar" width={20} height={20} className="search-icon-decorative" />
+            <Image
+              src={"/images/icon/lupa.svg"}
+              alt="Buscar"
+              width={20}
+              height={20}
+              className="search-icon-decorative"
+            />
             <input
               type="text"
               placeholder="Buscar eventos..."
@@ -87,7 +94,12 @@ const Navbar = () => {
               className="filter-btn"
               onClick={() => openPopover('precio', precioButtonRef)}
             >
-              <Image src={"/images/icon/precioFiltro.svg"} alt="Precio" width={20} height={20} />
+              <Image
+                src={"/images/icon/precioFiltro.svg"}
+                alt="Precio"
+                width={20}
+                height={20}
+              />
               <span>Precio</span>
             </button>
             <button
@@ -121,6 +133,7 @@ const Navbar = () => {
         <div className="navbar-user-actions">
           <button className="icon-btn cart-btn" onClick={openCart}>
             <Image src={"/images/icon/carrito.svg"} alt="Carrito" width={28} height={28} />
+            <span className="cart-badge">0</span>
           </button>
           <div className="auth-section">
             <div className="auth-buttons">

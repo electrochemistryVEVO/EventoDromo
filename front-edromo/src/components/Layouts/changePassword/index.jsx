@@ -34,7 +34,7 @@ export function ChangePasswordHeader() {
     <nav className="navbar-container">
       {/* 1. Logo (sin cambios) */}
       <div className="navbar-logo">
-        <Link href="/user-login/eventos/lista">
+        <Link href="/user-login/web/eventos/lista">
           <Image
             src={"/images/logo/eventodromo.png"}
             alt="EventoDromo Logo"
