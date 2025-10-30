@@ -77,7 +77,7 @@ namespace EventodromoRest.Negocio
                     Data = new ResponseListarEventosYLocales
                     {
                         eventos = eventosResponse,
-                        locales = localesResponse.DistinctBy(l => l.id).ToList()
+                        locales = [.. localesResponse.DistinctBy(l => l.id).Take(4)]
                     }
                 };
             }

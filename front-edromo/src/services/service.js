@@ -2,8 +2,68 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 // --- CONFIGURACIÓN ---
-const USE_BACKEND = false; // Cambia a true para usar el backend
+const USE_BACKEND = true; // Cambia a true para usar el backend
 const BACKEND_BASE_URL = "http://localhost:5189/api/Evento"; // O la URL de tu backend real
+// NUEVO: Endpoint para obtener TODOS los datos para el caché
+const BACKEND_GET_ALL_URL = `${BACKEND_BASE_URL}/ListarFiltradosConLocales`;
+
+// --- 1. CREACIÓN DEL CACHÉ EN MEMORIA ---
+// Este objeto vivirá en la memoria del servidor mientras la aplicación se ejecute.
+let appCache = {
+    data: null,      // Aquí guardaremos { eventos: [], locales: [] }
+    lastFetch: 0     // Marca de tiempo de la última vez que fuimos al backend
+};
+// Tiempo de vida del caché en milisegundos (ej. 5 minutos)
+const CACHE_DURATION_MS = 5 * 60 * 1000;
+
+/**
+ * Función INTERNA que obtiene y cachea los datos del backend.
+ * Solo hace la llamada a la red si el caché está vacío o ha expirado.
+ */
+async function getAndCacheAllData() {
+    const now = Date.now();
+
+    // Comprueba si el caché es inválido (nunca se ha llenado o ya expiró)
+    if (!appCache.data || (now - appCache.lastFetch > CACHE_DURATION_MS)) {
+        console.log("CACHE MISS: Obteniendo datos frescos del backend...");
+        try {
+            if (USE_BACKEND) {
+                const res = await fetch(BACKEND_GET_ALL_URL); // Llama al endpoint que trae todo
+                if (!res.ok) {
+                    throw new Error(`Error ${res.status} cargando datos del backend.`);
+                }
+                const jsonData = await res.json();
+
+                if (!jsonData || jsonData.success === false) {
+                    throw new Error(jsonData.error || "Error en respuesta del servicio");
+                }
+                // Guarda los datos en el caché
+                appCache.data = jsonData.data ?? { eventos: [], locales: [] };
+            } else {
+                // Lógica de archivo local (sin cambios)
+                const jsonPath = path.join(process.cwd(), 'public', 'data', 'eventos.json');
+                const fileContent = await fs.readFile(jsonPath, 'utf8');
+                const jsonData = JSON.parse(fileContent);
+                appCache.data = jsonData.data ?? { eventos: [], locales: [] };
+            }
+            // Actualiza la marca de tiempo
+            appCache.lastFetch = now;
+
+        } catch (error) {
+            console.error("Error al actualizar el caché:", error);
+            // Si falla, es mejor devolver los datos viejos (si existen) que romper la app
+            if (appCache.data) {
+                console.warn("Devolviendo datos de caché antiguos debido a un error de actualización.");
+                return appCache.data;
+            }
+            throw error; // Si no hay caché viejo, relanza el error
+        }
+    } else {
+        console.log("CACHE HIT: Usando datos de la memoria.");
+    }
+    // Devuelve una copia profunda para evitar que los filtros modifiquen el caché original
+    return JSON.parse(JSON.stringify(appCache.data));
+}
 
 /**
  * Función auxiliar para construir la URL con parámetros de filtro.
@@ -84,59 +144,59 @@ async function fetchData(filters = {}) {
  */
 export const getPaginaEventosData = async (filters = {}) => {
     try {
-        // 1. Obtiene TODOS los datos (eventos y locales)
-        const data = await fetchData(filters);
-        let eventos = data.eventos ?? [];
-        const locales = data.locales ?? []; // Los locales no se filtran aquí
+        const { eventos: allEvents, locales } = await getAndCacheAllData();
 
-        // 2. Si NO usamos backend, aplicamos el filtrado a los eventos aquí
-        if (!USE_BACKEND) {
-            console.log(" SERVICE (Local) - Aplicando filtros:", filters);
-            // --- Filtrado Manual ---
-            const selectedCategorias = filters.categoria ? filters.categoria.toLowerCase().split(',') : [];
-            const selectedCiudades = filters.ciudad ? filters.ciudad.toLowerCase().split(',') : [];
-            let filterStartDate = null;
-            let filterEndDate = null;
-
-            if (filters.fecha) { // Filtro rápido
-                const range = calculateDateRange(filters.fecha);
-                filterStartDate = range.inicio;
-                filterEndDate = range.fin;
-            } else { // Rango personalizado
-                if (filters.fechaInicio) try { filterStartDate = new Date(filters.fechaInicio + 'T00:00:00'); } catch (e) {}
-                if (filters.fechaFin) try { filterEndDate = new Date(filters.fechaFin + 'T23:59:59'); } catch (e) {}
-            }
-
-            eventos = eventos.filter(evento => { // Filtra sobre la lista obtenida
-                let pasaFiltro = true;
-                if (selectedCategorias.length > 0 && !selectedCategorias.includes(evento.categoria.toLowerCase())) pasaFiltro = false;
-                if (selectedCiudades.length > 0 && !selectedCiudades.includes(evento.ciudad.toLowerCase())) pasaFiltro = false;
-                if (filters.precioMin && evento.precio < parseFloat(filters.precioMin)) pasaFiltro = false;
-                if (filters.precioMax && evento.precio > parseFloat(filters.precioMax)) pasaFiltro = false;
-                const eventoDate = new Date(evento.fecha);
-                if (isNaN(eventoDate)) { pasaFiltro = false; }
-                else {
-                    if (filterStartDate && !isNaN(filterStartDate) && eventoDate < filterStartDate) pasaFiltro = false;
-                    if (filterEndDate && !isNaN(filterEndDate) && eventoDate > filterEndDate) pasaFiltro = false;
-                }
-                if (filters.busqueda) {
-                    const termino = filters.busqueda.toLowerCase();
-                    if (!evento.nombre.toLowerCase().includes(termino) && !evento.nombreLocal.toLowerCase().includes(termino)) pasaFiltro = false;
-                }
-                return pasaFiltro;
-            });
-             console.log(` SERVICE (Local) - Eventos después del filtro: ${eventos.length}`);
+        if (Object.values(filters).every(v => v === undefined || v === null || v === '')) {
+            return { eventos: allEvents, locales };
         }
 
-        // 3. Devuelve el objeto con ambas listas
-        return { eventos, locales };
+        console.log("SERVICE (Cache) - Aplicando filtros en memoria:", filters);
+
+        const selectedCategorias = filters.categoria ? filters.categoria.toLowerCase().split(',') : [];
+        const selectedCiudades = filters.ciudad ? filters.ciudad.toLowerCase().split(',') : [];
+        let filterStartDate = null;
+        let filterEndDate = null;
+
+        if (filters.fecha) {
+            const range = calculateDateRange(filters.fecha);
+            filterStartDate = range.inicio;
+            filterEndDate = range.fin;
+        } else {
+            if (filters.fechaInicio) try { filterStartDate = new Date(filters.fechaInicio + 'T00:00:00'); } catch (e) {}
+            if (filters.fechaFin) try { filterEndDate = new Date(filters.fechaFin + 'T23:59:59'); } catch (e) {}
+        }
+
+        const filteredEvents = allEvents.filter(evento => {
+            let pasaFiltro = true;
+            if (selectedCategorias.length > 0 && !selectedCategorias.includes(evento.categoria.toLowerCase())) pasaFiltro = false;
+            if (selectedCiudades.length > 0 && !selectedCiudades.includes(evento.ciudad.toLowerCase())) pasaFiltro = false;
+            
+            // --- LÍNEAS CORREGIDAS/AÑADIDAS PARA EL FILTRO DE PRECIO ---
+            if (filters.precioMin && evento.precio < parseFloat(filters.precioMin)) pasaFiltro = false;
+            if (filters.precioMax && evento.precio > parseFloat(filters.precioMax)) pasaFiltro = false;
+            // --- FIN DE LA CORRECCIÓN ---
+
+            const eventoDate = new Date(evento.fecha);
+            if (isNaN(eventoDate)) {
+                pasaFiltro = false;
+            } else {
+                if (filterStartDate && !isNaN(filterStartDate) && eventoDate < filterStartDate) pasaFiltro = false;
+                if (filterEndDate && !isNaN(filterEndDate) && eventoDate > filterEndDate) pasaFiltro = false;
+            }
+            if (filters.busqueda) {
+                const termino = filters.busqueda.toLowerCase();
+                if (!evento.nombre.toLowerCase().includes(termino) && !evento.nombreLocal.toLowerCase().includes(termino)) pasaFiltro = false;
+            }
+            return pasaFiltro;
+        });
+
+        console.log(`SERVICE (Cache) - Eventos después del filtro: ${filteredEvents.length}`);
+
+        return { eventos: filteredEvents, locales };
 
     } catch (error) {
         console.error("Error en getPaginaEventosData:", error);
-        // Devuelve listas vacías en caso de error para que la página no se rompa
         return { eventos: [], locales: [] };
-        // O podrías relanzar el error si prefieres manejarlo en el controller/page
-        // throw error;
     }
 };
 

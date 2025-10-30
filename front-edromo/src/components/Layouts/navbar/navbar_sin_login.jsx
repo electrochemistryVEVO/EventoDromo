@@ -23,12 +23,12 @@ const Navbar = () => {
 
   // Llama al Hook
   const {
-      applyFilter,
-      clearFilter,
-      handleSearchChange,
-      handleSearchSubmit,
-      activeFilters,
-      searchTerm,
+    applyFilter,
+    clearFilter,
+    handleSearchChange,
+    handleSearchSubmit,
+    activeFilters,
+    searchTerm,
   } = useNavbarController();
 
   const openCart = () => setCartOpen(true);
@@ -36,10 +36,10 @@ const Navbar = () => {
 
   const openPopover = (modalType, buttonRef) => {
     if (openFilterModal === modalType && activeButtonRef === buttonRef) {
-        closePopover();
+      closePopover();
     } else {
-        setOpenFilterModal(modalType);
-        setActiveButtonRef(buttonRef);
+      setOpenFilterModal(modalType);
+      setActiveButtonRef(buttonRef);
     }
   };
 
@@ -68,7 +68,7 @@ const Navbar = () => {
         <div className="navbar-search-section">
           {/* Input de Búsqueda Conectado */}
           <div className="search-bar-wrapper decorative-search">
-            <Image src={"/images/icon/lupa.svg"} alt="Buscar" width={20} height={20} className="search-icon-decorative"/>
+            <Image src={"/images/icon/lupa.svg"} alt="Buscar" width={20} height={20} className="search-icon-decorative" />
             <input
               type="text"
               placeholder="Buscar eventos..."
@@ -87,7 +87,7 @@ const Navbar = () => {
               className="filter-btn"
               onClick={() => openPopover('precio', precioButtonRef)}
             >
-              <Image src={"/images/icon/precioFiltro.svg"} alt="Precio" width={20} height={20}/>
+              <Image src={"/images/icon/precioFiltro.svg"} alt="Precio" width={20} height={20} />
               <span>Precio</span>
             </button>
             <button
@@ -95,7 +95,7 @@ const Navbar = () => {
               className="filter-btn"
               onClick={() => openPopover('categorias', categoriasButtonRef)}
             >
-              <Image src={"/images/icon/categoriasFiltro.svg"} alt="Categorías" width={20} height={20}/>
+              <Image src={"/images/icon/categoriasFiltro.svg"} alt="Categorías" width={20} height={20} />
               <span>Categorías</span>
             </button>
             <button
@@ -103,7 +103,7 @@ const Navbar = () => {
               className="filter-btn"
               onClick={() => openPopover('ciudad', ciudadButtonRef)}
             >
-              <Image src={"/images/icon/ciudadFiltro.svg"} alt="Ciudad" width={20} height={20}/>
+              <Image src={"/images/icon/ciudadFiltro.svg"} alt="Ciudad" width={20} height={20} />
               <span>Ciudad</span>
             </button>
             <button
@@ -111,7 +111,7 @@ const Navbar = () => {
               className="filter-btn"
               onClick={() => openPopover('fechas', fechasButtonRef)}
             >
-              <Image src={"/images/icon/fechasFiltro.svg"} alt="Fechas" width={20} height={20}/>
+              <Image src={"/images/icon/fechasFiltro.svg"} alt="Fechas" width={20} height={20} />
               <span>Fechas</span>
             </button>
           </div>
@@ -120,7 +120,7 @@ const Navbar = () => {
         {/* 3. Acciones de Usuario */}
         <div className="navbar-user-actions">
           <button className="icon-btn cart-btn" onClick={openCart}>
-            <Image src={"/images/icon/carrito.svg"} alt="Carrito" width={28} height={28}/>
+            <Image src={"/images/icon/carrito.svg"} alt="Carrito" width={28} height={28} />
           </button>
           <div className="auth-section">
             <div className="auth-buttons">
@@ -128,7 +128,7 @@ const Navbar = () => {
               <Link href="/auth/signup" className="auth-link"> Regístrate </Link>
             </div>
             <div className="user-icon">
-              <Image src={"/images/icon/cuenta.svg"} alt="Usuario" width={32} height={32}/>
+              <Image src={"/images/icon/cuenta.svg"} alt="Usuario" width={32} height={32} />
             </div>
           </div>
         </div>
@@ -153,7 +153,7 @@ const Navbar = () => {
           initialFilters={activeFilters}
         />
       )}
-       {openFilterModal === 'ciudad' && activeButtonRef && (
+      {openFilterModal === 'ciudad' && activeButtonRef && (
         <CiudadModal
           onClose={closePopover}
           onApply={applyFilter}
@@ -162,7 +162,7 @@ const Navbar = () => {
           initialFilters={activeFilters}
         />
       )}
-       {openFilterModal === 'fechas' && activeButtonRef && (
+      {openFilterModal === 'fechas' && activeButtonRef && (
         <FechasModal
           onClose={closePopover}
           onApply={applyFilter}
