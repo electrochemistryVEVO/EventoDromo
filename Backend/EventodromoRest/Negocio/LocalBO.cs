@@ -7,8 +7,8 @@ namespace EventodromoRest.Negocio
     {
         public List<Local> ListarLocales()
         {
-            var mappers = new LocalMapper(globales, DB);
-            return mappers.ListarLocales();
+            var mapper = new LocalMapper(globales, DB);
+            return mapper.ListarLocales();
         }
     }
 }

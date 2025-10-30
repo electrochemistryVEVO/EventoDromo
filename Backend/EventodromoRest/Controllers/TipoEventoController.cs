@@ -19,77 +19,72 @@ namespace EventodromoRest.Controllers
         private readonly TokenService tokenService = tokenService;
 
         [HttpGet]
-        [Route("/api/[controller]/FetchAdminData")]
-        public GenericResponse<FetchUserDataResponse> FetchAdminData()
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<List<TipoEvento>> GetTiposEvento()
         {
             try
             {
-                // 1️⃣ Leer el token de la cabecera
+                // 1️⃣ Leer token de la cabecera
                 var authHeader = Request.Headers["Authorization"].ToString();
 
                 if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
-                    return new GenericResponse<FetchUserDataResponse>
+                    Response.StatusCode = 401;
+                    return new GenericResponse<List<TipoEvento>>
                     {
                         Success = false,
-                        Message = "Token no proporcionado o inválido.",
+                        Message = "Acceso no autorizado. Se requiere un token válido.",
                         Error = null,
-                        Data = new FetchUserDataResponse
-                        {
-                            status = "error",
-                            message = "Token no proporcionado o inválido."
-                        }
+                        Data = null
                     };
                 }
 
-                // 2️⃣ Extraer el token y obtener el ID del admin
+                // 2️⃣ Validar token
                 var token = authHeader.Substring("Bearer ".Length);
                 int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
 
                 if (idAdmin == null)
                 {
-                    return new GenericResponse<FetchUserDataResponse>
+                    Response.StatusCode = 401;
+                    return new GenericResponse<List<TipoEvento>>
                     {
                         Success = false,
-                        Message = "Token inválido o expirado.",
+                        Message = "Acceso no autorizado. Token inválido o expirado.",
                         Error = null,
-                        Data = new FetchUserDataResponse
-                        {
-                            status = "error",
-                            message = "Token inválido o expirado."
-                        }
+                        Data = null
                     };
                 }
 
-                // 3️⃣ Consultar el nombre del cliente
-                var response = new AdministradorBO(globales, BD).ObtenerNombrePorId(idAdmin.Value);
+                // 3️⃣ Obtener lista de tipos de evento
+                var tipos = new TipoEventoBO(globales, BD).ListarTiposEvento();
 
-                if (response.status!="success")
+                if (tipos == null || tipos.Count == 0)
                 {
-                    return new GenericResponse<FetchUserDataResponse>
+                    return new GenericResponse<List<TipoEvento>>
                     {
                         Success = false,
-                        Message = "No se pudo obtener la información del admin.",
+                        Message = "No se encontraron tipos de evento.",
                         Error = null,
-                        Data = response
+                        Data = null
                     };
                 }
 
                 // 4️⃣ Éxito
-                return new GenericResponse<FetchUserDataResponse>
+                return new GenericResponse<List<TipoEvento>>
                 {
                     Success = true,
-                    Message = "Admin encontrado.",
+                    Message = "Lista de tipos de evento obtenida correctamente.",
                     Error = null,
-                    Data = response
+                    Data = tipos
                 };
             }
             catch (Exception e)
             {
-                var response = new GenericResponse<FetchUserDataResponse>
+                Response.StatusCode = 500;
+                var response = new GenericResponse<List<TipoEvento>>
                 {
                     Success = false,
-                    Message = "Error en el servidor.",
+                    Message = "Ocurrió un error interno al procesar la solicitud.",
                     Error = e.Message,
                     Data = null
                 };
