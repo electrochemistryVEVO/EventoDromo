@@ -2,6 +2,7 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
 import { useUser } from "./UserContext"; 
+import { useUser } from "./UserContext"; 
 import {
   mergeGuestCartWithDb,
   addItemToDbCart,
@@ -13,6 +14,7 @@ const CART_EXPIRATION_MINUTES = 10;
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
+  const { isAuthenticated } = useUser();
   const { isAuthenticated } = useUser();
   const [cartItems, setCartItems] = useState([]);
   const [expirationTime, setExpirationTime] = useState(null);
@@ -131,6 +133,7 @@ export const CartProvider = ({ children }) => {
 
     loadCart();
   }, [isAuthenticated]);
+  }, [isAuthenticated]);
   
   // ... (tus useEffect de persistencia y vigilante están bien) ...
     // --- EFECTOS DE PERSISTENCIA (SOLO PARA INVITADOS) ---
@@ -192,6 +195,7 @@ export const CartProvider = ({ children }) => {
         setCartItems(response.data.items);
         setExpirationTime(response.data.expirationTime);
       } else {
+        console.error("Error al agregar item a la BD");
         console.error("Error al agregar item a la BD");
       }
       setIsLoading(false);
