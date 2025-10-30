@@ -7,24 +7,39 @@ const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  // cargar usuario desde localStorage SOLO en cliente
   useEffect(() => {
     try {
       const savedUser = localStorage.getItem("user");
       if (savedUser) {
         setUser(JSON.parse(savedUser));
       }
-    } catch {
-      // si localStorage no está disponible o hay JSON inválido, ignora
+    } catch (error) {
+      console.warn("Error al cargar usuario de localStorage:", error);
     }
+
+    const handleStorageChange = (event) => {
+      if (event.key === "user") {
+        try {
+          setUser(event.newValue ? JSON.parse(event.newValue) : null);
+        } catch (error) {
+          console.warn("Error al parsear usuario desde evento storage:", error);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
   const login = (userData) => {
     setUser(userData);
     try {
       localStorage.setItem("user", JSON.stringify(userData));
-    } catch {
-      /* ignore */
+    } catch (error) {
+      console.warn("Error al guardar usuario en localStorage:", error);
     }
   };
 
@@ -32,8 +47,8 @@ export const UserProvider = ({ children }) => {
     setUser(null);
     try {
       localStorage.removeItem("user");
-    } catch {
-      /* ignore */
+    } catch (error) {
+      console.warn("Error al borrar usuario de localStorage:", error);
     }
   };
 

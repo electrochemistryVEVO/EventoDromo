@@ -1,55 +1,43 @@
 export async function autenticarUsuario(loginInfo) {
-  //link q funciona en individual: http://localhost:5189/api/Cliente/AutenticarLoginCliente"
-  //link q funciona en docker: http://localhost:8081/api/Cliente/AutenticarLoginCliente"
-  const res = await fetch("http://localhost:5189/api/Cliente/AutenticarLoginCliente", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(loginInfo),
-  });
-  console.log(res);
-  if (!res.ok) throw new Error("Error al autenticar cliente login (status:" + res.status + ")");
-  const json = await res.json();
-  if(!json) throw new Error("Error al autenticar cliente login (json vacio)");
-  if(json.success===false){
-    throw new Error(json.error || json.mensaje || "Error en respuesta del servicio");
-  }
-  return json.data;
-
-  /*
-  // Simulación de una llamada al backend
-  console.log(" MODO HARDCODEADO: Devolviendo respuesta de login simulada.");
-  await new Promise((resolve) => setTimeout(resolve, 500)); // Espera 0.5 segundos
-  return {
-    success: true,
-    rol: "C",
-  */
-  };
-  /*
   try {
-    const res = await fetch("http://localhost:5189/api/Cliente/AutenticarLoginCliente", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(loginInfo),
-  });
-    console.log(res);
-    //if (!res.ok) throw new Error("Error al autenticar cliente login");
+    const API_URL = "http://localhost:5189/api/Cliente/AutenticarLoginCliente";
+
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(loginInfo),
+    });
 
     const json = await res.json();
 
-    // 🔹 Validaciones básicas
-    if (!json || typeof json.success === "undefined") {
-      throw new Error("Respuesta inválida o vacía del login");
+    if (!res.ok) {
+      const errorMessage = json.message || json.error || res.statusText;
+      throw new Error(`Error HTTP ${res.status}: ${errorMessage}`);
     }
 
-    return json; // ✅ devuelve { success, rol }
+    if (json.success !== true || !json.data) {
+      throw new Error(json.message || json.error || "La respuesta del servidor no fue exitosa o no contiene datos.");
+    }
+
+    const { success, rol, token, idCliente } = json.data;
+
+    return {
+      success: success ?? null,
+      rol: rol ?? null,
+      token: token ?? null,
+      idCliente: idCliente ?? null,
+    };
 
   } catch (error) {
-    console.error("Error en autenticación:", error);
-    throw error;
+    console.error("Error en autenticarUsuario:", error.message);
+    return {
+      success: false,
+      message: error.message,
+      rol: null,
+      token: null,
+      idCliente: null,
+    };
   }
-    */
-
+}

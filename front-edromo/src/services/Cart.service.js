@@ -8,12 +8,6 @@ const RAW_API_BASE_URL =
 
 const API_BASE_URL = RAW_API_BASE_URL.replace(/\/$/, "");
 
-const rawUseCartApi = (process.env.NEXT_PUBLIC_CART_USE_API ?? "true")
-  .toString()
-  .toLowerCase();
-
-const USE_CART_API = ["true", "1", "yes", "y"].includes(rawUseCartApi);
-
 const CART_FETCH_ENDPOINT = (
   process.env.NEXT_PUBLIC_CART_FETCH_ENDPOINT ||
   "Carrito/ObtenerCarrito"
@@ -270,17 +264,17 @@ const buildAddItemPayload = (cartItem, expirationTime) => {
     );
   });
 
-  const entradas = Array.from(aggregated.entries()).map(
+  const entradasCamel = Array.from(aggregated.entries()).map(
     ([tipoEntradaId, cantidad]) => ({
       idTipoEntrada: Number(tipoEntradaId),
       cantidad,
     }),
   );
 
-  const payload = { entradas };
-  if (fechaExpiracion) {
-    payload.fechaExpiracion = fechaExpiracion;
-  }
+  const payload = {
+    entradas: entradasCamel,
+    fechaExpiracion: fechaExpiracion || null,
+  };
 
   return payload;
 };
@@ -398,7 +392,7 @@ const apiFetch = async (endpoint, options = {}) => {
     ...rest
   } = options;
 
-  const token = explicitToken ?? getAuthToken();
+  const rawToken = explicitToken ?? getAuthToken();
   const url = buildUrl(endpoint);
 
   const headers = new Headers(customHeaders || {});
@@ -420,8 +414,15 @@ const apiFetch = async (endpoint, options = {}) => {
     requestBody = JSON.stringify(body);
   }
 
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
+  if (rawToken) {
+    const normalizedToken = typeof rawToken === "string" ? rawToken.trim() : rawToken;
+    if (typeof normalizedToken === "string" && normalizedToken.length > 0) {
+      const hasBearerPrefix = /^bearer\s/i.test(normalizedToken);
+      headers.set(
+        "Authorization",
+        hasBearerPrefix ? normalizedToken : `Bearer ${normalizedToken}`,
+      );
+    }
   }
 
   const response = await fetch(url, {
@@ -491,53 +492,20 @@ const mergeServerAndGuestItems = (serverItems = [], guestItems = []) => {
   return Array.from(merged.values());
 };
 
-const fetchCartSafe = async (token) => {
-  if (!USE_CART_API) return null;
+export const mergeGuestCartWithDb = async (guestItems = [], token) => {
   try {
-    const { success, data } = await fetchCartWithToken(token);
-    if (!success) return null;
-    return data;
-  } catch (error) {
-    console.error("[Cart.service] Falló la obtención del carrito:", error);
-    return null;
-  }
-};
+    const { data } = await fetchCartWithToken(token);
 
-
-// --- SIMULACIÓN DE BACKEND ---
-
-// 1. Nuestra "base de datos falsa" en memoria.
-let mockDatabase = {
-  items: [],
-  expirationTime: null,
-};
-
-// 2. Función para simular el tiempo de espera de la red (ej. 300ms)
-const simulateNetworkDelay = (ms = 300) => 
-  new Promise(resolve => setTimeout(resolve, ms));
-
-// --- Servicios Exportados (Versión Simulada) ---
-
-/**
- * 1. Fusiona el carrito de invitado con el de la "BD".
- */
-export const mergeGuestCartWithDb = async (guestItems, token) => {
-  const backendCart = await fetchCartSafe(token);
-
-  if (backendCart) {
     const mergedItems = mergeServerAndGuestItems(
-      backendCart.items,
+      data.items,
       guestItems,
     );
 
     const expirationTime =
-      backendCart.expirationTime ??
+      data.expirationTime ??
       (mergedItems.length > 0
         ? Date.now() + DEFAULT_EXPIRATION_MS
         : null);
-
-    mockDatabase.items = mergedItems;
-    mockDatabase.expirationTime = expirationTime;
 
     return {
       success: true,
@@ -546,134 +514,70 @@ export const mergeGuestCartWithDb = async (guestItems, token) => {
         expirationTime,
       },
     };
+  } catch (error) {
+    console.error("[Cart.service] No se pudo sincronizar el carrito:", error);
+    return {
+      success: false,
+      error: error.message || "No se pudo sincronizar el carrito",
+    };
   }
-
-  await simulateNetworkDelay();
-
-  const mergedItems = new Map();
-  mockDatabase.items.forEach((item) => {
-    if (!item?.cartItemId) return;
-    mergedItems.set(item.cartItemId, item);
-  });
-  (guestItems || []).forEach((item) => {
-    if (!item?.cartItemId) return;
-    mergedItems.set(item.cartItemId, item);
-  });
-
-  mockDatabase.items = Array.from(mergedItems.values());
-
-  if (mockDatabase.items.length > 0) {
-    mockDatabase.expirationTime = Date.now() + DEFAULT_EXPIRATION_MS;
-  }
-
-  console.log("[MOCK API] mergeGuestCartWithDb:", mockDatabase);
-
-  return {
-    success: true,
-    data: { ...mockDatabase },
-  };
 };
 
-/**
- * 2. Agrega un nuevo item al carrito en la "BD".
- */
 export const addItemToDbCart = async (item, expirationTime, token) => {
-  if (USE_CART_API) {
-    const payload = buildAddItemPayload(item, expirationTime);
+  const payload = buildAddItemPayload(item, expirationTime);
 
-    if (!payload.entradas.length) {
+  if (!payload.entradas.length) {
+    return {
+      success: false,
+      error: "No hay entradas válidas para agregar",
+    };
+  }
+
+  console.log("[Cart.service] Payload agregar item:", {
+    endpoint: CART_ADD_ENDPOINT,
+    body: payload,
+  });
+
+  try {
+    const response = await apiFetch(CART_ADD_ENDPOINT, {
+      method: "POST",
+      body: payload,
+      token,
+    });
+
+    if (response?.success === false) {
       return {
         success: false,
-        error: "No hay entradas válidas para agregar",
+        error:
+          response.error ||
+          response.mensaje ||
+          "Error en el servicio de carrito",
       };
     }
 
-    try {
-      const response = await apiFetch(CART_ADD_ENDPOINT, {
-        method: "POST",
-        body: payload,
-        token,
-      });
+    const normalized = normalizeCartPayload(
+      response?.data ?? response ?? null,
+    );
 
-      if (response?.success === false) {
-        return {
-          success: false,
-          error:
-            response.error ||
-            response.mensaje ||
-            "Error en el servicio de carrito",
-        };
-      }
-
-      const normalized = normalizeCartPayload(
-        response?.data ?? response ?? null,
-      );
-
-      return {
-        success: true,
-        data: normalized,
-      };
-    } catch (error) {
-      console.error("[Cart.service] Error al agregar item:", error);
-      return {
-        success: false,
-        error: error.message || "Error al agregar item al carrito",
-      };
-    }
+    return {
+      success: true,
+      data: normalized,
+    };
+  } catch (error) {
+    console.error("[Cart.service] Error al agregar item:", error);
+    return {
+      success: false,
+      error: error.message || "Error al agregar item al carrito",
+    };
   }
-
-  await simulateNetworkDelay();
-
-  if (item?.eventoInfo?.nombre &&
-    item.eventoInfo.nombre.toLowerCase().includes("agotado")) {
-    console.warn("[MOCK API] addItemToDbCart: ¡Stock Agotado! (Simulado)");
-    return { success: false, error: "Stock no disponible (Simulación)" };
-  }
-
-  mockDatabase.items.push(item);
-  mockDatabase.expirationTime = expirationTime;
-
-  console.log("[MOCK API] addItemToDbCart:", mockDatabase);
-
-  return {
-    success: true,
-    data: { ...mockDatabase },
-  };
 };
 
-/**
- * 3. Elimina un item del carrito en la "BD".
- */
-export const removeItemFromDbCart = async (cartItemId) => {
-  await simulateNetworkDelay();
-  
-  mockDatabase.items = mockDatabase.items.filter(
-    (item) => item.cartItemId !== cartItemId
-  );
-  
-  // Si el carrito queda vacío, limpia la expiración
-  if (mockDatabase.items.length === 0) {
-    mockDatabase.expirationTime = null;
-  }
-  
-  console.log("[MOCK API] removeItemFromDbCart:", mockDatabase);
-  
-  return { 
-    success: true, 
-    data: { ...mockDatabase } // Devuelve el carrito actualizado
-  };
-};
+export const removeItemFromDbCart = async (_cartItemId, _token) => ({
+  success: false,
+  error: "Servicio para eliminar items no implementado",
+});
 
-/**
- * 4. Vacía el carrito completo en la "BD".
- */
-export const clearDbCart = async () => {
-  await simulateNetworkDelay();
-  
-  mockDatabase = { items: [], expirationTime: null };
-  
-  console.log("[MOCK API] clearDbCart:", mockDatabase);
-  
-  // Tu CartContext espera 'success: true' y limpia el estado localmente
-  return { success: true, data: null };
-};
+export const clearDbCart = async (_token) => ({
+  success: false,
+  error: "Servicio para limpiar el carrito no implementado",
+});
