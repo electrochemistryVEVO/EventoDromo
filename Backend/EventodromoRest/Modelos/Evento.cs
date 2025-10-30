@@ -74,4 +74,11 @@
         public double precio { get; set; }
         public string imagen { get; set; }
     }
+
+    public class EventoDTO
+    {
+        public int id { get; set; }
+        public string nombreEvento { get; set; }
+        public string imagenURL { get; set; }
+    }
 }

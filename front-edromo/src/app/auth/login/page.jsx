@@ -1,64 +1,46 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Nunito } from "next/font/google";
 import { onSubmit } from "./controller";
+import { useUser } from "@/context/UserContext.jsx";
+import Image from "next/image";
 import Link from "next/link";
 
-// 👇 IMPORTANTE: traemos el hook del contexto
-import { useUser } from "@/context/UserContext.jsx";
-
-const nunito = Nunito({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
+const nunito = Nunito({ subsets: ["latin"], weight: ["400", "700", "900"] });
 
 function App() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [error, setError] = useState("");
-
-  // Traemos la función login() del contexto global de usuario
   const { login } = useUser();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setError("");
     const formData = new FormData(e.target);
 
     try {
       const result = await onSubmit(formData);
 
-      if (result?.error) {
-        // credenciales malas o error de backend
-        setError(result.error);
-        return;
-      }
+      if (result.success === true) {
 
-      if (result?.success) {
-        // 👤 1. Construimos los datos que queremos guardar en el contexto global.
-        //    Por ahora tenemos el rol. Más adelante puedes agregar idCliente, nombre, email, token, etc.
         const userData = {
           rol: result.rol,
-          ...(result.token ? { token: result.token } : {}),
-          // idCliente: result.clientData?.idCliente,
-          // nombre: result.clientData?.nombres,
-          // email: result.clientData?.correo,
+          token: result.token,
+          idCliente: result.idCliente,
+          email: formData.get("email"),
         };
 
-        // 👤 2. Guardamos el usuario en el contexto global.
-        //    Esto también lo persiste en localStorage gracias a tu UserContext.jsx
         login(userData);
 
-        // 👣 3. Redirección post-login
-
-        // Si venía con ?redirect=/algo, respetamos eso primero
         const redirectUrl = searchParams.get("redirect");
         if (redirectUrl) {
           router.push(redirectUrl);
           return;
         }
 
-        // Si no hay redirect explícito, decidimos según rol
         if (result.rol === "A") {
           router.push("/data/loginHardCodeo.json");
         } else if (result.rol === "C") {
@@ -66,15 +48,19 @@ function App() {
         } else {
           setError("Rol de usuario no válido");
         }
+
+      } else {
+        setError(result.message || "Ocurrió un error inesperado.");
       }
     } catch (err) {
-      setError("Error al iniciar sesión");
+      setError("Error fatal al procesar el formulario.");
       console.error(err);
     }
   };
 
+
   return (
-    <div className={`${nunito.className} flex min-h-screen bg-white`}> 
+    <div className={`${nunito.className} flex min-h-screen bg-white`}>
       <div className="relative flex flex-1 flex-col px-8 py-10 lg:min-w-[40vw]">
         <div className="relative mb-8 h-[250px] w-[400px] max-w-full">
           <Image

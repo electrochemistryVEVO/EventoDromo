@@ -1,51 +1,20 @@
 "use client";
-// 📍 Indica a Next.js que este archivo se ejecuta en el **navegador** (lado del cliente).
-// Esto es necesario porque aquí se usa sessionStorage (que solo existe en el navegador).
 
 import { autenticarUsuario } from "@/services/loginService.js";
-// 📡 Importa una función llamada `autenticarUsuario` desde `service.js`.
-// 📤 Esta función se exporta y se usa en `page.js` cuando se envía el formulario
+
 export async function onSubmit(formData) {
   try {
-    // 🧱 1. Construimos un objeto con los datos del formulario:
     const loginInfo = {
-      Correo: formData.get("email"), // 📩 Obtiene el valor del input con name="email"
-      Password: formData.get("password"), // 🔑 Obtiene el valor del input con name="password"
+      Correo: formData.get("email"),
+      Password: formData.get("password"),
     };
-
-    // 📡 2. Llamamos a la función que valida el login en el backend
-    // Le enviamos el correo y contraseña al servidor para que los verifique.
     const response = await autenticarUsuario(loginInfo);
-
-    // ✅ 3. Si la autenticación fue exitosa:
-    // 🗂️ 4. Guardamos datos de sesión en el navegador:
-    // En lugar de usar cookies del servidor, aquí se usa sessionStorage (propio del navegador)
-    // Esto permite que la sesión se mantenga mientras la pestaña esté abierta.
-    if (response.success) {
-      const rol = response.rol;
-      const token = response.token; // 🔹 Capturamos el token recibido del backend
-
-      // Guardamos toda la info de sesión
-      sessionStorage.setItem(
-        "session",
-        JSON.stringify({
-          rol,
-          token, // 🔹 Guardamos el token
-        })
-      );
-
-      return {
-        success: true,
-        rol,
-        token, // 🔹 Lo devolvemos también al page.js
-      };
-    } else {
-      // ❌ Si el backend respondió que las credenciales son incorrectas:
-      return { error: "Credenciales inválidas" };
-    }
+    return response;
   } catch (error) {
-    // 💥 Si algo falla en la petición (por ejemplo, el backend no responde):
-    console.error("Error en el login:", error);
-    return { error: "Error al intentar iniciar sesión" };
+    console.error("Error crítico en onSubmit:", error);
+    return { 
+      success: false, 
+      message: error.message || "Error de red al intentar iniciar sesión" 
+    };
   }
 }

@@ -18,6 +18,54 @@ export const CartProvider = ({ children }) => {
   const [expirationTime, setExpirationTime] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const normalizeToken = (rawToken) => {
+    if (typeof rawToken !== "string") return null;
+    const trimmed = rawToken.trim();
+    if (!trimmed || trimmed.toLowerCase() === "null") return null;
+    return trimmed;
+  };
+
+  const resolveAuthToken = () => {
+    const userToken = normalizeToken(user?.token);
+    if (userToken) return userToken;
+
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    try {
+      const sessionRaw = window.sessionStorage?.getItem("session");
+      if (sessionRaw) {
+        const sessionData = JSON.parse(sessionRaw);
+        const sessionToken = normalizeToken(sessionData?.token);
+        if (sessionToken) {
+          return sessionToken;
+        }
+      }
+    } catch (error) {
+      console.warn("[CartContext] No se pudo leer sessionStorage", error);
+    }
+
+    try {
+      const userRaw = window.localStorage?.getItem("user");
+      if (userRaw) {
+        const userData = JSON.parse(userRaw);
+        const storedToken = normalizeToken(userData?.token);
+        if (storedToken) {
+          return storedToken;
+        }
+        const legacyToken = normalizeToken(userData?.authToken);
+        if (legacyToken) {
+          return legacyToken;
+        }
+      }
+    } catch (error) {
+      console.warn("[CartContext] No se pudo leer localStorage", error);
+    }
+
+    return null;
+  };
+
   // ... (tu useEffect de "EL CEREBRO" [isAuthenticated] está bien) ...
   useEffect(() => {
     const loadCart = async () => {
@@ -31,7 +79,15 @@ export const CartProvider = ({ children }) => {
           guestItems = JSON.parse(guestCartJson);
         }
 
-        const response = await mergeGuestCartWithDb(guestItems, user?.token);
+        const token = resolveAuthToken();
+        if (!token) {
+          console.warn("[CartContext] Usuario autenticado sin token disponible. Omitiendo sincronización con backend.");
+          setCartItems([]);
+          setExpirationTime(null);
+          setIsLoading(false);
+          return;
+        }
+        const response = await mergeGuestCartWithDb(guestItems, token);
 
         if (response.success) {
           setCartItems(response.data.items);
@@ -117,7 +173,13 @@ export const CartProvider = ({ children }) => {
 
     if (isAuthenticated) {
       setIsLoading(true);
-      const response = await addItemToDbCart(entrada, newExpiration, user?.token);
+      const token = resolveAuthToken();
+      if (!token) {
+        console.warn("[CartContext] No se pudo obtener token para agregar al carrito.");
+        setIsLoading(false);
+        return;
+      }
+      const response = await addItemToDbCart(entrada, newExpiration, token);
       if (response.success) {
         setCartItems(response.data.items);
         setExpirationTime(response.data.expirationTime);
@@ -134,7 +196,13 @@ export const CartProvider = ({ children }) => {
   const removeFromCart = async (cartItemId) => { // Recibe cartItemId
     if (isAuthenticated) {
       setIsLoading(true);
-      const response = await removeItemFromDbCart(cartItemId);
+      const token = resolveAuthToken();
+      if (!token) {
+        console.warn("[CartContext] No se pudo obtener token para eliminar del carrito.");
+        setIsLoading(false);
+        return;
+      }
+      const response = await removeItemFromDbCart(cartItemId, token);
       if (response.success) {
         setCartItems(response.data.items);
         setExpirationTime(response.data.expirationTime);
@@ -156,7 +224,13 @@ export const CartProvider = ({ children }) => {
   const clearCart = async () => {
     if (isAuthenticated) {
       setIsLoading(true);
-      const response = await clearDbCart();
+      const token = resolveAuthToken();
+      if (!token) {
+        console.warn("[CartContext] No se pudo obtener token para vaciar el carrito.");
+        setIsLoading(false);
+        return;
+      }
+      const response = await clearDbCart(token);
       if (response.success) {
         setCartItems([]);
         setExpirationTime(null);
