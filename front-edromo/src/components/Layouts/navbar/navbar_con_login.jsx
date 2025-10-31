@@ -11,6 +11,7 @@ import PrecioModal from "@/components/Layouts/navbar/filtros/PrecioModal";
 import CategoriasModal from "@/components/Layouts/navbar/filtros/CategoriasModal";
 import CiudadModal from "@/components/Layouts/navbar/filtros/CiudadModal";
 import FechasModal from "@/components/Layouts/navbar/filtros/FechasModal";
+import style from "@/css/navbar-style.css";
 
 import { useNavbarController } from './controller-navbar.js';
 

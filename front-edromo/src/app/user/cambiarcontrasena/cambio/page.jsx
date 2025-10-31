@@ -1,4 +1,3 @@
-// src/app/user-login/change-password/step-2/page.js
 "use client";
 
 import { useChangePasswordStep2Controller } from "./controller";
@@ -18,7 +17,6 @@ export default function ChangePasswordStep2Page() {
     handleFinish,
   } = useChangePasswordStep2Controller();
 
-  // Vista de éxito que se muestra cuando isSuccess es true
   if (isSuccess) {
     return (
       <div style={styles.successContainer}>
@@ -30,7 +28,6 @@ export default function ChangePasswordStep2Page() {
     );
   }
 
-  // Vista principal del formulario
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>Cambiar contraseña</h1>
@@ -89,7 +86,6 @@ export default function ChangePasswordStep2Page() {
   );
 }
 
-// Componente para mostrar la lista de validaciones
 const ValidationList = ({ validations }) => {
   const rules = [
     { key: "hasUpper", text: "1 Mayúscula" },
@@ -115,31 +111,30 @@ const ValidationList = ({ validations }) => {
   );
 };
 
-// Estilos consistentes con la página anterior
 const styles = {
   successContainer: {
-    width: "100%", // Asegura que el contenedor ocupe todo el ancho
-    flex: 1, // Ocupa el espacio vertical disponible
+    width: "100%",
+    flex: 1,
     display: "flex",
     flexDirection: "column",
-    justifyContent: "center", // Centra verticalmente
-    alignItems: "center", // Centra horizontalmente
-    textAlign: "center", // Centra el texto de todos los hijos
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
     padding: "10rem",
-    boxSizing: "border-box", // Evita que el padding afecte el ancho total
+    boxSizing: "border-box",
   },
   successTitle: {
     fontSize: "2.5rem",
     fontWeight: "bold",
     lineHeight: "1.2",
-    margin: "0 0 2rem 0", // Margen inferior para separar del botón
+    margin: "0 0 2rem 0",
   },
   successButton: {
-    padding: "0.9rem 2.5rem", // Ajuste de padding para mejor apariencia
+    padding: "0.9rem 2.5rem",
     backgroundColor: "#00A99D",
     color: "white",
     border: "none",
-    borderRadius: "8px", // Bordes más redondeados como en la imagen
+    borderRadius: "8px",
     fontSize: "1.1rem",
     fontWeight: "bold",
     cursor: "pointer",

@@ -89,7 +89,7 @@ function IdentificacionPage() {
           </p>
           <div className={styles.buttonContainer}>
             <Link
-              href="/auth/login?redirect=/user-login/carrito/compraConLogin"
+              href="/auth/login?redirect=/user/carrito/compraConLogin"
               className={`${styles.button} ${styles.buttonPrimary}`}
             >
               Inicia Sesion

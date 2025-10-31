@@ -25,7 +25,7 @@ const computeEntradasTotal = (entradas = []) =>
   }, 0);
 
 export const CartProvider = ({ children }) => {
-  const { user, isAuthenticated } = useUser();
+  const { user, isAuthenticated, logout } = useUser();
   const [cartItems, setCartItems] = useState([]);
   const [expirationTime, setExpirationTime] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -109,6 +109,17 @@ export const CartProvider = ({ children }) => {
           console.log("Carrito sincronizado con la BD.");
         } else {
           console.error("Error al sincronizar carrito:", response.error);
+          const unauthorized = /401|unauthorized|no autorizado/i.test(
+            response.error || "",
+          );
+          if (unauthorized && typeof logout === "function") {
+            console.warn(
+              "[CartContext] Sesión inválida al sincronizar carrito. Cerrando sesión y usando modo invitado.",
+            );
+            logout();
+            setIsLoading(false);
+            return;
+          }
           setCartItems([]);
           setExpirationTime(null);
         }
@@ -138,7 +149,7 @@ export const CartProvider = ({ children }) => {
     };
 
     loadCart();
-  }, [isAuthenticated, user?.token]);
+  }, [isAuthenticated, user?.token, logout]);
   
   // ... (tus useEffect de persistencia y vigilante están bien) ...
     // --- EFECTOS DE PERSISTENCIA (SOLO PARA INVITADOS) ---
@@ -226,15 +237,45 @@ export const CartProvider = ({ children }) => {
         return false;
       }
 
-      if (!entradaId) {
-        console.warn("[CartContext] No se proporcionó idEntrada para eliminar.");
+      let resolvedEntradaId = entradaId;
+
+      if (!resolvedEntradaId) {
+        // Fallback: resolve entradaId from current cart snapshot when UI lacks it
+        const targetItem = cartItems.find(
+          (item) => item.cartItemId === cartItemId,
+        );
+
+        const matchingEntrada = targetItem?.entradas?.find((entrada) => {
+          const currentTipo =
+            entrada?.tipoEntradaId ??
+            entrada?.idTipoEntrada ??
+            entrada?.tipoEntrada?.id ??
+            entrada?.id ??
+            null;
+
+          return (
+            currentTipo != null &&
+            (tipoEntradaId == null ||
+              String(currentTipo) === String(tipoEntradaId))
+          );
+        }) ?? targetItem?.entradas?.[0];
+
+        resolvedEntradaId =
+          matchingEntrada?.entradaId ??
+          matchingEntrada?.idEntrada ??
+          matchingEntrada?.id ??
+          null;
+      }
+
+      if (!resolvedEntradaId) {
+        console.warn("[CartContext] No se pudo resolver idEntrada para eliminar.");
         if (manageLoading) {
           setIsLoading(false);
         }
         return false;
       }
 
-      const response = await removeItemFromDbCart(entradaId, token);
+      const response = await removeItemFromDbCart(resolvedEntradaId, token);
       if (response.success) {
         setCartItems(response.data.items);
         setExpirationTime(response.data.expirationTime);

@@ -1,11 +1,8 @@
-// src/app/user-login/change-password/page.js
-
 "use client";
 
 import { useChangePasswordController } from "./controller";
 
 export default function ChangePasswordPage() {
-  // Usamos nuestro controlador para obtener el estado y la lógica.
   const {
     currentPassword,
     setCurrentPassword,
@@ -18,7 +15,6 @@ export default function ChangePasswordPage() {
     <div style={styles.container}>
       <h1 style={styles.title}>Cambiar contraseña</h1>
 
-      {/* Usamos una etiqueta <form> para manejar el envío */}
       <form onSubmit={handleSubmit}>
         <label htmlFor="currentPassword" style={styles.label}>
           Ingresa tu contraseña actual
@@ -29,10 +25,9 @@ export default function ChangePasswordPage() {
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
           style={styles.input}
-          disabled={isLoading} // Deshabilitamos el input mientras carga
+          disabled={isLoading}
         />
 
-        {/* Mostramos el mensaje de error solo si existe */}
         {error && <p style={styles.errorText}>{error}</p>}
 
         <button
@@ -43,7 +38,6 @@ export default function ChangePasswordPage() {
           }}
           disabled={isLoading}
         >
-          {/* Cambiamos el texto del botón si está cargando */}
           {isLoading ? "Verificando..." : "Siguiente"}
         </button>
       </form>
@@ -56,7 +50,6 @@ export default function ChangePasswordPage() {
   );
 }
 
-// Para mayor limpieza, definimos los estilos como objetos.
 const styles = {
   container: {
     padding: "2rem",
@@ -82,12 +75,12 @@ const styles = {
     borderRadius: "8px",
     border: "1px solid #ccc",
     fontSize: "1rem",
-    boxSizing: "border-box", // Asegura que el padding no afecte el ancho total
+    boxSizing: "border-box",
   },
   button: {
     width: "100%",
     padding: "1rem",
-    backgroundColor: "#00A99D", // Tono verde más similar a tus imágenes
+    backgroundColor: "#00A99D",
     color: "white",
     border: "none",
     borderRadius: "8px",
@@ -102,7 +95,7 @@ const styles = {
     cursor: "not-allowed",
   },
   errorText: {
-    color: "#D32F2F", // Un tono de rojo para errores
+    color: "#D32F2F",
     fontSize: "0.9rem",
     marginTop: "0.5rem",
   },

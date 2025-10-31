@@ -34,7 +34,7 @@ export function ChangePasswordHeader() {
     <nav className="navbar-container">
       {/* 1. Logo (sin cambios) */}
       <div className="navbar-logo">
-        <Link href="/user-login/web/eventos/lista">
+        <Link href="/user/eventos/lista">
           <Image
             src={"/images/logo/eventodromo.png"}
             alt="EventoDromo Logo"
@@ -60,7 +60,7 @@ export function ChangePasswordHeader() {
           {isDropdownOpen && (
             <div className="dropdown-menu">
               <Link
-                href="/user-login/web/perfil?tab=info"
+                href="/user/perfil?tab=info"
                 className="dropdown-item"
               >
                 <Image
@@ -71,7 +71,7 @@ export function ChangePasswordHeader() {
                 />
                 Mis datos
               </Link>
-              <Link href="/user-login/web/perfil" className="dropdown-item">
+              <Link href="/user/perfil" className="dropdown-item">
                 <Image
                   src="/images/icon/mis-entradas.svg"
                   alt=""
@@ -81,7 +81,7 @@ export function ChangePasswordHeader() {
                 Mis Entradas
               </Link>
               <Link
-                href="/user-login/web/perfil?tab=dromopuntos"
+                href="/user/perfil?tab=dromopuntos"
                 className="dropdown-item"
               >
                 <Image
@@ -93,7 +93,7 @@ export function ChangePasswordHeader() {
                 Mis puntos
               </Link>
               <Link
-                href="/user-login/web/cambiar-contrasena"
+                href="/user/cambiarcontrasena/contrasenaActual"
                 className="dropdown-item"
               >
                 <Image

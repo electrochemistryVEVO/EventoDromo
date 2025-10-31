@@ -5,7 +5,7 @@ import { CarruselView } from "./CarruselView";
 import { EventosListView } from "./EventosListView";
 import { LocalesView } from "./LocalesView";
 
-export function EventosPageContent({ destacados, conciertos, culturales, deportes, locales }) {
+export function EventosPageContent({ destacados, eventosPorCategoria, locales }) {
   const { isAuthenticated } = useUser();
 
   return (
@@ -13,9 +13,7 @@ export function EventosPageContent({ destacados, conciertos, culturales, deporte
       <CarruselView eventos={destacados} />
       <EventosListView
         destacados={destacados}
-        conciertos={conciertos}
-        culturales={culturales}
-        deportes={deportes}
+        eventosPorCategoria={eventosPorCategoria}
         isAuthenticated={isAuthenticated}
       />
       <LocalesView locales={locales} />

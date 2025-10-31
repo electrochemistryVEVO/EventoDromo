@@ -34,16 +34,8 @@ const EventosSection = ({ titulo, eventos, isAuthenticated }) => (
   </div>
 );
 
-// --- COMPONENTE PRINCIPAL ACTUALIZADO ---
-// 1. Recibe 'eventosPorCategoria' en lugar de las listas separadas
-export function EventosListView({
-  destacados,
-  conciertos,
-  culturales,
-  deportes,
-  isAuthenticated,
-  eventosPorCategoria 
-}) {
+// --- COMPONENTE PRINCIPAL ---
+export function EventosListView({ destacados, eventosPorCategoria, isAuthenticated }) {
   // Tomamos solo los primeros 4 eventos para el grid superior (sin cambios)
   const primerosCuatroDestacados = destacados ? destacados.slice(0, 4) : []; 
 
@@ -72,21 +64,22 @@ export function EventosListView({
 
         {/* --- 2. Iterar dinámicamente sobre las categorías --- */}
         {eventosPorCategoria && Object.keys(eventosPorCategoria).length > 0 ? (
-           Object.entries(eventosPorCategoria).map(([categoria, eventosDeCategoria]) => (
-            // Solo renderiza la sección si hay eventos en esa categoría
+          Object.entries(eventosPorCategoria).map(([categoria, eventosDeCategoria]) => (
             eventosDeCategoria.length > 0 && (
               <EventosSection
                 key={categoria}
-                titulo={categoria} // Pasa el nombre real de la categoría como título
-                eventos={eventosDeCategoria} 
+                titulo={categoria}
+                eventos={eventosDeCategoria}
                 isAuthenticated={isAuthenticated}
               />
             )
           ))
         ) : (
-           // Mensaje si no hay NINGÚN evento después de aplicar filtros
-           primerosCuatroDestacados.length === 0 &&
-             <p className="my-5 text-center">No se encontraron eventos que coincidan con los filtros seleccionados.</p>
+          primerosCuatroDestacados.length === 0 && (
+            <p className="my-5 text-center">
+              No se encontraron eventos que coincidan con los filtros seleccionados.
+            </p>
+          )
         )}
       </div>
     </section>

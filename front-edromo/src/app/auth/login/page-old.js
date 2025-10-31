@@ -49,7 +49,7 @@ function App() {
           router.push("/admin/dashboard");
           // 📍 Si el rol es "A" (admin), lo enviamos a la página principal del administrador.
         } else if (result.rol === "C") {
-          router.push("/user-login/web/eventos/lista");
+          router.push("/user/eventos/lista");
           // 📍 Si el rol es "U" (usuario normal), lo enviamos a la sección de eventos.
         } else {
           // ⚠️ Si el rol no coincide con ninguno esperado, mostramos un error.

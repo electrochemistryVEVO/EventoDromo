@@ -192,7 +192,6 @@ export default function ModalCarritoController({ isOpen, onClose }) {
         <ModalCarritoView
           items={groupedItems}
           isLoading={isLoading}
-          tiempoRestante={tiempoRestante}
           error={null}
           total={totalPrice}
           onClose={handleClose}

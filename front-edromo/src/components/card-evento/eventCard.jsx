@@ -3,11 +3,17 @@ import LazyImage from "./lazyImage";
 import Link from "next/link";
 
 export default function EventCard({ event, isAuthenticated = false }) {
-  // Convertimos la cadena de fecha a un objeto Date.
-  // El 'T00:00:00' es para asegurar que se interprete en la zona horaria local y no en UTC.
-  const fechaPublicacionFormat = new Intl.DateTimeFormat("es-419", {
-    dateStyle: "full",
-  }).format(new Date(event.fechaPublicacion));
+  let fechaPublicacionFormat = "Fecha no disponible";
+  const rawDate = event?.fechaPublicacion ?? event?.fechaEvento;
+
+  if (rawDate) {
+    const parsedDate = new Date(rawDate);
+    if (!Number.isNaN(parsedDate.getTime())) {
+      fechaPublicacionFormat = new Intl.DateTimeFormat("es-419", {
+        dateStyle: "full",
+      }).format(parsedDate);
+    }
+  }
 
   const detailUrl = `/user/eventos/detalle?id=${event.id}`;
 
@@ -34,8 +40,12 @@ export default function EventCard({ event, isAuthenticated = false }) {
         <div className="d-flex flex-column text-truncate">
           {/* Fila 1: Local - Ciudad / Categoría */}
           <div className="card-info-title text-truncate">
-            {event.local.nombre} - {event.local.ciudad.nombre} /{" "}
-            <span className="categoria-highlight">{event.tipoEvento.nombre}</span>
+            {event?.local?.nombre ?? "Local no disponible"} -
+            {" "}
+            {event?.local?.ciudad?.nombre ?? "Ciudad no disponible"} /{" "}
+            <span className="categoria-highlight">
+              {event?.tipoEvento?.nombre ?? "Categoría no disponible"}
+            </span>
           </div>
           {/* Fila 2: Nombre del Evento */}
           <h5 className="fw-bolder card-title-custom my-1 text-truncate">

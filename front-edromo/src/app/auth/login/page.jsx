@@ -7,6 +7,7 @@ import { onSubmit } from "./controller";
 import { useUser } from "@/context/UserContext.jsx";
 import Image from "next/image";
 import Link from "next/link";
+import ForgotPasswordModal from "@/components/ForgotPasswordModal/ForgotPasswordModal";
 
 const nunito = Nunito({ subsets: ["latin"], weight: ["400", "700", "900"] });
 
@@ -14,6 +15,7 @@ function App() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [error, setError] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { login } = useUser();
 
   const handleSubmit = async (e) => {
@@ -24,8 +26,7 @@ function App() {
     try {
       const result = await onSubmit(formData);
 
-      if (result.success === true) {
-
+      if (result?.success === true) {
         const userData = {
           rol: result.rol,
           token: result.token,
@@ -42,7 +43,7 @@ function App() {
         }
 
         if (result.rol === "A") {
-          router.push("/data/loginHardCodeo.json");
+          router.push("/admin/dashboard");
         } else if (result.rol === "C") {
           router.push("/user/eventos/lista");
         } else {
@@ -50,10 +51,14 @@ function App() {
         }
 
       } else {
-        setError(result.message || "Ocurrió un error inesperado.");
+        setError(
+          result?.message ||
+            result?.error ||
+            "Credenciales inválidas. Por favor, intenta nuevamente.",
+        );
       }
     } catch (err) {
-      setError("Error fatal al procesar el formulario.");
+      setError("Error al iniciar sesión.");
       console.error(err);
     }
   };
@@ -115,12 +120,15 @@ function App() {
             />
           </div>
 
-          <Link
-            className="mb-6 block text-right text-sm font-medium text-[#00bfa6] transition hover:text-[#008f8f] hover:underline"
-            href="/forgot-password"
-          >
-            ¿Olvidaste tu contraseña?
-          </Link>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="mb-2 text-sm font-medium text-[#00bfa6] transition hover:text-[#008f8f] hover:underline"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
 
           <div className="space-y-3 text-center text-gray-600">
             <button
@@ -149,6 +157,11 @@ function App() {
           priority
         />
       </div>
+
+      <ForgotPasswordModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }

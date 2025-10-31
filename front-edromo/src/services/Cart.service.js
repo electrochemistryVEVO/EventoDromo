@@ -52,18 +52,21 @@ const normalizeEntrada = (entrada) => {
     return {
       tipoEntradaId: null,
       nombre: "Entrada",
-      cantidad: 0,
+      cantidad: 1,
       precioUnitario: 0,
+      entradaId: null,
     };
   }
 
-  const cantidad = Number(
+  const cantidadRaw = Number(
     entrada.cantidad ??
       entrada.quantity ??
       entrada.cantidadTotal ??
       entrada.numeroEntradas ??
       0,
   );
+
+  const cantidad = Number.isFinite(cantidadRaw) && cantidadRaw > 0 ? cantidadRaw : 1;
 
   const precioUnitarioRaw =
     entrada.precioUnitario ??
@@ -73,15 +76,25 @@ const normalizeEntrada = (entrada) => {
       ? entrada.precioTotal / cantidad
       : 0);
 
+  const entradaIdRaw =
+    entrada.entradaId ??
+    entrada.idEntrada ??
+    entrada.id ??
+    entrada.idCarritoDetalle ??
+    entrada.carritoDetalleId ??
+    null;
+
+  const numericEntradaId = Number(entradaIdRaw);
+  const entradaId =
+    Number.isFinite(numericEntradaId) && numericEntradaId > 0
+      ? numericEntradaId
+      : typeof entradaIdRaw === "string" && entradaIdRaw.trim().length > 0
+        ? entradaIdRaw
+        : null;
+
   return {
     ...entrada,
-    entradaId:
-      entrada.entradaId ??
-      entrada.idEntrada ??
-      entrada.id ??
-      entrada.idCarritoDetalle ??
-      entrada.carritoDetalleId ??
-      null,
+    entradaId,
     tipoEntradaId:
       entrada.tipoEntradaId ??
       entrada.idTipoEntrada ??
@@ -330,9 +343,116 @@ const normalizeCartPayload = (raw) => {
           ? raw.detalleCarrito
           : null;
 
+  const eventosSource = Array.isArray(raw.eventos) ? raw.eventos : null;
+
+  const normalizedCartId = raw.idCarrito ?? raw.cartId ?? raw.id ?? null;
+  const containerBaseId = normalizedCartId ?? generateFallbackId();
+
   let normalizedItems = [];
 
-  if (itemsSource) {
+  if (eventosSource) {
+    const groupedByEvent = new Map();
+
+    eventosSource.forEach((evento, index) => {
+      if (!evento) {
+        return;
+      }
+
+      const eventoInfoRaw = evento.eventoInfo ?? {};
+      const localInfoRaw = evento.localInfo ?? evento.local ?? {};
+      const funcionInfoRaw = evento.funcionInfo ?? evento.funcion ?? {};
+
+      const eventoId =
+        evento.idEvento ??
+        eventoInfoRaw.id ??
+        eventoInfoRaw.idEvento ??
+        null;
+      const funcionId =
+        funcionInfoRaw.id ??
+        funcionInfoRaw.idFuncion ??
+        evento.idFuncion ??
+        null;
+
+      const key = `${eventoId ?? `evt-${index}`}|${funcionId ?? `func-${index}`}`;
+
+      if (!groupedByEvent.has(key)) {
+        const fallbackCartItemId =
+          evento.cartItemId ??
+          evento.idCarritoDetalle ??
+          `${containerBaseId}-${key}-${groupedByEvent.size + 1}`;
+
+        groupedByEvent.set(key, {
+          cartItemId: fallbackCartItemId,
+          eventoInfo: {
+            id: eventoId,
+            nombre:
+              evento.nombreEvento ??
+              eventoInfoRaw.nombreEvento ??
+              eventoInfoRaw.nombre ??
+              "",
+            imagenUrl:
+              evento.imagenURL ??
+              eventoInfoRaw.imagenURL ??
+              eventoInfoRaw.imagenUrl ??
+              eventoInfoRaw.imagen ??
+              "",
+          },
+          localInfo: {
+            nombre: localInfoRaw.nombre ?? localInfoRaw.localNombre ?? "",
+            ciudad: localInfoRaw.ciudad ?? localInfoRaw.localCiudad ?? "",
+          },
+          funcionInfo: {
+            ...funcionInfoRaw,
+            id: funcionId,
+            fechaHora:
+              funcionInfoRaw.fechaHora ??
+              funcionInfoRaw.fechaHoraInicio ??
+              evento.fechaHora ??
+              null,
+          },
+          entradas: [],
+          totalItem: 0,
+        });
+      }
+
+      const target = groupedByEvent.get(key);
+      const entradas = Array.isArray(evento.entradas) ? evento.entradas : [];
+
+      entradas.forEach((entrada) => {
+        if (!entrada) {
+          return;
+        }
+
+        const quantityRaw = Number(
+          entrada.cantidad ??
+            entrada.quantity ??
+            entrada.cantidadTotal ??
+            entrada.numeroEntradas ??
+            0,
+        );
+        const quantity =
+          Number.isFinite(quantityRaw) && quantityRaw > 0 ? quantityRaw : 1;
+
+        const price = Number(
+          entrada.precio ?? entrada.precioUnitario ?? entrada.precioPorUnidad ?? 0,
+        );
+
+        target.entradas.push({
+          ...entrada,
+          cantidad: quantity,
+          precioUnitario: Number.isFinite(price) ? price : 0,
+        });
+
+        if (Number.isFinite(price)) {
+          target.totalItem += price * quantity;
+        }
+      });
+    });
+
+    normalizedItems = Array.from(groupedByEvent.values()).map((item, idx) =>
+      ensureCartItemStructure(item, `${containerBaseId}-${idx + 1}`),
+    );
+  } else if (itemsSource) {
     normalizedItems = itemsSource.map((item) =>
       ensureCartItemStructure(item, raw.id ?? raw.cartId ?? raw.idCarrito),
     );
@@ -364,7 +484,8 @@ const normalizeCartPayload = (raw) => {
   return {
     items: normalizedItems,
     expirationTime,
-    cartId: raw.idCarrito ?? raw.id ?? null,
+    cartId: normalizedCartId,
+    totalCart: raw.totalCarrito ?? raw.total ?? null,
   };
 };
 
