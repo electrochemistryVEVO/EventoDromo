@@ -18,13 +18,13 @@ export async function submitInput(event){
     }
     console.log(local)
     await insertarLocal(local)
-    return true;
+    return false;
     //return false;
 }
 
 export async function deleteLocal(id){
     await eliminarLocal(id)
-    return true;
+    return false;
 }
 
 export async function modifyLocal(event,modalData){
@@ -41,7 +41,7 @@ export async function modifyLocal(event,modalData){
     }
     console.log(local)
     await editarLocal( local)
-    return true;
+    return false;
 }
 
 export async function loadLocal(id,setModalData,setCreatePopup,setEdit){
