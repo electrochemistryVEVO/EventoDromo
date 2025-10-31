@@ -72,4 +72,20 @@
         public double precio { get; set; }
         public string imagen { get; set; }
     }
+
+    public class ResponseObtenerEventoPorId
+    {
+        public ResponseEvento evento { get; set; }
+        public ResponseLocal local { get; set; }
+        public List<ResponseFechaEvento> funciones { get; set; }
+    }
+
+    public class ResponseEvento
+    {
+        public int id { get; set; }
+        public string nombre { get; set; }
+        public string descripcion { get; set; }
+        public string imagenUrl { get; set; }
+        public TipoEvento tipoEvento { get; set; }
+    }
 }

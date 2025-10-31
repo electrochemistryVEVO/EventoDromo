@@ -20,4 +20,13 @@
         public string ciudad { get; set; }
         public string imagen { get; set; }
     }
+
+    public class ResponseLocal
+    {
+        public int id { get; set; }
+        public string nombre { get; set; }
+        public string direccion { get; set; }
+        public Ciudad ciudad { get; set; }
+        public string googleMapsEmbed { get; set; }
+    }
 }

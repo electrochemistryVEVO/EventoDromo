@@ -2,7 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 // --- CONFIGURACIÓN ---
-const USE_BACKEND = true; // Cambia a true para usar el backend
+const USE_BACKEND = false; // Cambia a true para usar el backend
 const BACKEND_BASE_URL = "http://localhost:5189/api/Evento"; // O la URL de tu backend real
 // NUEVO: Endpoint para obtener TODOS los datos para el caché
 const BACKEND_GET_ALL_URL = `${BACKEND_BASE_URL}/ListarFiltradosConLocales`;

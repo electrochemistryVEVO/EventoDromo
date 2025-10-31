@@ -64,7 +64,7 @@ namespace EventodromoRest.Controllers
 
         [HttpPost]
         [Route("/api/[controller]/[action]")]
-        public GenericResponse<Evento> ObtenerEventoPorId([FromBody] RequestObtenerEventoPorId request)
+        public GenericResponse<ResponseObtenerEventoPorId> ObtenerEventoPorId([FromBody] RequestObtenerEventoPorId request)
         {
             try
             {
@@ -74,7 +74,7 @@ namespace EventodromoRest.Controllers
             }
             catch (Exception e)
             {
-                var response = new GenericResponse<Evento>
+                var response = new GenericResponse<ResponseObtenerEventoPorId>
                 {
                     Success = false,
                     Message = null,

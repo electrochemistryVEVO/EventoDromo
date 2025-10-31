@@ -159,5 +159,31 @@ namespace EventodromoRest.Mappers
             var fechaEventoMapper = new FechaEventoMapper(globales, DB);
             return fechaEventoMapper.ObtenerFechaEventoPorId(v);
         }
+
+        internal List<ResponseTipoEntrada> ListarResponseTipoEntradaPorFechaEvento(int id)
+        {
+            List<ResponseTipoEntrada> listaTipoEntrada = new List<ResponseTipoEntrada>();
+            lock (DB)
+            {
+                string query = "SELECT ID, NOMBRE, PRECIO, PUNTOS FROM TipoEntrada WHERE IDFECHAEVENTO=@IDFECHAEVENTO";
+                var parametros = new ParameterList();
+                parametros.Add("@IDFECHAEVENTO", id);
+                DB.Select(query, parametros);
+                while (DB.Read())
+                {
+                    ResponseTipoEntrada tipoEntrada = new()
+                    {
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        precio = double.Parse(DB.GetDecimal("PRECIO").ToString()),
+                        puntos = DB.GetInt("PUNTOS"),
+                        agotado = false
+                    };
+                    listaTipoEntrada.Add(tipoEntrada);
+                }
+                DB.CloseReader();
+                return listaTipoEntrada;
+            }
+        }
     }
 }

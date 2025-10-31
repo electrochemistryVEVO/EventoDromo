@@ -28,13 +28,22 @@ namespace EventodromoRest.Negocio
             response.Data = eventos;
             return response;
         }
-        public GenericResponse<Evento> ObtenerEventoPorId(int eventoId)
+        public GenericResponse<ResponseObtenerEventoPorId> ObtenerEventoPorId(int eventoId)
         {
             EventoMapper mapper = new EventoMapper(globales, DB);
-            Evento evento = mapper.ObtenerEventoPorId(eventoId);
-            GenericResponse<Evento> response = new GenericResponse<Evento>();
+            ResponseEvento evento = mapper.ObtenerResponseEventoPorId(eventoId);
+            ResponseLocal local = new LocalMapper(globales, DB).ObtenerLocalPorIdEvento(eventoId);
+            List<ResponseFechaEvento> funciones = new FechaEventoMapper(globales, DB).ListarResponseFechaEventoPorEvento(eventoId);
+
+            GenericResponse<ResponseObtenerEventoPorId> response = new GenericResponse<ResponseObtenerEventoPorId>();
             response.Success = true;
-            response.Data = evento;
+            response.Data = new ResponseObtenerEventoPorId()
+            {
+                evento = evento,
+                local = local,
+                funciones = funciones
+                
+            };
             return response;
         }
 

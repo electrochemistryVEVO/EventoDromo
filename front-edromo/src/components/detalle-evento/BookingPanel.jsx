@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect, useMemo } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -14,24 +15,21 @@ const formatDate = (date) => {
   return `${year}-${month}-${day}`;
 };
 
-const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
+// <-- 1. ELIMINAMOS 'ticketTiers' DE LOS PROPS
+const BookingPanel = ({ eventName, functions, onAddToCart }) => {
   // --- ESTADOS ---
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedFunctionId, setSelectedFunctionId] = useState("");
-  const [ticketQuantities, setTicketQuantities] = useState(() => {
-    const initialQuantities = {};
-    ticketTiers.forEach((tier) => {
-      initialQuantities[tier.id] = 0;
-    });
-    return initialQuantities;
-  });
+  // <-- 2. SIMPLIFICAMOS EL ESTADO INICIAL. Se llenará con un Effect.
+  const [ticketQuantities, setTicketQuantities] = useState({});
   const [totalPrice, setTotalPrice] = useState(0);
 
   // --- DATOS DERIVADOS Y MEMOIZADOS ---
   // Procesa las funciones para agruparlas por fecha.
   const availableDates = useMemo(() => {
     const dates = {};
-    functions.forEach((func) => {
+    // <-- 3. AÑADIMOS '|| []' como protección si 'functions' es undefined
+    (functions || []).forEach((func) => {
       const date = func.fecha;
       if (!dates[date]) {
         dates[date] = [];
@@ -39,44 +37,64 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
       dates[date].push({
         id: func.id,
         time: func.hora,
+        // <-- 4. IMPORTANTE: Guardamos los tickets de ESTA función
+        tiposDeEntrada: func.tiposDeEntrada || [],
       });
     });
     return dates;
   }, [functions]);
 
-  // 2. CREAMOS UN ARRAY DE FECHAS HABILITADAS PARA EL CALENDARIO
   // Convertimos las fechas de string a objetos Date
   const enabledDates = useMemo(() => {
     return Object.keys(availableDates).map((dateStr) => {
-      // CAMBIO CLAVE: Dividimos el string "YYYY-MM-DD" en sus partes
       const [year, month, day] = dateStr.split("-").map(Number);
-
-      // Creamos la fecha usando new Date(año, mes - 1, día).
-      // El mes es 0-indexado en JavaScript (Enero=0, Diciembre=11), por eso restamos 1.
-      // Este método SIEMPRE usa la zona horaria local del navegador.
       return new Date(year, month - 1, day);
     });
   }, [availableDates]);
 
-  // Obtenemos la fecha seleccionada en formato string para buscar las horas
-  // Usamos nuestra función auxiliar para evitar problemas de timezone
   const selectedDateString = formatDate(selectedDate);
-
-  // Ahora, si la fecha seleccionada es correcta, availableDates[selectedDateString]
-  // nunca será undefined, sino un array (posiblemente vacío, pero no undefined).
   const timesForSelectedDate = selectedDateString
     ? availableDates[selectedDateString]
     : [];
 
+  // <-- 5. NUEVO DATO DERIVADO: Obtenemos los tickets para la HORA seleccionada
+  const currentTicketTiers = useMemo(() => {
+    if (!selectedFunctionId) {
+      return []; // Si no hay hora, no hay tickets
+    }
+    // Buscamos la función (hora) seleccionada
+    const selectedTime = timesForSelectedDate.find(
+      // Comparamos 'find' con el ID (que viene como string del select)
+      (time) => time.id.toString() === selectedFunctionId
+    );
+    // Devolvemos la lista de tickets de esa función
+    return selectedTime?.tiposDeEntrada || [];
+  }, [selectedFunctionId, timesForSelectedDate]);
+
   // --- EFECTOS ---
-  // Recalcula el precio total cuando cambian las cantidades.
+
+  // <-- 6. NUEVO EFFECT: Resetea las cantidades cuando la HORA cambia
   useEffect(() => {
-    const newTotal = ticketTiers.reduce((total, tier) => {
+    // Cuando 'currentTicketTiers' cambia (porque se eligió otra hora),
+    // creamos un nuevo objeto de cantidades inicializado en 0.
+    const initialQuantities = {};
+    currentTicketTiers.forEach((tier) => {
+      initialQuantities[tier.id] = 0;
+    });
+    setTicketQuantities(initialQuantities);
+    // También reseteamos el precio total
+    setTotalPrice(0);
+  }, [currentTicketTiers]);
+
+  // <-- 7. EFFECT MODIFICADO: Recalcula el precio total
+  // Ahora depende de 'currentTicketTiers' en lugar del prop 'ticketTiers'
+  useEffect(() => {
+    const newTotal = currentTicketTiers.reduce((total, tier) => {
       const quantity = ticketQuantities[tier.id] || 0;
       return total + quantity * tier.precio;
     }, 0);
     setTotalPrice(newTotal);
-  }, [ticketQuantities, ticketTiers]);
+  }, [ticketQuantities, currentTicketTiers]); // <-- 8. Dependencia actualizada
 
   // --- MANEJADORES DE EVENTOS ---
   const handleDateChange = (date) => {
@@ -91,7 +109,7 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
   const handleQuantityChange = (tierId, amount) => {
     setTicketQuantities((prevQuantities) => ({
       ...prevQuantities,
-      [tierId]: Math.max(0, prevQuantities[tierId] + amount),
+      [tierId]: Math.max(0, (prevQuantities[tierId] || 0) + amount),
     }));
   };
 
@@ -111,6 +129,7 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
     });
   };
 
+  // --- RENDERIZADO ---
   return (
     <div className="booking-panel">
       <h3 className="booking-title">{eventName}</h3>
@@ -118,17 +137,15 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
       <div className="booking-selectors">
         <div className="selector-group">
           <label htmlFor="date-picker">Fecha:</label>
-
-          {/* 3. REEMPLAZAMOS EL <select> POR <DatePicker> */}
           <DatePicker
             id="date-picker"
-            locale="es" // Calendario en español
-            selected={selectedDate} // Fecha seleccionada
-            onChange={handleDateChange} // Función que se llama al seleccionar
-            includeDates={enabledDates} // ¡CLAVE! Solo habilita estas fechas
+            locale="es"
+            selected={selectedDate}
+            onChange={handleDateChange}
+            includeDates={enabledDates}
             placeholderText="Seleccionar Fecha"
-            dateFormat="dd-MM-yyyy" // Formato de texto en el input
-            className="custom-datepicker-input" // Clase para darle estilos
+            dateFormat="dd-MM-yyyy"
+            className="custom-datepicker-input"
           />
         </div>
         <div className="selector-group">
@@ -142,7 +159,6 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
             <option value="" disabled>
               Seleccionar Hora
             </option>
-            {/* Comprobación de seguridad para evitar el error .map() */}
             {Array.isArray(timesForSelectedDate) &&
               timesForSelectedDate.map((timeInfo) => (
                 <option key={timeInfo.id} value={timeInfo.id}>
@@ -155,46 +171,57 @@ const BookingPanel = ({ eventName, functions, ticketTiers, onAddToCart }) => {
 
       <div className="tickets-section">
         <h4 className="tickets-title">Entradas</h4>
-        {ticketTiers.map((tier) => (
-          <div
-            key={tier.id}
-            className={`ticket-tier-row ${
-              tier.agotado ? "ticket-tier-row--agotado" : ""
-            }`}
-          >
-            <div className="ticket-info">
-              <span className="ticket-name">{tier.nombre}</span>
-              <span className="ticket-price">S/ {tier.precio.toFixed(2)}</span>
-            </div>
-            <div className="quantity-control">
-              <button
-                onClick={() => handleQuantityChange(tier.id, -1)}
-                disabled={ticketQuantities[tier.id] === 0 || tier.agotado}
-              >
-                -
-              </button>
-              <span>{ticketQuantities[tier.id]}</span>
-              {tier.agotado ? (
-                <button disabled className="ban-icon-button">
-                  <svg
-                    className="ban-icon"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path
-                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7v-2z"
-                      transform="rotate(45 12 12)"
-                    ></path>
-                  </svg>
+        
+        {/* <-- 9. LÓGICA DE RENDERIZADO MODIFICADA --> */}
+        {!selectedFunctionId ? (
+          <p className="tickets-placeholder">
+            Seleccione un horario para ver las entradas.
+          </p>
+        ) : (
+          // Usamos 'currentTicketTiers' para renderizar
+          currentTicketTiers.map((tier) => (
+            <div
+              key={tier.id}
+              className={`ticket-tier-row ${
+                tier.agotado ? "ticket-tier-row--agotado" : ""
+              }`}
+            >
+              <div className="ticket-info">
+                <span className="ticket-name">{tier.nombre}</span>
+                <span className="ticket-price">S/ {tier.precio.toFixed(2)}</span>
+              </div>
+              <div className="quantity-control">
+                <button
+                  onClick={() => handleQuantityChange(tier.id, -1)}
+                  disabled={ticketQuantities[tier.id] === 0 || tier.agotado}
+                >
+                  -
                 </button>
-              ) : (
-                <button onClick={() => handleQuantityChange(tier.id, 1)}>
-                  +
-                </button>
-              )}
+                <span>{ticketQuantities[tier.id] || 0}</span>
+                {tier.agotado ? (
+                  <button disabled className="ban-icon-button">
+                    <svg
+                      className="ban-icon"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7v-2z"
+                        transform="rotate(45 12 12)"
+                      ></path>
+                    </svg>
+                  </button>
+                ) : (
+                  <button onClick={() => handleQuantityChange(tier.id, 1)}>
+                    +
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
+        {/* <-- Fin de la lógica modificada --> */}
+
       </div>
 
       <div className="booking-total">

@@ -252,5 +252,36 @@ namespace EventodromoRest.Mappers
                 return listaEvento;
             }
         }
+
+        public ResponseEvento ObtenerResponseEventoPorId(int eventoId)
+        {
+            lock (DB)
+            {
+                string query = "SELECT id, nombre, descripcion, imagenURL, idTipoEvento FROM Evento WHERE ID = @ID";
+                var parametros = new ParameterList();
+                parametros.Add("@ID", eventoId);
+                DB.Select(query, parametros);
+                if (DB.Read())
+                {
+                    ResponseEvento evento = new()
+                    {
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        descripcion = DB.GetString("DESCRIPCION"),
+                        imagenUrl = DB.GetString("IMAGENURL"),
+                        tipoEvento = new TipoEvento
+                        {
+                            id = DB.GetInt("IDTIPOEVENTO"),
+                        }
+                    };
+                    evento.tipoEvento = ObtenerTipoEventoPorId((int)evento.tipoEvento.id);
+                    return evento;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
     }
 }

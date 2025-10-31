@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 // Importamos el controller que tiene toda la lógica y los componentes.
 import EventPageController from "./controller";
 // Importamos los estilos específicos para este layout.
@@ -15,7 +15,9 @@ const EventPage = () => {
     <div className="event-page-background">
       <div className="event-page-container">
         {/* Aquí renderizamos el controller que se encarga de todo el estado y la lógica */}
-        <EventPageController />
+        <Suspense fallback={<div>Cargando...</div>}>
+          <EventPageController />
+        </Suspense>
       </div>
     </div>
   );

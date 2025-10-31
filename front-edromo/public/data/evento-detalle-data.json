@@ -27,52 +27,142 @@
       {
         "id": 101,
         "fecha": "2025-11-20",
-        "hora": "20:00"
+        "hora": "20:00",
+        "tiposDeEntrada": [
+          {
+            "id": 1,
+            "nombre": "Super VIP",
+            "precio": 500.0,
+            "puntos": 2,
+            "agotado": false
+          },
+          {
+            "id": 2,
+            "nombre": "VIP",
+            "precio": 400.0,
+            "puntos": 2,
+            "agotado": false
+          },
+          {
+            "id": 3,
+            "nombre": "Exclusivo",
+            "precio": 300.0,
+            "puntos": 1,
+            "agotado": false
+          },
+          {
+            "id": 4,
+            "nombre": "General",
+            "precio": 259.0,
+            "puntos": 1,
+            "agotado": true
+          }
+        ]
       },
       {
         "id": 102,
         "fecha": "2025-11-21",
-        "hora": "20:00"
+        "hora": "20:00",
+        "tiposDeEntrada": [
+          {
+            "id": 5,
+            "nombre": "Super VIP",
+            "precio": 500.0,
+            "puntos": 2,
+            "agotado": false
+          },
+          {
+            "id": 6,
+            "nombre": "VIP",
+            "precio": 400.0,
+            "puntos": 2,
+            "agotado": false
+          },
+          {
+            "id": 7,
+            "nombre": "Exclusivo",
+            "precio": 300.0,
+            "puntos": 1,
+            "agotado": false
+          },
+          {
+            "id": 8,
+            "nombre": "General",
+            "precio": 259.0,
+            "puntos": 1,
+            "agotado": true
+          }
+        ]
       },
       {
         "id": 103,
         "fecha": "2025-11-22",
-        "hora": "19:00"
+        "hora": "19:00",
+        "tiposDeEntrada": [
+          {
+            "id": 9,
+            "nombre": "Super VIP",
+            "precio": 500.0,
+            "puntos": 2,
+            "agotado": false
+          },
+          {
+            "id": 10,
+            "nombre": "VIP",
+            "precio": 400.0,
+            "puntos": 2,
+            "agotado": false
+          },
+          {
+            "id": 11,
+            "nombre": "Exclusivo",
+            "precio": 300.0,
+            "puntos": 1,
+            "agotado": false
+          },
+          {
+            "id": 12,
+            "nombre": "General",
+            "precio": 259.0,
+            "puntos": 1,
+            "agotado": true
+          }
+        ]
       },
       {
         "id": 104,
         "fecha": "2025-11-19",
-        "hora": "22:00"
-      }
-    ],
-    "tiposDeEntrada": [
-      {
-        "id": 1,
-        "nombre": "Super VIP",
-        "precio": 500.0,
-        "puntos": 2,
-        "agotado": false
-      },
-      {
-        "id": 2,
-        "nombre": "VIP",
-        "precio": 400.0,
-        "puntos": 2,
-        "agotado": false
-      },
-      {
-        "id": 3,
-        "nombre": "Exclusivo",
-        "precio": 300.0,
-        "puntos": 1,
-        "agotado": false
-      },
-      {
-        "id": 4,
-        "nombre": "General",
-        "precio": 259.0,
-        "puntos": 1,
-        "agotado": true
+        "hora": "22:00",
+        "tiposDeEntrada": [
+          {
+            "id": 13,
+            "nombre": "Super VIP",
+            "precio": 500.0,
+            "puntos": 2,
+            "agotado": false
+          },
+          {
+            "id": 14,
+            "nombre": "VIP",
+            "precio": 400.0,
+            "puntos": 2,
+            "agotado": false
+          },
+          {
+            "id": 15,
+            "nombre": "Exclusivo",
+            "precio": 300.0,
+            "puntos": 1,
+            "agotado": false
+          },
+          {
+            "id": 16,
+            "nombre": "General",
+            "precio": 259.0,
+            "puntos": 1,
+            "agotado": true
+          }
+        ]
       }
     ]
   },
