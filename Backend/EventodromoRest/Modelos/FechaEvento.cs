@@ -11,4 +11,10 @@
     {
         public required int idEvento { get; set; } 
     }
+
+    public class FuncionDTO
+    {
+        public int id { get; set; }
+        public DateTime fechaHora { get; set; }
+    }
 }

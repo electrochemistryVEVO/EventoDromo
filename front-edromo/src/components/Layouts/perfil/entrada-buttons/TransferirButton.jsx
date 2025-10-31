@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { transferTickets } from '../../../../services/transferir.service';
+import { transferByEmail } from '../../../../services/transferir.service.js';
 
 export default function TransferirButton({ entries = [{ id: 1, name: "Super VIP", available: 2 }] }) {
   const [showModal, setShowModal] = useState(false);
@@ -67,7 +67,6 @@ export default function TransferirButton({ entries = [{ id: 1, name: "Super VIP"
       return;
     }
 
-    // construir items a transferir desde selected + quantities
     const itemsToTransfer = Object.entries(selected)
       .filter(([id, sel]) => sel)
       .map(([id]) => ({ id: Number(id), qty: Number(quantities[id] || 0) }))
@@ -79,10 +78,20 @@ export default function TransferirButton({ entries = [{ id: 1, name: "Super VIP"
     }
 
     try {
-      // opcional: enviar token si lo tienes
-      const token = null; // obtener desde contexto / sessionStorage si aplica
-      const resp = await transferTickets({ toEmail: transferEmail, items: itemsToTransfer, token });
-      console.log('transfer result', resp);
+
+      //var clienteOrigen = await obtenerClientePorEmail(); //Obtener cliente logeado
+      var clienteOrigen = await obtenerClientePorId(ObtenerIdDesdeToken());
+      var clienteDestino = await obtenerClientePorEmail(transferEmail);
+
+      
+
+      //Obtener la entrada seleccionada
+      var entradasSeleccionadas = carritoOrigen.filter(item => itemsToTransfer.some(it => it.id === item.id));
+      
+      //Cambiar el carrito de la entrada seleccionada al cliente destino
+      entradasSeleccionadas.carrito = carritoDestino;
+      entradasSeleccionadas.idCliente = clienteDestino.id;
+      ModificarEntrada(entradasSeleccionadas);
 
       setShowConfirmModal(false);
       setSelected({});

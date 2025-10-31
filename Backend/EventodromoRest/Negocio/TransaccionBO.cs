@@ -1,4 +1,5 @@
-﻿using EventodromoRest.Mappers;
+﻿using Azure.Core;
+using EventodromoRest.Mappers;
 using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 
@@ -20,5 +21,20 @@ namespace EventodromoRest.Negocio
                 Error = null
             };
         }
+        public GenericResponse<bool> TransferirEntradas(int idCliente, RequestTransferencia request)
+        {
+            var transaccionMapper = new TransaccionMapper(globales, DB);
+
+            var response = transaccionMapper.TransferirEntradas(idCliente, request);
+
+            return new GenericResponse<bool>
+            {
+                Success = true,
+                Message = "Transacciones obtenidas correctamente.",
+                Data = response,
+                Error = null
+            };
+        }
     }
+
 }
