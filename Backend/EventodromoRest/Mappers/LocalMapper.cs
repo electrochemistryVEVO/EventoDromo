@@ -41,6 +41,40 @@ namespace EventodromoRest.Mappers
                 return listaLocal;
             }
         }
+        
+        public List<Local> ListarLocales2()
+        {
+            List<Local> listaLocal = new();
+            lock (DB)
+            {
+                string query = "SELECT * FROM Local";
+                DB.Select(query, null);
+                while (DB.Read())
+                {
+                    Local local = new()
+                    {
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        idCiudad = DB.GetInt("IDCIUDAD"),
+                        direccion = DB.GetString("DIRECCION"),
+                        capacidad = DB.GetInt("CAPACIDAD"),
+                        isDeleted = DB.GetBoolean("ISDELETED"),
+                        idAdministrador = DB.GetInt("CREADOPOR"),
+                    };
+                    listaLocal.Add(local);
+                }
+            }
+
+            // Cerrar DataReader antes de nuevas consultas
+            foreach (var local in listaLocal)
+            {
+                local.ciudad = ObtenerCiudadPorId(local.idCiudad);
+                local.administrador = ObtenerAdministradorPorId(local.idAdministrador);
+            }
+
+            return listaLocal;
+        }
+
 
         public int InsertarLocal(Local local)
         {

@@ -50,11 +50,15 @@ export const useChangePasswordController = () => {
           currentPassword,
           userToken
         );
-        console.log("¡Contraseña verificada con éxito!", resultado);
-        // Si la función anterior no lanzó un error, la contraseña es correcta.
-        // Navegamos al siguiente paso del flujo.
-        // IMPORTANTE: Ajusta la ruta a la que corresponda.
-        router.push("/user-login/cambiarcontrasena/cambio");
+        if (resultado && resultado.success) {
+          console.log("¡Contraseña verificada con éxito!", resultado);
+          // Si la función anterior no lanzó un error, la contraseña es correcta.
+          // Navegamos al siguiente paso del flujo.
+          // IMPORTANTE: Ajusta la ruta a la que corresponda.
+          router.push("/user-login/cambiarcontrasena/cambio");
+        } else {
+          setError("La contraseña es incorrecta. Intente de nuevo.");
+        }
       } else {
         console.error("No se encontró token de usuario. Debes iniciar sesión.");
       }

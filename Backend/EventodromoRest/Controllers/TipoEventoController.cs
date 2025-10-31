@@ -12,7 +12,7 @@ namespace EventodromoRest.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    public class LocalController (Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService) : BaseController
+    public class TipoEventoController (Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
         private readonly Globales.Globales globales = globales;
@@ -20,79 +20,71 @@ namespace EventodromoRest.Controllers
 
         [HttpGet]
         [Route("/api/[controller]/[action]")]
-        public GenericResponse<List<getLocalesResponse>> GetLocales()
+        public GenericResponse<List<TipoEvento>> GetTiposEvento()
         {
             try
             {
-                // 1️⃣ Leer el token de la cabecera
+                // 1️⃣ Leer token de la cabecera
                 var authHeader = Request.Headers["Authorization"].ToString();
 
                 if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
-                    return new GenericResponse<List<getLocalesResponse>>
+                    Response.StatusCode = 401;
+                    return new GenericResponse<List<TipoEvento>>
                     {
                         Success = false,
-                        Message = "Token no proporcionado o inválido.",
+                        Message = "Acceso no autorizado. Se requiere un token válido.",
                         Error = null,
                         Data = null
                     };
                 }
 
-                // 2️⃣ Extraer el token y obtener el ID del admin
+                // 2️⃣ Validar token
                 var token = authHeader.Substring("Bearer ".Length);
                 int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
 
                 if (idAdmin == null)
                 {
-                    return new GenericResponse<List<getLocalesResponse>>
+                    Response.StatusCode = 401;
+                    return new GenericResponse<List<TipoEvento>>
                     {
                         Success = false,
-                        Message = "Token inválido o expirado.",
+                        Message = "Acceso no autorizado. Token inválido o expirado.",
                         Error = null,
                         Data = null
                     };
                 }
 
-                // 2️⃣ Obtener los locales desde la capa de negocio
-                var locales = new LocalBO(globales, BD).ListarLocales();
+                // 3️⃣ Obtener lista de tipos de evento
+                var tipos = new TipoEventoBO(globales, BD).ListarTiposEvento();
 
-                if (locales == null || locales.Count == 0)
+                if (tipos == null || tipos.Count == 0)
                 {
-                    return new GenericResponse<List<getLocalesResponse>>
+                    return new GenericResponse<List<TipoEvento>>
                     {
                         Success = false,
-                        Message = "No se encontraron locales.",
+                        Message = "No se encontraron tipos de evento.",
                         Error = null,
                         Data = null
                     };
                 }
 
-                // 3️⃣ Mapear solo los campos requeridos al DTO
-                var data = locales
-                    .Where(l => !l.isDeleted)
-                    .Select(l => new getLocalesResponse
-                    {
-                        id = l.id,
-                        nombre = l.nombre,
-                        capacidad = l.capacidad
-                    })
-                    .ToList();
-
-                // 4️⃣ Respuesta exitosa
-                return new GenericResponse<List<getLocalesResponse>>
+                // 4️⃣ Éxito
+                return new GenericResponse<List<TipoEvento>>
                 {
                     Success = true,
-                    Message = "Lista de locales obtenida correctamente.",
+                    Message = "Lista de tipos de evento obtenida correctamente.",
                     Error = null,
-                    Data = data
+                    Data = tipos
                 };
             }
             catch (Exception e)
             {
-                var response = new GenericResponse<List<getLocalesResponse>>
+                Response.StatusCode = 500;
+                var response = new GenericResponse<List<TipoEvento>>
                 {
                     Success = false,
-                    Message = "Error en el servidor.",
+                    Message = "Ocurrió un error interno al procesar la solicitud.",
                     Error = e.Message,
                     Data = null
                 };
@@ -102,11 +94,7 @@ namespace EventodromoRest.Controllers
             }
         }
 
-<<<<<<< HEAD
-        
-=======
 
 
->>>>>>> develop-grupo2
     }
 }

@@ -5,7 +5,13 @@
 import React from "react";
 
 // Sub-componente para una sola tarjeta de tipo de entrada
-const TicketTypeCard = ({ ticketData, index, onRemove, onChange }) => {
+const TicketTypeCard = ({
+  ticketData,
+  index,
+  onRemove,
+  onChange,
+  isReadOnly = false,
+}) => {
   return (
     <div className="p-4 border rounded-lg bg-white relative">
       <div className="flex justify-between items-center mb-4">
@@ -14,6 +20,7 @@ const TicketTypeCard = ({ ticketData, index, onRemove, onChange }) => {
         </h3>
         <button
           onClick={() => onRemove(ticketData.id)}
+          disabled={isReadOnly}
           className="text-gray-400 hover:text-red-500 font-bold text-xl"
         >
           &times;
@@ -29,6 +36,7 @@ const TicketTypeCard = ({ ticketData, index, onRemove, onChange }) => {
             name="nombre"
             value={ticketData.nombre}
             onChange={(e) => onChange(ticketData.id, "nombre", e.target.value)}
+            readOnly={isReadOnly}
             className="w-full p-2 border border-gray-300 rounded-md"
           />
         </div>
@@ -40,6 +48,7 @@ const TicketTypeCard = ({ ticketData, index, onRemove, onChange }) => {
             name="precio"
             value={ticketData.precio}
             onChange={(e) => onChange(ticketData.id, "precio", e.target.value)}
+            readOnly={isReadOnly}
             className="w-full p-2 border border-gray-300 rounded-md"
             min="0"
           />
@@ -51,6 +60,7 @@ const TicketTypeCard = ({ ticketData, index, onRemove, onChange }) => {
             placeholder="300"
             name="cantidad"
             value={ticketData.cantidad}
+            readOnly={isReadOnly}
             onChange={(e) =>
               onChange(ticketData.id, "cantidad", e.target.value)
             }
@@ -68,6 +78,7 @@ const TicketTypeCard = ({ ticketData, index, onRemove, onChange }) => {
             onChange={(e) =>
               onChange(ticketData.id, "limiteCompra", e.target.value)
             }
+            readOnly={isReadOnly}
             className="w-full p-2 border border-gray-300 rounded-md"
             min="0"
           />
@@ -80,6 +91,7 @@ const TicketTypeCard = ({ ticketData, index, onRemove, onChange }) => {
             name="puntos"
             value={ticketData.puntos}
             onChange={(e) => onChange(ticketData.id, "puntos", e.target.value)}
+            readOnly={isReadOnly}
             className="w-full p-2 border border-gray-300 rounded-md"
             min="0"
           />
@@ -95,6 +107,7 @@ export const EventTicketsForm = ({
   removeTipoEntrada,
   handleTipoEntradaChange,
   aforoRestante,
+  isReadOnly = false,
 }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mt-6">
@@ -116,6 +129,7 @@ export const EventTicketsForm = ({
           </span>
           <button
             onClick={addTipoEntrada}
+            disabled={isReadOnly}
             className="bg-[#00C49A] text-white font-semibold px-4 py-2 rounded-lg hover:bg-[#00A37E] flex items-center gap-2 whitespace-nowrap"
           >
             + Ingresar Tipo de Entrada
@@ -131,6 +145,7 @@ export const EventTicketsForm = ({
             index={index}
             onRemove={removeTipoEntrada}
             onChange={handleTipoEntradaChange}
+            isReadOnly={isReadOnly}
           />
         ))}
       </div>

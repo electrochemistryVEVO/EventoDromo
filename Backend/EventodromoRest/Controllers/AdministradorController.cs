@@ -42,7 +42,7 @@ namespace EventodromoRest.Controllers
                     };
                 }
 
-                // 2️⃣ Extraer el token y obtener el ID del cliente
+                // 2️⃣ Extraer el token y obtener el ID del admin
                 var token = authHeader.Substring("Bearer ".Length);
                 int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
 

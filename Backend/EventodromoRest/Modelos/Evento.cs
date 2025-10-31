@@ -97,4 +97,31 @@
         public string nombreEvento { get; set; }
         public string imagenURL { get; set; }
     }
+    public class CrearEventoResponse
+    {
+        public bool success {get; set; }
+    }
+
+    public class CrearEventoRequest
+    {
+        public string nombre { get; set; }
+        public string descripcion { get; set; }
+        public int localId { get; set; }
+        public int tipoEventoId { get; set; }
+        public int capacidad { get; set; }
+        public string fechaPublicacion { get; set; }
+        public string fechaCompra { get; set; }
+        public string imagenURL { get; set; }  // 👈 viene directo del frontend
+        public List<string> horarios { get; set; }
+        public List<EntradaRequest> entradas { get; set; }
+    }
+
+    public class EntradaRequest
+    {
+        public string nombre { get; set; }
+        public decimal precio { get; set; }
+        public int cantidad { get; set; }
+        public int limiteCompra { get; set; }
+        public int puntos { get; set; }
+    }
 }

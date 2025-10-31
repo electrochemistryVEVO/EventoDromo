@@ -35,6 +35,33 @@ namespace EventodromoRest.Negocio
                 Error = null
             };
         }
+
+        public GenericResponse<List<Entrada>> ListarEntradasPorTransaccion(int idTransaccion)
+        {
+            try
+            {
+                var transaccionMapper = new TransaccionMapper(globales, DB);
+                List<Entrada> entradas = transaccionMapper.ObtenerEntradasPorTransaccion(idTransaccion);
+
+                return new GenericResponse<List<Entrada>>
+                {
+                    Success = true,
+                    Message = "Entradas obtenidas correctamente.",
+                    Data = entradas,
+                    Error = null
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GenericResponse<List<Entrada>>
+                {
+                    Success = false,
+                    Message = "Error al obtener las entradas.",
+                    Data = null,
+                    Error = ex.Message
+                };
+            }
+        }
     }
 
 }

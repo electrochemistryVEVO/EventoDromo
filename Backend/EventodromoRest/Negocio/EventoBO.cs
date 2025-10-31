@@ -116,5 +116,49 @@ namespace EventodromoRest.Negocio
 
             return double.Parse(tipoEntradas.Min(t => t.precio).ToString());
         }
+
+        public int CrearEvento(Evento nuevoEvento, List<string> horarios, List<EntradaRequest> entradas)
+        {
+            // 1️⃣ Insertar el evento principal
+            var eventoMapper = new EventoMapper(globales, DB);
+            int idEvento = eventoMapper.InsertarEvento(nuevoEvento);
+
+            // 2️⃣ Insertar las fechas (horarios)
+            var fechaMapper = new FechaEventoMapper(globales, DB);
+            var entradaMapper = new TipoEntradaMapper(globales, DB);
+
+            foreach (var fecha in horarios)
+            {
+                // Crear la fechaEvento
+                var fechaEvento = new FechaEvento
+                {
+                    fechaHora = DateTime.Parse(fecha),
+                    idEvento = idEvento
+                };
+
+                // Insertar y obtener el id de la fechaEvento recién creada
+                int idFechaEvento = fechaMapper.InsertarFechaEvento(fechaEvento);
+
+                // 3️⃣ Por cada fechaEvento, insertar todas las entradas
+                foreach (var entrada in entradas)
+                {
+                    var nuevaEntrada = new TipoEntrada
+                    {
+                        nombre = entrada.nombre,
+                        precio = entrada.precio,
+                        cantidadEntradas = entrada.cantidad,
+                        limiteCompra = entrada.limiteCompra,
+                        puntos = entrada.puntos,
+                        cantidadVendida = 0,
+                        idFechaEvento = idFechaEvento   // ✅ asignar el id correspondiente
+                    };
+
+                    entradaMapper.InsertarTipoEntrada(nuevaEntrada);
+                }
+            }
+
+            return idEvento;
+        }
+
     }
 }

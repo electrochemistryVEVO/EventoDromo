@@ -1,32 +1,61 @@
-// Token de autorización hardcodeado para pruebas.
-const authToken =
-  "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+const BASE_API_URL = "http://localhost:5189/api";
+/**
+ * Obtiene el token de autenticación almacenado.
+ * @returns {string|null} - El token JWT o null si no existe.
+ */
+const getAuthToken = () => {
+  const sessionJSON = sessionStorage.getItem("session");
+  // Variable para guardar el token final
+  let userToken = null;
+  // 2. MUY IMPORTANTE: Verificar que el dato exista antes de continuar
+  if (sessionJSON) {
+    // 3. Convertir (parsear) la cadena JSON a un objeto de JavaScript real
+    const sessionData = JSON.parse(sessionJSON);
+    // 4. Ahora sí, acceder a la propiedad "token" del objeto
+    userToken = sessionData.token;
+  }
+  return userToken;
+};
 
 /**
- * Simula una llamada a la API para obtener una lista de locales.
- * En una aplicación real, esta función haría una petición fetch a un endpoint del backend.
- * @returns {Promise<Array<string>>} Una promesa que resuelve a un array de nombres de locales.
+ * Realiza una llamada a la API para obtener la lista completa de locales.
+ * @returns {Promise<Array<{id: number, nombre: string}>>} Una promesa que resuelve a un array de objetos de locales.
  */
 export const getLocales = async () => {
-  console.log("Fetching locales...");
-  // Simulación de una llamada a la API
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const locales = [
-        { id: 1, nombre: "Estadio San Marcos", capacidad: 50000 },
-        { id: 2, nombre: "Teatro Municipal", capacidad: 800 },
-        { id: 3, nombre: "Estadio Monumental", capacidad: 80000 },
-        { id: 4, nombre: "Jockey Club del Perú", capacidad: 15000 },
-        {
-          id: 5,
-          nombre: "Anfiteatro del Parque de la Exposición",
-          capacidad: 4000,
-        },
-      ];
-      console.log("Locales fetched:", locales);
-      resolve(locales);
-    }, 500); // Simular un retardo de red
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("No se encontró el token de autenticación.");
+  }
+
+  const response = await fetch(`${BASE_API_URL}/Local/GetLocales`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
   });
+
+  if (!response.ok) {
+    // Si la respuesta del servidor es un error (ej: 401, 404, 500), lanzamos un error.
+    const errorData = await response
+      .json()
+      .catch(() => ({ message: response.statusText }));
+    throw new Error(errorData.message || "Error al obtener los locales");
+  }
+
+  // 1. Convierte la respuesta a JSON
+  const apiResponse = await response.json();
+
+  // 2. Verifica si la respuesta del API fue exitosa y devuelve solo la data.
+  //    Si la propiedad 'data' no existe, devuelve un array vacío para evitar errores.
+  if (apiResponse && apiResponse.success) {
+    return apiResponse.data || [];
+  } else {
+    // Si el backend devuelve 200 OK pero success es false, lanza un error con su mensaje.
+    throw new Error(
+      apiResponse.message || "La respuesta del API no fue exitosa."
+    );
+  }
 };
 
 /**
@@ -37,9 +66,10 @@ export const getLocales = async () => {
  */
 export const getEvents = async (filters = {}) => {
   console.log("Fetching events with filters:", filters);
+  const token = getAuthToken();
   // Simulación de una llamada al backend con el token de autorización
   const headers = {
-    Authorization: authToken,
+    Authorization: token,
     "Content-Type": "application/json",
   };
 
@@ -142,156 +172,7 @@ export const getEvents = async (filters = {}) => {
     }, 1000); // Simular un retardo de red
   });
 };
-/**
- * Simula la obtención de la lista de tipos de evento disponibles.
- * @returns {Promise<Array<{id: number, nombre: string}>>}
- */
-export const getEventTypes = async () => {
-  console.log("Fetching simulated event types...");
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const shouldFail = false;
-      if (shouldFail) {
-        const errorResponse = {
-          message: "No se pudo conectar a la base de datos (simulado).",
-        };
-        console.error("Simulated fetch failed:", errorResponse);
-        // Rechazamos la promesa con un objeto Error, como lo haría una llamada fetch real.
-        return reject(new Error(errorResponse.message));
-      }
-      const successResponse = [
-        { id: 1, nombre: "Concierto" },
-        { id: 2, nombre: "Cultural" },
-        { id: 3, nombre: "Deportivo" },
-        { id: 4, nombre: "Corporativo" },
-        { id: 5, nombre: "Feria Gastronómica" },
-      ];
 
-      console.log("Simulated event types fetched:", successResponse);
-      resolve(successResponse);
-    }, 300); // Un retardo de red realista para datos de un dropdown.
-  });
-};
-
-/**
- * Simula el envío de los datos de un nuevo evento al backend.
- * @param {object} eventData El objeto de estado del formulario del frontend.
- * @returns {Promise<object>} Una promesa que resuelve a un objeto de respuesta exitosa.
- */
-export const createEvent = async (eventData) => {
-  console.log("1. DATOS RECIBIDOS DEL FORMULARIO:", eventData);
-
-  // --- BUENA PRÁCTICA 1: Transformar los datos del frontend al formato que el backend espera ---
-  // Esto desacopla la estructura de tu estado del contrato de la API.
-  const payload = {
-    nombre: eventData.nombre,
-    descripcion: eventData.descripcion,
-    localId: parseInt(eventData.localId, 10),
-    tipoEventoId: parseInt(eventInfo.tipoEventoId, 10),
-    capacidad: parseInt(eventData.capacidad, 10),
-    fechaPublicacion: eventData.fechaPublicacion,
-    fechaCompra: eventData.fechaCompra,
-    // Transformamos el array de fechas a un formato que el backend podría preferir (ej: 'horarios')
-    horarios: eventData.fechas.map((f) => `${f.fecha}T${f.hora}`),
-    // Transformamos los tipos de entrada, asegurando que los números sean números.
-    entradas: eventData.tiposEntrada.map((t) => ({
-      nombre: t.nombre,
-      precio: parseFloat(t.precio),
-      cantidad: parseInt(t.cantidad, 10),
-      limiteCompra: parseInt(t.limiteCompra, 10),
-      puntos: parseInt(t.puntos, 10),
-    })),
-  };
-
-  // El archivo de imagen se manejaría por separado (en FormData en la versión real).
-  const imagenFile = eventData.imagenFile;
-
-  console.log(
-    "2. PAYLOAD TRANSFORMADO (simulando lo que se enviaría):",
-    payload
-  );
-  console.log(
-    "3. ARCHIVO DE IMAGEN (simulando lo que se enviaría):",
-    imagenFile
-  );
-
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // --- BUENA PRÁCTICA 2: Simular una validación realista del backend ---
-      const aforoTotalAsignado = payload.entradas.reduce(
-        (sum, e) => sum + e.cantidad,
-        0
-      );
-      if (aforoTotalAsignado > payload.capacidad) {
-        const errorResponse = {
-          message: "Error de validación del servidor.",
-          errors: {
-            aforo: `La suma de las cantidades de entrada (${aforoTotalAsignado}) no puede exceder la capacidad del local (${payload.capacidad}).`,
-          },
-        };
-        console.error("4. SIMULACIÓN FALLIDA:", errorResponse);
-        // Rechazamos la promesa con un error estructurado, como lo haría una API real.
-        return reject(new Error(errorResponse.errors.aforo));
-      }
-
-      const successResponse = {
-        message: "Evento creado exitosamente (simulado).",
-        data: { id: Date.now(), ...payload },
-      };
-
-      console.log("4. SIMULACIÓN EXITOSA:", successResponse);
-      resolve(successResponse);
-    }, 1500);
-  });
-};
-
-/**
- * Obtiene el token de autenticación almacenado.
- * @returns {string|null} - El token JWT o null si no existe.
- */
-/*
-const getAuthToken = () => {
-  const sessionJSON = sessionStorage.getItem("session");
-  // Variable para guardar el token final
-  let userToken = null;
-  // 2. MUY IMPORTANTE: Verificar que el dato exista antes de continuar
-  if (sessionJSON) {
-    // 3. Convertir (parsear) la cadena JSON a un objeto de JavaScript real
-    const sessionData = JSON.parse(sessionJSON);
-    // 4. Ahora sí, acceder a la propiedad "token" del objeto
-    userToken = sessionData.token;
-  }
-  return userToken;
-};
-*/
-/**
- * Realiza una llamada a la API para obtener la lista completa de locales.
- * @returns {Promise<Array<{id: number, nombre: string}>>} Una promesa que resuelve a un array de objetos de locales.
- */
-/*
-export const getLocales = async () => {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error('No se encontró el token de autenticación.');
-  }
-
-  const response = await fetch(`${BASE_API_URL}/locales`, {
-    method: 'GET',
-    headers: {
-      'Authorization': token,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    // Si la respuesta del servidor es un error (ej: 401, 404, 500), lanzamos un error.
-    const errorData = await response.json().catch(() => ({ message: response.statusText }));
-    throw new Error(errorData.message || 'Error al obtener los locales');
-  }
-
-  return response.json();
-};
-*/
 /**
  * Realiza una llamada a la API para obtener los eventos filtrados y paginados.
  * @param {object} filters - Los filtros a aplicar en la búsqueda.
@@ -343,33 +224,46 @@ export const getEvents = async (filters = {}) => {
 */
 
 /**
- * Envía los datos del nuevo evento al backend para su creación.
- * @param {object} eventData El objeto de estado del formulario del frontend.
- * @returns {Promise<object>} La respuesta del backend.
+ * Envía los datos de un nuevo evento al backend para su creación.
+ * A diferencia de la versión anterior, esta función envía una URL de imagen
+ * en lugar de un archivo binario.
+ *
+ * @param {object} eventData - El objeto que contiene todos los datos del formulario del evento.
+ *                             Se espera que contenga una propiedad `imagenURL` (string).
+ * @returns {Promise<object>} Una promesa que resuelve con la respuesta exitosa del backend.
+ * @throws {Error} Lanza un error si el token no se encuentra, si los datos son inválidos,
+ *                 o si la petición a la API falla por cualquier motivo.
  */
-/*
 export const createEvent = async (eventData) => {
+  // Previene llamadas innecesarias a la API si los datos son claramente incorrectos.
+  if (!eventData || !eventData.nombre || !eventData.imagenURL) {
+    throw new Error(
+      "Datos incompletos. Se requiere al menos un nombre y una URL de imagen para crear el evento."
+    );
+  }
+
+  console.log("Iniciando creación de evento con datos:", eventData);
+
   const token = getAuthToken();
-  if (!token) throw new Error('Token de autenticación no encontrado.');
+  if (!token) {
+    throw new Error(
+      "Token de autenticación no encontrado. No se puede continuar."
+    );
+  }
 
-  // --- BUENA PRÁCTICA 1: Usar FormData para enviar archivos y datos juntos ---
-  // FormData es el método estándar para peticiones multipart/form-data.
-  const formData = new FormData();
-
-  // 1. Añadimos el archivo de imagen. El 'imagen' es el nombre del campo que el backend espera.
-  formData.append('imagen', eventData.imagenFile);
-
-  // 2. Transformamos el resto de los datos a la estructura que el backend necesita.
+  // Mapeamos los datos del estado del frontend al contrato exacto que espera la API.
+  // Esto hace el código más mantenible si el estado del frontend cambia.
   const payload = {
     nombre: eventData.nombre,
     descripcion: eventData.descripcion,
     localId: parseInt(eventData.localId, 10),
-    tipoEventoId: parseInt(eventData.tipoEventoId, 10),
+    tipoEventoId: parseInt(eventData.tipoEventoId, 10), // Corregido de eventInfo a eventData
     capacidad: parseInt(eventData.capacidad, 10),
     fechaPublicacion: eventData.fechaPublicacion,
     fechaCompra: eventData.fechaCompra,
-    horarios: eventData.fechas.map(f => `${f.fecha}T${f.hora}`),
-    entradas: eventData.tiposEntrada.map(t => ({
+    imagenURL: eventData.imagenURL, // <-- El cambio principal: ahora es una URL.
+    horarios: eventData.fechas.map((f) => `${f.fecha}T${f.hora}`),
+    entradas: eventData.tiposEntrada.map((t) => ({
       nombre: t.nombre,
       precio: parseFloat(t.precio),
       cantidad: parseInt(t.cantidad, 10),
@@ -378,90 +272,122 @@ export const createEvent = async (eventData) => {
     })),
   };
 
-  // 3. Añadimos el objeto de datos como un string JSON. El backend deberá parsear este campo.
-  //    Este es un patrón común para enviar datos estructurados junto con archivos.
-  formData.append('data', JSON.stringify(payload));
+  console.log("Payload a enviar a la API:", JSON.stringify(payload, null, 2));
 
-  console.log("Enviando FormData al backend...");
+  try {
+    const response = await fetch(`${BASE_API_URL}/Evento/CrearEvento`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      // El cuerpo es el objeto payload convertido a una cadena JSON.
+      body: JSON.stringify(payload),
+    });
 
-  const response = await fetch(`${BASE_API_URL}/admin/events`, {
-    method: 'POST',
-    headers: {
-      'Authorization': token,
-      // --- BUENA PRÁCTICA 2: NO establecer el 'Content-Type' manualmente ---
-      // Cuando usas FormData, el navegador lo establece automáticamente a 'multipart/form-data'
-      // con el 'boundary' correcto. Ponerlo manualmente aquí romperá la petición.
-    },
-    body: formData, // El cuerpo de la petición es el objeto FormData.
-  });
+    if (!response.ok) {
+      // Intentamos leer el cuerpo del error para obtener un mensaje específico del backend.
+      const errorData = await response.json().catch(() => ({
+        // Fallback si el cuerpo del error no es JSON o está vacío.
+        message: `Error del servidor: ${response.status} ${response.statusText}`,
+      }));
+      throw new Error(
+        errorData.message || "Ocurrió un error al crear el evento."
+      );
+    }
 
-  // --- BUENA PRÁCTICA 3: Manejo de errores detallado ---
-  if (!response.ok) {
-    // Intentamos parsear el cuerpo del error para obtener un mensaje más específico del backend.
-    const errorData = await response.json().catch(() => ({ 
-      message: `Error del servidor: ${response.status} ${response.statusText}` 
-    }));
-    throw new Error(errorData.message || 'Ocurrió un error al crear el evento.');
+    // Si la respuesta es exitosa (ej: 201 Created), devolvemos los datos.
+    return await response.json();
+  } catch (error) {
+    // Este bloque se activa si hay un problema de red (servidor caído, sin conexión)
+    // o si lanzamos un error manualmente en el bloque `if (!response.ok)`.
+    console.error("Error crítico en el servicio createEvent:", error);
+
+    // Relanzamos el error para que la capa que llamó (el controlador/componente)
+    // pueda manejarlo y mostrar una notificación al usuario.
+    throw error;
   }
-
-  return response.json();
 };
-*/
+
 /**
  * Obtiene la lista de tipos de evento disponibles desde el backend.
  *
  * @returns {Promise<Array<{id: number, nombre: string}>>} Una promesa que resuelve a un array de objetos de tipo de evento.
  * @throws {Error} Lanza un error detallado si la petición a la API falla por cualquier motivo.
  */
-/*
+
 export const getEventTypes = async () => {
   console.log("Fetching event types from backend...");
-  
   const token = getAuthToken();
-
-  // --- BUENA PRÁCTICA 2: Verificación previa de requisitos (Guard Clause) ---
-  // Fallar rápido si una condición esencial (como el token) no se cumple.
   if (!token) {
-    // Es mejor lanzar un error aquí para que el controlador pueda capturarlo y reaccionar
-    // (ej: redirigir al login) en lugar de continuar con una petición que fallará.
-    throw new Error('Token de autenticación no encontrado. No se puede realizar la petición.');
+    throw new Error(
+      "Token de autenticación no encontrado. No se puede realizar la petición."
+    );
   }
-
   try {
-    const response = await fetch(`${BASE_API_URL}/event-types`, {
-      method: 'GET',
+    const response = await fetch(`${BASE_API_URL}/TipoEvento/GetTiposEvento`, {
+      method: "GET",
       headers: {
-        // --- BUENA PRÁCTICA 3: Headers explícitos y correctos ---
-        'Authorization': token,
-        'Content-Type': 'application/json', // Informa al servidor que aceptamos una respuesta JSON.
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
     });
 
-    // --- BUENA PRÁCTICA 4: Manejo robusto de la respuesta HTTP ---
-    // La propiedad 'ok' de la respuesta de fetch cubre todos los códigos de éxito (200-299).
     if (!response.ok) {
-      // Intentamos obtener un mensaje de error específico del cuerpo de la respuesta de la API.
-      const errorData = await response.json().catch(() => ({ 
+      const errorData = await response.json().catch(() => ({
         // Si el cuerpo del error no es JSON o está vacío, creamos un error genérico.
-        message: `Error del servidor: ${response.status} ${response.statusText}` 
+        message: `Error del servidor: ${response.status} ${response.statusText}`,
       }));
       // Lanzamos un error con el mensaje más específico que tengamos.
-      throw new Error(errorData.message || 'Ocurrió un error al obtener los tipos de evento.');
+      throw new Error(
+        errorData.message || "Ocurrió un error al obtener los tipos de evento."
+      );
     }
-
-    // Si la respuesta es exitosa, parseamos el JSON y lo devolvemos.
-    return response.json();
-
+    // 1. Convierte la respuesta a JSON
+    const apiResponse = await response.json();
+    // 2. Verifica si la respuesta del API fue exitosa y devuelve solo la data.
+    if (apiResponse && apiResponse.success) {
+      console.log("Tipos de evento fetched:", apiResponse.data);
+      return apiResponse.data || [];
+    } else {
+      // Si el backend devuelve 200 OK pero success es false, lanza un error con su mensaje.
+      throw new Error(
+        apiResponse.message || "La respuesta del API no fue exitosa."
+      );
+    }
   } catch (error) {
-    // --- BUENA PRÁCT-ICA 5: Capturar errores de red y otros fallos ---
-    // Este bloque 'catch' se activará si hay un problema de red (ej: el servidor no responde)
-    // o si lanzamos un error manualmente en el bloque 'if (!response.ok)'.
-    
-    console.error('Error en getEventTypes:', error);
-
-    // Relanzamos el error para que la capa que llamó a esta función (el controlador)
-    // pueda manejarlo y mostrar un mensaje apropiado al usuario.
+    console.error("Error en getEventTypes:", error);
     throw error;
   }
 };
-*/
+
+/**
+ * Sube un archivo de imagen y devuelve su URL pública.
+ *
+ * --- ¡VERSIÓN SIMULADA (MOCK)! ---
+ * Por ahora, esta función NO sube el archivo. Simplemente simula un
+ * retraso de red y devuelve una URL de imagen hardcodeada para desarrollo.
+ *
+ * @param {File} imageFile - El archivo de imagen seleccionado por el usuario (actualmente no se utiliza).
+ * @returns {Promise<string>} Una promesa que resuelve a la URL de la imagen.
+ */
+export const uploadImageAndGetUrl = async (imageFile) => {
+  console.log("ADVERTENCIA: Usando el servicio de subida de imagen SIMULADO.");
+
+  // Validamos que se recibió un archivo para mantener la consistencia con la futura función real.
+  if (!imageFile) {
+    throw new Error("No se proporcionó ningún archivo de imagen.");
+  }
+
+  // Simula un pequeño retraso de red (ej: 500 milisegundos)
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  const HARDCODED_IMAGE_URL =
+    "https://via.placeholder.com/1024x768.png?text=Mi+Evento";
+
+  console.log("Subida simulada exitosa. URL devuelta:", HARDCODED_IMAGE_URL);
+
+  // En el futuro, aquí iría la llamada fetch real y devolveríamos la URL de la respuesta.
+  // Por ahora, simplemente devolvemos la URL fija.
+  return HARDCODED_IMAGE_URL;
+};
