@@ -10,7 +10,7 @@ namespace EventodromoRest.Mappers
     {
         public List<Local> ListarLocales()
         {
-            List<Local> listaLocal = new List<Local>();
+            List<Local> listaLocal = new();
             lock (DB)
             {
                 string query = "SELECT * FROM Local";
@@ -22,18 +22,27 @@ namespace EventodromoRest.Mappers
                         id = DB.GetInt("ID"),
                         nombre = DB.GetString("NOMBRE"),
                         idCiudad = DB.GetInt("IDCIUDAD"),
-                        ciudad = ObtenerCiudadPorId(DB.GetInt("IDCIUDAD")),
                         direccion = DB.GetString("DIRECCION"),
                         capacidad = DB.GetInt("CAPACIDAD"),
                         isDeleted = DB.GetBoolean("ISDELETED"),
                         idAdministrador = DB.GetInt("CREADOPOR"),
-                        administrador = ObtenerAdministradorPorId(DB.GetInt("CREADOPOR")),
                     };
                     listaLocal.Add(local);
                 }
-                return listaLocal;
             }
+
+            // Cerrar DataReader antes de nuevas consultas
+            foreach (var local in listaLocal)
+            {
+                local.ciudad = ObtenerCiudadPorId(local.idCiudad);
+                local.administrador = ObtenerAdministradorPorId(local.idAdministrador);
+            }
+
+            return listaLocal;
         }
+
+
+
 
         public int InsertarLocal(Local local)
         {
