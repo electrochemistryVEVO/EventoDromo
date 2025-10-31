@@ -9,10 +9,13 @@ import {
   getLocales,
   getEventTypes,
   createEvent,
+  uploadImageAndGetUrl,
 } from "@/services/gestionEvento.services.js";
 
 // --- DEFINICIONES INICIALES ---
-
+// Puedes poner esta constante justo antes de tu función handleSubmit
+const HARDCODED_IMAGE_URL =
+  "https://via.placeholder.com/800x600.png?text=Imagen+del+Evento";
 /**
  * @constant initialEventInfo
  * @description Define la estructura y los valores por defecto para la sección principal del formulario.
@@ -21,8 +24,8 @@ import {
 const initialEventInfo = {
   nombre: "",
   descripcion: "",
-  imagenFile: null, // Almacena el objeto File del input para enviarlo al backend.
-  imagenPreview: "", // Almacena una URL local (blob) para mostrar la previsualización de la imagen sin subirla.
+  imagenFile: null, // Mantenemos el estado para el archivo
+  imagenPreview: "", // y para la previsualización
   localId: "",
   capacidad: "",
   tipoEventoId: "",
@@ -93,7 +96,16 @@ export const useEventCreator = () => {
 
   // --- SECCIÓN DE MANEJADORES DE EVENTOS (Handlers) ---
   // Funciones que responden a las interacciones del usuario en la UI.
-
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setEventInfo((prev) => ({
+        ...prev,
+        imagenFile: file,
+        imagenPreview: URL.createObjectURL(file),
+      }));
+    }
+  };
   /**
    * @function handleInfoChange
    * @description Maneja los cambios en todos los inputs de la sección "Información del evento".
@@ -141,21 +153,6 @@ export const useEventCreator = () => {
           return `${f.fecha}T${f.hora}` > value;
         })
       );
-    }
-  };
-
-  /**
-   * @function handleImageChange
-   * @description Maneja la selección de un archivo de imagen.
-   */
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setEventInfo((prev) => ({
-        ...prev,
-        imagenFile: file,
-        imagenPreview: URL.createObjectURL(file),
-      }));
     }
   };
 
@@ -220,7 +217,9 @@ export const useEventCreator = () => {
     const validationErrors = [];
     if (!eventInfo.nombre.trim()) validationErrors.push("Nombre del Evento");
     if (!eventInfo.descripcion.trim()) validationErrors.push("Descripción");
-    if (!eventInfo.imagenFile) validationErrors.push("Imagen");
+    if (!eventInfo.imagenFile) {
+      validationErrors.push("una Imagen para el evento");
+    }
     if (!eventInfo.localId) validationErrors.push("Local");
     if (!eventInfo.tipoEventoId) validationErrors.push("Tipo evento");
     if (!eventInfo.fechaPublicacion)
@@ -276,14 +275,32 @@ export const useEventCreator = () => {
 
     setIsLoading(true);
 
-    // Ensambla el objeto final para el backend.
-    const finalEventData = { ...eventInfo, fechas, tiposEntrada };
-    delete finalEventData.imagenPreview; // La preview no se envía.
-
     try {
+      // --- PASO A: "Subir" la imagen para obtener la URL ---
+      // Llamamos a nuestra función simulada pasándole el archivo del estado.
+      console.log("Paso 1: Convirtiendo imagen a URL (simulado)...");
+      const imageUrl = await uploadImageAndGetUrl(eventInfo.imagenFile);
+
+      // --- PASO B: Ensamblar el payload final con la URL obtenida ---
+      console.log("Paso 2: Creando el payload del evento...");
+      const finalEventData = {
+        ...eventInfo,
+        fechas,
+        tiposEntrada,
+        imagenURL: imageUrl, // <-- ¡Aquí usamos la URL que nos devolvió la función!
+      };
+
+      // Limpiamos los campos que el backend no necesita
+      delete finalEventData.imagenFile;
+      delete finalEventData.imagenPreview;
+
+      // --- PASO C: Llamar al servicio de creación de evento ---
+      console.log("Paso 3: Enviando datos del evento al backend...");
       await createEvent(finalEventData);
+
       setIsSuccess(true);
     } catch (err) {
+      // Captura errores tanto de la "subida" como de la creación
       setError(err.message || "Ocurrió un error desconocido.");
     } finally {
       setIsLoading(false);
@@ -304,10 +321,10 @@ export const useEventCreator = () => {
     isSuccess,
     minDateTime,
     handleInfoChange,
-    handleImageChange,
     addFecha,
     removeFecha,
     handleFechaChange,
+    handleImageChange,
     addTipoEntrada,
     removeTipoEntrada,
     handleTipoEntradaChange,
