@@ -69,5 +69,32 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
+
+        [HttpDelete]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<ResponseObtenerCarrito> EliminarItemDelCarrito([FromRoute] int idEntrada)
+        {
+            try
+            {
+                var userIdString = User.FindFirst("idCliente")?.Value;
+                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idCliente))
+                {
+                    throw new Exception("ID de cliente inválido en el token.");
+                }
+                return new CarritoBO(globales, BD).EliminarItemDelCarrito(idCliente, idEntrada);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<ResponseObtenerCarrito>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(idEntrada), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
     }
 }

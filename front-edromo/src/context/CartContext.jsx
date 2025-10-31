@@ -12,6 +12,18 @@ import {
 const CART_EXPIRATION_MINUTES = 10;
 const CartContext = createContext();
 
+const computeEntradasTotal = (entradas = []) =>
+  entradas.reduce((acc, entrada) => {
+    const qty = Number(entrada?.cantidad ?? entrada?.quantity ?? 0) || 0;
+    const price = Number(
+      entrada?.precioUnitario ??
+        entrada?.precio ??
+        entrada?.precioPorUnidad ??
+        0,
+    );
+    return acc + qty * price;
+  }, 0);
+
 export const CartProvider = ({ children }) => {
   const { user, isAuthenticated } = useUser();
   const [cartItems, setCartItems] = useState([]);
@@ -193,21 +205,325 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const removeFromCart = async (cartItemId) => { // Recibe cartItemId
+  const removeEntryFromCart = async (
+    { cartItemId, entradaId, tipoEntradaId } = {},
+    { manageLoading = true } = {},
+  ) => {
+    if (!cartItemId && !entradaId) {
+      return false;
+    }
+
     if (isAuthenticated) {
-      setIsLoading(true);
+      if (manageLoading) {
+        setIsLoading(true);
+      }
       const token = resolveAuthToken();
       if (!token) {
-        console.warn("[CartContext] No se pudo obtener token para eliminar del carrito.");
-        setIsLoading(false);
-        return;
+        console.warn("[CartContext] No se pudo obtener token para eliminar entrada.");
+        if (manageLoading) {
+          setIsLoading(false);
+        }
+        return false;
       }
-      const response = await removeItemFromDbCart(cartItemId, token);
+
+      if (!entradaId) {
+        console.warn("[CartContext] No se proporcionó idEntrada para eliminar.");
+        if (manageLoading) {
+          setIsLoading(false);
+        }
+        return false;
+      }
+
+      const response = await removeItemFromDbCart(entradaId, token);
       if (response.success) {
         setCartItems(response.data.items);
         setExpirationTime(response.data.expirationTime);
       } else {
-        console.error("Error al eliminar item de la BD");
+        console.error("Error al eliminar entrada de la BD", response.error);
+        if (manageLoading) {
+          setIsLoading(false);
+        }
+        return false;
+      }
+
+      if (manageLoading) {
+        setIsLoading(false);
+      }
+      return true;
+    }
+
+    let nextCartSnapshot = [];
+
+    setCartItems((prev) => {
+      const updated = prev
+        .map((item) => {
+          if (item.cartItemId !== cartItemId) {
+            return item;
+          }
+
+          const entradasActualizadas = (item.entradas || [])
+            .map((entrada) => {
+              const tipoEntradaActual =
+                entrada.tipoEntradaId ??
+                entrada.idTipoEntrada ??
+                entrada.tipoEntrada?.id ??
+                null;
+
+              if (
+                tipoEntradaId == null ||
+                tipoEntradaActual == null ||
+                String(tipoEntradaActual) !== String(tipoEntradaId)
+              ) {
+                return entrada;
+              }
+
+              const cantidadActual = Number(
+                entrada.cantidad ?? entrada.quantity ?? 0,
+              );
+              const nuevaCantidad = Math.max(0, cantidadActual - 1);
+
+              return {
+                ...entrada,
+                cantidad: nuevaCantidad,
+                quantity: nuevaCantidad,
+              };
+            })
+            .filter((entrada) =>
+              Number(entrada.cantidad ?? entrada.quantity ?? 0) > 0,
+            );
+
+          const totalItem = computeEntradasTotal(entradasActualizadas);
+
+          return {
+            ...item,
+            entradas: entradasActualizadas,
+            totalItem,
+          };
+        })
+        .filter((item) => (item.entradas || []).length > 0);
+
+      nextCartSnapshot = updated;
+      return updated;
+    });
+
+    if (nextCartSnapshot.length === 0) {
+      setExpirationTime(null);
+    }
+
+    return true;
+  };
+
+  const incrementEntryInCart = async (
+    { cartItemId, tipoEntradaId } = {},
+    { manageLoading = true } = {},
+  ) => {
+    if (!cartItemId || tipoEntradaId == null) {
+      return false;
+    }
+
+    if (isAuthenticated) {
+      if (manageLoading) {
+        setIsLoading(true);
+      }
+
+      const token = resolveAuthToken();
+      if (!token) {
+        console.warn(
+          "[CartContext] No se pudo obtener token para incrementar entrada.",
+        );
+        if (manageLoading) {
+          setIsLoading(false);
+        }
+        return false;
+      }
+
+      const targetItem = cartItems.find(
+        (item) => item.cartItemId === cartItemId,
+      );
+      if (!targetItem) {
+        if (manageLoading) {
+          setIsLoading(false);
+        }
+        return false;
+      }
+
+      const matchingEntrada = (targetItem.entradas || []).find((entrada) => {
+        const currentTipo =
+          entrada?.tipoEntradaId ??
+          entrada?.idTipoEntrada ??
+          entrada?.tipoEntrada?.id ??
+          null;
+        return currentTipo != null && String(currentTipo) === String(tipoEntradaId);
+      });
+
+      const tipoEntradaNumeric = Number(
+        matchingEntrada?.tipoEntradaId ??
+          matchingEntrada?.idTipoEntrada ??
+          matchingEntrada?.tipoEntrada?.id ??
+          tipoEntradaId,
+      );
+
+      if (!Number.isFinite(tipoEntradaNumeric) || tipoEntradaNumeric <= 0) {
+        console.warn(
+          "[CartContext] Tipo de entrada inválido al incrementar en BD.",
+        );
+        if (manageLoading) {
+          setIsLoading(false);
+        }
+        return false;
+      }
+
+      const expirationTarget =
+        expirationTime ?? Date.now() + CART_EXPIRATION_MINUTES * 60 * 1000;
+
+      const payloadItem = {
+        entradas: [
+          {
+            tipoEntradaId: tipoEntradaNumeric,
+            cantidad: 1,
+          },
+        ],
+      };
+
+      const response = await addItemToDbCart(
+        payloadItem,
+        expirationTarget,
+        token,
+      );
+
+      if (response.success) {
+        setCartItems(response.data.items);
+        setExpirationTime(response.data.expirationTime ?? expirationTarget);
+        if (manageLoading) {
+          setIsLoading(false);
+        }
+        return true;
+      }
+
+      console.error("Error al incrementar entrada en la BD", response.error);
+      if (manageLoading) {
+        setIsLoading(false);
+      }
+      return false;
+    }
+
+    let snapshot = null;
+
+    setCartItems((prev) => {
+      let cartMutated = false;
+
+      const updated = prev.map((item) => {
+        if (item.cartItemId !== cartItemId) {
+          return item;
+        }
+
+        const entradasActuales = Array.isArray(item.entradas)
+          ? item.entradas
+          : [];
+
+        let tierUpdated = false;
+
+        const entradasIncrementadas = entradasActuales.map((entrada) => {
+          const tipoEntradaActual =
+            entrada?.tipoEntradaId ??
+            entrada?.idTipoEntrada ??
+            entrada?.tipoEntrada?.id ??
+            null;
+
+          if (
+            tipoEntradaActual == null ||
+            String(tipoEntradaActual) !== String(tipoEntradaId)
+          ) {
+            return entrada;
+          }
+
+          tierUpdated = true;
+          cartMutated = true;
+
+          const cantidadActual = Number(
+            entrada.cantidad ?? entrada.quantity ?? 0,
+          );
+          const nuevaCantidad = Number.isFinite(cantidadActual)
+            ? cantidadActual + 1
+            : 1;
+
+          return {
+            ...entrada,
+            cantidad: nuevaCantidad,
+            quantity: nuevaCantidad,
+          };
+        });
+
+        if (!tierUpdated) {
+          return item;
+        }
+
+        const totalItem = computeEntradasTotal(entradasIncrementadas);
+
+        return {
+          ...item,
+          entradas: entradasIncrementadas,
+          totalItem,
+        };
+      });
+
+      if (!cartMutated) {
+        return prev;
+      }
+
+      snapshot = updated;
+      return updated;
+    });
+
+    if (!snapshot) {
+      return false;
+    }
+
+    if (!expirationTime) {
+      setExpirationTime(Date.now() + CART_EXPIRATION_MINUTES * 60 * 1000);
+    }
+
+    return true;
+  };
+
+  const removeFromCart = async (cartItemId) => { // Recibe cartItemId
+    if (isAuthenticated) {
+      setIsLoading(true);
+      const targetItem = cartItems.find((item) => item.cartItemId === cartItemId);
+      if (!targetItem) {
+        setIsLoading(false);
+        return;
+      }
+
+      const entradas = Array.isArray(targetItem.entradas)
+        ? targetItem.entradas
+        : [];
+
+      for (const entrada of entradas) {
+        const tipoEntradaId =
+          entrada?.tipoEntradaId ?? entrada?.idTipoEntrada ?? null;
+        const entradaId =
+          entrada?.entradaId ??
+          entrada?.idEntrada ??
+          entrada?.id ??
+          null;
+
+        const repeat = Math.max(
+          1,
+          Number(entrada?.cantidad ?? entrada?.quantity ?? 0) || 1,
+        );
+
+        for (let i = 0; i < repeat; i += 1) {
+          const success = await removeEntryFromCart(
+            { cartItemId, entradaId, tipoEntradaId },
+            { manageLoading: false },
+          );
+
+          if (!success) {
+            setIsLoading(false);
+            return;
+          }
+        }
       }
       setIsLoading(false);
     } else {
@@ -259,6 +575,8 @@ export const CartProvider = ({ children }) => {
     isLoading,
     addToCart,
     removeFromCart,
+    removeEntryFromCart,
+    incrementEntryInCart,
     clearCart,
   };
 

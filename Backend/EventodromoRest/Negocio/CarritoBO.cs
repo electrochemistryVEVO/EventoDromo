@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Azure.Core;
 using EventodromoRest.Mappers;
 using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
@@ -79,6 +80,21 @@ namespace EventodromoRest.Negocio
             }
 
             return response;
+        }
+
+        public GenericResponse<ResponseObtenerCarrito> EliminarItemDelCarrito(int idCliente, int idEntrada)
+        {
+            var carritoMapper = new CarritoMapper(globales, DB);
+            var carrito = carritoMapper.EliminarItemDelCarrito(idCliente, idEntrada);
+            var response = TransformarCarrito(carrito);
+
+            return new GenericResponse<ResponseObtenerCarrito>
+            {
+                Success = true,
+                Message = "Item eliminado correctamente.",
+                Error = null,
+                Data = response
+            };
         }
     }
 }

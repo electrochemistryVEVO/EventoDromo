@@ -18,6 +18,11 @@ const CART_ADD_ENDPOINT = (
   "Carrito/AgregarItemAlCarrito"
 ).replace(/^\/+/, "");
 
+const CART_REMOVE_ENDPOINT = (
+  process.env.NEXT_PUBLIC_CART_REMOVE_ENDPOINT ||
+  "Carrito/EliminarItemDelCarrito"
+).replace(/^\/+/, "");
+
 const DEFAULT_EXPIRATION_MS = 10 * 60 * 1000;
 
 const buildUrl = (endpoint) =>
@@ -70,6 +75,13 @@ const normalizeEntrada = (entrada) => {
 
   return {
     ...entrada,
+    entradaId:
+      entrada.entradaId ??
+      entrada.idEntrada ??
+      entrada.id ??
+      entrada.idCarritoDetalle ??
+      entrada.carritoDetalleId ??
+      null,
     tipoEntradaId:
       entrada.tipoEntradaId ??
       entrada.idTipoEntrada ??
@@ -572,10 +584,45 @@ export const addItemToDbCart = async (item, expirationTime, token) => {
   }
 };
 
-export const removeItemFromDbCart = async (_cartItemId, _token) => ({
-  success: false,
-  error: "Servicio para eliminar items no implementado",
-});
+export const removeItemFromDbCart = async (entradaId, token) => {
+  const normalizedId = Number(entradaId);
+  if (!Number.isFinite(normalizedId) || normalizedId <= 0) {
+    return {
+      success: false,
+      error: "Id de entrada inválido",
+    };
+  }
+
+  try {
+    const response = await apiFetch(`${CART_REMOVE_ENDPOINT}/${normalizedId}`, {
+      method: "DELETE",
+      token,
+    });
+
+    if (response?.success === false) {
+      return {
+        success: false,
+        error:
+          response.error ||
+          response.mensaje ||
+          "Error en el servicio de carrito",
+      };
+    }
+
+    const normalized = normalizeCartPayload(response?.data ?? response ?? null);
+
+    return {
+      success: true,
+      data: normalized,
+    };
+  } catch (error) {
+    console.error("[Cart.service] Error al eliminar la entrada del carrito:", error);
+    return {
+      success: false,
+      error: error.message || "No se pudo eliminar la entrada del carrito",
+    };
+  }
+};
 
 export const clearDbCart = async (_token) => ({
   success: false,

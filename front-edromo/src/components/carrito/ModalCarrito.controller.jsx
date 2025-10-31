@@ -1,9 +1,10 @@
 // src/components/carrito/ModalCarrito.controller.jsx
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
+import { groupCartEntriesByTier } from "./groupCartEntries";
 import ModalCarritoView from "./ModalCarrito";
 import "@/css/ModalCarrito.css";
 
@@ -16,10 +17,16 @@ export default function ModalCarritoController({ isOpen, onClose }) {
     cartItems,
     totalPrice,
     isLoading,
-    removeFromCart,
+    removeEntryFromCart,
+    incrementEntryInCart,
     clearCart,
     expirationTime,
   } = useCart();
+
+  const groupedItems = useMemo(
+    () => groupCartEntriesByTier(cartItems),
+    [cartItems],
+  );
 
   const [tiempoRestante, setTiempoRestante] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -80,6 +87,66 @@ export default function ModalCarritoController({ isOpen, onClose }) {
     router.push('/user/carrito/entradaDetalle'); // Navega a la página de detalle
   };
 
+  const handleDecreaseTier = async (row) => {
+    if (!row) {
+      return;
+    }
+
+    const entradaId = row.entryIds?.[0] ?? null;
+
+    await removeEntryFromCart(
+      {
+        cartItemId: row.cartItemId,
+        entradaId,
+        tipoEntradaId: row.tipoEntradaId,
+      },
+      { manageLoading: true },
+    );
+  };
+
+  const handleIncreaseTier = async (row) => {
+    if (!row) {
+      return;
+    }
+
+    await incrementEntryInCart(
+      {
+        cartItemId: row.cartItemId,
+        tipoEntradaId: row.tipoEntradaId,
+      },
+      { manageLoading: true },
+    );
+  };
+
+  const handleRemoveTier = async (row) => {
+    if (!row) {
+      return;
+    }
+
+    const iterableIds = row.entryIds?.length
+      ? row.entryIds
+      : Array.from({ length: row.quantity }, () => null);
+
+    let manageLoading = true;
+
+    for (const entradaId of iterableIds) {
+      const success = await removeEntryFromCart(
+        {
+          cartItemId: row.cartItemId,
+          entradaId,
+          tipoEntradaId: row.tipoEntradaId,
+        },
+        { manageLoading },
+      );
+
+      if (!success) {
+        break;
+      }
+
+      manageLoading = false;
+    }
+  };
+
   // 6. Maneja el cierre con clic afuera o tecla Escape
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -123,13 +190,15 @@ export default function ModalCarritoController({ isOpen, onClose }) {
           </button>
         </div>
         <ModalCarritoView
-          items={cartItems}
+          items={groupedItems}
           isLoading={isLoading}
           tiempoRestante={tiempoRestante}
           error={null}
           total={totalPrice}
           onClose={handleClose}
-          onRemoveItem={removeFromCart}
+          onRemoveTier={handleRemoveTier}
+          onDecreaseTier={handleDecreaseTier}
+          onIncreaseTier={handleIncreaseTier}
           onCheckout={handleCheckout}
         />
       </div>

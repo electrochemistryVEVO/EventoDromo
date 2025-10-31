@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace EventodromoRest.Controllers
 {
-    public class TransaccionControllercs(Globales.Globales globales, DBManager.DBManager BD) : BaseController
+    public class TransaccionController(Globales.Globales globales, DBManager.DBManager BD) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
         private readonly Globales.Globales globales = globales;

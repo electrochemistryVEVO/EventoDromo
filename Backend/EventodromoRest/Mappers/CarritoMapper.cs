@@ -1,4 +1,5 @@
-﻿using EventodromoRest.Modelos;
+﻿using Azure.Core;
+using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -227,6 +228,18 @@ namespace EventodromoRest.Mappers
                     }
                 }
 
+                return ObtenerCarrito(idCliente);
+            }
+        }
+
+        public List<ObtenerCarritoDTO> EliminarItemDelCarrito(int idCliente, int idEntrada) 
+        {
+            lock (DB)
+            {
+                string query = "DELETE FROM Entrada WHERE id = @idEntrada;";
+                var parametros = new ParameterList();
+                parametros.Add("@idEntrada", idEntrada);
+                DB.ExecuteNonQuery(query, parametros);
                 return ObtenerCarrito(idCliente);
             }
         }

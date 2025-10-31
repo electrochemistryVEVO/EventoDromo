@@ -3,56 +3,26 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { useCart } from "@/context/CartContext"; 
-// 1. MODIFICADO: Importa la nueva vista desde 'tablaEntradas.jsx'
+import { groupCartEntriesByTier } from "./groupCartEntries";
 import { TablaEntradas } from "./TablaEntradas";
 
 export const TablaEntradasController = () => {
-  // Obtenemos todo del contexto (sin cambios)
-  const { cartItems, isLoading, removeFromCart } = useCart();
+  const {
+    cartItems,
+    isLoading,
+    removeEntryFromCart,
+    incrementEntryInCart,
+  } = useCart();
 
-  const rows = useMemo(() => {
-    return cartItems.flatMap((item) => {
-      const baseData = {
-        cartItemId: item.cartItemId,
-        eventName: item?.eventoInfo?.nombre || "Evento no disponible",
-        imageUrl: item?.eventoInfo?.imagenUrl || "/images/placeholder.png",
-        fecha: item?.funcionInfo?.fecha || "Fecha no disponible",
-        hora: item?.funcionInfo?.hora || "",
-      };
+  const rows = useMemo(
+    () => groupCartEntriesByTier(cartItems),
+    [cartItems],
+  );
 
-      if (!Array.isArray(item?.entradas) || item.entradas.length === 0) {
-        return [
-          {
-            ...baseData,
-            rowId: `${item.cartItemId}-sin-entradas`,
-            tierName: "Sin entradas",
-            quantity: 0,
-            totalPrice: 0,
-          },
-        ];
-      }
-
-      return item.entradas
-        .filter((entrada) => Number(entrada?.cantidad || 0) > 0)
-        .map((entrada) => {
-          const quantity = Number(entrada?.cantidad || 0);
-          const unitPrice = Number(entrada?.precioUnitario || 0);
-          const rowId = `${item.cartItemId}-${entrada?.tipoEntradaId ?? entrada?.nombre ?? "entrada"}`;
-
-          return {
-            ...baseData,
-            rowId,
-            tierName: entrada?.nombre || "Entrada",
-            quantity,
-            totalPrice: unitPrice * quantity,
-          };
-        });
-    });
-  }, [cartItems]);
-
-  const rowMap = useMemo(() => {
-    return new Map(rows.map((row) => [row.rowId, row]));
-  }, [rows]);
+  const rowMap = useMemo(
+    () => new Map(rows.map((row) => [row.rowId, row])),
+    [rows],
+  );
   
   // Lógica de selección (sin cambios)
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -105,24 +75,90 @@ export const TablaEntradasController = () => {
     }
   };
 
-  const handleRemoveItem = (id) => {
-    const row = rowMap.get(id);
+  const executeRowRemoval = async (row) => {
     if (!row) {
       return;
     }
-    removeFromCart(row.cartItemId);
+
+    const iterableIds = row.entryIds?.length
+      ? row.entryIds
+      : Array.from({ length: row.quantity }, () => null);
+
+    let manageLoading = true;
+
+    for (const entradaId of iterableIds) {
+      const success = await removeEntryFromCart(
+        {
+          cartItemId: row.cartItemId,
+          entradaId,
+          tipoEntradaId: row.tipoEntradaId,
+        },
+        { manageLoading },
+      );
+
+      if (!success) {
+        break;
+      }
+
+      manageLoading = false;
+    }
+
+    setSelectedIds((prev) => {
+      if (!prev.has(row.rowId)) {
+        return prev;
+      }
+      const next = new Set(prev);
+      next.delete(row.rowId);
+      return next;
+    });
   };
 
-  const handleRemoveSelected = () => {
-    const uniqueCartItemIds = new Set();
-    selectedIds.forEach((id) => {
-      const row = rowMap.get(id);
-      if (row) {
-        uniqueCartItemIds.add(row.cartItemId);
-      }
-    });
-    uniqueCartItemIds.forEach((cartItemId) => removeFromCart(cartItemId));
-    setSelectedIds(new Set());
+  const handleRemoveItem = async (row) => {
+    if (!row) {
+      return;
+    }
+    await executeRowRemoval(row);
+  };
+
+  const handleRemoveSelected = async () => {
+    const rowsToRemove = Array.from(selectedIds)
+      .map((id) => rowMap.get(id))
+      .filter(Boolean);
+
+    for (const row of rowsToRemove) {
+      await executeRowRemoval(row);
+    }
+  };
+
+  const handleDecreaseQuantity = async (row) => {
+    if (!row) {
+      return;
+    }
+
+    const entradaId = row.entryIds?.[0] ?? null;
+
+    await removeEntryFromCart(
+      {
+        cartItemId: row.cartItemId,
+        entradaId,
+        tipoEntradaId: row.tipoEntradaId,
+      },
+      { manageLoading: true },
+    );
+  };
+
+  const handleIncreaseQuantity = async (row) => {
+    if (!row) {
+      return;
+    }
+
+    await incrementEntryInCart(
+      {
+        cartItemId: row.cartItemId,
+        tipoEntradaId: row.tipoEntradaId,
+      },
+      { manageLoading: true },
+    );
   };
 
   const isAllSelected = rows.length > 0 && selectedIds.size === rows.length;
@@ -139,6 +175,8 @@ export const TablaEntradasController = () => {
       onToggle={handleToggle}
       onToggleAll={handleToggleAll}
       onRemoveItem={handleRemoveItem}
+      onDecreaseQuantity={handleDecreaseQuantity}
+      onIncreaseQuantity={handleIncreaseQuantity}
       onRemoveSelected={handleRemoveSelected}
       isLoading={isLoading} 
       error={null}

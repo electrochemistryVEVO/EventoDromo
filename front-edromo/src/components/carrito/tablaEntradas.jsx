@@ -13,6 +13,8 @@ export const TablaEntradas = ({
   onToggle,
   onToggleAll,
   onRemoveItem,
+  onDecreaseQuantity,
+  onIncreaseQuantity,
   onRemoveSelected,
   isLoading,
   error,
@@ -45,7 +47,10 @@ export const TablaEntradas = ({
             item={item}
             selected={selectedIds.has(item.rowId)}
             onToggle={onToggle}
-            onRemove={onRemoveItem}
+            onRemove={() => onRemoveItem(item)}
+            onDecrease={() => onDecreaseQuantity(item)}
+            onIncrease={() => onIncreaseQuantity(item)}
+            isLoading={isLoading}
           />
         ))}
       </ul>
@@ -54,7 +59,7 @@ export const TablaEntradas = ({
 
   return (
     <div className="overflow-hidden bg-white border rounded-lg border-slate-200">
-      <header className="grid grid-cols-[auto_1fr_128px_160px_auto] items-center gap-x-4 bg-[#EEECEC] px-4 py-5 text-sm font-bold uppercase text-slate-600">
+      <header className="grid grid-cols-[auto_1fr_160px_160px_auto] items-center gap-x-4 bg-[#EEECEC] px-4 py-5 text-sm font-bold uppercase text-slate-600">
         <div>
           <input
             type="checkbox"
