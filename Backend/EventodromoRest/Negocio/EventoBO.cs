@@ -99,38 +99,40 @@ namespace EventodromoRest.Negocio
 
             // 2️⃣ Insertar las fechas (horarios)
             var fechaMapper = new FechaEventoMapper(globales, DB);
-            int idUltimoFecha= 0;
+            var entradaMapper = new TipoEntradaMapper(globales, DB);
+
             foreach (var fecha in horarios)
             {
+                // Crear la fechaEvento
                 var fechaEvento = new FechaEvento
                 {
                     fechaHora = DateTime.Parse(fecha),
                     idEvento = idEvento
                 };
-                idUltimoFecha=fechaMapper.InsertarFechaEvento(fechaEvento);
-            }
 
-            // 3️⃣ Insertar los tipos de entrada
-            var entradaMapper = new TipoEntradaMapper(globales, DB);
-            foreach (var entrada in entradas)
-            {
-                var nuevaEntrada = new TipoEntrada
+                // Insertar y obtener el id de la fechaEvento recién creada
+                int idFechaEvento = fechaMapper.InsertarFechaEvento(fechaEvento);
+
+                // 3️⃣ Por cada fechaEvento, insertar todas las entradas
+                foreach (var entrada in entradas)
                 {
-                    nombre = entrada.nombre,
-                    precio = entrada.precio,
-                    cantidadEntradas = entrada.cantidad,
-                    limiteCompra = entrada.limiteCompra,
-                    puntos = entrada.puntos,
-                    cantidadVendida = 0,
-                    // 🔥 Si tus entradas dependen de una fecha específica, aquí deberías asociar el idFechaEvento correspondiente
-                    // por simplicidad, asumimos que se asocian al primer horario
-                    //idFechaEvento = fechaBO.ObtenerPrimerIdPorEvento(idEvento)
-                    idFechaEvento = idUltimoFecha//HARDCODEADO CAMBIAR
-                };
-                entradaMapper.InsertarTipoEntrada(nuevaEntrada);
+                    var nuevaEntrada = new TipoEntrada
+                    {
+                        nombre = entrada.nombre,
+                        precio = entrada.precio,
+                        cantidadEntradas = entrada.cantidad,
+                        limiteCompra = entrada.limiteCompra,
+                        puntos = entrada.puntos,
+                        cantidadVendida = 0,
+                        idFechaEvento = idFechaEvento   // ✅ asignar el id correspondiente
+                    };
+
+                    entradaMapper.InsertarTipoEntrada(nuevaEntrada);
+                }
             }
 
             return idEvento;
         }
+
     }
 }
