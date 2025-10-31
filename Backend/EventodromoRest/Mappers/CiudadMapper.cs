@@ -26,12 +26,6 @@ namespace EventodromoRest.Mappers
                     idsPais.Add(ciudad.idPais);
                 }
                 DB.CloseReader();
-
-                foreach (var ciudad in listaCiudad)
-                {
-                    ciudad.pais = ObtenerPaisPorId(ciudad.idPais ?? 0);
-                }
-
                 return listaCiudad;
             }
         }

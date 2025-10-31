@@ -1,10 +1,12 @@
 // src/service/admin-service.js
 
+import {getApiUrl} from "@/lib/utils";
+
 /**
  * Obtiene el token de autenticación almacenado.
  * @returns {string|null} - El token JWT o null si no existe.
  */
-const getAuthToken = () => {
+export const getAuthToken = () => {
   const sessionJSON = sessionStorage.getItem("session");
 
   // Variable para guardar el token final
@@ -24,7 +26,7 @@ const getAuthToken = () => {
  * @returns {Promise<Object>} - Una promesa que resuelve con los datos del usuario.
  */
 export const fetchUserData = async () => {
-  const API_URL = "http://localhost:5189/api/Administrador/FetchAdminData";
+  const API_URL = (await getApiUrl())+"Administrador/FetchAdminData";
   try {
     const token = getAuthToken();
     if (!token) {

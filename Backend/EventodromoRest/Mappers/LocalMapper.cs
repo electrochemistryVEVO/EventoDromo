@@ -13,7 +13,7 @@ namespace EventodromoRest.Mappers
             List<LocalCiudadImagenDTO> listaLocal = new List<LocalCiudadImagenDTO>();
             lock (DB)
             {
-                string query = "SELECT * FROM Local";
+                string query = "SELECT * FROM Local WHERE ISDELETED=0";
                 DB.Select(query, null);
                 while (DB.Read())
                 {
@@ -31,6 +31,36 @@ namespace EventodromoRest.Mappers
                 {
                     Ciudad ciudad = ObtenerCiudadPorId(local.id_ciudad);
                     local.ciudad = ciudad?.nombre;
+                }
+                return listaLocal;
+            }
+        }
+        
+        public List<Local> ListarLocalesAdmin()
+        {
+            List<Local> listaLocal = new List<Local>();
+            lock (DB)
+            {
+                string query = "SELECT Local.*,COUNT(E.id) AS EVENTOS,C.nombre AS NOMBRECIUDAD"
+                               +" FROM Local LEFT JOIN Evento AS E ON Local.id = E.idLocal"
+                               +" LEFT JOIN Ciudad AS C ON Local.idCiudad = C.id"
+                               +" GROUP BY Local.id;";
+                DB.Select(query, null);
+                while (DB.Read())
+                {
+                    Local local = new()
+                    {
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        idCiudad = DB.GetInt("IDCIUDAD"),
+                        nombreCiudad = DB.GetString("NOMBRECIUDAD"),
+                        eventos = DB.GetInt("EVENTOS"),
+                        direccion = DB.GetString("DIRECCION"),
+                        capacidad = DB.GetInt("CAPACIDAD"),
+                        imagenURL = DB.GetString("IMAGENURL"),
+                        isDeleted = DB.GetBoolean("ISDELETED")
+                    };
+                    listaLocal.Add(local);
                 }
                 return listaLocal;
             }
@@ -87,7 +117,7 @@ namespace EventodromoRest.Mappers
         {
             lock (DB)
             {
-                string query = "DELETE FROM Local WHERE ID = @ID";
+                string query = "UPDATE Local SET isDeleted = true WHERE ID = @ID";
                 var parametros = new ParameterList();
                 parametros.Add("@ID", id);
                 int rowsAffected = DB.ExecuteNonQuery(query, parametros);

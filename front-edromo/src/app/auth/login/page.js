@@ -6,8 +6,9 @@ import "@/css/login-style.css"; // 📁 Importa los estilos CSS para esta págin
 import "@/css/forgot-password.css"; // Importa los estilos para el botón de olvidar contraseña
 import Image from "next/image"; // 🖼️ Componente optimizado de Next.js para imágenes.
 import { useRouter, useSearchParams } from "next/navigation"; // 🚀 Hook de Next.js para redirigir a otras rutas.
-import { useState } from "react"; // 🧠 Hook de React para manejar estados (como el error).
+import { useState, useEffect } from "react"; // 🧠 Hook de React para manejar estados (como el error).
 import { onSubmit } from "./controller"; // 📡 Función que procesa el login (definida en controller.js).
+import { getApiUrl } from "@/lib/utils";
 import ForgotPasswordModal from "@/components/ForgotPasswordModal/ForgotPasswordModal"; // Modal de recuperación de contraseña
 
 import Link from "next/link"; // Asegúrate de tener esta importación al inicio
@@ -17,7 +18,9 @@ function App() {
   const router = useRouter(); // 🔄 Permite navegar a otras páginas desde el código.
   const [error, setError] = useState(""); // 📍 Estado para guardar el mensaje de error (si lo hay).
   const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar la visibilidad del modal
-
+  useEffect(() => {
+    getApiUrl().then((res)=>{console.log(res)})
+  }, []);
   // 📤 Esta función se ejecuta cuando el usuario envía el formulario.
   const handleSubmit = async (e) => {
     e.preventDefault();

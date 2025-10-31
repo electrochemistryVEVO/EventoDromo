@@ -6,6 +6,7 @@ services:
         restart: unless-stopped
         environment:
             ASPNET_HOST: 127.0.0.1
+            REACT_APP_DOCKERENV: true
         ports: 
             - "0.0.0.0:3000:3000"
         develop: 
