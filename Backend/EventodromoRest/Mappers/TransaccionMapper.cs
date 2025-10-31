@@ -141,5 +141,44 @@ namespace EventodromoRest.Mappers
                 return rowsAffected;
             }
         }
+
+        public List<Entrada> ObtenerEntradasPorTransaccion(int idTransaccion)
+        {
+            List<Entrada> listaEntradas = new List<Entrada>();
+            lock (DB)
+            {
+                string query = @"SELECT e.* 
+                        FROM Entrada e 
+                        INNER JOIN LineaTransaccion lt ON e.id = lt.idEntrada 
+                        WHERE lt.idTransaccion = @idTransaccion";
+                var parametros = new ParameterList();
+                parametros.Add("@idTransaccion", idTransaccion);
+
+                DB.Select(query, parametros);
+                while (DB.Read())
+                {
+                    Entrada entrada = new()
+                    {
+                        id = DB.GetInt("id"),
+                        idCarrito = DB.GetInt("idCarrito"),
+                        idTipoEntrada = DB.GetInt("idTipoEntrada")
+                    };
+
+                    // Obtener objetos relacionados
+                    entrada.carrito = ObtenerCarritoPorId(entrada.idCarrito);
+                    entrada.tipoEntrada = ObtenerTipoEntradaPorId(entrada.idTipoEntrada);
+
+                    listaEntradas.Add(entrada);
+                }
+                return listaEntradas;
+            }
+        }
+
+        private TipoEntrada ObtenerTipoEntradaPorId(int id)
+        {
+            var tipoEntradaMapper = new TipoEntradaMapper(globales, DB);
+            return tipoEntradaMapper.ObtenerTipoEntradaPorId(id);
+        }
+
     }
 }
