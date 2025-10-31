@@ -47,19 +47,20 @@ namespace EventodromoRest.Mappers
                 var parametros = new ParameterList();
                 parametros.Add("@ID", id);
                 DB.Select(query, parametros);
+
+                TipoDocumento tipoDocumento = null;
                 if (DB.Read())
                 {
-                    TipoDocumento tipoDocumento = new()
+                    tipoDocumento = new()
                     {
                         id = DB.GetInt("ID"),
                         nombre = DB.GetString("NOMBRE")
                     };
                     return tipoDocumento;
                 }
-                else
-                {
-                    return null;
-                }
+                
+                DB.CloseReader();
+                return tipoDocumento;
             }
         }
 

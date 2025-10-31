@@ -51,7 +51,7 @@ export default function PerfilLayout({ children }) {
             <ul className="perfil-sidebar-list">
               <li>
                 <Link
-                  href="/user/perfil?tab=info"
+                  href="/user-login/web/perfil?tab=info"
                   className={linkClass("info")}
                 >
                   <div className="sidebar-card">
@@ -69,7 +69,7 @@ export default function PerfilLayout({ children }) {
 
               <li>
                 <Link
-                  href="/user/perfil?tab=entradas"
+                  href="/user-login/web/perfil?tab=entradas"
                   className={linkClass("entradas")}
                 >
                   <div className="sidebar-card">
@@ -87,7 +87,7 @@ export default function PerfilLayout({ children }) {
 
               <li>
                 <Link
-                  href="/user/perfil?tab=dromopuntos"
+                  href="/user-login/web/perfil?tab=dromopuntos"
                   className={linkClass("dromopuntos")}
                 >
                   <div className="sidebar-card">

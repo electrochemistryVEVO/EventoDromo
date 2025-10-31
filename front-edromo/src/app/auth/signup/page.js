@@ -1,20 +1,80 @@
 "use client";
 import "@/css/signup-style.css";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { onSubmit } from "./controller";
+import { obtenerDatosDeRegistro } from "@/services/signUpService";
+import Link from "next/link";
 
-import Link from "next/link"; // Asegúrate de tener esta importación al inicio
+const EMPTY_DATA = { 
+  sexos: [], 
+  tiposDocumento: [], 
+  paises: [], 
+  ciudades: [] 
+};
 
 function App() {
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [dataRegistro, setDataRegistro] = useState(EMPTY_DATA);
+  const [paisSeleccionado, setPaisSeleccionado] = useState("");
+
+  // Ciudades filtradas: se recalcula en cada renderizado
+  const ciudadesFiltradas = dataRegistro.ciudades.filter(
+    (c) => c.idPais.toString() === paisSeleccionado
+  );
+
+  // Lógica de carga de datos (Método GET)
+  useEffect(() => {
+    async function cargarDatos() {
+      try {
+        const data = await obtenerDatosDeRegistro();
+        if (data && data.sexos && data.tiposDocumento && data.paises && data.ciudades) {
+             setDataRegistro(data);
+        } else {
+             throw new Error("Estructura de datos del backend inválida.");
+        }
+      } catch (err) {
+        console.error("Error al cargar datos del formulario:", err);
+        setError(`Error al cargar opciones del formulario: ${err.message || 'Verifique el backend.'}`);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    cargarDatos();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
 
+    // Obtener valores seleccionados (código/ID) del formulario
+    const sexoSeleccionado = formData.get("sexo");
+    const tipoDocSeleccionado = formData.get("tipoDocumento");
+    const ciudadSeleccionada = formData.get("ciudad"); 
+
     try {
+      // 1. Mapeo de Códigos/Valores a IDs numéricos
+      const idSexo = parseInt(formData.get("sexo"));
+      const idTipoDocumento = parseInt(formData.get("tipoDocumento"));
+      const idCiudad = parseInt(formData.get("ciudad"));
+      const idPais = parseInt(paisSeleccionado);
+
+      // 2. Validación de selección (Verifica que se encontró un ID)
+      if (!idSexo || !idTipoDocumento || !idCiudad || !paisSeleccionado) {
+          setError("Por favor, complete correctamente todos los campos de selección.");
+          return;
+      }
+
+      // 3. Inyecta los IDs numéricos en el formData para el envío POST
+      formData.set("idsexo", idSexo);
+      formData.set("idtipoDocumento", idTipoDocumento);
+      formData.set("idciudad", idCiudad);
+      formData.set("idpais", idPais);
+
+      
       const result = await onSubmit(formData);
+      
       if (result?.error) {
         setError(result.error);
       }
@@ -88,16 +148,13 @@ function App() {
             </div>
             <div>
               <label htmlFor="tipoDocumento">Tipo de documento</label>
-              <select
-                id="tipoDocumento"
-                name="tipoDocumento"
-                className="select-custom"
-                required
-              >
+              <select id="tipoDocumento" name="tipoDocumento" className="select-custom" required>
                 <option value="">Seleccionar</option>
-                <option value="DNI">DNI</option>
-                <option value="CE">CE</option>
-                <option value="PASAPORTE">Pasaporte</option>
+                {dataRegistro.tiposDocumento.map((td) => (
+                  <option key={td.id} value={td.id}> 
+                    {td.nombre}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -131,11 +188,22 @@ function App() {
             </div>
             <div>
               <label htmlFor="pais">País</label>
-              <select id="pais" name="pais" className="select-custom" required>
+              <select 
+                id="pais" 
+                name="pais" 
+                className="select-custom" 
+                required
+                onChange={(e) => {
+                    setPaisSeleccionado(e.target.value); // Controla el estado para filtrar
+                }} 
+                value={paisSeleccionado}
+              >
                 <option value="">Seleccionar</option>
-                <option value="PE">Perú</option>
-                <option value="CL">Chile</option>
-                <option value="CO">Colombia</option>
+                {dataRegistro.paises.map((p) => (
+                  <option key={p.id} value={p.id}> {/* VALUE es el ID, NOMBRE es el nombre */}
+                    {p.nombre}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -145,20 +213,25 @@ function App() {
                 name="ciudad"
                 className="select-custom"
                 required
+                disabled={!paisSeleccionado || ciudadesFiltradas.length === 0}
               >
                 <option value="">Seleccionar</option>
-                <option value="LIMA">Lima</option>
-                <option value="AREQUIPA">Arequipa</option>
-                <option value="TRUJILLO">Trujillo</option>
+                {ciudadesFiltradas.map((c) => (
+                  <option key={c.id} value={c.id}> {/* VALUE es el ID */}
+                    {c.nombre}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
               <label htmlFor="sexo">Sexo</label>
               <select id="sexo" name="sexo" className="select-custom" required>
                 <option value="">Seleccionar</option>
-                <option value="M">Masculino</option>
-                <option value="F">Femenino</option>
-                <option value="O">Otro</option>
+                {dataRegistro.sexos.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.nombre}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="checkbox-group">

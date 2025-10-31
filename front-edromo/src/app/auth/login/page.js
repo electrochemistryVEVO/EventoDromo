@@ -3,10 +3,12 @@
 // Esto es necesario porque usamos hooks como useState y useRouter.
 
 import "@/css/login-style.css"; // 📁 Importa los estilos CSS para esta página.
+import "@/css/forgot-password.css"; // Importa los estilos para el botón de olvidar contraseña
 import Image from "next/image"; // 🖼️ Componente optimizado de Next.js para imágenes.
 import { useRouter, useSearchParams } from "next/navigation"; // 🚀 Hook de Next.js para redirigir a otras rutas.
 import { useState } from "react"; // 🧠 Hook de React para manejar estados (como el error).
 import { onSubmit } from "./controller"; // 📡 Función que procesa el login (definida en controller.js).
+import ForgotPasswordModal from "@/components/ForgotPasswordModal/ForgotPasswordModal"; // Modal de recuperación de contraseña
 
 import Link from "next/link"; // Asegúrate de tener esta importación al inicio
 
@@ -14,6 +16,7 @@ function App() {
   const searchParams = useSearchParams();
   const router = useRouter(); // 🔄 Permite navegar a otras páginas desde el código.
   const [error, setError] = useState(""); // 📍 Estado para guardar el mensaje de error (si lo hay).
+  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar la visibilidad del modal
 
   // 📤 Esta función se ejecuta cuando el usuario envía el formulario.
   const handleSubmit = async (e) => {
@@ -43,7 +46,7 @@ function App() {
 
         // 👤 Redirigimos según el rol del usuario:
         if (result.rol === "A") {
-          router.push("/data/loginHardCodeo.json");
+          router.push("/admin/dashboard");
           // 📍 Si el rol es "A" (admin), lo enviamos a la página principal del administrador.
         } else if (result.rol === "C") {
           router.push("/user-login/web/eventos/lista");
@@ -102,10 +105,15 @@ function App() {
             <input type="password" id="password" name="password" required />
           </div>
 
-          {/* 🔐 Link para recuperar contraseña */}
-          <Link className="alinear-derecha" href="/forgot-password">
-            ¿Olvidaste tu contraseña?
-          </Link>
+          {/* 🔐 Botón para recuperar contraseña */}
+          <div className="alinear-derecha">
+            <button
+              className="forgot-password-link"
+              onClick={() => setIsModalOpen(true)}
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
 
           {/* 🔘 Botón para ingresar y links de registro */}
           <div className="login-hipervinculos-container">
@@ -114,6 +122,11 @@ function App() {
             <Link href="/auth/signup">Registrate Aquí</Link>
           </div>
         </form>
+        {/* Modal de recuperación de contraseña */}
+        <ForgotPasswordModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
       </div>
 
       {/* 📷 Sección derecha: imagen decorativa */}

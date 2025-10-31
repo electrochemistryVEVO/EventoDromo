@@ -21,6 +21,7 @@ namespace EventodromoRest.Mappers
                     };
                     listaPais.Add(pais);
                 }
+                DB.CloseReader();
                 return listaPais;
             }
         }
@@ -45,19 +46,19 @@ namespace EventodromoRest.Mappers
                 var parametros = new ParameterList();
                 parametros.Add("@ID", id);
                 DB.Select(query, parametros);
+
+                Pais pais = null;
                 if (DB.Read())
                 {
-                    Pais pais = new()
+                    pais = new()
                     {
                         id = DB.GetInt("ID"),
                         nombre = DB.GetString("NOMBRE"),
                     };
-                    return pais;
                 }
-                else
-                {
-                    return null;
-                }
+                
+                DB.CloseReader();
+                return pais;
             }
         }
 

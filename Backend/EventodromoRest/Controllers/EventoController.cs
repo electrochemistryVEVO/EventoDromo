@@ -1,18 +1,22 @@
 ﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
+using EventodromoRest.Servicios;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 using System.Diagnostics;
+using System.Text.Json;
+
 
 namespace EventodromoRest.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    public class EventoController (Globales.Globales globales, DBManager.DBManager BD) : BaseController
+    public class EventoController (Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService) : BaseController
     {
         //private readonly DBManager.DBManager BD = BD;
         //private readonly Globales.Globales globales = globales; 
+        private readonly TokenService tokenService = tokenService;
+
 
         [HttpPost]
         [Route("/api/[controller]/[action]")]
@@ -40,7 +44,7 @@ namespace EventodromoRest.Controllers
 
         [HttpGet]
         [Route("/api/[controller]/[action]")]
-        public GenericResponse<ResponseListarEventosYLocales> ListarEventosYLocales()
+        public GenericResponse<ResponseListarEventosYLocales> ListarFiltradosConLocales()
         {
             try
             {
@@ -59,5 +63,112 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<CrearEventoResponse> CrearEvento([FromBody] CrearEventoRequest request)
+        {
+            try
+            {
+                // 1️⃣ Validar token JWT
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<CrearEventoResponse>
+                    {
+                        Success = false,
+                        Message = "Acceso no autorizado. Se requiere un token válido.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<CrearEventoResponse>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                // 2️⃣ Validaciones básicas
+                var validationErrors = new Dictionary<string, string>();
+
+                if (string.IsNullOrWhiteSpace(request.nombre))
+                    validationErrors["nombre"] = "El nombre del evento es obligatorio.";
+
+                if (request.capacidad <= 0)
+                    validationErrors["capacidad"] = "La capacidad debe ser mayor que cero.";
+
+                if (request.entradas == null || request.entradas.Count == 0)
+                    validationErrors["entradas"] = "Debe especificar al menos un tipo de entrada.";
+
+                if (request.horarios == null || request.horarios.Count == 0)
+                    validationErrors["horarios"] = "Debe especificar al menos una fecha del evento.";
+
+                int totalEntradas = request.entradas.Sum(e => e.cantidad);
+                if (totalEntradas > request.capacidad)
+                    validationErrors["aforo"] = $"La suma de las entradas ({totalEntradas}) no puede exceder la capacidad del local ({request.capacidad}).";
+
+                if (validationErrors.Count > 0)
+                {
+                    return new GenericResponse<CrearEventoResponse>
+                    {
+                        Success = false,
+                        Message = "La validación de los datos falló.",
+                        Error = JsonSerializer.Serialize(validationErrors),
+                        Data = null
+                    };
+                }
+
+                // 3️⃣ Crear el objeto Evento
+                var nuevoEvento = new Evento
+                {
+                    nombre = request.nombre,
+                    descripcion = request.descripcion,
+                    idLocal = request.localId,
+                    idTipoEvento = request.tipoEventoId,
+                    fechaPublicacion = DateTime.Parse(request.fechaPublicacion),
+                    fechaCompra = DateTime.Parse(request.fechaCompra),
+                    creadoPor = idAdmin.Value,
+                    isDeleted = false,
+                    imagenURL = request.imagenURL
+                };
+
+                // 💾 Aquí podrías guardar en la BD:
+                // var eventoCreado = new EventoBO(globales, BD).CrearEventoCompleto(nuevoEvento, request.Horarios, request.Entradas);
+                // Simulamos:
+                nuevoEvento.id = new EventoBO(globales, BD).CrearEvento(nuevoEvento, request.horarios, request.entradas);
+
+                // 4️⃣ Respuesta exitosa
+                return new GenericResponse<CrearEventoResponse>
+                {
+                    Success = true,
+                    Message = "Evento creado correctamente.",
+                    Data = new CrearEventoResponse
+                    {
+                        success=true
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                AgregarEntradaBitacora(ex, "CreateEvent", ex.Message);
+
+                return new GenericResponse<CrearEventoResponse>
+                {
+                    Success = false,
+                    Message = "Ocurrió un error interno al procesar la solicitud.",
+                    Error = ex.Message
+                };
+            }
+        }
+
+
     }
 }

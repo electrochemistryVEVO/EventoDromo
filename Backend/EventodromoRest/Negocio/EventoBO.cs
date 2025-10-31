@@ -4,6 +4,7 @@ using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+
 namespace EventodromoRest.Negocio
 {
     public class EventoBO(Globales.Globales globales, DBManager.DBManager DB)
@@ -44,22 +45,27 @@ namespace EventodromoRest.Negocio
                     var local = localMapper.ObtenerLocalPorId(e.idLocal);
                     var ciudad = ciudadMapper.ObtenerCiudadPorId(local.idCiudad);
                     var tipoEvento = tipoEventoMapper.ObtenerTipoEventoPorId(e.idTipoEvento);
-                    var nuevoEvento = new EventosLocalCiudadCategoriaDTO 
+
+                    double precioMinimo = obtenerPrecioMinimoEvento(e);
+
+                    var nuevoEvento = new EventosLocalCiudadCategoriaDTO
                     {
                         id = e.id,
-                        nombreEvento = e.nombre,
+                        nombre = e.nombre,
                         nombreLocal = local.nombre,
-                        nombreCiudad = ciudad.nombre,
-                        nombreCategoria = tipoEvento.nombre,
-                        fechaEvento = e.fechaProximoEvento
+                        ciudad = ciudad.nombre,
+                        categoria = tipoEvento.nombre,
+                        precio = precioMinimo,
+                        fecha = e.fechaProximoEvento.ToString("yyyy-MM-dd"),
+                        imagen = e.imagenURL,
                     };
                     eventosResponse.Add(nuevoEvento);
                     var nuevoLocal = new LocalCiudadImagenDTO
                     {
-                        idLocal = local.id,
-                        nombreLocal = local.nombre,
-                        nombreCiudad = ciudad.nombre,
-                        imagenURL = e.imagenURL
+                        id = local.id,
+                        nombre = local.nombre,
+                        ciudad = ciudad.nombre,
+                        imagen = e.imagenURL
                     };
                     localesResponse.Add(nuevoLocal);
                 }
@@ -71,10 +77,62 @@ namespace EventodromoRest.Negocio
                     Data = new ResponseListarEventosYLocales
                     {
                         eventos = eventosResponse,
-                        locales = localesResponse.DistinctBy(l => l.idLocal).ToList()
+                        locales = localesResponse.DistinctBy(l => l.id).ToList()
                     }
                 };
             }
         }
+
+        private double obtenerPrecioMinimoEvento(EventoActivoProxFechaDTO e)
+        {
+            FechaEvento fechaEvento = new FechaEventoMapper(globales, DB).ListarFechaEventoPorEvento(e.id)[0];
+            List<TipoEntrada> tipoEntradas = new TipoEntradaMapper(globales, DB).ListarTipoEntradaPorFechaEvento((int)fechaEvento.id); //raro
+
+            return double.Parse(tipoEntradas.Min(t => t.precio).ToString());
+        }
+
+        public int CrearEvento(Evento nuevoEvento, List<string> horarios, List<EntradaRequest> entradas)
+        {
+            // 1️⃣ Insertar el evento principal
+            var eventoMapper = new EventoMapper(globales, DB);
+            int idEvento = eventoMapper.InsertarEvento(nuevoEvento);
+
+            // 2️⃣ Insertar las fechas (horarios)
+            var fechaMapper = new FechaEventoMapper(globales, DB);
+            var entradaMapper = new TipoEntradaMapper(globales, DB);
+
+            foreach (var fecha in horarios)
+            {
+                // Crear la fechaEvento
+                var fechaEvento = new FechaEvento
+                {
+                    fechaHora = DateTime.Parse(fecha),
+                    idEvento = idEvento
+                };
+
+                // Insertar y obtener el id de la fechaEvento recién creada
+                int idFechaEvento = fechaMapper.InsertarFechaEvento(fechaEvento);
+
+                // 3️⃣ Por cada fechaEvento, insertar todas las entradas
+                foreach (var entrada in entradas)
+                {
+                    var nuevaEntrada = new TipoEntrada
+                    {
+                        nombre = entrada.nombre,
+                        precio = entrada.precio,
+                        cantidadEntradas = entrada.cantidad,
+                        limiteCompra = entrada.limiteCompra,
+                        puntos = entrada.puntos,
+                        cantidadVendida = 0,
+                        idFechaEvento = idFechaEvento   // ✅ asignar el id correspondiente
+                    };
+
+                    entradaMapper.InsertarTipoEntrada(nuevaEntrada);
+                }
+            }
+
+            return idEvento;
+        }
+
     }
 }

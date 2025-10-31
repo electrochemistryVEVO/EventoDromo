@@ -9,6 +9,7 @@ namespace EventodromoRest.Mappers
         public List<Ciudad> ListarCiudad()
         {
             List<Ciudad> listaCiudad = new List<Ciudad>();
+            List<int?> idsPais = new List<int?>();
             lock (DB)
             {
                 string query = "SELECT * FROM Ciudad";
@@ -20,10 +21,17 @@ namespace EventodromoRest.Mappers
                         id = DB.GetInt("ID"),
                         nombre = DB.GetString("NOMBRE"),
                         idPais = DB.GetInt("IDPAIS"),
-                        pais = ObtenerPaisPorId(DB.GetInt("IDPAIS")),
                     };
                     listaCiudad.Add(ciudad);
+                    idsPais.Add(ciudad.idPais);
                 }
+                DB.CloseReader();
+
+                foreach (var ciudad in listaCiudad)
+                {
+                    ciudad.pais = ObtenerPaisPorId(ciudad.idPais ?? 0);
+                }
+
                 return listaCiudad;
             }
         }
@@ -50,22 +58,28 @@ namespace EventodromoRest.Mappers
                 var parametros = new ParameterList();
                 parametros.Add("@ID", id);
                 DB.Select(query, parametros);
+
+                Ciudad ciudad = null;
+                int? idPais = null;
                 if (DB.Read())
                 {
-                    Ciudad ciudad = new()
+                    ciudad = new()
                     {
                         id = DB.GetInt("ID"),
                         nombre = DB.GetString("NOMBRE"),
                         idPais = DB.GetInt("IDPAIS"),
-                        //pais = ObtenerPaisPorId(DB.GetInt("IDPAIS")),
                     };
-                    ciudad.pais  = ObtenerPaisPorId(ciudad.idPais ?? 0);
-                    return ciudad;
+                    idPais = ciudad.idPais;
                 }
-                else
+                
+                DB.CloseReader();
+
+                if (ciudad != null)
                 {
-                    return null;
+                    ciudad.pais = ObtenerPaisPorId(idPais ?? 0);
                 }
+
+                return ciudad;
             }
         }
 

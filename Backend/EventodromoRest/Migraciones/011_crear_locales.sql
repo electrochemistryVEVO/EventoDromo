@@ -1,0 +1,32 @@
+﻿INSERT INTO `Local` (`id`, `nombre`, `idCiudad`, `direccion`, `capacidad`, `isDeleted`, `creadoPor`) VALUES
+-- ========= 5 LOCALES PARA LIMA (idCiudad = 1) =========
+(1, 'Estadio Nacional', 1, 'Calle del Estadio 100', 50000, b'0', 1),
+(2, 'Jockey Club del Perú - Centro de Exposiciones', 1, 'Avenida El Derby s/n', 15000, b'0', 1),
+(3, 'Gran Teatro Nacional', 1, 'Avenida Javier Prado Este 2225', 1500, b'0', 1),
+(4, 'Anfiteatro del Parque de la Exposición', 1, 'Avenida 28 de Julio s/n', 4800, b'0', 1),
+(5, 'Arena 1 Costa Verde', 1, 'Circuito de Playas s/n', 16000, b'0', 1),
+
+-- ========= 1 LOCAL POR CADA CIUDAD RESTANTE =========
+(6, 'Jardín de la Cerveza', 2, 'Avenida Lambramani 320', 20000, b'0', 1),
+(7, 'Centro de Convenciones de Cusco', 4, 'Plaza Regocijo s/n', 1000, b'0', 1),
+(8, 'Coliseo Gran Chimú', 5, 'Avenida Manuel Vera Enríquez 1050', 7000, b'0', 1),
+(9, 'Explanada Perú', 6, 'Carretera a Pimentel km 3.5', 8000, b'0', 1),
+(10, 'Coliseo Miguel Gerónimo Seminario y Jayme', 7, 'Avenida Independencia s/n', 6000, b'0', 1),
+(11, 'Coliseo Cerrado de Iquitos', 8, 'Calle Sargento Lores 1034', 6000, b'0', 1),
+(12, 'Coliseo Wanka', 9, 'Avenida Huancavelica 1150', 7500, b'0', 1),
+(13, 'Coliseo Perú', 10, 'Avenida Hipólito Unanue s/n', 10000, b'0', 1),
+(14, 'Campo Ferial de Ica', 11, 'Avenida Cutervo s/n', 12000, b'0', 1),
+(15, 'Coliseo Eduardo Rodriguez Ponce de León', 12, 'Jirón Lampa 360', 4000, b'0', 1),
+(16, 'Estadio Centenario Manuel Rivera Sánchez', 13, 'Avenida Enrique Meiggs 2700', 25000, b'0', 1),
+(17, 'Centro Cultural de Huaraz', 14, 'Plaza de Armas s/n', 800, b'0', 1),
+(18, 'Coliseo Gran Qhapac Ñan', 15, 'Avenida Vía de Evitamiento Norte s/n', 8000, b'0', 1),
+(19, 'Cine Teatro Municipal de Ayacucho', 16, 'Portal Municipal 44', 600, b'0', 1),
+(20, 'Coliseo Manuel A. Odría', 17, 'Jirón Callao 450', 3500, b'0', 1),
+(21, 'Coliseo Cubierto de Juliaca', 18, 'Jirón San Román 500', 5000, b'0', 1),
+(22, 'Coliseo Cerrado "El Chamochumbi"', 19, 'Avenida Tumbes Norte 1200', 4500, b'0', 1),
+(23, 'Coliseo Cerrado Madre de Dios', 20, 'Avenida 28 de Julio 850', 4000, b'0', 1),
+(24, 'Coliseo Cerrado de Moyobamba', 21, 'Jirón Alonso de Alvarado 1120', 3000, b'0', 1),
+(25, 'Estadio Aliardo Soria Pérez', 22, 'Jirón Comandante Suarez 600', 20000, b'0', 1),
+(26, 'Coliseo 15 de Agosto', 23, 'Jirón 2 de Mayo 950', 3500, b'0', 1),
+(27, 'Coliseo Municipal de Moquegua', 24, 'Avenida Balta 700', 3000, b'0', 1),
+(28, 'Coliseo Cerrado de Chachapoyas', 25, 'Jirón Ortiz Arrieta 820', 2500, b'0', 1);

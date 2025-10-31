@@ -162,6 +162,7 @@ namespace EventodromoRest.DBManager
             var dbTx = Database.CurrentTransaction?.GetDbTransaction();
             if (dbTx is not null) command.Transaction = dbTx;
 
+            if(parameters is null) parameters = new ParameterList();
             var arr = parameters.ToArray(command);
             if (arr.Length > 0) command.Parameters.AddRange(arr);
 

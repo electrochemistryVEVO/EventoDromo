@@ -15,9 +15,16 @@
 
     public class LocalCiudadImagenDTO
     {
-        public int idLocal { get; set; }
-        public string nombreLocal { get; set; }
-        public string nombreCiudad { get; set; }
-        public string imagenURL { get; set; }
+        public int id { get; set; }
+        public string nombre { get; set; }
+        public string ciudad { get; set; }
+        public string imagen { get; set; }
+    }
+
+    public class getLocalesResponse
+    {
+        public int id { get; set; }
+        public string nombre { get; set; }
+        public int capacidad { get; set; }
     }
 }
