@@ -51,14 +51,11 @@ namespace EventodromoRest.Negocio
                 apellidos = request.apellidos,
                 email = request.email,
                 passwordhash = request.password,
-                passwordhash = request.password,
                 fechanacimiento = request.fechaNacimiento,
 
                 idsexo = request.idsexo,
                 idtipodocumento = request.idtipoDocumento,
 
-                idsexo = request.idsexo,
-                idtipodocumento = request.idtipoDocumento,
                 numerodocumento = request.numeroDocumento,
                 telefono = request.telefono,
                 idciudad = request.idciudad,

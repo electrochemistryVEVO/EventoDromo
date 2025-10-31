@@ -183,13 +183,14 @@ namespace EventodromoRest.Mappers
                 }
 
                 //Obtener cliente destino por su correo
-                query = "SELECT * FROM Cliente WHERE email = @email";
+                query = "SELECT id, nombres, apellidos, idTipoDocumento, numeroDocumento FROM Cliente WHERE email = @email";
                 parametros = new ParameterList();
                 parametros.Add("@email", request.email);
                 DB.Select(query, parametros);
+                Cliente clienteDestino = new();
                 if (DB.Read())
                 {
-                    Cliente clienteDestino = new()
+                    clienteDestino = new Cliente()
                     {
                         id = DB.GetInt("id"),
                         nombres = DB.GetString("nombres"),

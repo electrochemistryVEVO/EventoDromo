@@ -31,16 +31,6 @@
     {
         public required int idTipoEvento { get; set; }
     }
-    
-    public class RequestListarEventosPorBusqueda
-    {
-        public required string busqueda { get; set; }
-    }
-
-    public class RequestObtenerEventoPorId
-    {
-        public required int idEvento { get; set; }
-    }
 
     public class RequestListarEventosPorBusqueda
     {

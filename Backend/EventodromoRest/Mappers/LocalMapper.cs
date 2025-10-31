@@ -13,25 +13,31 @@ namespace EventodromoRest.Mappers
             List<LocalCiudadImagenDTO> listaLocal = new List<LocalCiudadImagenDTO>();
             lock (DB)
             {
-                string query = "SELECT * FROM Local";
+                string query = @"SELECT
+                                    L.ID,
+                                    L.NOMBRE,
+                                    L.IMAGENURL,
+                                    C.NOMBRE AS CIUDADNOMBRE
+                                FROM
+                                    Local AS L
+                                JOIN
+                                    Ciudad AS C ON L.idCiudad = C.ID
+                                WHERE
+                                    L.isDeleted = 0;"; // Asumiendo que 0 es 'no borrado'
+
                 DB.Select(query, null);
                 while (DB.Read())
                 {
                     LocalCiudadImagenDTO local = new()
                     {
-                        idLocal = DB.GetInt("ID"),
-                        nombreLocal = DB.GetString("NOMBRE"),
-                        idCiudad = DB.GetInt("IDCIUDAD"),
-                        imagenURL = DB.GetString("IMAGENURL")
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        ciudad = DB.GetString("CIUDADNOMBRE"),
+                        imagen = DB.GetString("IMAGENURL")
                     };
                     listaLocal.Add(local);
                 }
 
-                foreach (LocalCiudadImagenDTO local in listaLocal)
-                {
-                    Ciudad ciudad = ObtenerCiudadPorId(local.idCiudad);
-                    local.nombreCiudad = ciudad?.nombre;
-                }
                 return listaLocal;
             }
         }

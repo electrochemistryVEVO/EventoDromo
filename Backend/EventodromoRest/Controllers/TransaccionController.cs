@@ -51,12 +51,12 @@ namespace EventodromoRest.Controllers
             }
             catch (Exception e)
             {
-                var response = new GenericResponse<ResponseObtenerCarrito>
+                var response = new GenericResponse<bool>
                 {
                     Success = false,
                     Message = null,
                     Error = e.Message,
-                    Data = null
+                    Data = false
                 };
                 AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
                 return response;
