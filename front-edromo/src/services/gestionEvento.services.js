@@ -1,12 +1,71 @@
-// Token de autorización hardcodeado para pruebas.
-const authToken =
-  "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+const BASE_API_URL = "http://localhost:5189/api";
+/**
+ * Obtiene el token de autenticación almacenado.
+ * @returns {string|null} - El token JWT o null si no existe.
+ */
+
+const getAuthToken = () => {
+  const sessionJSON = sessionStorage.getItem("session");
+  // Variable para guardar el token final
+  let userToken = null;
+  // 2. MUY IMPORTANTE: Verificar que el dato exista antes de continuar
+  if (sessionJSON) {
+    // 3. Convertir (parsear) la cadena JSON a un objeto de JavaScript real
+    const sessionData = JSON.parse(sessionJSON);
+    // 4. Ahora sí, acceder a la propiedad "token" del objeto
+    userToken = sessionData.token;
+  }
+  return userToken;
+};
+
+/**
+ * Realiza una llamada a la API para obtener la lista completa de locales.
+ * @returns {Promise<Array<{id: number, nombre: string}>>} Una promesa que resuelve a un array de objetos de locales.
+ */
+
+export const getLocales = async () => {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("No se encontró el token de autenticación.");
+  }
+
+  const response = await fetch(`${BASE_API_URL}/Local/GetLocales`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    // Si la respuesta del servidor es un error (ej: 401, 404, 500), lanzamos un error.
+    const errorData = await response
+      .json()
+      .catch(() => ({ message: response.statusText }));
+    throw new Error(errorData.message || "Error al obtener los locales");
+  }
+
+  // 1. Convierte la respuesta a JSON
+  const apiResponse = await response.json();
+
+  // 2. Verifica si la respuesta del API fue exitosa y devuelve solo la data.
+  //    Si la propiedad 'data' no existe, devuelve un array vacío para evitar errores.
+  if (apiResponse && apiResponse.success) {
+    return apiResponse.data || [];
+  } else {
+    // Si el backend devuelve 200 OK pero success es false, lanza un error con su mensaje.
+    throw new Error(
+      apiResponse.message || "La respuesta del API no fue exitosa."
+    );
+  }
+};
 
 /**
  * Simula una llamada a la API para obtener una lista de locales.
  * En una aplicación real, esta función haría una petición fetch a un endpoint del backend.
  * @returns {Promise<Array<string>>} Una promesa que resuelve a un array de nombres de locales.
  */
+/*
 export const getLocales = async () => {
   console.log("Fetching locales...");
   // Simulación de una llamada a la API
@@ -28,7 +87,7 @@ export const getLocales = async () => {
     }, 500); // Simular un retardo de red
   });
 };
-
+*/
 /**
  * Simula una llamada a la API para obtener los eventos filtrados.
  * En una aplicación real, los filtros se enviarían como parámetros en la petición fetch.
@@ -37,9 +96,10 @@ export const getLocales = async () => {
  */
 export const getEvents = async (filters = {}) => {
   console.log("Fetching events with filters:", filters);
+  const token = getAuthToken();
   // Simulación de una llamada al backend con el token de autorización
   const headers = {
-    Authorization: authToken,
+    Authorization: token,
     "Content-Type": "application/json",
   };
 
@@ -142,36 +202,6 @@ export const getEvents = async (filters = {}) => {
     }, 1000); // Simular un retardo de red
   });
 };
-/**
- * Simula la obtención de la lista de tipos de evento disponibles.
- * @returns {Promise<Array<{id: number, nombre: string}>>}
- */
-export const getEventTypes = async () => {
-  console.log("Fetching simulated event types...");
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const shouldFail = false;
-      if (shouldFail) {
-        const errorResponse = {
-          message: "No se pudo conectar a la base de datos (simulado).",
-        };
-        console.error("Simulated fetch failed:", errorResponse);
-        // Rechazamos la promesa con un objeto Error, como lo haría una llamada fetch real.
-        return reject(new Error(errorResponse.message));
-      }
-      const successResponse = [
-        { id: 1, nombre: "Concierto" },
-        { id: 2, nombre: "Cultural" },
-        { id: 3, nombre: "Deportivo" },
-        { id: 4, nombre: "Corporativo" },
-        { id: 5, nombre: "Feria Gastronómica" },
-      ];
-
-      console.log("Simulated event types fetched:", successResponse);
-      resolve(successResponse);
-    }, 300); // Un retardo de red realista para datos de un dropdown.
-  });
-};
 
 /**
  * Simula el envío de los datos de un nuevo evento al backend.
@@ -245,53 +275,6 @@ export const createEvent = async (eventData) => {
   });
 };
 
-/**
- * Obtiene el token de autenticación almacenado.
- * @returns {string|null} - El token JWT o null si no existe.
- */
-/*
-const getAuthToken = () => {
-  const sessionJSON = sessionStorage.getItem("session");
-  // Variable para guardar el token final
-  let userToken = null;
-  // 2. MUY IMPORTANTE: Verificar que el dato exista antes de continuar
-  if (sessionJSON) {
-    // 3. Convertir (parsear) la cadena JSON a un objeto de JavaScript real
-    const sessionData = JSON.parse(sessionJSON);
-    // 4. Ahora sí, acceder a la propiedad "token" del objeto
-    userToken = sessionData.token;
-  }
-  return userToken;
-};
-*/
-/**
- * Realiza una llamada a la API para obtener la lista completa de locales.
- * @returns {Promise<Array<{id: number, nombre: string}>>} Una promesa que resuelve a un array de objetos de locales.
- */
-/*
-export const getLocales = async () => {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error('No se encontró el token de autenticación.');
-  }
-
-  const response = await fetch(`${BASE_API_URL}/locales`, {
-    method: 'GET',
-    headers: {
-      'Authorization': token,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    // Si la respuesta del servidor es un error (ej: 401, 404, 500), lanzamos un error.
-    const errorData = await response.json().catch(() => ({ message: response.statusText }));
-    throw new Error(errorData.message || 'Error al obtener los locales');
-  }
-
-  return response.json();
-};
-*/
 /**
  * Realiza una llamada a la API para obtener los eventos filtrados y paginados.
  * @param {object} filters - Los filtros a aplicar en la búsqueda.
@@ -413,55 +396,48 @@ export const createEvent = async (eventData) => {
  * @returns {Promise<Array<{id: number, nombre: string}>>} Una promesa que resuelve a un array de objetos de tipo de evento.
  * @throws {Error} Lanza un error detallado si la petición a la API falla por cualquier motivo.
  */
-/*
+
 export const getEventTypes = async () => {
   console.log("Fetching event types from backend...");
-  
   const token = getAuthToken();
-
-  // --- BUENA PRÁCTICA 2: Verificación previa de requisitos (Guard Clause) ---
-  // Fallar rápido si una condición esencial (como el token) no se cumple.
   if (!token) {
-    // Es mejor lanzar un error aquí para que el controlador pueda capturarlo y reaccionar
-    // (ej: redirigir al login) en lugar de continuar con una petición que fallará.
-    throw new Error('Token de autenticación no encontrado. No se puede realizar la petición.');
+    throw new Error(
+      "Token de autenticación no encontrado. No se puede realizar la petición."
+    );
   }
-
   try {
-    const response = await fetch(`${BASE_API_URL}/event-types`, {
-      method: 'GET',
+    const response = await fetch(`${BASE_API_URL}/TipoEvento/GetTiposEvento`, {
+      method: "GET",
       headers: {
-        // --- BUENA PRÁCTICA 3: Headers explícitos y correctos ---
-        'Authorization': token,
-        'Content-Type': 'application/json', // Informa al servidor que aceptamos una respuesta JSON.
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
     });
 
-    // --- BUENA PRÁCTICA 4: Manejo robusto de la respuesta HTTP ---
-    // La propiedad 'ok' de la respuesta de fetch cubre todos los códigos de éxito (200-299).
     if (!response.ok) {
-      // Intentamos obtener un mensaje de error específico del cuerpo de la respuesta de la API.
-      const errorData = await response.json().catch(() => ({ 
+      const errorData = await response.json().catch(() => ({
         // Si el cuerpo del error no es JSON o está vacío, creamos un error genérico.
-        message: `Error del servidor: ${response.status} ${response.statusText}` 
+        message: `Error del servidor: ${response.status} ${response.statusText}`,
       }));
       // Lanzamos un error con el mensaje más específico que tengamos.
-      throw new Error(errorData.message || 'Ocurrió un error al obtener los tipos de evento.');
+      throw new Error(
+        errorData.message || "Ocurrió un error al obtener los tipos de evento."
+      );
     }
-
-    // Si la respuesta es exitosa, parseamos el JSON y lo devolvemos.
-    return response.json();
-
+    // 1. Convierte la respuesta a JSON
+    const apiResponse = await response.json();
+    // 2. Verifica si la respuesta del API fue exitosa y devuelve solo la data.
+    if (apiResponse && apiResponse.success) {
+      console.log("Tipos de evento fetched:", apiResponse.data);
+      return apiResponse.data || [];
+    } else {
+      // Si el backend devuelve 200 OK pero success es false, lanza un error con su mensaje.
+      throw new Error(
+        apiResponse.message || "La respuesta del API no fue exitosa."
+      );
+    }
   } catch (error) {
-    // --- BUENA PRÁCT-ICA 5: Capturar errores de red y otros fallos ---
-    // Este bloque 'catch' se activará si hay un problema de red (ej: el servidor no responde)
-    // o si lanzamos un error manualmente en el bloque 'if (!response.ok)'.
-    
-    console.error('Error en getEventTypes:', error);
-
-    // Relanzamos el error para que la capa que llamó a esta función (el controlador)
-    // pueda manejarlo y mostrar un mensaje apropiado al usuario.
+    console.error("Error en getEventTypes:", error);
     throw error;
   }
 };
-*/
