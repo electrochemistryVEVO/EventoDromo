@@ -1,0 +1,123 @@
+{
+  "success": true,
+  "message": "Resumen de DromoPuntos cargado correctamente.",
+  "data": {
+    "total": 1250,
+    "porVencer": [
+      {
+        "id": 101,
+        "cantidad": 250,
+        "fechaExpiracion": "2025-12-31T23:59:59"
+      },
+      {
+        "id": 102,
+        "cantidad": 250,
+        "fechaExpiracion": "2026-01-31T23:59:59"
+      },
+      {
+        "id": 103,
+        "cantidad": 500,
+        "fechaExpiracion": "2026-03-30T23:59:59"
+      },
+      {
+        "id": 104,
+        "cantidad": 250,
+        "fechaExpiracion": "2026-06-30T23:59:59"
+      }
+    ],
+    "movimientos": [
+      {
+        "id": 201,
+        "tipoMovimiento": "ingreso",
+        "NombreEventoAsociado": "Overpass Lima",
+        "fechaMovimiento": "2025-07-14T10:05:00",
+        "cantidad": 150
+      },
+      {
+        "id": 202,
+        "tipoMovimiento": "salida",
+        "NombreEventoAsociado": "Overpass Lima",
+        "fechaMovimiento": "2025-07-14T10:05:00",
+        "cantidad": 50
+      },
+      {
+        "id": 203,
+        "tipoMovimiento": "expiracion",
+        "NombreEventoAsociado": null,
+        "fechaMovimiento": "2025-07-14T10:05:00",
+        "cantidad": 150
+      },
+      {
+        "id": 204,
+        "tipoMovimiento": "ingreso",
+        "NombreEventoAsociado": "Noches de Folklore",
+        "fechaMovimiento": "2025-08-01T11:30:00",
+        "cantidad": 100
+      },
+      {
+        "id": 205,
+        "tipoMovimiento": "salida",
+        "NombreEventoAsociado": "Carmen Ópera de Georges Bizet",
+        "fechaMovimiento": "2025-08-05T14:00:00",
+        "cantidad": 75
+      },
+      {
+        "id": 206,
+        "tipoMovimiento": "ingreso",
+        "NombreEventoAsociado": "Daniela Darcourt",
+        "fechaMovimiento": "2025-08-10T18:45:00",
+        "cantidad": 200
+      },
+      {
+        "id": 207,
+        "tipoMovimiento": "expiracion",
+        "NombreEventoAsociado": null,
+        "fechaMovimiento": "2025-08-31T23:59:59",
+        "cantidad": 50
+      },
+      {
+        "id": 208,
+        "tipoMovimiento": "ingreso",
+        "NombreEventoAsociado": "Linkin Park",
+        "fechaMovimiento": "2025-09-02T09:15:00",
+        "cantidad": 300
+      },
+      {
+        "id": 209,
+        "tipoMovimiento": "salida",
+        "NombreEventoAsociado": "Imagine Dragons",
+        "fechaMovimiento": "2025-09-15T20:00:00",
+        "cantidad": 120
+      },
+      {
+        "id": 210,
+        "tipoMovimiento": "ingreso",
+        "NombreEventoAsociado": "Carrera 10 Kilómetros",
+        "fechaMovimiento": "2025-09-20T08:00:00",
+        "cantidad": 80
+      },
+      {
+        "id": 211,
+        "tipoMovimiento": "ingreso",
+        "NombreEventoAsociado": "Rimac Sports Festival",
+        "fechaMovimiento": "2025-09-22T12:00:00",
+        "cantidad": 125
+      },
+      {
+        "id": 212,
+        "tipoMovimiento": "expiracion",
+        "NombreEventoAsociado": null,
+        "fechaMovimiento": "2025-09-30T23:59:59",
+        "cantidad": 100
+      },
+      {
+        "id": 213,
+        "tipoMovimiento": "salida",
+        "NombreEventoAsociado": "Tour + Museo Monumental",
+        "fechaMovimiento": "2025-10-05T16:20:00",
+        "cantidad": 25
+      }
+    ]
+  },
+  "error": null
+}
