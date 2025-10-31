@@ -122,6 +122,7 @@ namespace EventodromoRest.Mappers
                     "cd.nombre as nombreCiudad, " +
                     "f.id as idFuncion, " +
                     "f.fechaHora as fecha, " +
+                    "e.id AS idEntrada, " +
                     "t.id as idTipoEntrada, " +
                     "t.nombre as nombreTipoEntrada, " +
                     "t.precio as precioEntrada, " +
@@ -150,9 +151,9 @@ namespace EventodromoRest.Mappers
                         ObtenerCarritoDTO registro = new()
                         {
                             idCarrito = DB.GetInt("idCarrito"),
-                            eventoInfo = new EventoDTO
+                            eventoInfo = new EventoCarritoDTO
                             {
-                                id = DB.GetInt("idEvento"),
+                                idEvento = DB.GetInt("idEvento"),
                                 nombreEvento = DB.GetString("nombreEvento"),
                                 imagenURL = DB.GetString("imagenURL")
                             },
@@ -168,6 +169,7 @@ namespace EventodromoRest.Mappers
                             },
                             entrada = new EntradaDTO
                             {
+                                idEntrada = DB.GetInt("idEntrada"),
                                 idTipoEntrada = DB.GetInt("idTipoEntrada"),
                                 nombreTipoEntrada = DB.GetString("nombreTipoEntrada"),
                                 precio = DB.GetDecimal("precioEntrada")

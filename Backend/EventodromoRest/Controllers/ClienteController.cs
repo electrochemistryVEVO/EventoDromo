@@ -1,12 +1,11 @@
 ﻿//para token
-using EventodromoRest.Servicios;
-using System.IdentityModel.Tokens.Jwt;
-
-
 using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
+using EventodromoRest.Servicios;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 
 namespace EventodromoRest.Controllers
@@ -168,6 +167,36 @@ namespace EventodromoRest.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<VerificarCorreoResponse> VerificarCorreoCliente(string email)
+        {
+            try
+            {
+                var rpta = new ClienteBO(globales, BD).verificarCorreoCliente(email);
+
+                return new GenericResponse<VerificarCorreoResponse>
+                {
+                    Success = true,
+                    Message = "Correo existe",
+                    Error = null,
+                    Data = rpta
+                };
+            }
+            catch (Exception ex)
+            {
+                var response = new GenericResponse<VerificarCorreoResponse>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = ex.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(ex, "{}", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
 
         [HttpGet]
         [Route("/api/[controller]/[action]/{idCliente}")]
@@ -261,5 +290,242 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<VerificarContrasenaRecuperarResponse> VerificarContrasenaRecuperar([FromBody] RequestVerificarContrasenaRecuperar request)
+        {
+            try
+            {
+                // 1️⃣ Validar el body
+                ValidarBody(request);
+
+                // 2️⃣ Obtener el token del encabezado Authorization
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<VerificarContrasenaRecuperarResponse>
+                    {
+                        Success = false,
+                        Message = "Token no proporcionado o inválido.",
+                        Error = null,
+                        Data = null
+                    };
+                }
+
+                var token = authHeader.Substring("Bearer ".Length);
+
+                // 3️⃣ Validar el token y obtener el ID del cliente
+                int? idCliente = tokenService.ObtenerIdDesdeToken(token);
+                if (idCliente == null)
+                {
+                    return new GenericResponse<VerificarContrasenaRecuperarResponse>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = null,
+                        Data = null
+                    };
+                }
+
+                // 4️⃣ Lógica de negocio: verificar contraseña
+                var verificarResponse = new ClienteBO(globales, BD)
+                    .VerificarContrasenaRecuperar(idCliente.Value, request.currentPassword);
+
+                // 5️⃣ Responder según el resultado
+                if (verificarResponse.status != "success")
+                {
+                    return new GenericResponse<VerificarContrasenaRecuperarResponse>
+                    {
+                        Success = false,
+                        Message = verificarResponse.message, // "La contraseña actual es incorrecta. Intente de nuevo."
+                        Error = null,
+                        Data = verificarResponse
+                    };
+                }
+
+                // 6️⃣ Éxito
+                return new GenericResponse<VerificarContrasenaRecuperarResponse>
+                {
+                    Success = true,
+                    Message = verificarResponse.message, // "Contraseña verificada correctamente."
+                    Error = null,
+                    Data = verificarResponse
+                };
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<VerificarContrasenaRecuperarResponse>
+                {
+                    Success = false,
+                    Message = "Error en el servidor.",
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<ActualizarContrasenaResponse> ActualizarContrasena([FromBody] RequestActualizarContrasena request)
+        {
+            try
+            {
+                // 1️⃣ Validar body
+                ValidarBody(request);
+
+                // 2️⃣ Obtener token del encabezado
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<ActualizarContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "Token no proporcionado o inválido.",
+                        Error = null,
+                        Data = null
+                    };
+                }
+
+                var token = authHeader.Substring("Bearer ".Length);
+
+                // 3️⃣ Obtener idCliente desde token
+                int? idCliente = tokenService.ObtenerIdDesdeToken(token);
+                if (idCliente == null)
+                {
+                    return new GenericResponse<ActualizarContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = null,
+                        Data = null
+                    };
+                }
+
+                // 4️⃣ Lógica de negocio
+                var response = new ClienteBO(globales, BD)
+                    .ActualizarContrasena(idCliente.Value, request.newPassword);
+
+                // 5️⃣ Si falla
+                if (response.status!="success")
+                {
+                    return new GenericResponse<ActualizarContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = response.message,
+                        Error = null,
+                        Data = response
+                    };
+                }
+
+                // 6️⃣ Éxito
+                return new GenericResponse<ActualizarContrasenaResponse>
+                {
+                    Success = true,
+                    Message = response.message,
+                    Error = null,
+                    Data = response
+                };
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<ActualizarContrasenaResponse>
+                {
+                    Success = false,
+                    Message = "Error en el servidor.",
+                    Error = e.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+        [HttpGet]
+        [Route("/api/[controller]/fetchUserData")]
+        public GenericResponse<FetchUserDataResponse> FetchUserData()
+        {
+            try
+            {
+                // 1️⃣ Leer el token de la cabecera
+                var authHeader = Request.Headers["Authorization"].ToString();
+
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<FetchUserDataResponse>
+                    {
+                        Success = false,
+                        Message = "Token no proporcionado o inválido.",
+                        Error = null,
+                        Data = new FetchUserDataResponse
+                        {
+                            status = "error",
+                            message = "Token no proporcionado o inválido."
+                        }
+                    };
+                }
+
+                // 2️⃣ Extraer el token y obtener el ID del cliente
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idCliente = tokenService.ObtenerIdDesdeToken(token);
+
+                if (idCliente == null)
+                {
+                    return new GenericResponse<FetchUserDataResponse>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = null,
+                        Data = new FetchUserDataResponse
+                        {
+                            status = "error",
+                            message = "Token inválido o expirado."
+                        }
+                    };
+                }
+
+                // 3️⃣ Consultar el nombre del cliente
+                var response = new ClienteBO(globales, BD).ObtenerNombrePorId(idCliente.Value);
+
+                if (response.status!="success")
+                {
+                    return new GenericResponse<FetchUserDataResponse>
+                    {
+                        Success = false,
+                        Message = "No se pudo obtener la información del usuario.",
+                        Error = null,
+                        Data = response
+                    };
+                }
+
+                // 4️⃣ Éxito
+                return new GenericResponse<FetchUserDataResponse>
+                {
+                    Success = true,
+                    Message = "Usuario encontrado.",
+                    Error = null,
+                    Data = response
+                };
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<FetchUserDataResponse>
+                {
+                    Success = false,
+                    Message = "Error en el servidor.",
+                    Error = e.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(e, "SinBody", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+
+
     }
 }

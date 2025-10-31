@@ -29,7 +29,7 @@ namespace EventodromoRest.Mappers
 
                 foreach (var ciudad in listaCiudad)
                 {
-                    ciudad.pais = ObtenerPaisPorId(ciudad.idPais ?? 0);
+                    ciudad.pais = ObtenerPaisPorId(ciudad.idPais);
                 }
 
                 return listaCiudad;

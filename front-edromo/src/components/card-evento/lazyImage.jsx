@@ -7,21 +7,7 @@ const PLACEHOLDER_IMAGE = "https://placehold.co/800x400?text=Evento";
 // Usa este componente si quieres cargar una imagen dinámicamente.
 // Desestructuramos las props directamente en los parámetros de la función.
 export default function LazyImage({ imageUrl, className }) {
-  const [imgSrc, setImgSrc] = useState(() => {
-    if (!imageUrl) {
-      return PLACEHOLDER_IMAGE;
-    }
-
-    if (imageUrl.startsWith("http")) {
-      return imageUrl;
-    }
-
-    if (imageUrl.startsWith("/")) {
-      return imageUrl;
-    }
-
-    return `/images/${imageUrl}`;
-  });
+  const [imgSrc, setImgSrc] = useState(imageUrl || PLACEHOLDER_IMAGE);
 
   // Construimos la clase final, añadiendo la clase opcional si existe.
   const finalClassName = `img-fluid d-block ${className || ""}`;

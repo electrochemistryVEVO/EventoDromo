@@ -11,19 +11,17 @@ import PrecioModal from "@/components/Layouts/navbar/filtros/PrecioModal";
 import CategoriasModal from "@/components/Layouts/navbar/filtros/CategoriasModal";
 import CiudadModal from "@/components/Layouts/navbar/filtros/CiudadModal";
 import FechasModal from "@/components/Layouts/navbar/filtros/FechasModal";
-import "@/css/navbar-style.css";
-import "@/css/navbar-logged-in.css";
+
+import { useNavbarController } from './controller-navbar.js';
 
 const Navbar = () => {
   const router = useRouter();
   const { itemCount } = useCart();
   const { isAuthenticated, logout } = useUser();
-
   const [isCartOpen, setCartOpen] = useState(false);
   const [openFilterModal, setOpenFilterModal] = useState(null);
   const [activeButtonRef, setActiveButtonRef] = useState(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
   const precioButtonRef = useRef(null);
@@ -44,6 +42,23 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isDropdownOpen]);
 
+  const handleApplyFilters = (filterData) => {
+    console.log("Filtro aplicado:", filterData);
+  };
+
+  const handleClearFilters = (filterType) => {
+    console.log("Eliminar filtro de tipo:", filterType);
+  };
+
+  const {
+    applyFilter,
+    clearFilter,
+    handleSearchChange,
+    handleSearchSubmit,
+    activeFilters,
+    searchTerm,
+  } = useNavbarController();
+
   const openCart = () => setCartOpen(true);
   const closeCart = () => setCartOpen(false);
 
@@ -61,22 +76,14 @@ const Navbar = () => {
     setActiveButtonRef(null);
   };
 
-  const handleApplyFilters = (filterData) => {
-    console.log("Filtro aplicado:", filterData);
-  };
-
-  const handleClearFilters = (filterType) => {
-    console.log("Eliminar filtro de tipo:", filterType);
-  };
-
-  const handleSearchSubmit = (event) => {
-    event.preventDefault();
-    const term = searchInputRef.current?.value.trim();
-    if (!term) {
-      return;
-    }
-    router.push(`/user/eventos/buscar?search=${encodeURIComponent(term)}`);
-  };
+  // const handleSearchSubmit = (event) => {
+  //   event.preventDefault();
+  //   const term = searchInputRef.current?.value.trim();
+  //   if (!term) {
+  //     return;
+  //   }
+  //   router.push(`/user/eventos/buscar?search=${encodeURIComponent(term)}`);
+  // };
 
   const handleLogout = () => {
     logout();
@@ -109,47 +116,55 @@ const Navbar = () => {
               className="search-icon-decorative"
             />
             <input
-              ref={searchInputRef}
               type="text"
               placeholder="Buscar eventos..."
               className="search-input"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit(e); }}
             />
           </form>
+        </div>
 
-          <div className="navbar-filters">
-            <button
-              ref={precioButtonRef}
-              className="filter-btn"
-              onClick={() => openPopover("precio", precioButtonRef)}
-            >
-              <Image src="/images/icon/precioFiltro.svg" alt="Precio" width={20} height={20} />
-              <span>Precio</span>
-            </button>
-            <button
-              ref={categoriasButtonRef}
-              className="filter-btn"
-              onClick={() => openPopover("categorias", categoriasButtonRef)}
-            >
-              <Image src="/images/icon/categoriasFiltro.svg" alt="Categorías" width={20} height={20} />
-              <span>Categorías</span>
-            </button>
-            <button
-              ref={ciudadButtonRef}
-              className="filter-btn"
-              onClick={() => openPopover("ciudad", ciudadButtonRef)}
-            >
-              <Image src="/images/icon/ciudadFiltro.svg" alt="Ciudad" width={20} height={20} />
-              <span>Ciudad</span>
-            </button>
-            <button
-              ref={fechasButtonRef}
-              className="filter-btn"
-              onClick={() => openPopover("fechas", fechasButtonRef)}
-            >
-              <Image src="/images/icon/fechasFiltro.svg" alt="Fechas" width={20} height={20} />
-              <span>Fechas</span>
-            </button>
-          </div>
+        <div className="navbar-filters">
+          {/* Botones de filtro... (igual que en el navbar de no logueado) */}
+          <button
+            ref={precioButtonRef}
+            className="filter-btn"
+            onClick={() => openPopover('precio', precioButtonRef)}
+          >
+            <Image
+              src={"/images/icon/precioFiltro.svg"}
+              alt="Precio"
+              width={20}
+              height={20}
+            />
+            <span>Precio</span>
+          </button>
+          <button
+            ref={categoriasButtonRef}
+            className="filter-btn"
+            onClick={() => openPopover("categorias", categoriasButtonRef)}
+          >
+            <Image src="/images/icon/categoriasFiltro.svg" alt="Categorías" width={20} height={20} />
+            <span>Categorías</span>
+          </button>
+          <button
+            ref={ciudadButtonRef}
+            className="filter-btn"
+            onClick={() => openPopover("ciudad", ciudadButtonRef)}
+          >
+            <Image src="/images/icon/ciudadFiltro.svg" alt="Ciudad" width={20} height={20} />
+            <span>Ciudad</span>
+          </button>
+          <button
+            ref={fechasButtonRef}
+            className="filter-btn"
+            onClick={() => openPopover("fechas", fechasButtonRef)}
+          >
+            <Image src="/images/icon/fechasFiltro.svg" alt="Fechas" width={20} height={20} />
+            <span>Fechas</span>
+          </button>
         </div>
 
         <div className="navbar-user-actions">
@@ -201,7 +216,7 @@ const Navbar = () => {
             </div>
           )}
         </div>
-      </nav>
+      </nav >
 
       {openFilterModal === "precio" && activeButtonRef && (
         <PrecioModal
@@ -211,30 +226,36 @@ const Navbar = () => {
           buttonRef={activeButtonRef}
         />
       )}
-      {openFilterModal === "categorias" && activeButtonRef && (
-        <CategoriasModal
-          onClose={closePopover}
-          onApply={handleApplyFilters}
-          onClear={handleClearFilters}
-          buttonRef={activeButtonRef}
-        />
-      )}
-      {openFilterModal === "ciudad" && activeButtonRef && (
-        <CiudadModal
-          onClose={closePopover}
-          onApply={handleApplyFilters}
-          onClear={handleClearFilters}
-          buttonRef={activeButtonRef}
-        />
-      )}
-      {openFilterModal === "fechas" && activeButtonRef && (
-        <FechasModal
-          onClose={closePopover}
-          onApply={handleApplyFilters}
-          onClear={handleClearFilters}
-          buttonRef={activeButtonRef}
-        />
-      )}
+      {
+        openFilterModal === "categorias" && activeButtonRef && (
+          <CategoriasModal
+            onClose={closePopover}
+            onApply={handleApplyFilters}
+            onClear={handleClearFilters}
+            buttonRef={activeButtonRef}
+          />
+        )
+      }
+      {
+        openFilterModal === "ciudad" && activeButtonRef && (
+          <CiudadModal
+            onClose={closePopover}
+            onApply={handleApplyFilters}
+            onClear={handleClearFilters}
+            buttonRef={activeButtonRef}
+          />
+        )
+      }
+      {
+        openFilterModal === "fechas" && activeButtonRef && (
+          <FechasModal
+            onClose={closePopover}
+            onApply={handleApplyFilters}
+            onClear={handleClearFilters}
+            buttonRef={activeButtonRef}
+          />
+        )
+      }
 
       <ModalCarritoController isOpen={isCartOpen} onClose={closeCart} />
     </>

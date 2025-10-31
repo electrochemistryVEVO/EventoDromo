@@ -46,33 +46,53 @@ namespace EventodromoRest.Negocio
             if (!carrito.IsNullOrEmpty())
             {
                 response.idCarrito = carrito[0].idCarrito;
-                response.localInfo = carrito[0].localInfo;
-                response.eventoInfo = carrito[0].eventoInfo;
-                response.funcionInfo = carrito[0].funcionInfo;
                 response.fechaExpiracion = carrito[0].fechaExpiracion;
-                response.entradas = new List<EntradaDTO>();
 
+                var listaEventos = new List<EventoCarritoDTO>();
                 foreach (var item in carrito)
                 {
                     var entrada = item.entrada;
-                    var existente = response.entradas.FirstOrDefault(x => x.idTipoEntrada == entrada.idTipoEntrada);
-                    if (existente != null)
+                    var eventoExistente = listaEventos.FirstOrDefault(x => x.idEvento == entrada.idTipoEntrada);
+                    if (eventoExistente == null)
                     {
-                        existente.cantidad += 1;
+                        eventoExistente = new EventoCarritoDTO
+                        {
+                            idEvento = item.eventoInfo.idEvento,
+                            nombreEvento = item.eventoInfo.nombreEvento,
+                            imagenURL = item.eventoInfo.imagenURL,
+                            localInfo = item.localInfo,
+                            funcionInfo = item.funcionInfo,
+                            entradas = new List<EntradaDTO>()
+                        };
+
+                        var nuevaEntrada = new EntradaDTO
+                        {
+                            idEntrada = entrada.idEntrada,
+                            idTipoEntrada = entrada.idTipoEntrada,
+                            nombreTipoEntrada = entrada.nombreTipoEntrada,
+                            precio = entrada.precio
+                        };
+
+                        eventoExistente.totalEvento += nuevaEntrada.precio;
+                        eventoExistente.entradas.Add(nuevaEntrada);
+                        listaEventos.Add(eventoExistente);
                     }
                     else
                     {
-                        response.entradas.Add(new EntradaDTO
+                        var nuevaEntrada = new EntradaDTO
                         {
                             idTipoEntrada = entrada.idTipoEntrada,
                             nombreTipoEntrada = entrada.nombreTipoEntrada,
-                            precio = entrada.precio,
-                            cantidad = 1
-                        });
+                            precio = entrada.precio
+                        };
+
+                        eventoExistente.totalEvento += nuevaEntrada.precio;
+                        eventoExistente.entradas.Add(nuevaEntrada);
                     }
 
                     response.totalCarrito += entrada.precio;
                 }
+                response.eventos = listaEventos;
             }
             else
             {

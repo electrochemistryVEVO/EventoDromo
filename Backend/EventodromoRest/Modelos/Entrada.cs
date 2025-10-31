@@ -21,10 +21,10 @@
 
     public class EntradaDTO
     {
+        public int idEntrada { get; set; }
         public int idTipoEntrada { get; set; }
         public string nombreTipoEntrada { get; set; }
         public decimal precio { get; set; }
-        public int cantidad { get; set; } = 0;
     }
 
     public class EntradaAgregarAlCarritoDTO

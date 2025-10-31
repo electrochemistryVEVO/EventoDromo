@@ -27,7 +27,7 @@ namespace EventodromoRest.Negocio
 
         }
 
-
+        //agreggar antes de insertar hashear el password para que se envíe hasheado
         public SignUpResponse InsertarCliente(RequestSignUpCliente request)
         {
             var mapper = new ClienteMapper(globales, DB);
@@ -179,6 +179,66 @@ namespace EventodromoRest.Negocio
             };
 
             return datos;
+        }
+
+        public VerificarCorreoResponse verificarCorreoCliente(string email)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            bool existe = mapper.ExisteClienteConEmail(email);
+            VerificarCorreoResponse response = new VerificarCorreoResponse
+            {
+                exists = existe
+            };
+            return response;
+        }
+
+        public VerificarContrasenaRecuperarResponse VerificarContrasenaRecuperar(int idCliente, string currentPassword)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            bool isMatch = mapper.VerificarContrasenaPorIdContrasena(idCliente, currentPassword);
+            VerificarContrasenaRecuperarResponse response = new VerificarContrasenaRecuperarResponse
+            {
+                status = isMatch ? "success" : "error",
+                message = isMatch ? "Contraseña verificada correctamente." : "La contraseña actual es incorrecta. Intente de nuevo."
+            };
+            return response;
+        }
+
+        public ActualizarContrasenaResponse ActualizarContrasena(int idCliente, string newPassword)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            bool updated = mapper.ModificarClienteContrasenaPorId(idCliente, newPassword);
+            ActualizarContrasenaResponse response = new ActualizarContrasenaResponse
+            {
+                status = updated ? "success" : "error",
+                message = updated ? "Tu contraseña ha sido cambiada exitosamente." : "No se pudo actualizar la contraseña. Por favor, inténtelo más tarde."
+            };
+            return response;
+        }
+
+        public FetchUserDataResponse ObtenerNombrePorId(int idCliente)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            Cliente cliente = mapper.ObtenerClientePorId(idCliente);
+            if(cliente!=null)
+            {
+                return new FetchUserDataResponse
+                {
+                    status = "success",
+                    message = "Usuario encontrado.",
+                    name = $"{cliente.nombres} {cliente.apellidos}"
+                };
+            }
+            else
+            {
+                return new FetchUserDataResponse
+                {
+                    status = "error",
+                    message = "Usuario no encontrado.",
+                    name = null
+                };
+            }
+            
         }
 
     }

@@ -18,10 +18,10 @@
     public class LocalCiudadImagenDTO
     {
         public int idLocal { get; set; }
-        public int idCiudad { get; set; }
         public string nombreLocal { get; set; }
-        public string nombreCiudad { get; set; }
+        public int idCiudad { get; set; }
         public string imagenURL { get; set; }
+        public string nombreCiudad { get; set; }
     }
 
     public class LocalDTO
