@@ -3,7 +3,6 @@ const BASE_API_URL = "http://localhost:5189/api";
  * Obtiene el token de autenticación almacenado.
  * @returns {string|null} - El token JWT o null si no existe.
  */
-
 const getAuthToken = () => {
   const sessionJSON = sessionStorage.getItem("session");
   // Variable para guardar el token final
@@ -22,7 +21,6 @@ const getAuthToken = () => {
  * Realiza una llamada a la API para obtener la lista completa de locales.
  * @returns {Promise<Array<{id: number, nombre: string}>>} Una promesa que resuelve a un array de objetos de locales.
  */
-
 export const getLocales = async () => {
   const token = getAuthToken();
   if (!token) {
@@ -174,80 +172,6 @@ export const getEvents = async (filters = {}) => {
     }, 1000); // Simular un retardo de red
   });
 };
-
-/**
- * Simula el envío de los datos de un nuevo evento al backend.
- * @param {object} eventData El objeto de estado del formulario del frontend.
- * @returns {Promise<object>} Una promesa que resuelve a un objeto de respuesta exitosa.
- */
-/*
-export const createEvent = async (eventData) => {
-  console.log("1. DATOS RECIBIDOS DEL FORMULARIO:", eventData);
-
-  // --- BUENA PRÁCTICA 1: Transformar los datos del frontend al formato que el backend espera ---
-  // Esto desacopla la estructura de tu estado del contrato de la API.
-  const payload = {
-    nombre: eventData.nombre,
-    descripcion: eventData.descripcion,
-    localId: parseInt(eventData.localId, 10),
-    tipoEventoId: parseInt(eventInfo.tipoEventoId, 10),
-    capacidad: parseInt(eventData.capacidad, 10),
-    fechaPublicacion: eventData.fechaPublicacion,
-    fechaCompra: eventData.fechaCompra,
-    // Transformamos el array de fechas a un formato que el backend podría preferir (ej: 'horarios')
-    horarios: eventData.fechas.map((f) => `${f.fecha}T${f.hora}`),
-    // Transformamos los tipos de entrada, asegurando que los números sean números.
-    entradas: eventData.tiposEntrada.map((t) => ({
-      nombre: t.nombre,
-      precio: parseFloat(t.precio),
-      cantidad: parseInt(t.cantidad, 10),
-      limiteCompra: parseInt(t.limiteCompra, 10),
-      puntos: parseInt(t.puntos, 10),
-    })),
-  };
-
-  // El archivo de imagen se manejaría por separado (en FormData en la versión real).
-  const imagenFile = eventData.imagenFile;
-
-  console.log(
-    "2. PAYLOAD TRANSFORMADO (simulando lo que se enviaría):",
-    payload
-  );
-  console.log(
-    "3. ARCHIVO DE IMAGEN (simulando lo que se enviaría):",
-    imagenFile
-  );
-
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // --- BUENA PRÁCTICA 2: Simular una validación realista del backend ---
-      const aforoTotalAsignado = payload.entradas.reduce(
-        (sum, e) => sum + e.cantidad,
-        0
-      );
-      if (aforoTotalAsignado > payload.capacidad) {
-        const errorResponse = {
-          message: "Error de validación del servidor.",
-          errors: {
-            aforo: `La suma de las cantidades de entrada (${aforoTotalAsignado}) no puede exceder la capacidad del local (${payload.capacidad}).`,
-          },
-        };
-        console.error("4. SIMULACIÓN FALLIDA:", errorResponse);
-        // Rechazamos la promesa con un error estructurado, como lo haría una API real.
-        return reject(new Error(errorResponse.errors.aforo));
-      }
-
-      const successResponse = {
-        message: "Evento creado exitosamente (simulado).",
-        data: { id: Date.now(), ...payload },
-      };
-
-      console.log("4. SIMULACIÓN EXITOSA:", successResponse);
-      resolve(successResponse);
-    }, 1500);
-  });
-};
-*/
 
 /**
  * Realiza una llamada a la API para obtener los eventos filtrados y paginados.

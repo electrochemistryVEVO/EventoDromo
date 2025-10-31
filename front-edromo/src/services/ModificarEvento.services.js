@@ -1,0 +1,211 @@
+/**
+ * @file eventEditionService.js
+ * @description Servicios para obtener y actualizar los datos de un evento existente.
+ */
+
+const BASE_API_URL = "http://localhost:5189/api";
+
+const getAuthToken = () => {
+  const sessionJSON = sessionStorage.getItem("session");
+  if (!sessionJSON) return null;
+  const sessionData = JSON.parse(sessionJSON);
+  return sessionData.token;
+};
+
+/**
+ * --- VERSIÓN SIMULADA (MOCK) ---
+ * Obtiene los detalles completos de un evento por su ID.
+ */
+export const getEventById = async (eventId) => {
+  console.log(`Fetching simulated event data for ID: ${eventId}...`);
+
+  if (!eventId) {
+    throw new Error("Se requiere un ID de evento para obtener los detalles.");
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 800));
+
+  const mockEventData = {
+    nombre: "Overpass Lima",
+    descripcion: "El mejor concierto del año...",
+    imagenURL: "https://via.placeholder.com/800x600.png?text=Overpass+Lima",
+    localId: 1,
+    tipoEventoId: 1,
+    capacidad: 3000,
+    fechaPublicacion: "2025-10-15T10:00",
+    fechaCompra: "2025-10-30T11:00",
+    horarios: [
+      { id: 201, fecha: "2025-11-11", hora: "20:00" },
+      { id: 202, fecha: "2025-11-12", hora: "21:00" },
+    ],
+    entradas: [
+      {
+        id: 101,
+        nombre: "General",
+        precio: 200,
+        cantidad: 300,
+        limiteCompra: 10,
+        puntos: 2,
+      },
+      {
+        id: 102,
+        nombre: "VIP",
+        precio: 350,
+        cantidad: 100,
+        limiteCompra: 10,
+        puntos: 3,
+      },
+    ],
+  };
+
+  console.log("Simulated event data fetched:", mockEventData);
+  return mockEventData;
+};
+
+/**
+ * --- VERSIÓN SIMULADA (MOCK) ---
+ * Simula el envío de los datos actualizados de un evento al backend.
+ *
+ * @param {string|number} eventId - El ID del evento a actualizar.
+ * @param {object} eventData - El objeto con todos los datos actualizados del formulario.
+ * @returns {Promise<object>} Una promesa que resuelve con la respuesta de éxito simulada.
+ */
+export const updateEvent = async (eventId, eventData) => {
+  console.log(`1. INICIANDO ACTUALIZACIÓN SIMULADA para Evento ID: ${eventId}`);
+  console.log("2. DATOS RECIBIDOS DEL FORMULARIO:", eventData);
+
+  // --- VALIDACIONES BÁSICAS ---
+  if (!eventId || !eventData) {
+    throw new Error(
+      "Se requiere el ID del evento y los datos para actualizar."
+    );
+  }
+
+  // --- TRANSFORMACIÓN DEL PAYLOAD (Igual que en la versión real) ---
+  const payload = {
+    nombre: eventData.nombre,
+    descripcion: eventData.descripcion,
+    localId: parseInt(eventData.localId, 10),
+    tipoEventoId: parseInt(eventData.tipoEventoId, 10),
+    capacidad: parseInt(eventData.capacidad, 10),
+    fechaPublicacion: eventData.fechaPublicacion,
+    fechaCompra: eventData.fechaCompra,
+    imagenURL: eventData.imagenURL,
+    horarios: eventData.fechas.map((f) => ({
+      id: f.id,
+      fecha: f.fecha,
+      hora: f.hora,
+    })),
+    entradas: eventData.tiposEntrada.map((t) => ({
+      id: t.id,
+      nombre: t.nombre,
+      precio: parseFloat(t.precio),
+      cantidad: parseInt(t.cantidad, 10),
+      limiteCompra: parseInt(t.limiteCompra, 10),
+      puntos: parseInt(t.puntos, 10),
+    })),
+  };
+
+  console.log(
+    "3. PAYLOAD TRANSFORMADO (simulando lo que se enviaría):",
+    payload
+  );
+
+  return new Promise((resolve, reject) => {
+    // Simula un retraso de red
+    setTimeout(() => {
+      // --- SIMULACIÓN DE VALIDACIÓN DEL BACKEND ---
+      const aforoTotalAsignado = payload.entradas.reduce(
+        (sum, e) => sum + e.cantidad,
+        0
+      );
+      if (aforoTotalAsignado > payload.capacidad) {
+        const errorResponse = {
+          message: `La suma de las cantidades de entrada (${aforoTotalAsignado}) excede la capacidad del local (${payload.capacidad}).`,
+        };
+        console.error("4. SIMULACIÓN DE ACTUALIZACIÓN FALLIDA:", errorResponse);
+        return reject(new Error(errorResponse.message));
+      }
+
+      // Si la validación pasa, devolvemos una respuesta de éxito.
+      const successResponse = {
+        message: `Evento con ID ${eventId} actualizado exitosamente (simulado).`,
+        data: {
+          id: eventId, // Devolvemos el mismo ID que recibimos
+          ...payload, // Devolvemos los datos actualizados
+        },
+      };
+
+      console.log("4. SIMULACIÓN DE ACTUALIZACIÓN EXITOSA:", successResponse);
+      resolve(successResponse);
+    }, 1500); // Retardo de 1.5 segundos para simular la operación
+  });
+};
+/**
+ * Envía los datos actualizados de un evento al backend.
+ */
+/*
+export const updateEvent = async (eventId, eventData) => {
+  if (!eventId || !eventData) {
+    throw new Error(
+      "Se requiere el ID del evento y los datos para actualizar."
+    );
+  }
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Token de autenticación no encontrado.");
+  }
+
+  const payload = {
+    nombre: eventData.nombre,
+    descripcion: eventData.descripcion,
+    localId: parseInt(eventData.localId, 10),
+    tipoEventoId: parseInt(eventData.tipoEventoId, 10),
+    capacidad: parseInt(eventData.capacidad, 10),
+    fechaPublicacion: eventData.fechaPublicacion,
+    fechaCompra: eventData.fechaCompra,
+    imagenURL: eventData.imagenURL,
+    horarios: eventData.fechas.map((f) => ({
+      id: f.id,
+      fecha: f.fecha,
+      hora: f.hora,
+    })),
+    entradas: eventData.tiposEntrada.map((t) => ({
+      id: t.id,
+      nombre: t.nombre,
+      precio: parseFloat(t.precio),
+      cantidad: parseInt(t.cantidad, 10),
+      limiteCompra: parseInt(t.limiteCompra, 10),
+      puntos: parseInt(t.puntos, 10),
+    })),
+  };
+
+  try {
+    const response = await fetch(
+      `${BASE_API_URL}/Evento/ActualizarEvento/${eventId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: `Error del servidor: ${response.status}` }));
+      throw new Error(
+        errorData.message || "Ocurrió un error al actualizar el evento."
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error crítico en el servicio updateEvent:", error);
+    throw error;
+  }
+};
+*/

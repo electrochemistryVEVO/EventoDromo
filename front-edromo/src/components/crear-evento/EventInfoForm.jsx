@@ -21,6 +21,7 @@ export const EventInfoForm = ({
   eventTypes,
   handleImageChange,
   minDateTime,
+  isReadOnly = false,
 }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -38,6 +39,7 @@ export const EventInfoForm = ({
               placeholder="Ej: Evento General"
               value={eventInfo.nombre}
               onChange={handleInfoChange}
+              readOnly={isReadOnly}
               className="w-full p-2 border border-gray-300 rounded-md"
             />
           </FormField>
@@ -48,6 +50,7 @@ export const EventInfoForm = ({
               placeholder="Lorem ipsum dolor sit amet..."
               value={eventInfo.descripcion}
               onChange={handleInfoChange}
+              readOnly={isReadOnly}
               className="w-full p-2 border border-gray-300 rounded-md"
             />
           </FormField>
@@ -104,6 +107,7 @@ export const EventInfoForm = ({
               name="imagen"
               accept="image/*"
               onChange={handleImageChange}
+              readOnly={isReadOnly}
               className="hidden" // 'hidden' lo oculta completamente pero lo mantiene funcional
             />
           </FormField>
@@ -117,6 +121,7 @@ export const EventInfoForm = ({
             name="localId"
             value={eventInfo.localId}
             onChange={handleInfoChange}
+            disabled={isReadOnly}
             className="w-full p-2 border border-gray-300 rounded-md bg-white"
           >
             <option value="" disabled>
@@ -145,6 +150,7 @@ export const EventInfoForm = ({
             name="tipoEventoId"
             value={eventInfo.tipoEventoId}
             onChange={handleInfoChange}
+            disabled={isReadOnly}
             className="w-full p-2 border border-gray-300 rounded-md bg-white"
           >
             <option value="" disabled>
@@ -167,6 +173,7 @@ export const EventInfoForm = ({
             name="fechaPublicacion"
             value={eventInfo.fechaPublicacion}
             onChange={handleInfoChange}
+            readOnly={isReadOnly}
             max={eventInfo.fechaCompra || ""} // No se puede seleccionar después de la fecha de compra
             min={minDateTime} // No se puede seleccionar antes de ahora
             className="w-full max-w-xs p-2 border border-gray-300 rounded-md" // Ancho reducido
@@ -178,6 +185,7 @@ export const EventInfoForm = ({
             name="fechaCompra"
             value={eventInfo.fechaCompra}
             onChange={handleInfoChange}
+            readOnly={isReadOnly}
             min={eventInfo.fechaPublicacion || minDateTime} // No se puede seleccionar antes de la publicación O de ahora
             className="w-full max-w-xs p-2 border border-gray-300 rounded-md" // Ancho reducido
           />

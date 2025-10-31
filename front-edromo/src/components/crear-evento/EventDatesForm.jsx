@@ -5,7 +5,14 @@
 import React from "react";
 
 // Sub-componente para una sola fila de fecha/hora
-const DateField = ({ fechaData, index, onRemove, onChange, fechaCompra }) => {
+const DateField = ({
+  fechaData,
+  index,
+  onRemove,
+  onChange,
+  fechaCompra,
+  isReadOnly = false,
+}) => {
   // Extraemos solo la parte de la fecha (YYYY-MM-DD) de la fecha de compra para usarla en el 'min'.
   const minDate = fechaCompra ? fechaCompra.substring(0, 10) : "";
   let minTime = ""; // Por defecto, no hay hora mínima.
@@ -31,6 +38,7 @@ const DateField = ({ fechaData, index, onRemove, onChange, fechaCompra }) => {
         <input
           type="date"
           value={fechaData.fecha}
+          readOnly={isReadOnly}
           onChange={(e) => onChange(fechaData.id, "fecha", e.target.value)}
           className="w-full p-2 border border-gray-300 rounded-md"
           min={minDate} // Aquí aplicamos la restricción en la UI
@@ -41,6 +49,7 @@ const DateField = ({ fechaData, index, onRemove, onChange, fechaCompra }) => {
         <input
           type="time"
           value={fechaData.hora}
+          readOnly={isReadOnly}
           onChange={(e) => onChange(fechaData.id, "hora", e.target.value)}
           className="w-full p-2 border border-gray-300 rounded-md"
           min={minTime}
@@ -62,6 +71,7 @@ export const EventDatesForm = ({
   removeFecha,
   handleFechaChange,
   fechaCompra,
+  isReadOnly = false,
 }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mt-6">
@@ -74,7 +84,7 @@ export const EventDatesForm = ({
         </div>
         <button
           onClick={addFecha}
-          disabled={!fechaCompra}
+          disabled={!fechaCompra || isReadOnly}
           className="bg-[#00C49A] text-white font-semibold px-4 py-2 rounded-lg hover:bg-[#00A37E] flex items-center gap-2 disabled:bg-gray-300 disabled:cursor-not-allowed"
           title={
             !fechaCompra
@@ -95,6 +105,7 @@ export const EventDatesForm = ({
             onRemove={removeFecha}
             onChange={handleFechaChange}
             fechaCompra={fechaCompra}
+            isReadOnly={isReadOnly}
           />
         ))}
       </div>
