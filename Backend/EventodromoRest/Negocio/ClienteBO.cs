@@ -38,18 +38,33 @@ namespace EventodromoRest.Negocio
             }
 
 
+
+            if (mapper.ExisteClienteConEmail(request.email))
+            {
+                throw new Exception("El correo electrónico ya está registrado.");
+            }
+
+
             Cliente nuevoCliente = new Cliente
             {
                 nombres = request.nombres,
                 apellidos = request.apellidos,
                 email = request.email,
                 passwordhash = request.password,
+                passwordhash = request.password,
                 fechanacimiento = request.fechaNacimiento,
+
+                idsexo = request.idsexo,
+                idtipodocumento = request.idtipoDocumento,
 
                 idsexo = request.idsexo,
                 idtipodocumento = request.idtipoDocumento,
                 numerodocumento = request.numeroDocumento,
                 telefono = request.telefono,
+                idciudad = request.idciudad,
+                politicadeprivacidad = request.politicaDePrivacidad,
+                enviodepublicidad = request.envioDePublicidad
+                /*El procedure ya incluye esto
                 idciudad = request.idciudad,
                 politicadeprivacidad = request.politicaDePrivacidad,
                 enviodepublicidad = request.envioDePublicidad
@@ -69,6 +84,7 @@ namespace EventodromoRest.Negocio
             {
                 throw new Exception("La inserción del cliente falló en la base de datos.");
             }
+            
             return signUpResponse;
         }
 

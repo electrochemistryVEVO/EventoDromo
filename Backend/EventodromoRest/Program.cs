@@ -96,7 +96,11 @@ if (app.Environment.IsDevelopment())
 // AGREGAR USO DE CORS - Esto también es necesario
 app.UseCors("AllowAll");
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
+
+//PARA EL TOKEN
+app.UseAuthentication();
+
 
 //PARA EL TOKEN
 app.UseAuthentication();

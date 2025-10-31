@@ -35,6 +35,8 @@
         public required char rol { get; set; }
         public string? token { get; set; } // Token JWT
         public int idCliente { get; set; } // ID del cliente autenticado
+        public string? token { get; set; } // Token JWT
+        public int idCliente { get; set; } // ID del cliente autenticado
     }
 
     public class RequestSignUpCliente
@@ -50,13 +52,26 @@
         // Coincidencia exacta: idtipoDocumento
         public int idtipoDocumento { get; set; }
 
+
+        // Coincidencia exacta con el frontend: idsexo (camelCase y minúscula en 'id')
+        public int idsexo { get; set; }
+
+        // Coincidencia exacta: idtipoDocumento
+        public int idtipoDocumento { get; set; }
+
         public string? numeroDocumento { get; set; }
         public string? telefono { get; set; }
 
         // Coincidencia exacta: idciudad
         public int idciudad { get; set; }
 
+
+        // Coincidencia exacta: idciudad
+        public int idciudad { get; set; }
+
         public DateTime? fechaNacimiento { get; set; }
+        public bool politicaDePrivacidad { get; set; } // Nota: Ya estaba en camelCase/PascalCase
+        public bool envioDePublicidad { get; set; }     // Nota: Ya estaba en camelCase/PascalCase
         public bool politicaDePrivacidad { get; set; } // Nota: Ya estaba en camelCase/PascalCase
         public bool envioDePublicidad { get; set; }     // Nota: Ya estaba en camelCase/PascalCase
     }

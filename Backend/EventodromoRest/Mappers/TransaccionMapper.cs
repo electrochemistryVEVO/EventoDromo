@@ -141,5 +141,119 @@ namespace EventodromoRest.Mappers
                 return rowsAffected;
             }
         }
+
+        public bool TransferirEntradas(int idCliente, RequestTransferencia request)
+        {
+            //public class RequestTransferencia
+            //{
+                //public string email { get; set; }
+                //public List<int> entradas { get; set; }
+            //}
+            lock (DB)
+            {
+                //Obtener transaccion por el idCliente del cliente origen
+                string query = "SELECT * FROM Transaccion WHERE idCliente = @idCliente";
+                var parametros = new ParameterList();
+                parametros.Add("@idCliente", idCliente);
+                DB.Select(query, parametros);
+                if (DB.Read())
+                {
+                    Transaccion transaccionOrigen = new()
+                    {
+                        id = DB.GetInt("id"),
+                        idCarrito = DB.GetInt("idCarrito"),
+                        //carrito = ObtenerCarritoPorId(DB.GetInt("idCarrito")),
+                        fechaHoraCompra = DB.GetDateTime("fechaHoraCompra"),
+                        numeroTransaccion = DB.GetString("numeroTransaccion"),
+                        nombresCliente = DB.GetString("nombresCliente"),
+                        apellidosCliente = DB.GetString("apellidosCliente"),
+                        emailCliente = DB.GetString("emailCliente"),
+                        numeroDocumentoCliente = DB.GetString("numeroDocumentoCliente"),
+                        idTipoDocumento = DB.GetInt("idTipoDocumento"),
+                        //tipoDocumento = ObtenerTipoDocumentoPorId(DB.GetInt("idTipoDocumento")),
+                        montoTotal = DB.GetDecimal("montoTotal"),
+                    };
+                    transaccionOrigen.carrito = ObtenerCarritoPorId(transaccionOrigen.idCarrito);
+                    transaccionOrigen.tipoDocumento = ObtenerTipoDocumentoPorId(transaccionOrigen.idTipoDocumento);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+
+                //Obtener cliente destino por su correo
+                query = "SELECT * FROM Cliente WHERE email = @email";
+                parametros = new ParameterList();
+                parametros.Add("@email", request.email);
+                DB.Select(query, parametros);
+                if (DB.Read())
+                {
+                    Cliente clienteDestino = new()
+                    {
+                        id = DB.GetInt("id"),
+                        nombres = DB.GetString("nombres"),
+                        apellidos = DB.GetString("apellidos"),
+                        //email = DB.GetString("email"),
+                        //passwordhash = DB.GetString("passwordHash"),
+                        ////fechanacimiento = DB.GetDateTime("fechaNacimiento"),
+                        //idsexo = DB.GetInt("idSexo"),
+                        idtipodocumento = DB.GetInt("idTipoDocumento"),
+                        numerodocumento = DB.GetString("numeroDocumento"),
+                        //telefono = DB.GetString("telefono"),
+                        //idciudad = DB.GetInt("idCiudad"),
+                        //politicadeprivacidad = DB.GetBoolean("politicaDePrivacidad"),
+                        //enviodepublicidad = DB.GetBoolean("envioDePublicidad"),
+                        ////fechacreacion = DB.GetDateTime("fechaCreacion"),
+                        ////fechaultimaedicion = DB.GetDateTime("fechaUltimaEdicion"),
+                        ////fechaultimasession = DB.GetDateTime("fechaUltimaSesion"),
+                        //sexo = ObtenerSexoPorId(DB.GetInt("idSexo")),
+                        //tipodocumento = ObtenerTipoDocumentoPorId(DB.GetInt("idTipoDocumento")),
+                        //ciudad = ObtenerCiudadPorId(DB.GetInt("idCiudad"))
+                    };
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+
+                //Obtener transaccion por el idCliente del cliente destino
+                query = "SELECT * FROM Transaccion WHERE idCliente = @idCliente";
+                parametros = new ParameterList();
+                parametros.Add("@idCliente", clienteDestino.id);
+                DB.Select(query, parametros);
+                if (DB.Read())
+                {
+                    Transaccion transaccionDestino = new()
+                    {
+                        id = DB.GetInt("id"),
+                        idCarrito = DB.GetInt("idCarrito"),
+                        //carrito = ObtenerCarritoPorId(DB.GetInt("idCarrito")),
+                        fechaHoraCompra = DB.GetDateTime("fechaHoraCompra"),
+                        numeroTransaccion = DB.GetString("numeroTransaccion"),
+                        nombresCliente = DB.GetString("nombresCliente"),
+                        apellidosCliente = DB.GetString("apellidosCliente"),
+                        emailCliente = DB.GetString("emailCliente"),
+                        numeroDocumentoCliente = DB.GetString("numeroDocumentoCliente"),
+                        idTipoDocumento = DB.GetInt("idTipoDocumento"),
+                        //tipoDocumento = ObtenerTipoDocumentoPorId(DB.GetInt("idTipoDocumento")),
+                        montoTotal = DB.GetDecimal("montoTotal"),
+                    };
+                    transaccionDestino.carrito = ObtenerCarritoPorId(transaccionDestino.idCarrito);
+                    transaccionDestino.tipoDocumento = ObtenerTipoDocumentoPorId(transaccionDestino.idTipoDocumento);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+
+                //Buscar LineaTransaccion, crear uno nuevo (copia del original)
+                //Al original, colocarle transferido = true 
+                //A la copia, colocarle transferido = false y cambiarle los datos del cliente al de cliente destino
+
+            }
+        }
     }
 }

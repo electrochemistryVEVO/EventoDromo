@@ -4,7 +4,7 @@ using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-
+using System.Diagnostics;
 namespace EventodromoRest.Negocio
 {
     public class EventoBO(Globales.Globales globales, DBManager.DBManager DB)
@@ -18,7 +18,6 @@ namespace EventodromoRest.Negocio
             response.Data = eventos;
             return response;
         }
-
         public GenericResponse<IEnumerable<Evento>> ListarEventosPorBusqueda(string busqueda)
         {
             EventoMapper mapper = new EventoMapper(globales, DB);
@@ -42,11 +41,10 @@ namespace EventodromoRest.Negocio
                 evento = evento,
                 local = local,
                 funciones = funciones
-                
+
             };
             return response;
         }
-
         public GenericResponse<ResponseListarEventosYLocales> ListarEventosYLocales()
         {
             var eventoMapper = new EventoMapper(globales, DB);

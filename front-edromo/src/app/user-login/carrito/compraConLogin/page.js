@@ -43,14 +43,11 @@ function App() {
       // Comprobar que existen los datos de sesión y la referencia al formulario
       if (sessionData && formRef.current) {
         const parsedSession = JSON.parse(sessionData);
-
-        // La clave podría ser 'user', 'email' o estar anidada.
-        // Revisa tu objeto de sesión para estar seguro. Usaremos 'user' como en tu ejemplo.
-        const email = parsedSession.user;
+        const email = parsedSession.email; // Leemos la propiedad 'email' que ahora sí existe
 
         // --- ¡ESTA ES LA CORRECCIÓN CLAVE! ---
         // Verificamos que 'email' sea un string con contenido antes de continuar.
-        if (typeof email === "string" && email) {
+        if (email && typeof email === "string") {
           const nameParts = email.split("@")[0].split(".");
           const nombre = nameParts[0]
             ? nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1)
@@ -74,15 +71,10 @@ function App() {
       <header className={styles.header}>
         <div>
           <Link
-            href="/user/carrito/entradaDetalle"
+            href="/user/carrito/identificacion"
             className={styles.backButton}
           >
-            <Image
-              src={"/images/icon/flecha_izquierda.svg"}
-              alt="Flecha izquierda"
-              width={36}
-              height={36}
-            />
+            <Image src="/images/icon/arrow_left.svg" alt="Flecha izquierda" width={36} height={36} />
           </Link>
         </div>
         <div className={styles.steps}>

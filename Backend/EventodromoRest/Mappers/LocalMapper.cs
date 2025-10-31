@@ -8,28 +8,29 @@ namespace EventodromoRest.Mappers
 {
     public class LocalMapper(Globales.Globales globales, DBManager.DBManager DB)
     {
-        public List<Local> ListarLocales()
+        public List<LocalCiudadImagenDTO> ListarLocales()
         {
-            List<Local> listaLocal = new List<Local>();
+            List<LocalCiudadImagenDTO> listaLocal = new List<LocalCiudadImagenDTO>();
             lock (DB)
             {
                 string query = "SELECT * FROM Local";
                 DB.Select(query, null);
                 while (DB.Read())
                 {
-                    Local local = new()
+                    LocalCiudadImagenDTO local = new()
                     {
-                        id = DB.GetInt("ID"),
-                        nombre = DB.GetString("NOMBRE"),
+                        idLocal = DB.GetInt("ID"),
+                        nombreLocal = DB.GetString("NOMBRE"),
                         idCiudad = DB.GetInt("IDCIUDAD"),
-                        ciudad = ObtenerCiudadPorId(DB.GetInt("IDCIUDAD")),
-                        direccion = DB.GetString("DIRECCION"),
-                        capacidad = DB.GetInt("CAPACIDAD"),
-                        isDeleted = DB.GetBoolean("ISDELETED"),
-                        idAdministrador = DB.GetInt("CREADOPOR"),
-                        administrador = ObtenerAdministradorPorId(DB.GetInt("CREADOPOR")),
+                        imagenURL = DB.GetString("IMAGENURL")
                     };
                     listaLocal.Add(local);
+                }
+
+                foreach (LocalCiudadImagenDTO local in listaLocal)
+                {
+                    Ciudad ciudad = ObtenerCiudadPorId(local.idCiudad);
+                    local.nombreCiudad = ciudad?.nombre;
                 }
                 return listaLocal;
             }

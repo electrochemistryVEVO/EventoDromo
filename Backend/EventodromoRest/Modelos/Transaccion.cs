@@ -15,4 +15,9 @@
         public TipoDocumento tipoDocumento { get; set; }
         public decimal montoTotal { get; set; }
     }
+    public class RequestTransferencia
+    {
+        public string email { get; set; }
+        public List <int> entradas { get; set; }
+    }
 }

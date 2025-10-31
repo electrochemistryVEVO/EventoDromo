@@ -14,6 +14,8 @@
         public DateTime fechaCompra { get; set; }
         public bool isDeleted { get; set; }
         public string? imagenURL { get; set; }
+        public FechaEvento[]? fechasEvento {get; set;}
+        public TipoEntrada[]? tiposEntrada { get; set; }
     }
     public class EventoxCarritoDTO
     {
@@ -28,6 +30,16 @@
     public class RequestListarEventosPorTipo
     {
         public required int idTipoEvento { get; set; }
+    }
+    
+    public class RequestListarEventosPorBusqueda
+    {
+        public required string busqueda { get; set; }
+    }
+
+    public class RequestObtenerEventoPorId
+    {
+        public required int idEvento { get; set; }
     }
 
     public class RequestListarEventosPorBusqueda
@@ -87,5 +99,12 @@
         public string descripcion { get; set; }
         public string imagenUrl { get; set; }
         public TipoEvento tipoEvento { get; set; }
+    }
+
+    public class EventoDTO
+    {
+        public int id { get; set; }
+        public string nombreEvento { get; set; }
+        public string imagenURL { get; set; }
     }
 }
