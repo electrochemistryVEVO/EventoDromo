@@ -54,7 +54,7 @@ namespace EventodromoRest.Controllers
                 }
 
                 // 2️⃣ Obtener los locales desde la capa de negocio
-                var locales = new LocalBO(globales, BD).ListarLocales();
+                var locales = new LocalBO(globales, BD).ListarLocales2();
 
                 if (locales == null || locales.Count == 0)
                 {
@@ -101,12 +101,5 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
-
-<<<<<<< HEAD
-        
-=======
-
-
->>>>>>> develop-grupo2
     }
 }
