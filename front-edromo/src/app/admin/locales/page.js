@@ -145,9 +145,9 @@ function GestionLocales() {
                         </thead>
                         <tbody>
                         {locales
-                            ?.filter((e)=>{return e.nombreCiudad?.toLowerCase().includes(filter)
-                            ||e.local?.toLowerCase().includes(filter)
-                            ||e.direccion?.toLowerCase().includes(filter)})
+                            ?.filter((e)=>{return e.nombreCiudad.toLowerCase().includes(filter)
+                            ||e.local.toLowerCase().includes(filter)
+                            ||e.direccion.toLowerCase().includes(filter)})
                             ?.map((local) => (
                             <tr key={local.id}>
                                 <td>{local.nombre}</td>
