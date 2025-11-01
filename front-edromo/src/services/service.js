@@ -14,7 +14,7 @@ let appCache = {
     lastFetch: 0     // Marca de tiempo de la última vez que fuimos al backend
 };
 // Tiempo de vida del caché en milisegundos (ej. 5 minutos)
-const CACHE_DURATION_MS = 5 * 60 * 1000;
+const CACHE_DURATION_MS = 20 * 60 * 1000;
 
 /**
  * Función INTERNA que obtiene y cachea los datos del backend.
