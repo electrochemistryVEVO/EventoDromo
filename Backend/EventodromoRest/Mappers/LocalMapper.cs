@@ -33,7 +33,7 @@ namespace EventodromoRest.Mappers
                         id = DB.GetInt("ID"),
                         nombre = DB.GetString("NOMBRE"),
                         ciudad = DB.GetString("CIUDADNOMBRE"),
-                        imagen = DB.GetString("IMAGENURL")
+                        imagenURL = DB.GetString("IMAGENURL")
                     };
                     listaLocal.Add(local);
                 }
