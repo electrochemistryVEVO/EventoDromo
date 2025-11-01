@@ -284,11 +284,43 @@ namespace EventodromoRest.Mappers
                 }
                 //NOTA: Hacer las solicitudes anidadas despues de completar toda la lectura
                 //Aparentemente, cuando el DB hace otra solicitud, se olvida de esta
-                foreach(Evento evento in listaEvento){
+                foreach (Evento evento in listaEvento)
+                {
                     evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento);
                     evento.Local = ObtenerLocalPorId(evento.idLocal);
                 }
                 return listaEvento;
+            }
+        }
+
+        public ResponseEvento ObtenerResponseEventoPorId(int eventoId)
+        {
+            lock (DB)
+            {
+                string query = "SELECT id, nombre, descripcion, imagenURL, idTipoEvento FROM Evento WHERE ID = @ID";
+                var parametros = new ParameterList();
+                parametros.Add("@ID", eventoId);
+                DB.Select(query, parametros);
+                if (DB.Read())
+                {
+                    ResponseEvento evento = new()
+                    {
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        descripcion = DB.GetString("DESCRIPCION"),
+                        imagenUrl = DB.GetString("IMAGENURL"),
+                        tipoEvento = new TipoEvento
+                        {
+                            id = DB.GetInt("IDTIPOEVENTO"),
+                        }
+                    };
+                    evento.tipoEvento = ObtenerTipoEventoPorId((int)evento.tipoEvento.id);
+                    return evento;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
     }

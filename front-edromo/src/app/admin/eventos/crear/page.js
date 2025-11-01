@@ -106,9 +106,9 @@ const CrearEventoPage = () => {
             <button
               onClick={handleSubmit}
               disabled={isLoading}
-              className="bg-green-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="bg-[#00C49A] text-white font-bold px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Creando Evento..." : "+ Crear Evento"}
+              {isLoading ? "Creando Evento..." : "Crear Evento"}
             </button>
           </div>
         </div>

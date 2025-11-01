@@ -1,12 +1,14 @@
 "use client";
-import React, { useState, useEffect, Suspense} from "react";
+// 1. Importamos useMemo
+import React, { useState, useEffect, Suspense, useMemo } from "react";
+// --- IMPORTACIONES ---
+import { useSearchParams } from "next/navigation";
 
-// 1. IMPORTACIONES
-// Importamos el service que se encarga de traer los datos.
-import { getEventDetails } from "@/services/DetalleEventoServices";
-import { obtenerDetallePorId } from "@/services/EntradaDetalle.service"
+// Servicios
+// import { getEventDetails } from "@/services/DetalleEventoServices";
+import { obtenerDetallePorId } from "@/services/EntradaDetalle.service";
 
-// Importamos todos los componentes visuales que hemos creado.
+// Componentes visuales
 import EventBanner from "@/components/detalle-evento/EventoBanner";
 import EventImage from "@/components/detalle-evento/EventoImagen";
 import PromotionBar from "@/components/detalle-evento/PromotionBar";
@@ -16,104 +18,97 @@ import LocationInfo from "@/components/detalle-evento/LocationInfo"
 
 
 const EventPageController = () => {
-  // 2. ESTADO
-  // Estado para saber si los datos están cargando. Inicia en `true`.
+  // --- 2. SECCIÓN DE HOOKS (TODOS JUNTOS) ---
   const [isLoading, setIsLoading] = useState(true);
-  // Estado para guardar la respuesta completa del service (el JSON). Inicia en `null`.
   const [eventData, setEventData] = useState(null);
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
 
-  // 3. EFECTO PARA OBTENER DATOS
-  // useEffect se ejecuta una sola vez cuando el componente se monta en la pantalla,
-  // gracias al array de dependencias vacío `[]`.
   useEffect(() => {
-    // Definimos una función asíncrona para poder usar await.
     const fetchEventData = async () => {
       try {
-        // Llamamos a la función `fetch` de nuestro service. Le pasamos un ID de ejemplo.
-        // El service se encargará de traer los datos (del JSON local o de la API).
-        const data = await obtenerDetallePorId(1);
-        setEventData(data); // Guardamos la respuesta en el estado.
+        const data = await obtenerDetallePorId(id);
+        setEventData(data);
       } catch (error) {
-        console.error(
-          "Error en el controller al obtener datos del evento:",
-          error
-        );
-        // En caso de un error grave, también lo guardamos para mostrar un mensaje.
+        console.error("Error al obtener datos:", error);
         setEventData({ success: false, error: "Error de conexión." });
       } finally {
-        // Se ejecuta siempre, tanto si hubo éxito como si hubo error.
-        setIsLoading(false); // Indicamos que la carga ha terminado.
+        setIsLoading(false);
       }
     };
 
-    fetchEventData(); // Ejecutamos la función.
-  }, []); // El `[]` asegura que esto se ejecute solo una vez.
+    if (id) {
+      fetchEventData();
+    } else {
+      console.error("No se proporcionó un ID en la URL.");
+      setEventData({ success: false, error: "ID de evento no encontrado." });
+      setIsLoading(false);
+    }
+  }, [id]);
 
-  // 4. MANEJADOR DE EVENTOS
-  // Esta función se pasa como prop al BookingPanel. Se ejecutará cuando el usuario
-  // haga clic en "Agregar al Carrito" dentro de ese componente hijo.
+  // <-- ¡SOLUCIÓN! Movemos el useMemo aquí arriba
+  // Lo hacemos "seguro" para que no falle si eventData es null
+  const { evento, local, funciones } = useMemo(() => {
+    // Si no hay datos O la petición falló, devolvemos una estructura vacía y estable
+    if (!eventData || !eventData.success || !eventData.data) {
+      return { evento: null, local: null, funciones: [] };
+    }
+    // Si hay datos, los devolvemos
+    return eventData.data;
+  }, [eventData]); // Solo se recalcula si 'eventData' cambia
+
+  // --- 4. MANEJADOR DE EVENTOS ---
   const handleAddToCart = (bookingDetails) => {
+    // Añadimos una comprobación por si acaso, usando la variable 'evento' del useMemo
+    if (!evento) {
+      console.error("handleAddToCart se llamó sin datos del evento.");
+      return;
+    }
+    
     console.log("--- DETALLES PARA AGREGAR AL CARRITO ---");
-    console.log("Evento:", eventData.data.evento.nombre);
-    console.log(
-      "Función (Fecha y Hora) ID:",
-      bookingDetails.selectedFunctionId
-    );
+    console.log("Evento:", evento.nombre); // Usamos la variable 'evento'
+    console.log("Función (Fecha y Hora) ID:", bookingDetails.selectedFunctionId);
     console.log("Entradas seleccionadas:", bookingDetails.ticketQuantities);
     console.log("Precio Total:", `S/ ${bookingDetails.totalPrice.toFixed(2)}`);
 
-    // Aquí es donde, en un futuro, llamarías a otro servicio para
-    // guardar esta información en el estado global de la aplicación o en el backend.
     alert(
       "¡Entradas agregadas al carrito! Revisa la consola para ver los detalles."
     );
   };
 
-  // 5. RENDERIZADO CONDICIONAL
-  // Mientras isLoading sea true, mostramos un mensaje de carga.
+  // --- 5. RENDERIZADO CONDICIONAL ---
+  // (Ahora todos los hooks están ANTES de estos returns, lo cual es correcto)
   if (isLoading) {
     return <div>Cargando información del evento...</div>;
   }
 
-  // Si la carga terminó pero no hay datos, o la respuesta indica que no tuvo éxito,
-  // mostramos un mensaje de error. Esto previene que la app se rompa.
-  if (!eventData || !eventData.success) {
+  // Si 'evento' es null (del useMemo), significa que el fetch falló o no vino data.
+  if (!evento) {
     return (
       <div>
-        Error: No se pudo cargar la información del evento. Por favor, intente
-        más tarde.
+        Error: No se pudo cargar la información del evento.
+        {eventData?.error && <p>{eventData.error}</p>}
       </div>
     );
   }
 
-  // 6. PREPARACIÓN DE DATOS PARA LOS COMPONENTES
-  // Si llegamos aquí, significa que tenemos datos válidos.
-  // Destructuramos los datos para que sea más fácil pasarlos a los componentes.
-  const evento = eventData.data;
-  let local = evento.local
-  let funciones = evento.fechasEvento
-  let tiposDeEntrada = evento.tiposEntrada
+  // --- 6. PREPARACIÓN DE DATOS ---
+  // (Las variables 'evento', 'local', y 'funciones' ya vienen del useMemo)
 
-  // Calculamos el máximo de puntos para la barra de promoción.
-  const maxPuntos = Math.max(
-    ...tiposDeEntrada.map((entrada) => entrada.puntos)
-  );
-  let url = evento.imagenURL
-  // 7. RENDERIZADO FINAL
-  // Devolvemos el JSX que ensambla todos nuestros componentes, pasándoles
-  // los datos que necesitan a través de los props.
+  const ticketsPrimeraFuncion = (funciones || [])[0]?.tiposDeEntrada || [];
+  const puntos = ticketsPrimeraFuncion.map((entrada) => entrada.puntos);
+  const maxPuntos = puntos.length > 0 ? Math.max(...puntos) : 0;
+  let url = evento.imagenUrl;
+
+  // --- 7. RENDERIZADO FINAL ---
   return (
     <main className="event-page-container">
-      {/* 1. El banner de fondo no cambia */}
       <EventBanner imageUrl={url} eventName={evento.nombre} />
       <div className="page-layout">
-        {/* 2. COLUMNA IZQUIERDA (AHORA CON LA IMAGEN NÍTIDA PRIMERO) */}
         <div className="main-column">
-          {/* ¡NUEVO COMPONENTE AQUÍ! */}
-          <Suspense fallback={(<div></div>)}>
+          <Suspense fallback={<div>Cargando imagen del evento...</div>}>
             <EventImage imageUrl={url} eventName={evento.nombre} />
           </Suspense>
-
           <PromotionBar maxPoints={maxPuntos} />
           <EventInfo
             eventName={evento.nombre}
@@ -121,12 +116,10 @@ const EventPageController = () => {
           />
         </div>
 
-        {/* 3. COLUMNA DERECHA (SIN CAMBIOS EN SU CONTENIDO) */}
         <div className="sidebar-column">
           <BookingPanel
             eventName={evento.nombre}
             functions={funciones}
-            ticketTiers={tiposDeEntrada}
             onAddToCart={handleAddToCart}
           />
           <LocationInfo

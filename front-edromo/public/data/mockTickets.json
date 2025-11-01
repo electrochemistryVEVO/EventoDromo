@@ -1,0 +1,28 @@
+{
+  "tickets": [
+    {
+      "id": "ENT-2839",
+      "image": "/images/eventos/festival-overpass-lima.png",
+      "eventInfo": "Overpass Lima - 8:00 PM - LIMA,PE",
+      "type": "SuperVIP"
+    },
+    {
+      "id": "ENT-2135",
+      "image": "/images/eventos/festival-overpass-lima.png",
+      "eventInfo": "Overpass Lima - 8:00 PM - LIMA,PE",
+      "type": "VIP"
+    },
+    {
+      "id": "ENT-8420",
+      "image": "/images/eventos/festival-overpass-lima.png",
+      "eventInfo": "Overpass Lima - 8:00 PM - LIMA,PE",
+      "type": "General"
+    },
+    {
+      "id": "ENT-XXXX",
+      "image": "/images/eventos/festival-overpass-lima.png",
+      "eventInfo": "Overpass Lima - 8:00 PM - LIMA,PE",
+      "type": "General"
+    }
+  ]
+}

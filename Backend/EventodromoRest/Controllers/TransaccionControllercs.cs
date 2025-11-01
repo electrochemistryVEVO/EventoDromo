@@ -34,5 +34,29 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
+
+        [HttpGet]
+        [Route("/api/[controller]/[action]/{idTransaccion}")]
+        public GenericResponse<List<Entrada>> ListarEntradasPorTransaccion(int idTransaccion)
+        {
+            try
+            {
+                return new TransaccionBO(globales, BD).ListarEntradasPorTransaccion(idTransaccion);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<List<Entrada>>
+                {
+                    Success = false,
+                    Message = "Error interno del servidor.",
+                    Data = null,
+                    Error = e.Message
+                };
+
+                AgregarEntradaBitacora(e, $"ListarEntradasPorTransaccion GET id:{idTransaccion}", JsonSerializer.Serialize(response));
+
+                return response;
+            }
+        }
     }
 }

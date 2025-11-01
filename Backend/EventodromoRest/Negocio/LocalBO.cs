@@ -52,7 +52,7 @@ namespace EventodromoRest.Negocio
             response.Data = mapper.ModificarLocal(local);
             return response;
         }
-        
+
         public GenericResponse<int> EliminarLocal(int idLocal)
         {
             LocalMapper mapper = new LocalMapper(globales, DB);
@@ -60,6 +60,11 @@ namespace EventodromoRest.Negocio
             response.Success = true;
             response.Data = mapper.EliminarLocalPorId(idLocal);
             return response;
+        }
+        public List<Local> ListarLocales2()
+        {
+            var mapper = new LocalMapper(globales, DB);
+            return mapper.ListarLocales2();
         }
     }
 }

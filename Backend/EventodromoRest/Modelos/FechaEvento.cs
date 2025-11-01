@@ -11,4 +11,17 @@
     {
         public required int idEvento { get; set; } 
     }
-}
+
+    public class ResponseFechaEvento
+    {
+        public int id { get; set; }
+        public string fecha { get; set; }
+        public string hora { get; set; }
+        public List<ResponseTipoEntrada> tiposDeEntrada { get; set; }
+    }
+    public class FuncionDTO
+    {
+        public int id { get; set; }
+        public DateTime fechaHora { get; set; }
+    }
+} 

@@ -13,7 +13,18 @@ namespace EventodromoRest.Mappers
             List<LocalCiudadImagenDTO> listaLocal = new List<LocalCiudadImagenDTO>();
             lock (DB)
             {
-                string query = "SELECT * FROM Local WHERE ISDELETED=0";
+                string query = @"SELECT
+                                    L.ID,
+                                    L.NOMBRE,
+                                    L.IMAGENURL,
+                                    C.NOMBRE AS CIUDADNOMBRE
+                                FROM
+                                    Local AS L
+                                JOIN
+                                    Ciudad AS C ON L.idCiudad = C.ID
+                                WHERE
+                                    L.isDeleted = 0;"; // Asumiendo que 0 es 'no borrado'
+
                 DB.Select(query, null);
                 while (DB.Read())
                 {
@@ -21,19 +32,50 @@ namespace EventodromoRest.Mappers
                     {
                         id = DB.GetInt("ID"),
                         nombre = DB.GetString("NOMBRE"),
-                        id_ciudad = DB.GetInt("IDCIUDAD"),
-                        imagenURL = DB.GetString("IMAGENURL")
+                        ciudad = DB.GetString("CIUDADNOMBRE"),
+                        imagen = DB.GetString("IMAGENURL")
                     };
                     listaLocal.Add(local);
                 }
 
-                foreach (LocalCiudadImagenDTO local in listaLocal)
-                {
-                    Ciudad ciudad = ObtenerCiudadPorId(local.id_ciudad);
-                    local.ciudad = ciudad?.nombre;
-                }
                 return listaLocal;
             }
+        }
+
+        public List<Local> ListarLocales2()
+        {
+            List<Local> listaLocal = new();
+            lock (DB)
+            {
+                string query = "SELECT Local.*,COUNT(E.id) AS EVENTOS,C.nombre AS NOMBRECIUDAD"
+                               + " FROM Local LEFT JOIN Evento AS E ON Local.id = E.idLocal"
+                               + " LEFT JOIN Ciudad AS C ON Local.idCiudad = C.id"
+                               + " GROUP BY Local.id;";
+                DB.Select(query, null);
+                while (DB.Read())
+                {
+                    Local local = new()
+                    {
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        idCiudad = DB.GetInt("IDCIUDAD"),
+                        direccion = DB.GetString("DIRECCION"),
+                        capacidad = DB.GetInt("CAPACIDAD"),
+                        isDeleted = DB.GetBoolean("ISDELETED"),
+                        idAdministrador = DB.GetInt("CREADOPOR"),
+                    };
+                    listaLocal.Add(local);
+                }
+            }
+
+            // Cerrar DataReader antes de nuevas consultas
+            foreach (var local in listaLocal)
+            {
+                local.ciudad = ObtenerCiudadPorId(local.idCiudad);
+                local.administrador = ObtenerAdministradorPorId(local.idAdministrador);
+            }
+
+            return listaLocal;
         }
         
         public List<Local> ListarLocalesAdmin()
@@ -153,6 +195,48 @@ namespace EventodromoRest.Mappers
         {
             var administradorMapper = new AdministradorMapper(globales, DB);
             return administradorMapper.ObtenerAdministradorPorId(v);
+        }
+
+        public ResponseLocal ObtenerLocalPorIdEvento(int eventoId)
+        {
+            CiudadMapper ciudadMapper = new CiudadMapper(globales, DB);
+            lock (DB)
+            {
+                string query = @"SELECT
+                                    L.id AS ID,
+                                    L.nombre AS NOMBRE,
+                                    L.direccion AS DIRECCION,
+                                    L.idCiudad AS IDCIUDAD
+                                FROM
+                                    Local AS L
+                                JOIN
+                                    Evento AS E ON L.id = E.idLocal
+                                WHERE
+                                    E.id = @IdEvento;";
+
+                var parametros = new ParameterList();
+                parametros.Add("@IdEvento", eventoId);
+                DB.Select(query, parametros);
+                if (DB.Read())
+                {
+                    ResponseLocal local = new ResponseLocal();
+                    local.id = DB.GetInt("ID");
+                    local.nombre = DB.GetString("NOMBRE");
+                    local.direccion = DB.GetString("DIRECCION");
+                    local.ciudad = new Ciudad()
+                    {
+                        id = DB.GetInt("IDCIUDAD")
+                    };
+                    local.googleMapsEmbed = "<iframe src=\"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3901.9705727105875!2d-77.037574524449!3d-12.045545688191202!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c8ca3c54dd11%3A0x40b0447dcf24a5c8!2sTeatro%20Municipal%20de%20Lima!5e0!3m2!1ses!2spe!4v1760080206514!5m2!1ses!2spe\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\" referrerpolicy=\"no-referrer-when-downgrade\"></iframe>";
+
+                    local.ciudad = ciudadMapper.ObtenerCiudadPorId((int)local.ciudad.id);
+                    return local;
+                }
+                else
+                {
+                    return null;
+                }
+            }
         }
     }
 }

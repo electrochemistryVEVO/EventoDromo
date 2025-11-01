@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '@/css/compraConLogin.module.css';
 import CostoDetalleEntradas from '@/components/carrito/costoDetalleEntradas';
-import arrow_left from '@/assets/icons/arrow_left.svg';
-import LogoUsuarioEncendido from '@/assets/icons/LogoUsuarioEncendido.svg';
-import LogoPagoApagado from '@/assets/icons/LogoPagoApagado.svg';
+import arrow_left from 'public/images/icon/arrow_left.svg';
+import LogoUsuarioEncendido from 'public/images/icon/LogoUsuarioEncendido.svg';
+import LogoPagoApagado from 'public/images/icon/LogoPagoApagado.svg';
 import Image from 'next/image';
 
 function App() {

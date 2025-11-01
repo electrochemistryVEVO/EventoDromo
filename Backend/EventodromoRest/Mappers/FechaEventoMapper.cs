@@ -99,6 +99,37 @@ namespace EventodromoRest.Mappers
             }
         }
 
+        public List<ResponseFechaEvento> ListarResponseFechaEventoPorEvento(int idEvento)
+        {
+            TipoEntradaMapper tipoEntradaMapper = new TipoEntradaMapper(globales, DB);
+            lock (DB)
+            {
+                string query = "SELECT ID, FECHAHORA FROM FechaEvento WHERE IDEVENTO = @IDEVENTO";
+                var parametros = new ParameterList();
+                parametros.Add("@IDEVENTO", idEvento);
+                DB.Select(query, parametros);
+                List<ResponseFechaEvento> fechaEventos = new List<ResponseFechaEvento>();
+                while (DB.Read())
+                {
+                    ResponseFechaEvento fechaEvento = new()
+                    {
+                        id = DB.GetInt("ID"),
+                        tiposDeEntrada = new List<ResponseTipoEntrada>()
+                    };
+                    DateTime fechaHora = DB.GetDateTime("FECHAHORA");
+                    fechaEvento.fecha = fechaHora.ToString("yyyy-MM-dd");
+                    fechaEvento.hora = fechaHora.ToString("HH-mm");
+                    fechaEventos.Add(fechaEvento);
+                }
+
+                foreach (ResponseFechaEvento fechaEvento in fechaEventos)
+                {
+                    fechaEvento.tiposDeEntrada = tipoEntradaMapper.ListarResponseTipoEntradaPorFechaEvento(fechaEvento.id);
+                }
+                return fechaEventos;
+            }
+        }
+
         public int EliminarFechaEventoPorId(int id)
         {
             lock (DB)

@@ -26,4 +26,25 @@
         public string ciudad { get; set; }
         public string imagenURL { get; set; }
     }
+
+    public class ResponseLocal
+    {
+        public int id { get; set; }
+        public string nombre { get; set; }
+        public string direccion { get; set; }
+        public Ciudad ciudad { get; set; }
+        public string googleMapsEmbed { get; set; }
+    }
+
+    public class LocalDTO
+    {
+        public string nombre { get; set; }
+        public string ciudad { get; set; }
+    }
+    public class getLocalesResponse
+    {
+        public int id { get; set; }
+        public string nombre { get; set; }
+        public int capacidad { get; set; }
+    }
 }

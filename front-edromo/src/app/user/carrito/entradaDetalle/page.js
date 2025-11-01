@@ -4,8 +4,6 @@ import { TablaEntradas } from "@/components/carrito/tablaEntradas";
 import CostoDetalleEntradas from "@/components/carrito/costoDetalleEntradas";
 import CheckboxCarrito from "@/components/carrito/CheckboxCarrito";
 import { useState } from "react";
-// Importamos los archivos SVG directamente. Next.js nos dará un objeto con la ruta en .src
-import iconoFlechaIzq from "@/assets/icons/flecha_izquierda.svg";
 
 function EntradaDetallePage() {
   // Estados para los checkboxes
@@ -72,18 +70,18 @@ function EntradaDetallePage() {
                 }
               }}
             >
-              {/* Usamos la etiqueta <img> con la ruta del SVG importado */}
               <img
-                src="/assets/logos/icono_carrito.svg"
-                alt=""
+                src="/images/icon/carrito_blanco.svg"
+                alt="carrito_blanco"
                 width="24"
                 height="24"
-                style={{ filter: "brightness(0) invert(1)" }}
               />
               Finalizar Pedido
             </button>
-            <button className="w-full flex flex-row  justify-center items-center  gap-4 max-w-sm rounded-2xl bg-[#EFECEC] py-4 text-base font-bold text-gray-500 transition border-gray-400 border-2">
-              <img src={iconoFlechaIzq.src} alt="" width="30" height="30" />
+            <button
+              className="flex w-full max-w-sm flex-row items-center justify-center gap-4 rounded-2xl border-2 border-gray-400 bg-[#EFECEC] py-4 text-base font-bold text-gray-500 transition"
+            >
+              <img src="/images/icon/arrow_left.svg" alt="Elegir más eventos" width="30" height="30" />
               Elegir más eventos
             </button>
           </div>

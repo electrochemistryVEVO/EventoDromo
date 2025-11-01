@@ -1,43 +1,4 @@
 /**
- * --- SIMULACIÓN ---
- * Verifica la contraseña actual del usuario contra un valor hardcodeado.
- * @param {string} currentPassword - La contraseña que el usuario ingresó.
- * @returns {Promise<Object>} - Una promesa que resuelve o se rechaza para simular la respuesta del backend.
- */
-/*
-export const verifyCurrentPassword = async (currentPassword) => {
-  // Definimos cuál será la contraseña "correcta" para nuestra simulación.
-  const MOCK_CORRECT_PASSWORD = "password123";
-
-  console.log(
-    `Simulando verificación. Contraseña ingresada: "${currentPassword}"`
-  );
-  console.log(
-    `La contraseña correcta hardcodeada es: "${MOCK_CORRECT_PASSWORD}"`
-  );
-
-  // Usamos una Promesa con un setTimeout para simular el tiempo de espera de una llamada a la red.
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (currentPassword === MOCK_CORRECT_PASSWORD) {
-        // Si la contraseña coincide, resolvemos la promesa.
-        // Esto simula una respuesta exitosa (HTTP 200) del backend.
-        console.log("Simulación: ¡Contraseña correcta!");
-        resolve({
-          status: "success",
-          message: "La contraseña ha sido verificada.",
-        });
-      } else {
-        // Si la contraseña NO coincide, rechazamos la promesa con un Error.
-        // Esto simula una respuesta de error (HTTP 401) del backend.
-        console.log("Simulación: Contraseña incorrecta.");
-        reject(new Error("La contraseña es incorrecta. Intente de nuevo."));
-      }
-    }, 1500); // Simulamos una espera de 1.5 segundos.
-  });
-};
-*/
-/**
  * Verifica la contraseña actual del usuario contra el backend.
  * @param {string} currentPassword - La contraseña que el usuario ingresó.
  * @returns {Promise<Object>} - Una promesa que resuelve con la respuesta del backend.
@@ -74,7 +35,6 @@ export const verifyCurrentPassword = async (currentPassword, token) => {
         errorData.message || "La contraseña es incorrecta. Intente de nuevo."
       );
     }
-
     // Si todo fue bien, devolvemos la respuesta.
     return await response.json();
   } catch (error) {

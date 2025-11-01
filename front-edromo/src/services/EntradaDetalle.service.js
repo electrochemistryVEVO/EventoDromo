@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:8080/api"
+//const API_URL = "http://localhost:8080/api"
+const API_URL = "http://localhost:5189/api"
 export async function obtenerDetallePorId(idEvento){
     let url = API_URL+"/Evento/ObtenerEventoPorId"
     return await fetch(url,{

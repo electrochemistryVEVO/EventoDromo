@@ -28,7 +28,6 @@ export async function autenticarUsuario(loginInfo) {
     );
   }
   return json.data;
-
   /*
   // Simulación de una llamada al backend
   console.log(" MODO HARDCODEADO: Devolviendo respuesta de login simulada.");
@@ -36,7 +35,7 @@ export async function autenticarUsuario(loginInfo) {
   return {
     success: true,
     rol: "C",
-  */
+    */
 }
 
 export async function verificarCorreoExistente(email) {
