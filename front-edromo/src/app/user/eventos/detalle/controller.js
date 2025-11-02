@@ -1,11 +1,8 @@
 "use client";
-// 1. Importamos useMemo
 import React, { useState, useEffect, Suspense, useMemo } from "react";
-// --- IMPORTACIONES ---
 import { useSearchParams } from "next/navigation";
 
 // Servicios
-// import { getEventDetails } from "@/services/DetalleEventoServices";
 import { obtenerDetallePorId } from "@/services/EntradaDetalle.service";
 
 // Componentes visuales
@@ -17,20 +14,53 @@ import BookingPanel from "@/components/detalle-evento/BookingPanel";
 import LocationInfo from "@/components/detalle-evento/LocationInfo";
 
 const EventPageController = () => {
-  // --- 2. SECCIÓN DE HOOKS (TODOS JUNTOS) ---
+  // --- HOOKS AL INICIO ---
   const [isLoading, setIsLoading] = useState(true);
   const [eventData, setEventData] = useState(null);
+  const [error, setError] = useState(null);
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
+
+  // useMemo DEBE estar aquí, antes de cualquier return
+  const { evento, local, funciones } = useMemo(() => {
+    if (!eventData || !eventData.success || !eventData.data) {
+      return { evento: null, local: null, funciones: [] };
+    }
+    return eventData.data;
+  }, [eventData]);
 
   useEffect(() => {
     const fetchEventData = async () => {
       try {
+        if (!id) {
+          throw new Error("No se proporcionó ID en la URL");
+        }
+
         const data = await obtenerDetallePorId(id);
+        
+        if (!data) {
+          throw new Error("La API devolvió null o undefined");
+        }
+        
+        if (data.success === false) {
+          throw new Error(data.error || data.message || "Error del servidor");
+        }
+        
+        if (!data.data) {
+          throw new Error("El servidor no devolvió datos del evento");
+        }
+        
         setEventData(data);
+        setError(null);
+        
       } catch (error) {
-        console.error("Error al obtener datos:", error);
-        setEventData({ success: false, error: "Error de conexión." });
+        console.error("❌ Error en fetchEventData:", error);
+        setError(error.message);
+        setEventData({ 
+          success: false, 
+          error: error.message,
+          message: error.message
+        });
       } finally {
         setIsLoading(false);
       }
@@ -39,75 +69,73 @@ const EventPageController = () => {
     if (id) {
       fetchEventData();
     } else {
-      console.error("No se proporcionó un ID en la URL.");
-      setEventData({ success: false, error: "ID de evento no encontrado." });
+      const errorMsg = "No se proporcionó un ID en la URL.";
+      setError(errorMsg);
+      setEventData({ 
+        success: false, 
+        error: errorMsg,
+        message: errorMsg
+      });
       setIsLoading(false);
     }
   }, [id]);
 
-  // <-- ¡SOLUCIÓN! Movemos el useMemo aquí arriba
-  // Lo hacemos "seguro" para que no falle si eventData es null
-  const { evento, local, funciones } = useMemo(() => {
-    // Si no hay datos O la petición falló, devolvemos una estructura vacía y estable
-    if (!eventData || !eventData.success || !eventData.data) {
-      return { evento: null, local: null, funciones: [] };
-    }
-    // Si hay datos, los devolvemos
-    return eventData.data;
-  }, [eventData]); // Solo se recalcula si 'eventData' cambia
-
-  // --- 4. MANEJADOR DE EVENTOS ---
-  const handleAddToCart = (bookingDetails) => {
-    // Añadimos una comprobación por si acaso, usando la variable 'evento' del useMemo
-    if (!evento) {
-      console.error("handleAddToCart se llamó sin datos del evento.");
-      return;
-    }
-    
-    console.log("--- DETALLES PARA AGREGAR AL CARRITO ---");
-    console.log("Evento:", evento.nombre); // Usamos la variable 'evento'
-    console.log("Función (Fecha y Hora) ID:", bookingDetails.selectedFunctionId);
-    console.log("Entradas seleccionadas:", bookingDetails.ticketQuantities);
-    console.log("Precio Total:", `S/ ${bookingDetails.totalPrice.toFixed(2)}`);
-
-    alert(
-      "¡Entradas agregadas al carrito! Revisa la consola para ver los detalles."
-    );
-  };
-
-  // --- 5. RENDERIZADO CONDICIONAL ---
-  // (Ahora todos los hooks están ANTES de estos returns, lo cual es correcto)
+  // --- RENDERIZADO CONDICIONAL ---
   if (isLoading) {
-    return <div>Cargando información del evento...</div>;
-  }
-
-  // Si 'evento' es null (del useMemo), significa que el fetch falló o no vino data.
-  if (!evento) {
     return (
-      <div>
-        Error: No se pudo cargar la información del evento.
-        {eventData?.error && <p>{eventData.error}</p>}
+      <div className="p-4 text-center">
+        <div>Cargando información del evento...</div>
+        <div className="text-sm text-gray-500">ID: {id}</div>
       </div>
     );
   }
 
-  // --- 6. PREPARACIÓN DE DATOS ---
-  // (Las variables 'evento', 'local', y 'funciones' ya vienen del useMemo)
+  if (!evento || error) {
+    return (
+      <div className="p-4">
+        <div className="text-red-600 font-bold">Error: No se pudo cargar la información del evento.</div>
+        <div className="mt-4 p-4 bg-gray-100 rounded">
+          <p><strong>ID solicitado:</strong> {id || "No proporcionado"}</p>
+          <p><strong>Error:</strong> {error || eventData?.error || eventData?.message || "Desconocido"}</p>
+        </div>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
 
-  const ticketsPrimeraFuncion = (funciones || [])[0]?.tiposDeEntrada || [];
-  const puntos = ticketsPrimeraFuncion.map((entrada) => entrada.puntos);
+  // --- PREPARACIÓN DE DATOS ---
+  const ticketsPrimeraFuncion = funciones?.[0]?.tiposDeEntrada || [];
+  const puntos = ticketsPrimeraFuncion.map((entrada) => entrada.puntos).filter(punto => punto != null);
   const maxPuntos = puntos.length > 0 ? Math.max(...puntos) : 0;
-  let url = evento.imagenUrl;
+  
+  const url = evento.imagenUrl || "";
+  const ciudadInfo = local?.ciudad ? 
+    `${local.ciudad.nombre}, ${local.ciudad.pais?.nombre || ''}` : 
+    "Ciudad no disponible";
 
-  // --- 7. RENDERIZADO FINAL ---
+  const handleAddToCart = (bookingDetails) => {
+    console.log("--- DETALLES PARA AGREGAR AL CARRITO ---");
+    console.log("Evento:", evento.nombre);
+    console.log("Función ID:", bookingDetails.selectedFunctionId);
+    console.log("Entradas:", bookingDetails.ticketQuantities);
+    console.log("Precio Total:", `S/ ${bookingDetails.totalPrice.toFixed(2)}`);
+
+    alert("¡Entradas agregadas al carrito! Revisa la consola para ver los detalles.");
+  };
+
+  // --- RENDERIZADO FINAL ---
   return (
     <main className="event-page-container">
       <EventBanner imageUrl={url} eventName={evento.nombre} />
       <div className="page-layout">
         <div className="main-column">
-          <Suspense fallback={<div>Cargando imagen del evento...</div>}>
-            <EventImage imageUrl={url} eventName={evento.nombre} />
-          </Suspense>
+          {/* ✅ QUITADO Suspense - EventImage ya es client component normal */}
+          <EventImage imageUrl={url} eventName={evento.nombre} />
           <PromotionBar maxPoints={maxPuntos} />
           <EventInfo
             eventName={evento.nombre}
@@ -118,14 +146,14 @@ const EventPageController = () => {
         <div className="sidebar-column">
           <BookingPanel
             eventName={evento.nombre}
-            functions={funciones}
+            functions={funciones || []}
             onAddToCart={handleAddToCart}
           />
           <LocationInfo
-            city={`${local.ciudad.nombre}, ${local.ciudad.pais.nombre}`}
-            venue={local.nombre}
-            address={local.direccion}
-            googleMapsEmbed={local.googleMapsEmbed}
+            city={ciudadInfo}
+            venue={local?.nombre || "Local no disponible"}
+            address={local?.direccion || "Dirección no disponible"}
+            googleMapsEmbed={local?.googleMapsEmbed || ""}
           />
         </div>
       </div>

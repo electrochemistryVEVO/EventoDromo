@@ -3,7 +3,7 @@ import Image from "next/image";
 const LocalCard = ({ local }) => (
     <div className="local-card-container">
             <Image 
-                src={local.imagen} 
+                src={local.imagenURL} 
                 alt={local.nombre} 
                 layout="fill" 
                 className="local-card-image" 

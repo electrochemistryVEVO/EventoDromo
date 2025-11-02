@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale } from "react-datepicker";
@@ -10,25 +10,21 @@ import "@/css/detalle-Evento/BookingPanel.css";
 const formatDate = (date) => {
   if (!date) return "";
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0"); // getMonth() es 0-indexed
+  const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
 
-// <-- 1. ELIMINAMOS 'ticketTiers' DE LOS PROPS
 const BookingPanel = ({ eventName, functions, onAddToCart }) => {
   // --- ESTADOS ---
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedFunctionId, setSelectedFunctionId] = useState("");
-  // <-- 2. SIMPLIFICAMOS EL ESTADO INICIAL. Se llenará con un Effect.
   const [ticketQuantities, setTicketQuantities] = useState({});
   const [totalPrice, setTotalPrice] = useState(0);
 
   // --- DATOS DERIVADOS Y MEMOIZADOS ---
-  // Procesa las funciones para agruparlas por fecha.
   const availableDates = useMemo(() => {
     const dates = {};
-    // <-- 3. AÑADIMOS '|| []' como protección si 'functions' es undefined
     (functions || []).forEach((func) => {
       const date = func.fecha;
       if (!dates[date]) {
@@ -37,14 +33,12 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
       dates[date].push({
         id: func.id,
         time: func.hora,
-        // <-- 4. IMPORTANTE: Guardamos los tickets de ESTA función
         tiposDeEntrada: func.tiposDeEntrada || [],
       });
     });
     return dates;
   }, [functions]);
 
-  // Convertimos las fechas de string a objetos Date
   const enabledDates = useMemo(() => {
     return Object.keys(availableDates).map((dateStr) => {
       const [year, month, day] = dateStr.split("-").map(Number);
@@ -57,44 +51,50 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
     ? availableDates[selectedDateString]
     : [];
 
-  // <-- 5. NUEVO DATO DERIVADO: Obtenemos los tickets para la HORA seleccionada
   const currentTicketTiers = useMemo(() => {
     if (!selectedFunctionId) {
-      return []; // Si no hay hora, no hay tickets
+      return [];
     }
-    // Buscamos la función (hora) seleccionada
     const selectedTime = timesForSelectedDate.find(
-      // Comparamos 'find' con el ID (que viene como string del select)
       (time) => time.id.toString() === selectedFunctionId
     );
-    // Devolvemos la lista de tickets de esa función
     return selectedTime?.tiposDeEntrada || [];
   }, [selectedFunctionId, timesForSelectedDate]);
 
-  // --- EFECTOS ---
+  // --- EFECTOS CORREGIDOS ---
 
-  // <-- 6. NUEVO EFFECT: Resetea las cantidades cuando la HORA cambia
+  // ✅ CORREGIDO: Efecto para resetear cantidades cuando cambian los tickets disponibles
   useEffect(() => {
-    // Cuando 'currentTicketTiers' cambia (porque se eligió otra hora),
-    // creamos un nuevo objeto de cantidades inicializado en 0.
     const initialQuantities = {};
     currentTicketTiers.forEach((tier) => {
       initialQuantities[tier.id] = 0;
     });
     setTicketQuantities(initialQuantities);
-    // También reseteamos el precio total
     setTotalPrice(0);
   }, [currentTicketTiers]);
 
-  // <-- 7. EFFECT MODIFICADO: Recalcula el precio total
-  // Ahora depende de 'currentTicketTiers' en lugar del prop 'ticketTiers'
-  useEffect(() => {
-    const newTotal = currentTicketTiers.reduce((total, tier) => {
+  // ✅ CORREGIDO: Cálculo del total usando useCallback para evitar recreación
+  const calculateTotal = useCallback(() => {
+    return currentTicketTiers.reduce((total, tier) => {
       const quantity = ticketQuantities[tier.id] || 0;
       return total + quantity * tier.precio;
     }, 0);
+  }, [ticketQuantities, currentTicketTiers]);
+
+  // ✅ CORREGIDO: Efecto para actualizar el precio total
+  useEffect(() => {
+    const newTotal = calculateTotal();
     setTotalPrice(newTotal);
-  }, [ticketQuantities, currentTicketTiers]); // <-- 8. Dependencia actualizada
+  }, [calculateTotal]);
+
+  // ✅ CORREGIDO: Efecto para inicializar la primera fecha disponible
+  useEffect(() => {
+    if (functions && functions.length > 0 && !selectedDate) {
+      const firstDateStr = functions[0].fecha;
+      const [year, month, day] = firstDateStr.split("-").map(Number);
+      setSelectedDate(new Date(year, month - 1, day));
+    }
+  }, [functions, selectedDate]);
 
   // --- MANEJADORES DE EVENTOS ---
   const handleDateChange = (date) => {
@@ -103,6 +103,7 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
   };
 
   const handleTimeChange = (e) => {
+    console.log("Hora seleccionada:", e.target.value);
     setSelectedFunctionId(e.target.value);
   };
 
@@ -122,9 +123,15 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
       alert("Por favor, seleccione al menos una entrada.");
       return;
     }
+    
+    // ✅ Aseguramos que solo enviemos tickets con cantidad > 0
+    const validTicketQuantities = Object.fromEntries(
+      Object.entries(ticketQuantities).filter(([_, quantity]) => quantity > 0)
+    );
+    
     onAddToCart({
-      selectedFunctionId,
-      ticketQuantities,
+      selectedFunctionId: parseInt(selectedFunctionId),
+      ticketQuantities: validTicketQuantities,
       totalPrice,
     });
   };
@@ -172,13 +179,11 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
       <div className="tickets-section">
         <h4 className="tickets-title">Entradas</h4>
         
-        {/* <-- 9. LÓGICA DE RENDERIZADO MODIFICADA --> */}
         {!selectedFunctionId ? (
           <p className="tickets-placeholder">
             Seleccione un horario para ver las entradas.
           </p>
         ) : (
-          // Usamos 'currentTicketTiers' para renderizar
           currentTicketTiers.map((tier) => (
             <div
               key={tier.id}
@@ -220,8 +225,6 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
             </div>
           ))
         )}
-        {/* <-- Fin de la lógica modificada --> */}
-
       </div>
 
       <div className="booking-total">
