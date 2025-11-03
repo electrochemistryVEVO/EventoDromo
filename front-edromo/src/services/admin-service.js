@@ -4,7 +4,7 @@
  * Obtiene el token de autenticación almacenado.
  * @returns {string|null} - El token JWT o null si no existe.
  */
-const getAuthToken = () => {
+export const getAuthToken = () => {
   const sessionJSON = sessionStorage.getItem("session");
 
   // Variable para guardar el token final

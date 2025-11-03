@@ -1,0 +1,261 @@
+/* --- Variables de Color y Estilos Globales --- */
+:root {
+    --color-primary: #18c2a3; /* Verde/Teal principal */
+    --color-primary-light: #e8f9f7;
+    --color-green: #28a745;
+    --color-green-light: #e6f7ec;
+    --color-red: #dc3545;
+    --color-red-light: #fde8e8;
+    --color-text-dark: #333;
+    --color-text-light: #666;
+    --color-border: #e0e6ed;
+    --color-bg-light: #f7f8fa;
+    --color-bg-white: #ffffff;
+    --shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    --border-radius: 8px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: var(--color-bg-light);
+    color: var(--color-text-dark);
+    margin: 0;
+    padding: 2rem;
+}
+
+/* --- Contenedor de Página --- */
+.page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* --- Botones --- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--border-radius);
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-create {
+    background-color: var(--color-primary);
+    color: var(--color-bg-white);
+}
+
+.btn-create:hover {
+    background-color: #15a890;
+}
+
+.btn-create svg {
+    font-size: 1.1rem;
+}
+
+/* --- Contenedor Principal (Caja Blanca) --- */
+.content-wrapper {
+    background-color: var(--color-bg-white);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden; /* Para que los bordes redondeados afecten a la tabla */
+}
+
+/* --- Barra de Filtros --- */
+.filters-bar {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.search-bar {
+    position: relative;
+    flex-grow: 1;
+    max-width: 350px;
+}
+
+.search-bar .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-light);
+    font-size: 1.1rem;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.btn-filter {
+    background-color: var(--color-primary-light);
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.btn-filter:hover {
+    background-color: #dcf6f2;
+}
+
+/* --- Tabla --- */
+.table-container {
+    width: 100%;
+    overflow-x: auto; /* Permite scroll horizontal en móviles */
+}
+
+.locales-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.locales-table th,
+.locales-table td {
+    padding: 1.25rem 1.5rem;
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.locales-table th {
+    color: var(--color-text-light);
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.locales-table td {
+    color: var(--color-text-dark);
+    font-size: 0.9rem;
+}
+
+.locales-table tbody tr {
+    border-bottom: 1px solid #f0f2f5; /* Línea separadora más suave */
+}
+
+.locales-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* --- Insignia de Estado --- */
+.status-badge {
+    padding: 0.35rem 0.85rem;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-badge.activo {
+    background-color: var(--color-green-light);
+    color: var(--color-green);
+}
+
+.status-badge.inactivo {
+    background-color: var(--color-red-light);
+    color: var(--color-red);
+}
+
+/* --- Iconos de Acción --- */
+.action-icons {
+    display: flex;
+    gap: 1.25rem;
+    font-size: 1.2rem;
+    color: var(--color-text-light);
+}
+
+.action-icons svg {
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.action-icons svg:hover {
+    color: var(--color-text-dark);
+}
+
+.action-icons .icon-restore:hover {
+    color: var(--color-green);
+}
+
+/* --- Paginación --- */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.pagination-arrow,
+.pagination-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-white);
+    border-radius: var(--border-radius);
+    min-width: 38px;
+    height: 38px;
+    padding: 0 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-text-light);
+    cursor: pointer;
+}
+
+.pagination-arrow:hover,
+.pagination-number:hover {
+    border-color: #cdd4dd;
+}
+
+.pagination-number.active {
+    background-color: var(--color-primary-light);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
+.pagination-number-static {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-text-light);
+}
+
+.pagination-ellipsis {
+    color: var(--color-text-light);
+    padding: 0 0.25rem;
+}

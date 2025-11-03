@@ -12,6 +12,8 @@
         public bool isDeleted { get; set; }
         public int idAdministrador { get; set; }
         public Administrador administrador { get; set; }
+        public string? nombreCiudad { get; set; }
+        public int? eventos { get; set; }
     }
     
 
