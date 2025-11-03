@@ -2,7 +2,7 @@ import path from "path";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Configuración de Webpack para alias (la tenías antes)
+  // Configuración de Webpack para alias
   webpack: (config) => {
     config.resolve = config.resolve || {};
     config.resolve.alias = {
@@ -12,25 +12,40 @@ const nextConfig = {
     return config;
   },
 
-  // --- AÑADIDO: Configuración de Imágenes ---
+  // Configuración de Imágenes - CORREGIDA
   images: {
+    domains: [
+      'via.placeholder.com',
+      'placehold.co',
+      '37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev',
+      '0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev'
+    ],
+    // O si prefieres usar remotePatterns (una u otra, no ambas):
     remotePatterns: [
       {
-        protocol: 'https', // Asume HTTPS, cambia si es HTTP
-        hostname: '37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev',
-        // port: '', // Añade si usa un puerto específico
-        // pathname: '/images/**', // Opcional: si solo quieres permitir imágenes de una carpeta específica
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
       },
       {
         protocol: 'https',
         hostname: 'placehold.co',
       },
-      // Puedes añadir más objetos aquí si necesitas permitir otros dominios
-      // Ejemplo: { protocol: 'https', hostname: 'otro.dominio.com' }
+      {
+        protocol: 'https',
+        hostname: '37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev',
+      },
+      {
+        protocol: 'https',
+        hostname: '0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev',
+      },
     ],
   },
-  // --- FIN AÑADIDO ---
 
+  // Configuración de Turbopack para eliminar el warning
+  turbopack: {
+    // Especifica explícitamente el directorio raíz
+    root: process.cwd(),
+  },
 };
 
 export default nextConfig;
