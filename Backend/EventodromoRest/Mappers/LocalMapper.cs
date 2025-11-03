@@ -41,7 +41,42 @@ namespace EventodromoRest.Mappers
                 return listaLocal;
             }
         }
-        
+
+        public List<LocalCiudadImagenDTO> ListarLocalesDestacados()
+        {
+            lock (DB)
+            {
+                string query = @"
+            SELECT DISTINCT
+                l.id,
+                l.nombre,
+                c.nombre as ciudad,
+                COALESCE(l.imagenURL, e.imagenURL) as imagen
+            FROM Local l
+            INNER JOIN Ciudad c ON l.idCiudad = c.id
+            LEFT JOIN Evento e ON l.id = e.idLocal AND e.isDeleted = 0
+            WHERE l.isDeleted = 0
+            ORDER BY l.id
+            LIMIT 4;";
+
+                DB.Select(query, new ParameterList());
+
+                var resultados = new List<LocalCiudadImagenDTO>();
+                while (DB.Read())
+                {
+                    var dto = new LocalCiudadImagenDTO
+                    {
+                        id = DB.GetInt("id"),
+                        nombre = DB.GetString("nombre"),
+                        ciudad = DB.GetString("ciudad"),
+                        imagen = DB.GetString("imagen")
+                    };
+                    resultados.Add(dto);
+                }
+                return resultados;
+            }
+        }
+
         public List<Local> ListarLocales2()
         {
             List<Local> listaLocal = new();

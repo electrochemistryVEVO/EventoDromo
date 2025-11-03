@@ -45,4 +45,9 @@
         public string nombre { get; set; }
         public int capacidad { get; set; }
     }
+    public class LocalInfo
+    {
+        public string Nombre { get; set; }
+        public string Ciudad { get; set; }
+    }
 }

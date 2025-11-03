@@ -219,42 +219,6 @@ namespace EventodromoRest.Mappers
             return localMapper.ObtenerLocalPorId(v);
         }
 
-        public List<EventoActivoProxFechaDTO> ListarEventosActivos()
-        {
-            lock (DB)
-            {
-                List<EventoActivoProxFechaDTO> listaEventos = new List<EventoActivoProxFechaDTO>();
-                string query = "SELECT e.*, MIN(f.fechaHora) AS proximaFecha " +
-                    "FROM Evento AS e " +
-                    "INNER JOIN FechaEvento f ON e.id = f.idEvento " +
-                    "WHERE e.fechaPublicacion < @fechaActual AND f.fechaHora > @fechaActual " +
-                    "GROUP BY e.id, e.nombre, e.descripcion, e.fechaPublicacion " +
-                    "ORDER BY proximaFecha ASC;";
-                var parametros = new ParameterList();
-                parametros.Add("@fechaActual", DateTime.Now);
-                DB.Select(query, parametros);
-                while (DB.Read())
-                {
-                    EventoActivoProxFechaDTO evento = new()
-                    {
-                        id = DB.GetInt("ID"),
-                        nombre = DB.GetString("NOMBRE"),
-                        descripcion = DB.GetString("DESCRIPCION"),
-                        idTipoEvento = DB.GetInt("IDTIPOEVENTO"),
-                        idLocal = DB.GetInt("IDLOCAL"),
-                        creadoPor = DB.GetInt("CREADOPOR"),
-                        fechaPublicacion = DB.GetDateTime("FECHAPUBLICACION"),
-                        fechaCompra = DB.GetDateTime("FECHACOMPRA"),
-                        isDeleted = DB.GetBoolean("ISDELETED"),
-                        imagenURL = DB.GetString("IMAGENURL"),
-                        fechaProximoEvento = DB.GetDateTime("proximaFecha")
-                    };
-                    listaEventos.Add(evento);
-                }
-                return listaEventos;
-            }
-        }
-
         public List<Evento> ListarEventosBusqueda(string busqueda)
         {
             lock (DB)
@@ -323,5 +287,155 @@ namespace EventodromoRest.Mappers
                 }
             }
         }
+
+        public List<EventosLocalCiudadCategoriaDTO> ListarEventosActivosCompletos()
+        {
+            lock (DB)
+            {
+                // Consulta 1: Obtener eventos base
+                string queryEventos = @"
+            SELECT e.id, e.nombre, e.descripcion, e.imagenURL, 
+                   MIN(f.fechaHora) AS fechaProximoEvento, e.idLocal, e.idTipoEvento
+            FROM Evento AS e
+            INNER JOIN FechaEvento f ON e.id = f.idEvento
+            WHERE e.fechaPublicacion < NOW() 
+                AND f.fechaHora > NOW()
+                AND e.isDeleted = 0
+            GROUP BY e.id, e.nombre, e.descripcion, e.imagenURL, e.idLocal, e.idTipoEvento
+            ORDER BY fechaProximoEvento ASC;";
+
+                DB.Select(queryEventos, new ParameterList());
+
+                var eventosIds = new List<int>();
+                var localesIds = new List<int>();
+                var tiposEventoIds = new List<int>();
+                var eventosBase = new List<dynamic>();
+
+                while (DB.Read())
+                {
+                    var eventoId = DB.GetInt("id");
+                    var localId = DB.GetInt("idLocal");
+                    var tipoEventoId = DB.GetInt("idTipoEvento");
+
+                    eventosBase.Add(new
+                    {
+                        id = eventoId,
+                        nombre = DB.GetString("nombre"),
+                        descripcion = DB.GetString("descripcion"),
+                        imagenURL = DB.GetString("imagenURL"),
+                        fechaProximoEvento = DB.GetDateTime("fechaProximoEvento"),
+                        idLocal = localId,
+                        idTipoEvento = tipoEventoId
+                    });
+
+                    eventosIds.Add(eventoId);
+                    localesIds.Add(localId);
+                    tiposEventoIds.Add(tipoEventoId);
+                }
+                DB.CloseReader();
+
+                if (!eventosBase.Any())
+                    return new List<EventosLocalCiudadCategoriaDTO>();
+
+                // Consulta 2: Obtener todos los locales necesarios - CORREGIDO
+                var localesDict = new Dictionary<int, LocalInfo>();
+                if (localesIds.Any())
+                {
+                    string localesQuery = $@"
+                SELECT l.id, l.nombre, c.nombre as ciudad
+                FROM Local l
+                INNER JOIN Ciudad c ON l.idCiudad = c.id
+                WHERE l.id IN ({string.Join(",", localesIds.Distinct())}) AND l.isDeleted = 0";
+
+                    DB.Select(localesQuery, new ParameterList());
+                    while (DB.Read())
+                    {
+                        localesDict[DB.GetInt("id")] = new LocalInfo
+                        {
+                            Nombre = DB.GetString("nombre"),
+                            Ciudad = DB.GetString("ciudad")
+                        };
+                    }
+                    DB.CloseReader();
+                }
+
+                // Consulta 3: Obtener todos los tipos de evento
+                var tiposEventoDict = new Dictionary<int, string>();
+                if (tiposEventoIds.Any())
+                {
+                    string tiposQuery = $@"
+                SELECT id, nombre FROM TipoEvento 
+                WHERE id IN ({string.Join(",", tiposEventoIds.Distinct())})";
+
+                    DB.Select(tiposQuery, new ParameterList());
+                    while (DB.Read())
+                    {
+                        tiposEventoDict[DB.GetInt("id")] = DB.GetString("nombre");
+                    }
+                    DB.CloseReader();
+                }
+
+                // Consulta 4: Obtener precios mínimos por lote
+                var preciosDict = new Dictionary<int, decimal>();
+                if (eventosIds.Any())
+                {
+                    string preciosQuery = $@"
+                SELECT f.idEvento, COALESCE(MIN(te.precio), 0) AS PrecioMinimo
+                FROM FechaEvento f
+                INNER JOIN TipoEntrada te ON f.id = te.idFechaEvento
+                WHERE f.idEvento IN ({string.Join(",", eventosIds.Distinct())}) 
+                    AND f.fechaHora > NOW()
+                GROUP BY f.idEvento";
+
+                    DB.Select(preciosQuery, new ParameterList());
+                    while (DB.Read())
+                    {
+                        preciosDict[DB.GetInt("idEvento")] = DB.GetDecimal("PrecioMinimo");
+                    }
+                    DB.CloseReader();
+                }
+
+                // Combinar todos los datos en tus DTOs específicos - CORREGIDO
+                var resultados = new List<EventosLocalCiudadCategoriaDTO>();
+                foreach (var evento in eventosBase)
+                {
+                    var dto = new EventosLocalCiudadCategoriaDTO
+                    {
+                        id = evento.id,
+                        nombre = evento.nombre,
+                        fecha = evento.fechaProximoEvento.ToString("yyyy-MM-dd"),
+                        precio = preciosDict.ContainsKey(evento.id) ? (double)preciosDict[evento.id] : 0,
+                        imagen = evento.imagenURL
+                    };
+
+                    // Asignar datos del local si existe
+                    if (localesDict.ContainsKey(evento.idLocal))
+                    {
+                        dto.nombreLocal = localesDict[evento.idLocal].Nombre;
+                        dto.ciudad = localesDict[evento.idLocal].Ciudad;
+                    }
+                    else
+                    {
+                        dto.nombreLocal = "";
+                        dto.ciudad = "";
+                    }
+
+                    // Asignar categoría si existe
+                    if (tiposEventoDict.ContainsKey(evento.idTipoEvento))
+                    {
+                        dto.categoria = tiposEventoDict[evento.idTipoEvento];
+                    }
+                    else
+                    {
+                        dto.categoria = "";
+                    }
+
+                    resultados.Add(dto);
+                }
+
+                return resultados;
+            }
+        }
+
     }
 }

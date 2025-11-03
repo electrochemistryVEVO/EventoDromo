@@ -47,54 +47,25 @@ namespace EventodromoRest.Negocio
         }
         public GenericResponse<ResponseListarEventosYLocales> ListarEventosYLocales()
         {
-            var eventoMapper = new EventoMapper(globales, DB);
-            var localMapper = new LocalMapper(globales, DB);
-            var ciudadMapper = new CiudadMapper(globales, DB);
-            var tipoEventoMapper = new TipoEventoMapper(globales, DB);
-            var listaEventos = eventoMapper.ListarEventosActivos();
-            if (listaEventos.Count == 0)
+            try
             {
-                return new GenericResponse<ResponseListarEventosYLocales>
-                {
-                    Success = true,
-                    Message = "No hay eventos activos disponibles.",
-                    Error = null,
-                    Data = null
-                };
-            }
-            else
-            {
-                var eventosResponse = new List<EventosLocalCiudadCategoriaDTO>();
-                var localesResponse = new List<LocalCiudadImagenDTO>();
-                foreach (var e in listaEventos)
-                {
-                    var local = localMapper.ObtenerLocalPorId(e.idLocal);
-                    var ciudad = ciudadMapper.ObtenerCiudadPorId(local.idCiudad);
-                    var tipoEvento = tipoEventoMapper.ObtenerTipoEventoPorId(e.idTipoEvento);
+                var eventoMapper = new EventoMapper(globales, DB);
+                var localMapper = new LocalMapper(globales, DB);
 
-                    double precioMinimo = obtenerPrecioMinimoEvento(e);
+                var eventosResponse = eventoMapper.ListarEventosActivosCompletos();
+                var localesResponse = localMapper.ListarLocalesDestacados();
 
-                    var nuevoEvento = new EventosLocalCiudadCategoriaDTO
+                if (eventosResponse.Count == 0 && localesResponse.Count == 0)
+                {
+                    return new GenericResponse<ResponseListarEventosYLocales>
                     {
-                        id = e.id,
-                        nombre = e.nombre,
-                        nombreLocal = local.nombre,
-                        ciudad = ciudad.nombre,
-                        categoria = tipoEvento.nombre,
-                        precio = precioMinimo,
-                        fecha = e.fechaProximoEvento.ToString("yyyy-MM-dd"),
-                        imagen = e.imagenURL,
+                        Success = true,
+                        Message = "No hay eventos activos ni locales disponibles.",
+                        Error = null,
+                        Data = null
                     };
-                    eventosResponse.Add(nuevoEvento);
-                    var nuevoLocal = new LocalCiudadImagenDTO
-                    {
-                        id = local.id,
-                        nombre = local.nombre,
-                        ciudad = ciudad.nombre,
-                        imagen = e.imagenURL
-                    };
-                    localesResponse.Add(nuevoLocal);
                 }
+
                 return new GenericResponse<ResponseListarEventosYLocales>
                 {
                     Success = true,
@@ -103,8 +74,18 @@ namespace EventodromoRest.Negocio
                     Data = new ResponseListarEventosYLocales
                     {
                         eventos = eventosResponse,
-                        locales = [.. localesResponse.DistinctBy(l => l.id).Take(4)]
+                        locales = localesResponse
                     }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GenericResponse<ResponseListarEventosYLocales>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = ex.Message,
+                    Data = null
                 };
             }
         }

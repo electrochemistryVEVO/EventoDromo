@@ -189,5 +189,27 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
+
+        [HttpPut]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<int> ModificarLocal([FromBody] Local local)
+        {
+            try
+            {
+                return new LocalBO(globales, BD).ModificarLocal(local);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<int>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = e.Message,
+                    Data = 0
+                };
+                AgregarEntradaBitacora(e, "", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
     }
 }
