@@ -1,147 +1,154 @@
 "use client";
-// 👆 Indica a Next.js que este componente se ejecuta en el **lado del cliente (navegador)**.
-// Esto es necesario porque usamos hooks como useState y useRouter.
 
-import "@/css/login-style.css"; // 📁 Importa los estilos CSS para esta página.
-import "@/css/forgot-password.css"; // Importa los estilos para el botón de olvidar contraseña
-import Image from "next/image"; // 🖼️ Componente optimizado de Next.js para imágenes.
-import { useRouter, useSearchParams } from "next/navigation"; // 🚀 Hook de Next.js para redirigir a otras rutas.
-import { useState } from "react"; // 🧠 Hook de React para manejar estados (como el error).
-import { onSubmit } from "./controller"; // 📡 Función que procesa el login (definida en controller.js).
-import ForgotPasswordModal from "@/components/ForgotPasswordModal/ForgotPasswordModal"; // Modal de recuperación de contraseña
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { Nunito } from "next/font/google";
+import { useUser } from "@/context/UserContext.jsx";
+import { autenticarUsuario } from "@/services/Login.service.js";
+import Image from "next/image";
+import Link from "next/link";
+import ForgotPasswordModal from "@/components/ForgotPasswordModal/ForgotPasswordModal";
 
-import Link from "next/link"; // Asegúrate de tener esta importación al inicio
+const nunito = Nunito({ subsets: ["latin"], weight: ["400", "700", "900"] });
 
 function App() {
+  const { login } = useUser();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const router = useRouter(); // 🔄 Permite navegar a otras páginas desde el código.
-  const [error, setError] = useState(""); // 📍 Estado para guardar el mensaje de error (si lo hay).
-  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar la visibilidad del modal
 
-  // 📤 Esta función se ejecuta cuando el usuario envía el formulario.
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // ✋ Evita que el formulario recargue la página (comportamiento por defecto del HTML).
-
-    const formData = new FormData(e.target);
-    // 📄 Crea un objeto con todos los campos del formulario (email, password, etc.)
+    setError(null);
 
     try {
-      const result = await onSubmit(formData);
-      // 📡 Llama a la función onSubmit del controller.js para procesar el login.
-      //    - Esta función probablemente hace una petición al backend.
+      const response = await autenticarUsuario(email, password);
+      login(response);
 
-      if (result?.error) {
-        // ❌ Si la respuesta tiene un campo `error`, significa que las credenciales son incorrectas.
-        setError(result.error);
-      } else if (result?.success) {
-        // ✅ Si el login fue exitoso (result.success === true):
-        const redirectUrl = searchParams.get("redirect");
-
-        if (redirectUrl) {
-          // Si hay una URL de redirección, la usamos.
-          router.push(redirectUrl);
-          return;
-        }
-
-        // 👤 Redirigimos según el rol del usuario:
-        if (result.rol === "A") {
-          router.push("/admin/dashboard");
-          // 📍 Si el rol es "A" (admin), lo enviamos a la página principal del administrador.
-        } else if (result.rol === "C") {
-          router.push("/user-login/web/eventos/lista");
-          // 📍 Si el rol es "U" (usuario normal), lo enviamos a la sección de eventos.
-        } else {
-          // ⚠️ Si el rol no coincide con ninguno esperado, mostramos un error.
-          setError("Rol de usuario no válido");
-        }
+      const redirectUrl = searchParams.get("redirect");
+      if (redirectUrl) {
+        router.push(redirectUrl);
+        return;
       }
-    } catch (err) {
-      // 💥 Si ocurre un error en la petición o en el proceso:
-      setError("Error al iniciar sesión");
-      console.error(err); // 🐛 Lo mostramos en consola para depurar.
+
+      if (response.rol === 'A') {
+        router.push("/user/dashboard");
+      } else if (response.rol === 'C') {
+        router.push("/user/eventos/lista");
+      } else {
+        setError('Rol de usuario no válido');
+      }
+    } catch (error) {
+      setError(error.message);
     }
   };
 
-  // 🧱 Aquí empieza el renderizado (lo que se ve en pantalla)
+
   return (
-    <div className="App">
-      {/* Contenedor principal */}
-
-      <div className="login-form-container">
-        {/* 🧩 Sección izquierda: formulario de login */}
-
-        <div className="logo-container">
-          {/* 📷 Logo en la parte superior */}
+    <div className={`${nunito.className} flex min-h-screen bg-white`}>
+      <div className="relative flex flex-1 flex-col px-8 py-10 lg:min-w-[40vw]">
+        <div className="relative mb-8 h-[250px] w-[400px] max-w-full">
           <Image
             src={"/images/logo/logo_eventodromo.png"}
             alt="Logo"
-            className="login-logo"
             fill={true}
             style={{ objectFit: "contain" }}
             priority
           />
         </div>
 
-        {/* 🔙 Link para volver a la página principal */}
-        <Link href="/user/eventos/lista" className="volver-inicio">
+        <Link
+          href="/user/eventos/lista"
+          className="relative z-10 mx-auto mb-8 block w-full max-w-[600px] px-8 text-base font-semibold text-[#00bfa6] transition hover:text-[#008f8f] hover:underline"
+        >
           Volver al inicio
         </Link>
 
-        {/* 📩 Formulario de login */}
-        <form className="login-text" onSubmit={handleSubmit}>
-          {/* ⚠️ Si hay un error, lo mostramos en pantalla */}
-          {error && <div className="error-message">{error}</div>}
+        <form
+          className="mx-auto flex w-full max-w-[600px] flex-col space-y-6 px-8 text-base md:px-6"
+          onSubmit={handleSubmit}
+        >
+          {error && (
+            <div className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-md bg-red-50">
+              {error}
+            </div>
+          )}
 
-          {/* 📧 Campo de email */}
-          <div>
-            <label htmlFor="email">Email</label>
-            <input type="email" id="email" name="email" required />
+          <div className="space-y-2">
+            <label htmlFor="email" className="font-medium text-gray-800">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full rounded-md border border-gray-300 bg-gray-100 px-4 py-3 text-base transition focus:border-[#00bfa6] focus:bg-white focus:outline-none lg:min-w-[400px]"
+            />
           </div>
 
-          {/* 🔑 Campo de contraseña */}
-          <div>
-            <label htmlFor="password">Contraseña</label>
-            <input type="password" id="password" name="password" required />
+          <div className="space-y-2">
+            <label htmlFor="password" className="font-medium text-gray-800">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full rounded-md border border-gray-300 bg-gray-100 px-4 py-3 text-base transition focus:border-[#00bfa6] focus:bg-white focus:outline-none lg:min-w-[400px]"
+            />
           </div>
 
-          {/* 🔐 Botón para recuperar contraseña */}
-          <div className="alinear-derecha">
+          <div className="flex justify-end">
             <button
-              className="forgot-password-link"
+              type="button"
               onClick={() => setIsModalOpen(true)}
+              className="mb-2 text-sm font-medium text-[#00bfa6] transition hover:text-[#008f8f] hover:underline"
             >
               ¿Olvidaste tu contraseña?
             </button>
           </div>
 
-          {/* 🔘 Botón para ingresar y links de registro */}
-          <div className="login-hipervinculos-container">
-            <button type="submit">Ingresa</button>
-            <p>¿Aún no tienes cuenta?</p>
-            <Link href="/auth/signup">Registrate Aquí</Link>
+          <div className="space-y-3 text-center text-gray-600">
+            <button
+              type="submit"
+              className="w-full rounded-md bg-[#00bfa6] px-4 py-3 text-lg font-semibold text-white transition hover:bg-[#00a892] lg:min-w-[400px]"
+            >
+              Ingresa
+            </button>
+            <p className="text-sm">¿Aún no tienes cuenta?</p>
+            <Link
+              href="/auth/signup"
+              className="font-semibold text-[#00bfa6] transition hover:text-[#008f8f] hover:underline"
+            >
+              Registrate Aquí
+            </Link>
           </div>
         </form>
-        {/* Modal de recuperación de contraseña */}
-        <ForgotPasswordModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        />
       </div>
 
-      {/* 📷 Sección derecha: imagen decorativa */}
-      <div className="imagen-mitad">
+      <div className="relative flex-1 hidden overflow-hidden lg:block">
         <Image
           src={"/images/otros/imagenMitad.png"}
           alt="Imagen de fondo"
-          className="background-image"
           fill={true}
+          className="object-cover brightness-90"
           priority
         />
       </div>
+
+      <ForgotPasswordModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }
 
 export default App;
-// 📤 Exporta el componente para que Next.js lo use como página.

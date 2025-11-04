@@ -13,7 +13,11 @@ import EventInfo from "@/components/detalle-evento/EventoInfo";
 import BookingPanel from "@/components/detalle-evento/BookingPanel";
 import LocationInfo from "@/components/detalle-evento/LocationInfo";
 
+//contexto
+import { useCart } from "@/context/CartContext";
+
 const EventPageController = () => {
+  const { addToCart } = useCart();
   // --- HOOKS AL INICIO ---
   const [isLoading, setIsLoading] = useState(true);
   const [eventData, setEventData] = useState(null);
@@ -37,27 +41,27 @@ const EventPageController = () => {
         }
 
         const data = await obtenerDetallePorId(id);
-        
+
         if (!data) {
           throw new Error("La API devolvió null o undefined");
         }
-        
+
         if (data.success === false) {
           throw new Error(data.error || data.message || "Error del servidor");
         }
-        
+
         if (!data.data) {
           throw new Error("El servidor no devolvió datos del evento");
         }
-        
+
         setEventData(data);
         setError(null);
-        
+
       } catch (error) {
         console.error("❌ Error en fetchEventData:", error);
         setError(error.message);
-        setEventData({ 
-          success: false, 
+        setEventData({
+          success: false,
           error: error.message,
           message: error.message
         });
@@ -71,8 +75,8 @@ const EventPageController = () => {
     } else {
       const errorMsg = "No se proporcionó un ID en la URL.";
       setError(errorMsg);
-      setEventData({ 
-        success: false, 
+      setEventData({
+        success: false,
         error: errorMsg,
         message: errorMsg
       });
@@ -98,8 +102,8 @@ const EventPageController = () => {
           <p><strong>ID solicitado:</strong> {id || "No proporcionado"}</p>
           <p><strong>Error:</strong> {error || eventData?.error || eventData?.message || "Desconocido"}</p>
         </div>
-        <button 
-          onClick={() => window.location.reload()} 
+        <button
+          onClick={() => window.location.reload()}
           className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
         >
           Reintentar
@@ -112,12 +116,13 @@ const EventPageController = () => {
   const ticketsPrimeraFuncion = funciones?.[0]?.tiposDeEntrada || [];
   const puntos = ticketsPrimeraFuncion.map((entrada) => entrada.puntos).filter(punto => punto != null);
   const maxPuntos = puntos.length > 0 ? Math.max(...puntos) : 0;
-  
+
   const url = evento.imagenUrl || "";
-  const ciudadInfo = local?.ciudad ? 
-    `${local.ciudad.nombre}, ${local.ciudad.pais?.nombre || ''}` : 
+  const ciudadInfo = local?.ciudad ?
+    `${local.ciudad.nombre}, ${local.ciudad.pais?.nombre || ''}` :
     "Ciudad no disponible";
 
+  /*
   const handleAddToCart = (bookingDetails) => {
     console.log("--- DETALLES PARA AGREGAR AL CARRITO ---");
     console.log("Evento:", evento.nombre);
@@ -126,6 +131,73 @@ const EventPageController = () => {
     console.log("Precio Total:", `S/ ${bookingDetails.totalPrice.toFixed(2)}`);
 
     alert("¡Entradas agregadas al carrito! Revisa la consola para ver los detalles.");
+  };
+  */
+  const handleAddToCart = (bookingDetails) => {
+    if (!eventData || !eventData.data) {
+      console.error("Los datos del evento aun no estan cargados.");
+      return;
+    }
+
+    const { evento, funciones, local, tiposDeEntrada } = eventData.data;
+
+    const selectedFunction = funciones.find(
+      (f) => f.id.toString() === bookingDetails.selectedFunctionId
+    );
+
+    if (!selectedFunction) {
+      console.warn("No se encontro la funcion seleccionada para el carrito.");
+      return;
+    }
+
+    const entradasSeleccionadas = Object.keys(bookingDetails.ticketQuantities)
+      .filter((tierId) => bookingDetails.ticketQuantities[tierId] > 0)
+      .map((tierId) => {
+        const tipoEntrada = tiposDeEntrada.find(
+          (t) => t.id.toString() === tierId
+        );
+
+        if (!tipoEntrada) {
+          console.warn("No se encontro el tipo de entrada", tierId);
+          return null;
+        }
+
+        return {
+          tipoEntradaId: tipoEntrada.id,
+          nombre: tipoEntrada.nombre,
+          cantidad: bookingDetails.ticketQuantities[tierId],
+          precioUnitario: tipoEntrada.precio,
+        };
+      })
+      .filter(Boolean);
+
+    if (!entradasSeleccionadas.length) {
+      console.warn("No se agregaron entradas por falta de seleccion valida.");
+      return;
+    }
+
+    // Mantiene la estructura esperada por CartContext al agregar un item.
+    const cartItem = {
+      cartItemId: crypto.randomUUID(),
+      eventoInfo: {
+        id: evento.id,
+        nombre: evento.nombre,
+        imagenUrl: evento.imagenUrl,
+      },
+      localInfo: {
+        nombre: local.nombre,
+        ciudad: local.ciudad.nombre,
+      },
+      funcionInfo: {
+        id: selectedFunction.id,
+        fecha: selectedFunction.fecha,
+        hora: selectedFunction.hora,
+      },
+      entradas: entradasSeleccionadas,
+      totalItem: bookingDetails.totalPrice,
+    };
+
+    addToCart(cartItem);
   };
 
   // --- RENDERIZADO FINAL ---

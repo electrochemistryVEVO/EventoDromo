@@ -49,7 +49,7 @@ namespace EventodromoRest.Controllers
             try
             {
                 Debug.WriteLine(request.busqueda);
-                ValidarBody(request);
+                ValidarBody(request); 
                 return new EventoBO(globales, BD).ListarEventosPorBusqueda(request.busqueda);
             }
             catch (Exception e)
@@ -65,7 +65,7 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
-
+        
         [HttpPost]
         [Route("/api/[controller]/[action]")]
         public GenericResponse<ResponseObtenerEventoPorId> ObtenerEventoPorId([FromBody] RequestObtenerEventoPorId request)
@@ -76,7 +76,7 @@ namespace EventodromoRest.Controllers
                 ValidarBody(request);
                 return new EventoBO(globales, BD).ObtenerEventoPorId(request.idEvento);
             }
-            catch (Exception e)
+            catch (Exception e) 
             {
                 var response = new GenericResponse<ResponseObtenerEventoPorId>
                 {
@@ -216,7 +216,5 @@ namespace EventodromoRest.Controllers
                 };
             }
         }
-
-
     }
 }

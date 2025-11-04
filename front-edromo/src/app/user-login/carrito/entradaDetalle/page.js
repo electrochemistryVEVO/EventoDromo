@@ -1,6 +1,6 @@
 "use client";
 import styles from "@/css/entradaDetalle.module.css";
-import { TablaEntradas } from "@/components/carrito/tablaEntradas";
+import { TablaEntradas } from "@/components/carrito/TablaEntradas";
 import CostoDetalleEntradas from "@/components/carrito/costoDetalleEntradas";
 import CheckboxCarrito from "@/components/carrito/CheckboxCarrito";
 import { useState } from "react";

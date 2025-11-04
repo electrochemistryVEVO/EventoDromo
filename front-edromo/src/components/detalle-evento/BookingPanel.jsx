@@ -130,8 +130,8 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
     );
     
     onAddToCart({
-      selectedFunctionId: parseInt(selectedFunctionId),
-      ticketQuantities: validTicketQuantities,
+      selectedFunctionId,
+      ticketQuantities,
       totalPrice,
     });
   };

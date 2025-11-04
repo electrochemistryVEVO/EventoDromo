@@ -1,37 +1,57 @@
 // src/components/carrito/TablaEntradas.controller.js
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { fetchTablaEntradas } from "@/services/TablaEntradas.service";
-import { TablaEntradasView } from "./TablaEntradas.view";
+import React, { useMemo, useState, useEffect } from "react";
+import { useCart } from "@/context/CartContext"; 
+import { groupCartEntriesByTier } from "./groupCartEntries";
+import { TablaEntradas } from "./TablaEntradas";
 
-/**
- * Controller para TablaEntradas.
- * Maneja la obtención de datos, el estado de selección y la lógica de eliminación.
- */
 export const TablaEntradasController = () => {
-  const [items, setItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const {
+    cartItems,
+    isLoading,
+    removeEntryFromCart,
+    incrementEntryInCart,
+  } = useCart();
+
+  const rows = useMemo(
+    () => groupCartEntriesByTier(cartItems),
+    [cartItems],
+  );
+
+  const rowMap = useMemo(
+    () => new Map(rows.map((row) => [row.rowId, row])),
+    [rows],
+  );
+  
+  // Lógica de selección (sin cambios)
   const [selectedIds, setSelectedIds] = useState(new Set());
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        const data = await fetchTablaEntradas();
-        setItems(data);
-      } catch (err) {
-        setError("Error al cargar las entradas. Inténtalo de nuevo más tarde.");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
+    setSelectedIds((prev) => {
+      if (prev.size === 0) {
+        return prev;
       }
-    };
-    loadData();
-  }, []);
+      const filtered = new Set();
+      let changed = false;
+      prev.forEach((id) => {
+        if (rowMap.has(id)) {
+          filtered.add(id);
+        } else {
+          changed = true;
+        }
+      });
+      if (!changed && filtered.size === prev.size) {
+        return prev;
+      }
+      return filtered;
+    });
+  }, [rowMap]);
 
   const handleToggle = (id) => {
+    if (!rowMap.has(id)) {
+      return;
+    }
     setSelectedIds((prev) => {
       const newSelected = new Set(prev);
       if (newSelected.has(id)) {
@@ -44,39 +64,122 @@ export const TablaEntradasController = () => {
   };
 
   const handleToggleAll = () => {
-    if (selectedIds.size === items.length) {
+    if (rows.length === 0) {
+      setSelectedIds(new Set());
+      return;
+    }
+    if (selectedIds.size === rows.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(items.map((item) => item.id)));
+      setSelectedIds(new Set(rows.map((row) => row.rowId)));
     }
   };
 
-  // Simula la eliminación de un item. En una app real, llamaría a un servicio.
-  const handleRemoveItem = (id) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+  const executeRowRemoval = async (row) => {
+    if (!row) {
+      return;
+    }
+
+    const iterableIds = row.entryIds?.length
+      ? row.entryIds
+      : Array.from({ length: row.quantity }, () => null);
+
+    let manageLoading = true;
+
+    for (const entradaId of iterableIds) {
+      const success = await removeEntryFromCart(
+        {
+          cartItemId: row.cartItemId,
+          entradaId,
+          tipoEntradaId: row.tipoEntradaId,
+        },
+        { manageLoading },
+      );
+
+      if (!success) {
+        break;
+      }
+
+      manageLoading = false;
+    }
+
+    setSelectedIds((prev) => {
+      if (!prev.has(row.rowId)) {
+        return prev;
+      }
+      const next = new Set(prev);
+      next.delete(row.rowId);
+      return next;
+    });
   };
 
-  const handleRemoveSelected = () => {
-    setItems((prev) => prev.filter((item) => !selectedIds.has(item.id)));
-    setSelectedIds(new Set());
+  const handleRemoveItem = async (row) => {
+    if (!row) {
+      return;
+    }
+    await executeRowRemoval(row);
   };
 
-  const isAllSelected = items.length > 0 && selectedIds.size === items.length;
+  const handleRemoveSelected = async () => {
+    const rowsToRemove = Array.from(selectedIds)
+      .map((id) => rowMap.get(id))
+      .filter(Boolean);
+
+    for (const row of rowsToRemove) {
+      await executeRowRemoval(row);
+    }
+  };
+
+  const handleDecreaseQuantity = async (row) => {
+    if (!row) {
+      return;
+    }
+
+    const entradaId = row.entryIds?.[0] ?? null;
+
+    await removeEntryFromCart(
+      {
+        cartItemId: row.cartItemId,
+        entradaId,
+        tipoEntradaId: row.tipoEntradaId,
+      },
+      { manageLoading: true },
+    );
+  };
+
+  const handleIncreaseQuantity = async (row) => {
+    if (!row) {
+      return;
+    }
+
+    await incrementEntryInCart(
+      {
+        cartItemId: row.cartItemId,
+        tipoEntradaId: row.tipoEntradaId,
+      },
+      { manageLoading: true },
+    );
+  };
+
+  const isAllSelected = rows.length > 0 && selectedIds.size === rows.length;
   const isIndeterminate =
-    selectedIds.size > 0 && selectedIds.size < items.length;
+    selectedIds.size > 0 && selectedIds.size < rows.length;
 
+  // 2. MODIFICADO: Renderiza el componente 'TablaEntradas'
   return (
-    <TablaEntradasView
-      items={items}
+    <TablaEntradas
+      items={rows} 
       selectedIds={selectedIds}
       isAllSelected={isAllSelected}
       isIndeterminate={isIndeterminate}
       onToggle={handleToggle}
       onToggleAll={handleToggleAll}
       onRemoveItem={handleRemoveItem}
+      onDecreaseQuantity={handleDecreaseQuantity}
+      onIncreaseQuantity={handleIncreaseQuantity}
       onRemoveSelected={handleRemoveSelected}
-      isLoading={isLoading}
-      error={error}
+      isLoading={isLoading} 
+      error={null}
     />
   );
 };

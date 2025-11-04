@@ -102,10 +102,6 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 
 
-//PARA EL TOKEN
-app.UseAuthentication();
-
-
 app.UseAuthorization();
 
 

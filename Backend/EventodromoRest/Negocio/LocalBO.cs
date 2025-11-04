@@ -14,6 +14,7 @@ namespace EventodromoRest.Negocio
             response.Data = locales;
             return response;
         }
+
         public List<Local> ListarLocales2()
         {
             var mapper = new LocalMapper(globales, DB);

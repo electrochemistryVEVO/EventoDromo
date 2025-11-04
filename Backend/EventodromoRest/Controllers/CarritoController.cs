@@ -71,7 +71,7 @@ namespace EventodromoRest.Controllers
         }
 
         [HttpDelete]
-        [Route("/api/[controller]/[action]")]
+        [Route("/api/[controller]/[action]/{idEntrada:int}")]
         public GenericResponse<ResponseObtenerCarrito> EliminarItemDelCarrito([FromRoute] int idEntrada)
         {
             try

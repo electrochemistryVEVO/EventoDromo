@@ -30,10 +30,10 @@ namespace EventodromoRest.Mappers
                 {
                     LocalCiudadImagenDTO local = new()
                     {
-                        id = DB.GetInt("ID"),
-                        nombre = DB.GetString("NOMBRE"),
-                        ciudad = DB.GetString("CIUDADNOMBRE"),
-                        imagen = DB.GetString("IMAGENURL")
+                        idLocal = DB.GetInt("ID"),
+                        nombreLocal = DB.GetString("NOMBRE"),
+                        nombreCiudad = DB.GetString("CIUDADNOMBRE"),
+                        imagenURL = DB.GetString("IMAGENURL")
                     };
                     listaLocal.Add(local);
                 }
@@ -66,10 +66,10 @@ namespace EventodromoRest.Mappers
                 {
                     var dto = new LocalCiudadImagenDTO
                     {
-                        id = DB.GetInt("id"),
-                        nombre = DB.GetString("nombre"),
-                        ciudad = DB.GetString("ciudad"),
-                        imagen = DB.GetString("imagen")
+                        idLocal = DB.GetInt("id"),
+                        nombreLocal = DB.GetString("nombre"),
+                        nombreCiudad = DB.GetString("ciudad"),
+                        imagenURL = DB.GetString("imagen")
                     };
                     resultados.Add(dto);
                 }

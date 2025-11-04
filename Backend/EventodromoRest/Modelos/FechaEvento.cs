@@ -19,6 +19,7 @@
         public string hora { get; set; }
         public List<ResponseTipoEntrada> tiposDeEntrada { get; set; }
     }
+
     public class FuncionDTO
     {
         public int id { get; set; }

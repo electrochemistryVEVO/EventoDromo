@@ -12,11 +12,11 @@ namespace EventodromoRest.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    public class LocalController (Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService) : BaseController
+    [Authorize]
+    public class LocalController (Globales.Globales globales, DBManager.DBManager BD) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
         private readonly Globales.Globales globales = globales;
-        private readonly TokenService tokenService = tokenService;
 
         [HttpGet]
         [Route("/api/[controller]/[action]")]
@@ -24,36 +24,6 @@ namespace EventodromoRest.Controllers
         {
             try
             {
-                // 1️⃣ Leer el token de la cabecera
-                var authHeader = Request.Headers["Authorization"].ToString();
-
-                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-                {
-                    return new GenericResponse<List<getLocalesResponse>>
-                    {
-                        Success = false,
-                        Message = "Token no proporcionado o inválido.",
-                        Error = null,
-                        Data = null
-                    };
-                }
-
-                // 2️⃣ Extraer el token y obtener el ID del admin
-                var token = authHeader.Substring("Bearer ".Length);
-                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
-
-                if (idAdmin == null)
-                {
-                    return new GenericResponse<List<getLocalesResponse>>
-                    {
-                        Success = false,
-                        Message = "Token inválido o expirado.",
-                        Error = null,
-                        Data = null
-                    };
-                }
-
-                // 2️⃣ Obtener los locales desde la capa de negocio
                 var locales = new LocalBO(globales, BD).ListarLocales2();
 
                 if (locales == null || locales.Count == 0)
@@ -67,7 +37,6 @@ namespace EventodromoRest.Controllers
                     };
                 }
 
-                // 3️⃣ Mapear solo los campos requeridos al DTO
                 var data = locales
                     .Where(l => !l.isDeleted)
                     .Select(l => new getLocalesResponse
@@ -78,7 +47,6 @@ namespace EventodromoRest.Controllers
                     })
                     .ToList();
 
-                // 4️⃣ Respuesta exitosa
                 return new GenericResponse<List<getLocalesResponse>>
                 {
                     Success = true,

@@ -19,10 +19,17 @@
 
     public class LocalCiudadImagenDTO
     {
-        public int id { get; set; }
+        public int idLocal { get; set; }
+        public string nombreLocal { get; set; }
+        public int idCiudad { get; set; }
+        public string imagenURL { get; set; }
+        public string nombreCiudad { get; set; }
+    }
+
+    public class LocalDTO
+    {
         public string nombre { get; set; }
         public string ciudad { get; set; }
-        public string imagen { get; set; }
     }
 
     public class ResponseLocal
@@ -34,11 +41,6 @@
         public string googleMapsEmbed { get; set; }
     }
 
-    public class LocalDTO
-    {
-        public string nombre { get; set; }
-        public string ciudad { get; set; }
-    }
     public class getLocalesResponse
     {
         public int id { get; set; }

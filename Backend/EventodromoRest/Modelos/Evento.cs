@@ -75,6 +75,16 @@
         public string imagen { get; set; }
     }
 
+    public class EventoCarritoDTO
+    {
+        public int idEvento { get; set; }
+        public string nombreEvento { get; set; }
+        public string imagenURL { get; set; }
+        public decimal totalEvento { get; set; } = 0;
+        public LocalDTO localInfo { get; set; }
+        public FuncionDTO funcionInfo { get; set; }
+        public List<EntradaDTO> entradas { get; set; }
+    }
     public class ResponseObtenerEventoPorId
     {
         public ResponseEvento evento { get; set; }
@@ -97,6 +107,7 @@
         public string nombreEvento { get; set; }
         public string imagenURL { get; set; }
     }
+
     public class CrearEventoResponse
     {
         public bool success {get; set; }

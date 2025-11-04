@@ -14,7 +14,7 @@ namespace EventodromoRest.Modelos
     public class ObtenerCarritoDTO
     {
         public int idCarrito { get; set; }
-        public EventoDTO eventoInfo { get; set; }
+        public EventoCarritoDTO eventoInfo { get; set; }
         public LocalDTO localInfo { get; set; }
         public FuncionDTO funcionInfo { get; set; }
         public EntradaDTO entrada { get; set; }
@@ -30,11 +30,8 @@ namespace EventodromoRest.Modelos
     public class ResponseObtenerCarrito
     {
         public int idCarrito { get; set; }
-        public EventoDTO eventoInfo { get; set; }
-        public LocalDTO localInfo { get; set; }
-        public FuncionDTO funcionInfo { get; set; }
-        public List<EntradaDTO> entradas { get; set; }
         public decimal totalCarrito { get; set; } = 0;
         public DateTime fechaExpiracion { get; set; }
+        public List<EventoCarritoDTO> eventos { get; set; }
     }
 }

@@ -248,8 +248,7 @@ namespace EventodromoRest.Mappers
                 }
                 //NOTA: Hacer las solicitudes anidadas despues de completar toda la lectura
                 //Aparentemente, cuando el DB hace otra solicitud, se olvida de esta
-                foreach (Evento evento in listaEvento)
-                {
+                foreach(Evento evento in listaEvento){
                     evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento);
                     evento.Local = ObtenerLocalPorId(evento.idLocal);
                 }
