@@ -10,10 +10,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <>
+    <div className="grid min-h-dvh grid-rows-[auto_1fr_auto]">
       <Navbar />
       {children}
       <Footer />
-    </>
+    </div>
   );
 }

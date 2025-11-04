@@ -3,8 +3,8 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Nunito } from "next/font/google";
-import { onSubmit } from "./controller";
 import { useUser } from "@/context/UserContext.jsx";
+import { autenticarUsuario } from "@/services/Login.service.js";
 import Image from "next/image";
 import Link from "next/link";
 import ForgotPasswordModal from "@/components/ForgotPasswordModal/ForgotPasswordModal";
@@ -12,54 +12,37 @@ import ForgotPasswordModal from "@/components/ForgotPasswordModal/ForgotPassword
 const nunito = Nunito({ subsets: ["latin"], weight: ["400", "700", "900"] });
 
 function App() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+  const { login } = useUser();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { login } = useUser();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    const formData = new FormData(e.target);
+    setError(null);
 
     try {
-      const result = await onSubmit(formData);
+      const response = await autenticarUsuario(email, password);
+      login(response);
 
-      if (result?.success === true) {
-        const userData = {
-          rol: result.rol,
-          token: result.token,
-          idCliente: result.idCliente,
-          email: formData.get("email"),
-        };
-
-        login(userData);
-
-        const redirectUrl = searchParams.get("redirect");
-        if (redirectUrl) {
-          router.push(redirectUrl);
-          return;
-        }
-
-        if (result.rol === "A") {
-          router.push("/admin/dashboard");
-        } else if (result.rol === "C") {
-          router.push("/user/eventos/lista");
-        } else {
-          setError("Rol de usuario no válido");
-        }
-
-      } else {
-        setError(
-          result?.message ||
-            result?.error ||
-            "Credenciales inválidas. Por favor, intenta nuevamente.",
-        );
+      const redirectUrl = searchParams.get("redirect");
+      if (redirectUrl) {
+        router.push(redirectUrl);
+        return;
       }
-    } catch (err) {
-      setError("Error al iniciar sesión.");
-      console.error(err);
+
+      if (response.rol === 'A') {
+        router.push("/user/dashboard");
+      } else if (response.rol === 'C') {
+        router.push("/user/eventos/lista");
+      } else {
+        setError('Rol de usuario no válido');
+      }
+    } catch (error) {
+      setError(error.message);
     }
   };
 
@@ -101,7 +84,8 @@ function App() {
             <input
               type="email"
               id="email"
-              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full rounded-md border border-gray-300 bg-gray-100 px-4 py-3 text-base transition focus:border-[#00bfa6] focus:bg-white focus:outline-none lg:min-w-[400px]"
             />
@@ -114,7 +98,8 @@ function App() {
             <input
               type="password"
               id="password"
-              name="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
               className="w-full rounded-md border border-gray-300 bg-gray-100 px-4 py-3 text-base transition focus:border-[#00bfa6] focus:bg-white focus:outline-none lg:min-w-[400px]"
             />

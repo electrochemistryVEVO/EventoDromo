@@ -1,32 +1,28 @@
 // Ruta: src/services/Cart.service.js
-
-// --- CONFIGURACIÓN DEL BACKEND ---
-const RAW_API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.API_BASE_URL ||
-  "http://localhost:5189/api";
-
-const API_BASE_URL = RAW_API_BASE_URL.replace(/\/$/, "");
-
-const CART_FETCH_ENDPOINT = (
-  process.env.NEXT_PUBLIC_CART_FETCH_ENDPOINT ||
-  "Carrito/ObtenerCarrito"
-).replace(/^\/+/, "");
-
-const CART_ADD_ENDPOINT = (
-  process.env.NEXT_PUBLIC_CART_ADD_ENDPOINT ||
-  "Carrito/AgregarItemAlCarrito"
-).replace(/^\/+/, "");
-
-const CART_REMOVE_ENDPOINT = (
-  process.env.NEXT_PUBLIC_CART_REMOVE_ENDPOINT ||
-  "Carrito/EliminarItemDelCarrito"
-).replace(/^\/+/, "");
+import { api } from "../lib/api";
 
 const DEFAULT_EXPIRATION_MS = 10 * 60 * 1000;
 
-const buildUrl = (endpoint) =>
-  `${API_BASE_URL}/${endpoint.replace(/^\/+/, "")}`;
+const normalizeEndpoint = (value, fallback) => {
+  const base = value || fallback;
+  if (!base) return "";
+  return base.startsWith("/") ? base : `/${base}`;
+};
+
+const CART_ENDPOINTS = {
+  fetch: normalizeEndpoint(
+    process.env.NEXT_PUBLIC_CART_FETCH_ENDPOINT,
+    "Carrito/ObtenerCarrito",
+  ),
+  add: normalizeEndpoint(
+    process.env.NEXT_PUBLIC_CART_ADD_ENDPOINT,
+    "Carrito/AgregarItemAlCarrito",
+  ),
+  remove: normalizeEndpoint(
+    process.env.NEXT_PUBLIC_CART_REMOVE_ENDPOINT,
+    "Carrito/EliminarItemDelCarrito",
+  ),
+};
 
 const generateFallbackId = () => {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -50,196 +46,97 @@ const ensureCartItemId = (item, fallbackPrefix) => {
 const normalizeEntrada = (entrada) => {
   if (!entrada || typeof entrada !== "object") {
     return {
+      entradaId: null,
       tipoEntradaId: null,
       nombre: "Entrada",
       cantidad: 1,
       precioUnitario: 0,
-      entradaId: null,
     };
   }
 
-  const cantidadRaw = Number(
-    entrada.cantidad ??
-      entrada.quantity ??
-      entrada.cantidadTotal ??
-      entrada.numeroEntradas ??
-      0,
-  );
-
-  const cantidad = Number.isFinite(cantidadRaw) && cantidadRaw > 0 ? cantidadRaw : 1;
-
-  const precioUnitarioRaw =
-    entrada.precioUnitario ??
-    entrada.precio ??
-    entrada.precioPorUnidad ??
-    (typeof entrada.precioTotal === "number" && cantidad
-      ? entrada.precioTotal / cantidad
-      : 0);
-
-  const entradaIdRaw =
-    entrada.entradaId ??
-    entrada.idEntrada ??
-    entrada.id ??
-    entrada.idCarritoDetalle ??
-    entrada.carritoDetalleId ??
-    null;
-
-  const numericEntradaId = Number(entradaIdRaw);
-  const entradaId =
-    Number.isFinite(numericEntradaId) && numericEntradaId > 0
-      ? numericEntradaId
-      : typeof entradaIdRaw === "string" && entradaIdRaw.trim().length > 0
-        ? entradaIdRaw
-        : null;
+  const precio = Number(entrada.precio ?? entrada.precioUnitario ?? 0);
+  const cantidad = Number.isFinite(entrada.cantidad) && entrada.cantidad > 0
+    ? Number(entrada.cantidad)
+    : 1;
 
   return {
-    ...entrada,
-    entradaId,
-    tipoEntradaId:
-      entrada.tipoEntradaId ??
-      entrada.idTipoEntrada ??
-      entrada.tipoEntrada?.id ??
-      entrada.id ??
-      null,
-    nombre:
-      entrada.nombre ??
-      entrada.tipoEntradaNombre ??
-      entrada.nombreTipoEntrada ??
-      entrada.TipoEntrada ??
-      entrada.tipoEntrada?.nombre ??
-      "Entrada",
+    entradaId: entrada.idEntrada ?? null,
+    tipoEntradaId: entrada.idTipoEntrada ?? null,
+    nombre: entrada.nombreTipoEntrada ?? "Entrada",
     cantidad,
-    precioUnitario: Number(precioUnitarioRaw ?? 0),
+    precioUnitario: Number.isFinite(precio) ? precio : 0,
   };
 };
 
-const computeTotalFromEntradas = (entradas) => {
-  if (!Array.isArray(entradas)) return 0;
-  return entradas.reduce((acc, entrada) => {
+const computeTotalFromEntradas = (entradas = []) =>
+  entradas.reduce((acc, entrada) => {
     const qty = Number(entrada.cantidad ?? 1);
-    const price = Number(entrada.precioUnitario ?? entrada.precio ?? 0);
-    if (!Number.isFinite(qty) || !Number.isFinite(price)) return acc;
+    const price = Number(entrada.precioUnitario ?? 0);
+    if (!Number.isFinite(qty) || !Number.isFinite(price)) {
+      return acc;
+    }
     return acc + qty * price;
   }, 0);
-};
 
-const ensureCartItemStructure = (item, containerId) => {
-  if (!item || typeof item !== "object") {
+const ensureCartItemStructure = (evento, containerId, index = 0) => {
+  if (!evento || typeof evento !== "object") {
     return {
       cartItemId: generateFallbackId(),
-      eventoInfo: { nombre: "Evento", imagenUrl: "" },
+      eventoInfo: { id: null, nombre: "Evento", imagenUrl: "" },
       localInfo: { nombre: "", ciudad: "" },
-      funcionInfo: { id: null, fecha: null, hora: null },
+      funcionInfo: { id: null, fecha: null, hora: null, fechaHora: null },
       entradas: [],
       totalItem: 0,
     };
   }
 
-  const entradasRaw = Array.isArray(item.entradas)
-    ? item.entradas
-    : Array.isArray(item.detalles)
-      ? item.detalles
-      : Array.isArray(item.detalleEntradas)
-        ? item.detalleEntradas
-        : [];
+  const fallbackId = `${containerId}-${evento.idEvento ?? `evt-${index + 1}`}-${
+    evento.funcionInfo?.id ?? `func-${index + 1}`
+  }`;
 
-  const entradas = entradasRaw.map((entrada) => normalizeEntrada(entrada));
+  const cartItemId = ensureCartItemId(
+    { cartItemId: evento.cartItemId },
+    fallbackId,
+  );
 
-  const totalItem = Number.isFinite(item.totalItem)
-    ? Number(item.totalItem)
-    : Number.isFinite(item.precioTotal)
-      ? Number(item.precioTotal)
-      : computeTotalFromEntradas(entradas);
+  const entradas = Array.isArray(evento.entradas)
+    ? evento.entradas.map((entrada) => normalizeEntrada(entrada))
+    : [];
 
-  const cartItemId = ensureCartItemId(item, containerId);
+  const totalItemFromDto = Number(evento.totalEvento);
+  const totalItem = Number.isFinite(totalItemFromDto)
+    ? totalItemFromDto
+    : computeTotalFromEntradas(entradas);
 
-  const eventoRaw =
-    item.eventoInfo ?? item.evento ?? item.eventoDetalle ?? item.detalleEvento ?? {};
-  const localRaw = item.localInfo ?? item.local ?? item.localDetalle ?? {};
-  const funcionRaw = item.funcionInfo ?? item.funcion ?? item.funcionDetalle ?? {};
+  const fechaHora = evento.funcionInfo?.fechaHora ?? null;
+  let fecha = null;
+  let hora = null;
 
-  const eventoInfo = {
-    id:
-      eventoRaw.id ??
-      eventoRaw.idEvento ??
-      item.idEvento ??
-      null,
-    nombre:
-      eventoRaw.nombre ??
-      eventoRaw.nombreEvento ??
-      item.nombreEvento ??
-      "",
-    imagenUrl:
-      eventoRaw.imagenUrl ??
-      eventoRaw.imagenURL ??
-      eventoRaw.imagen ??
-      item.imagenUrl ??
-      item.imagenURL ??
-      "",
-  };
-
-  const localInfo = {
-    nombre:
-      localRaw.nombre ??
-      localRaw.localNombre ??
-      item.nombreLocal ??
-      "",
-    ciudad:
-      localRaw.ciudad ??
-      localRaw.localCiudad ??
-      item.ciudadLocal ??
-      "",
-  };
-
-  let fecha = funcionRaw.fecha ?? item.fecha ?? null;
-  let hora = funcionRaw.hora ?? item.hora ?? null;
-  const fechaHoraRaw = funcionRaw.fechaHora ?? item.fechaHora ?? null;
-  if (fechaHoraRaw) {
-    if (typeof fechaHoraRaw === "string") {
-      const trimmed = fechaHoraRaw.trim();
-      if (!fecha && trimmed.length >= 10) {
-        fecha = trimmed.slice(0, 10);
-      }
-      if (!hora && trimmed.length >= 16) {
-        hora = trimmed.slice(11, 16);
-      }
-    } else {
-      const parsed = new Date(fechaHoraRaw);
-      if (!Number.isNaN(parsed.getTime())) {
-        if (!fecha) {
-          fecha = parsed.toISOString().slice(0, 10);
-        }
-        if (!hora) {
-          hora = parsed.toISOString().slice(11, 16);
-        }
-      }
+  if (fechaHora) {
+    const parsed = new Date(fechaHora);
+    if (!Number.isNaN(parsed.getTime())) {
+      fecha = parsed.toISOString().slice(0, 10);
+      hora = parsed.toISOString().slice(11, 16);
     }
   }
 
-  const funcionInfo = {
-    id:
-      funcionRaw.id ??
-      funcionRaw.idFuncion ??
-      item.idFuncion ??
-      null,
-    fecha,
-    hora,
-    fechaHora:
-      typeof fechaHoraRaw === "string"
-        ? fechaHoraRaw
-        : fechaHoraRaw instanceof Date
-          ? fechaHoraRaw.toISOString()
-          : fecha && hora
-            ? `${fecha}T${hora}`
-            : null,
-  };
-
   return {
-    ...item,
     cartItemId,
-    eventoInfo,
-    localInfo,
-    funcionInfo,
+    eventoInfo: {
+      id: evento.idEvento ?? null,
+      nombre: evento.nombreEvento ?? "",
+      imagenUrl: evento.imagenURL ?? "",
+    },
+    localInfo: {
+      nombre: evento.localInfo?.nombre ?? "",
+      ciudad: evento.localInfo?.ciudad ?? "",
+    },
+    funcionInfo: {
+      id: evento.funcionInfo?.id ?? null,
+      fecha,
+      hora,
+      fechaHora,
+    },
     entradas,
     totalItem,
   };
@@ -313,183 +210,36 @@ const parseExpiration = (value) => {
 
 const normalizeCartPayload = (raw) => {
   if (!raw) {
-    return { items: [], expirationTime: null };
-  }
-
-  if (Array.isArray(raw)) {
-    const aggregated = raw.map((entry) => normalizeCartPayload(entry));
-    const items = aggregated.flatMap((entry) => entry.items);
-    const expirationTime = aggregated.reduce((max, entry) => {
-      if (!entry.expirationTime) return max;
-      return Math.max(max, entry.expirationTime);
-    }, 0);
     return {
-      items,
-      expirationTime: expirationTime || null,
+      items: [],
+      expirationTime: null,
+      cartId: null,
+      totalCart: 0,
     };
   }
 
-  const expirationTime = parseExpiration(
-    raw.expirationTime ?? raw.fechaExpiracion ?? raw.cartExpiration,
+  const cartId = raw.idCarrito ?? null;
+  const containerId = cartId ?? generateFallbackId();
+  const eventos = Array.isArray(raw.eventos) ? raw.eventos : [];
+  const items = eventos.map((evento, index) =>
+    ensureCartItemStructure(evento, containerId, index),
   );
 
-  const itemsSource = Array.isArray(raw.items)
-    ? raw.items
-    : Array.isArray(raw.detalles)
-      ? raw.detalles
-      : Array.isArray(raw.detalleEntradas)
-        ? raw.detalleEntradas
-        : Array.isArray(raw.detalleCarrito)
-          ? raw.detalleCarrito
-          : null;
-
-  const eventosSource = Array.isArray(raw.eventos) ? raw.eventos : null;
-
-  const normalizedCartId = raw.idCarrito ?? raw.cartId ?? raw.id ?? null;
-  const containerBaseId = normalizedCartId ?? generateFallbackId();
-
-  let normalizedItems = [];
-
-  if (eventosSource) {
-    const groupedByEvent = new Map();
-
-    eventosSource.forEach((evento, index) => {
-      if (!evento) {
-        return;
-      }
-
-      const eventoInfoRaw = evento.eventoInfo ?? {};
-      const localInfoRaw = evento.localInfo ?? evento.local ?? {};
-      const funcionInfoRaw = evento.funcionInfo ?? evento.funcion ?? {};
-
-      const eventoId =
-        evento.idEvento ??
-        eventoInfoRaw.id ??
-        eventoInfoRaw.idEvento ??
-        null;
-      const funcionId =
-        funcionInfoRaw.id ??
-        funcionInfoRaw.idFuncion ??
-        evento.idFuncion ??
-        null;
-
-      const key = `${eventoId ?? `evt-${index}`}|${funcionId ?? `func-${index}`}`;
-
-      if (!groupedByEvent.has(key)) {
-        const fallbackCartItemId =
-          evento.cartItemId ??
-          evento.idCarritoDetalle ??
-          `${containerBaseId}-${key}-${groupedByEvent.size + 1}`;
-
-        groupedByEvent.set(key, {
-          cartItemId: fallbackCartItemId,
-          eventoInfo: {
-            id: eventoId,
-            nombre:
-              evento.nombreEvento ??
-              eventoInfoRaw.nombreEvento ??
-              eventoInfoRaw.nombre ??
-              "",
-            imagenUrl:
-              evento.imagenURL ??
-              eventoInfoRaw.imagenURL ??
-              eventoInfoRaw.imagenUrl ??
-              eventoInfoRaw.imagen ??
-              "",
-          },
-          localInfo: {
-            nombre: localInfoRaw.nombre ?? localInfoRaw.localNombre ?? "",
-            ciudad: localInfoRaw.ciudad ?? localInfoRaw.localCiudad ?? "",
-          },
-          funcionInfo: {
-            ...funcionInfoRaw,
-            id: funcionId,
-            fechaHora:
-              funcionInfoRaw.fechaHora ??
-              funcionInfoRaw.fechaHoraInicio ??
-              evento.fechaHora ??
-              null,
-          },
-          entradas: [],
-          totalItem: 0,
-        });
-      }
-
-      const target = groupedByEvent.get(key);
-      const entradas = Array.isArray(evento.entradas) ? evento.entradas : [];
-
-      entradas.forEach((entrada) => {
-        if (!entrada) {
-          return;
-        }
-
-        const quantityRaw = Number(
-          entrada.cantidad ??
-            entrada.quantity ??
-            entrada.cantidadTotal ??
-            entrada.numeroEntradas ??
-            0,
-        );
-        const quantity =
-          Number.isFinite(quantityRaw) && quantityRaw > 0 ? quantityRaw : 1;
-
-        const price = Number(
-          entrada.precio ?? entrada.precioUnitario ?? entrada.precioPorUnidad ?? 0,
-        );
-
-        target.entradas.push({
-          ...entrada,
-          cantidad: quantity,
-          precioUnitario: Number.isFinite(price) ? price : 0,
-        });
-
-        if (Number.isFinite(price)) {
-          target.totalItem += price * quantity;
-        }
-      });
-    });
-
-    normalizedItems = Array.from(groupedByEvent.values()).map((item, idx) =>
-      ensureCartItemStructure(item, `${containerBaseId}-${idx + 1}`),
-    );
-  } else if (itemsSource) {
-    normalizedItems = itemsSource.map((item) =>
-      ensureCartItemStructure(item, raw.id ?? raw.cartId ?? raw.idCarrito),
-    );
-  } else if (
-    raw.eventoInfo ||
-    raw.localInfo ||
-    raw.funcionInfo ||
-    (Array.isArray(raw.entradas) && raw.entradas.length > 0)
-  ) {
-    const fallbackItem = {
-      cartItemId:
-        raw.idDetalle ??
-        raw.idCarritoDetalle ??
-        raw.idCarrito ??
-        raw.id ??
-        undefined,
-      eventoInfo: raw.eventoInfo,
-      localInfo: raw.localInfo,
-      funcionInfo: raw.funcionInfo,
-      entradas: raw.entradas ?? [],
-      totalItem: raw.totalItem ?? raw.totalCarrito ?? raw.precioTotal ?? null,
-    };
-
-    normalizedItems = [
-      ensureCartItemStructure(fallbackItem, raw.idCarrito ?? raw.id),
-    ];
-  }
+  const expirationTime = parseExpiration(raw.fechaExpiracion);
+  const totalCartRaw = Number(raw.totalCarrito);
+  const totalCart = Number.isFinite(totalCartRaw)
+    ? totalCartRaw
+    : items.reduce((acc, item) => acc + item.totalItem, 0);
 
   return {
-    items: normalizedItems,
+    items,
     expirationTime,
-    cartId: normalizedCartId,
-    totalCart: raw.totalCarrito ?? raw.total ?? null,
+    cartId,
+    totalCart,
   };
 };
 
-const getAuthToken = () => {
+const resolveAuthToken = () => {
   if (typeof window === "undefined") return null;
 
   try {
@@ -516,90 +266,29 @@ const getAuthToken = () => {
   return null;
 };
 
-const apiFetch = async (endpoint, options = {}) => {
-  const {
-    token: explicitToken,
-    headers: customHeaders,
-    body,
-    method = "GET",
-    ...rest
-  } = options;
-
-  const rawToken = explicitToken ?? getAuthToken();
-  const url = buildUrl(endpoint);
-
-  const headers = new Headers(customHeaders || {});
-  headers.set("Accept", "application/json");
-
-  let requestBody = body;
-  const isFormData =
-    typeof FormData !== "undefined" && body instanceof FormData;
-  const isBlob = typeof Blob !== "undefined" && body instanceof Blob;
-
-  const isJsonBody =
-    body &&
-    typeof body === "object" &&
-    !isFormData &&
-    !isBlob;
-
-  if (isJsonBody) {
-    headers.set("Content-Type", "application/json");
-    requestBody = JSON.stringify(body);
+const buildAuthHeaders = (token) => {
+  const effectiveToken = token ?? resolveAuthToken();
+  if (!effectiveToken || typeof effectiveToken !== "string") {
+    return undefined;
   }
-
-  if (rawToken) {
-    const normalizedToken = typeof rawToken === "string" ? rawToken.trim() : rawToken;
-    if (typeof normalizedToken === "string" && normalizedToken.length > 0) {
-      const hasBearerPrefix = /^bearer\s/i.test(normalizedToken);
-      headers.set(
-        "Authorization",
-        hasBearerPrefix ? normalizedToken : `Bearer ${normalizedToken}`,
-      );
-    }
+  const trimmed = effectiveToken.trim();
+  if (!trimmed) {
+    return undefined;
   }
-
-  const response = await fetch(url, {
-    method,
-    body: requestBody,
-    headers,
-    cache: rest.cache ?? "no-store",
-    ...rest,
-  });
-
-  const contentType = response.headers.get("Content-Type") || "";
-  let payload = null;
-
-  if (contentType.includes("application/json")) {
-    payload = await response.json();
-  } else {
-    const text = await response.text();
-    payload = text ? { mensaje: text } : null;
-  }
-
-  if (!response.ok) {
-    const message =
-      payload?.error ||
-      payload?.mensaje ||
-      `Error HTTP ${response.status}`;
-    throw new Error(message);
-  }
-
-  return payload;
+  const hasBearerPrefix = /^bearer\s/i.test(trimmed);
+  return {
+    Authorization: hasBearerPrefix ? trimmed : `Bearer ${trimmed}`,
+  };
 };
 
 export const fetchCartWithToken = async (token) => {
-  const response = await apiFetch(CART_FETCH_ENDPOINT, {
-    method: "GET",
-    token,
-  });
+  const headers = buildAuthHeaders(token);
+  const rawData = await api.get(
+    CART_ENDPOINTS.fetch,
+    headers ? { headers } : {},
+  );
 
-  if (response?.success === false) {
-    throw new Error(
-      response.error || response.mensaje || "Error en el servicio de carrito",
-    );
-  }
-
-  const normalized = normalizeCartPayload(response?.data ?? response ?? null);
+  const normalized = normalizeCartPayload(rawData);
 
   return {
     success: true,
@@ -666,31 +355,15 @@ export const addItemToDbCart = async (item, expirationTime, token) => {
     };
   }
 
-  console.log("[Cart.service] Payload agregar item:", {
-    endpoint: CART_ADD_ENDPOINT,
-    body: payload,
-  });
-
   try {
-    const response = await apiFetch(CART_ADD_ENDPOINT, {
-      method: "POST",
-      body: payload,
-      token,
-    });
-
-    if (response?.success === false) {
-      return {
-        success: false,
-        error:
-          response.error ||
-          response.mensaje ||
-          "Error en el servicio de carrito",
-      };
-    }
-
-    const normalized = normalizeCartPayload(
-      response?.data ?? response ?? null,
+    const headers = buildAuthHeaders(token);
+    const response = await api.post(
+      CART_ENDPOINTS.add,
+      payload,
+      headers ? { headers } : {},
     );
+
+    const normalized = normalizeCartPayload(response ?? null);
 
     return {
       success: true,
@@ -715,22 +388,13 @@ export const removeItemFromDbCart = async (entradaId, token) => {
   }
 
   try {
-    const response = await apiFetch(`${CART_REMOVE_ENDPOINT}/${normalizedId}`, {
-      method: "DELETE",
-      token,
-    });
+    const headers = buildAuthHeaders(token);
+    const response = await api.delete(
+      `${CART_ENDPOINTS.remove}/${normalizedId}`,
+      headers ? { headers } : {},
+    );
 
-    if (response?.success === false) {
-      return {
-        success: false,
-        error:
-          response.error ||
-          response.mensaje ||
-          "Error en el servicio de carrito",
-      };
-    }
-
-    const normalized = normalizeCartPayload(response?.data ?? response ?? null);
+    const normalized = normalizeCartPayload(response ?? null);
 
     return {
       success: true,
