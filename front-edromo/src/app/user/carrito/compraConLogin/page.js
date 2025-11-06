@@ -14,6 +14,7 @@ import { getMisDatos } from "@/services/User.service.js";
 // --- 1. IMPORTA EL SERVICIO QUE TRAE LAS LISTAS ---
 // (Ajusta la ruta si es diferente, ej. @/services/signUpService.js)
 import { obtenerDatosDeRegistro } from "@/services/signUpService.js"; 
+import CartTimer from "@/components/carrito/CartTimer";
 
 function CompraConLoginPage() {
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
@@ -325,6 +326,7 @@ function CompraConLoginPage() {
 
                 <section className={styles.card}>
                     <h2 className={styles.cardTitle}>Resumen de la compra</h2>
+                    <CartTimer variant="minimal"/>
                     <CostoDetalleEntradasController />
                     <div className="flex flex-col items-center gap-4 mt-4">
                         {selectedPaymentMethod ? (

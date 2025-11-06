@@ -1,17 +1,24 @@
 "use client";
 
+// Importamos los hooks de React y Next.js
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { Nunito } from "next/font/google";
-import { useUser } from "@/context/UserContext.jsx";
-import { autenticarUsuario } from "@/services/Login.service.js";
 import Image from "next/image";
 import Link from "next/link";
+
+// Importamos los contextos y servicios de tu versión "nueva"
+import { useUser } from "@/context/UserContext.jsx";
+import { autenticarUsuario } from "@/services/Login.service.js";
+
+// Importamos el Modal
 import ForgotPasswordModal from "@/components/ForgotPasswordModal/ForgotPasswordModal";
 
-const nunito = Nunito({ subsets: ["latin"], weight: ["400", "700", "900"] });
+// --- IMPORTAMOS LOS CSS DE TU DISEÑO ANTIGUO ---
+import "@/css/login-style.css"; 
+import "@/css/forgot-password.css"; 
 
 function App() {
+  // --- TODA LA LÓGICA DE TU VERSIÓN "NUEVA" ---
   const { login } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,6 +32,7 @@ function App() {
     setError(null);
 
     try {
+      // Usamos la lógica de tu versión "nueva" (autenticarUsuario con email/password)
       const response = await autenticarUsuario(email, password);
       login(response);
 
@@ -45,108 +53,92 @@ function App() {
       setError(error.message);
     }
   };
+  // --- FIN DE LA LÓGICA ---
 
 
+  // --- TODO EL DISEÑO (JSX) DE TU VERSIÓN "ANTIGUA" ---
   return (
-    <div className={`${nunito.className} flex min-h-screen bg-white`}>
-      <div className="relative flex flex-1 flex-col px-8 py-10 lg:min-w-[40vw]">
-        <div className="relative mb-8 h-[250px] w-[400px] max-w-full">
+    <div className="App"> {/* Usa la clase CSS principal */}
+      <div className="login-form-container">
+        
+        <div className="logo-container">
           <Image
             src={"/images/logo/logo_eventodromo.png"}
             alt="Logo"
+            className="login-logo"
             fill={true}
             style={{ objectFit: "contain" }}
             priority
           />
         </div>
 
-        <Link
-          href="/user/eventos/lista"
-          className="relative z-10 mx-auto mb-8 block w-full max-w-[600px] px-8 text-base font-semibold text-[#00bfa6] transition hover:text-[#008f8f] hover:underline"
-        >
+        <Link href="/user/eventos/lista" className="volver-inicio">
           Volver al inicio
         </Link>
 
-        <form
-          className="mx-auto flex w-full max-w-[600px] flex-col space-y-6 px-8 text-base md:px-6"
-          onSubmit={handleSubmit}
-        >
-          {error && (
-            <div className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-md bg-red-50">
-              {error}
-            </div>
-          )}
+        {/* * Este formulario usa el 'handleSubmit' de tu versión "nueva"
+          * y los inputs están "controlados" con 'value' y 'onChange'.
+        */}
+        <form className="login-text" onSubmit={handleSubmit}>
+          {error && <div className="error-message">{error}</div>}
 
-          <div className="space-y-2">
-            <label htmlFor="email" className="font-medium text-gray-800">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-md border border-gray-300 bg-gray-100 px-4 py-3 text-base transition focus:border-[#00bfa6] focus:bg-white focus:outline-none lg:min-w-[400px]"
+          <div>
+            <label htmlFor="email">Email</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              value={email} // Controlado por el estado
+              onChange={(e) => setEmail(e.target.value)} // Controlado por el estado
+              required 
             />
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="password" className="font-medium text-gray-800">
-              Contraseña
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full rounded-md border border-gray-300 bg-gray-100 px-4 py-3 text-base transition focus:border-[#00bfa6] focus:bg-white focus:outline-none lg:min-w-[400px]"
+          <div>
+            <label htmlFor="password">Contraseña</label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              value={password} // Controlado por el estado
+              onChange={(e) => setPassword(e.target.value)} // Controlado por el estado
+              required 
             />
           </div>
 
-          <div className="flex justify-end">
+          <div className="alinear-derecha">
             <button
-              type="button"
+              type="button" // Importante: 'type="button"' para que no envíe el form
+              className="forgot-password-link"
               onClick={() => setIsModalOpen(true)}
-              className="mb-2 text-sm font-medium text-[#00bfa6] transition hover:text-[#008f8f] hover:underline"
             >
               ¿Olvidaste tu contraseña?
             </button>
           </div>
 
-          <div className="space-y-3 text-center text-gray-600">
-            <button
-              type="submit"
-              className="w-full rounded-md bg-[#00bfa6] px-4 py-3 text-lg font-semibold text-white transition hover:bg-[#00a892] lg:min-w-[400px]"
-            >
-              Ingresa
-            </button>
-            <p className="text-sm">¿Aún no tienes cuenta?</p>
-            <Link
-              href="/auth/signup"
-              className="font-semibold text-[#00bfa6] transition hover:text-[#008f8f] hover:underline"
-            >
-              Registrate Aquí
-            </Link>
+          <div className="login-hipervinculos-container">
+            <button type="submit">Ingresa</button>
+            <p>¿Aún no tienes cuenta?</p>
+            {/* El Link a 'signup' es el mismo en ambas versiones */}
+            <Link href="/auth/signup">Registrate Aquí</Link> 
           </div>
         </form>
-      </div>
 
-      <div className="relative flex-1 hidden overflow-hidden lg:block">
-        <Image
-          src={"/images/otros/imagenMitad.png"}
-          alt="Imagen de fondo"
-          fill={true}
-          className="object-cover brightness-90"
-          priority
+        <ForgotPasswordModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
         />
       </div>
 
-      <ForgotPasswordModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+      <div className="imagen-mitad">
+        <Image
+          src={"/images/otros/imagenMitad.png"}
+          alt="Imagen de fondo"
+          className="background-image"
+          fill={true}
+          priority
+        />
+      </div>
     </div>
   );
 }
