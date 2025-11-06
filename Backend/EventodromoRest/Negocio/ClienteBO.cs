@@ -171,27 +171,9 @@ namespace EventodromoRest.Negocio
 
         public DatosSignUp ObtenerDatosSignUp()
         {
-            var paisMapper = new PaisMapper(globales, DB);
-            var ciudadMapper = new CiudadMapper(globales, DB);
-            var sexoMapper = new SexoMapper(globales, DB);
-            var tipoDocumentoMapper = new TipoDocumentoMapper(globales, DB);
+            var mapper = new DatosSignUpMapper(globales, DB);
 
-            // Obtener listas desde la base de datos
-            List<Pais> paises = paisMapper.ListarPais();
-            List<Ciudad> ciudades = ciudadMapper.ListarCiudad();
-            List<Sexo> sexos = sexoMapper.ListarSexos();
-            List<TipoDocumento> tiposDocumento = tipoDocumentoMapper.ListarTipoDocumento();
-
-            // Construir el objeto de salida
-            DatosSignUp datos = new DatosSignUp
-            {
-                paises = paises,
-                ciudades = ciudades,
-                sexos = sexos,
-                tiposDocumento = tiposDocumento
-            };
-
-            return datos;
+            return mapper.ObtenerDatosCompletos();
         }
 
         public VerificarCorreoResponse verificarCorreoCliente(string email)
@@ -254,5 +236,22 @@ namespace EventodromoRest.Negocio
             
         }
 
+
+        public DatosPersonalesDTO ObtenerDatosPersonales(int idCliente)
+        {
+            // 1. Instanciamos el Mapper, tal como lo haces en tus otros métodos
+            var mapper = new ClienteMapper(globales, DB);
+
+            // 2. Llamamos al método del mapper que hará la consulta
+            DatosPersonalesDTO datos = mapper.ObtenerDatosPersonalesPorId(idCliente);
+
+            // 3. (Opcional) Lógica de negocio si es necesaria
+            // En este caso, si el mapper no encuentra nada (devuelve null),
+            // simplemente pasamos ese 'null' al Controller,
+            // que es el encargado de traducirlo a una respuesta "Not Found".
+            // Esto es más limpio que lanzar una excepción aquí.
+
+            return datos;
+        }
     }
 }

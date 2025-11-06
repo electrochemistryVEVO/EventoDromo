@@ -10,6 +10,8 @@ import { useUser } from "@/context/UserContext";
 import CostoDetalleEntradas from "@/components/carrito/costoDetalleEntradas";
 import { CostoDetalleEntradasController } from "@/components/carrito/CostoDetalleEntradas.controller";
 
+import CartTimer from "@/components/carrito/CartTimer";
+
 function IdentificacionPage() {
   const router = useRouter();
   const cartContext = useCart();
@@ -112,6 +114,8 @@ function IdentificacionPage() {
 
         <section className={styles.card}>
           <h2 className={styles.cardTitle}>Resumen de la compra</h2>
+          {/* --- AÑADE EL TIMER CON LA VARIANTE "minimal" --- */}
+          <CartTimer variant="minimal" />
           <CostoDetalleEntradasController />
         </section>
       </main>

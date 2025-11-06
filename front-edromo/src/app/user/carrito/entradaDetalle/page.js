@@ -9,8 +9,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 
+import CartTimer from "@/components/carrito/CartTimer";
+import { useUser } from "@/context/UserContext";
+
 function EntradaDetallePage() {
   const { isLoading, itemCount } = useCart();
+  const { isAuthenticated } = useUser();
   const router = useRouter();
 
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
@@ -52,9 +56,15 @@ function EntradaDetallePage() {
 
   return (
     <div className={styles.pageContainer}>
-      <div className={styles.header}>
-        {/* ... (ícono de carrito svg) ... */}
-        <h1 className={styles.title}>Mi Carrito</h1>
+      <div
+        className={`${styles.header} flex flex-col md:flex-row justify-between items-center gap-4`}
+      >
+        <div className="flex items-center gap-4">
+          <h1 className={`${styles.title} m-0`}>Mi Carrito</h1>
+        </div>
+        <div className="w-full md:w-auto">
+          <CartTimer />
+        </div>
       </div>
       <section className="flex flex-col gap-8 lg:flex-row lg:gap-20">
         <div className="w-full lg:w-2/3">
@@ -85,7 +95,13 @@ function EntradaDetallePage() {
               className="flex w-full max-w-sm items-center justify-center gap-4 rounded-2xl bg-[#00C49A] py-10 text-lg font-bold text-white transition hover:bg-[#00b07e] disabled:cursor-not-allowed disabled:bg-gray-400"
               disabled={!aceptaTerminos || itemCount === 0}
               onClick={() => {
-                if (aceptaTerminos) {
+                if (!aceptaTerminos) return; // Doble chequeo por si acaso
+
+                if (isAuthenticated) {
+                  // Si está logueado, va directo a la página de datos
+                  router.push("/user/carrito/compraConLogin");
+                } else {
+                  // Si no, va a la página de identificación (login/registro)
                   router.push("/user/carrito/identificacion");
                 }
               }}

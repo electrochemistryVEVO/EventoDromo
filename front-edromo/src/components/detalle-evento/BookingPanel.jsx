@@ -33,7 +33,7 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
       dates[date].push({
         id: func.id,
         time: func.hora,
-        tiposDeEntrada: func.tiposDeEntrada || [],
+        tiposDeEntrada: (func.tiposDeEntrada || []).sort((a, b) => b.precio - a.precio),
       });
     });
     return dates;
@@ -58,7 +58,7 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
     const selectedTime = timesForSelectedDate.find(
       (time) => time.id.toString() === selectedFunctionId
     );
-    return selectedTime?.tiposDeEntrada || [];
+    return selectedTime?.tiposDeEntrada?.sort((a, b) => b.precio - a.precio) || [];
   }, [selectedFunctionId, timesForSelectedDate]);
 
   // --- EFECTOS CORREGIDOS ---
@@ -123,12 +123,12 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
       alert("Por favor, seleccione al menos una entrada.");
       return;
     }
-    
+
     // ✅ Aseguramos que solo enviemos tickets con cantidad > 0
     const validTicketQuantities = Object.fromEntries(
       Object.entries(ticketQuantities).filter(([_, quantity]) => quantity > 0)
     );
-    
+
     onAddToCart({
       selectedFunctionId,
       ticketQuantities,
@@ -178,7 +178,7 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
 
       <div className="tickets-section">
         <h4 className="tickets-title">Entradas</h4>
-        
+
         {!selectedFunctionId ? (
           <p className="tickets-placeholder">
             Seleccione un horario para ver las entradas.
@@ -187,9 +187,8 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
           currentTicketTiers.map((tier) => (
             <div
               key={tier.id}
-              className={`ticket-tier-row ${
-                tier.agotado ? "ticket-tier-row--agotado" : ""
-              }`}
+              className={`ticket-tier-row ${tier.agotado ? "ticket-tier-row--agotado" : ""
+                }`}
             >
               <div className="ticket-info">
                 <span className="ticket-name">{tier.nombre}</span>
@@ -217,7 +216,20 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
                     </svg>
                   </button>
                 ) : (
-                  <button onClick={() => handleQuantityChange(tier.id, 1)}>
+                  <button
+                    onClick={() => handleQuantityChange(tier.id, 1)}
+                    // --- ✅ LÓGICA AÑADIDA ---
+                    // Deshabilitamos el botón si:
+                    // 1. La entrada está agotada (lógica que ya existía).
+                    // 2. O si el limiteCompra es positivo (mayor a 0) Y
+                    // 3. La cantidad actual en el estado (ticketQuantities)
+                    //    es igual or mayor a ese límite.
+                    disabled={
+                      tier.agotado ||
+                      (tier.limiteCompra > 0 &&
+                        (ticketQuantities[tier.id] || 0) >= tier.limiteCompra)
+                    }
+                  >
                     +
                   </button>
                 )}

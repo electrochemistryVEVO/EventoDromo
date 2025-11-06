@@ -436,5 +436,150 @@ namespace EventodromoRest.Mappers
             }
         }
 
+
+        // En EventoMapper.cs (o un mapper principal)
+        public ResponseObtenerEventoPorId ObtenerDatosCompletosEventoPorId(int eventoId)
+        {
+            ResponseObtenerEventoPorId resultado = new ResponseObtenerEventoPorId();
+
+            // Usamos un solo lock para toda la operación
+            lock (DB)
+            {
+                // --- CONSULTA 1: Datos principales (Evento, Local, Ciudad, Pais, TipoEvento) ---
+
+                string queryPrincipal = @"
+            SELECT
+                E.id AS EventoId, E.nombre AS EventoNombre, E.descripcion, E.imagenURL,
+                T.id AS TipoEventoId, T.nombre AS TipoEventoNombre,
+                L.id AS LocalId, L.nombre AS LocalNombre, L.direccion,
+                C.id AS CiudadId, C.nombre AS CiudadNombre,
+                P.id AS PaisId, P.nombre AS PaisNombre
+            FROM
+                Evento AS E
+            LEFT JOIN
+                TipoEvento AS T ON E.idTipoEvento = T.id
+            LEFT JOIN
+                Local AS L ON E.idLocal = L.id
+            LEFT JOIN
+                Ciudad AS C ON L.idCiudad = C.id
+            LEFT JOIN
+                Pais AS P ON C.idPais = P.id
+            WHERE
+                E.id = @IdEvento;";
+
+                var parametrosEvento = new ParameterList();
+                parametrosEvento.Add("@IdEvento", eventoId);
+                DB.Select(queryPrincipal, parametrosEvento);
+
+                if (!DB.Read())
+                {
+                    DB.CloseReader();
+                    return null; // Evento no encontrado
+                }
+
+                // Mapear datos de la Consulta 1
+                resultado.evento = new ResponseEvento
+                {
+                    id = DB.GetInt("EventoId"),
+                    nombre = DB.GetString("EventoNombre"),
+                    descripcion = DB.GetString("descripcion"),
+                    imagenUrl = DB.GetString("imagenURL"),
+                    tipoEvento = new TipoEvento
+                    {
+                        id = DB.GetInt("TipoEventoId"),
+                        nombre = DB.GetString("TipoEventoNombre")
+                    }
+                };
+
+                resultado.local = new ResponseLocal
+                {
+                    id = DB.GetInt("LocalId"),
+                    nombre = DB.GetString("LocalNombre"),
+                    direccion = DB.GetString("direccion"),
+                    googleMapsEmbed = "<iframe src=\"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3901.9705727105875!2d-77.037574524449!3d-12.045545688191202!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c8ca3c54dd11%3A0x40b0447dcf24a5c8!2sTeatro%20Municipal%20de%20Lima!5e0!3m2!1ses!2spe!4v1760080206514!5m2!1ses!2spe\" width=\"600\" height=\"450\" ...></iframe>",
+                    ciudad = new Ciudad
+                    {
+                        id = DB.GetInt("CiudadId"),
+                        nombre = DB.GetString("CiudadNombre"),
+                        idPais = DB.GetInt("PaisId"), // Asumiendo que quieres el ID
+                        pais = new Pais
+                        {
+                            id = DB.GetInt("PaisId"),
+                            nombre = DB.GetString("PaisNombre")
+                        }
+                    }
+                };
+                DB.CloseReader(); // Importante: Cerrar el primer reader
+
+                // --- CONSULTA 2: Funciones (FechaEvento) y sus TiposDeEntrada (hijos) ---
+
+                // Asumo que la columna en tu tabla TipoEntrada se llama LIMITECOMPRA
+                string queryFunciones = @"
+            SELECT
+                F.ID AS FechaEventoId,
+                F.FECHAHORA,
+                T.ID AS TipoEntradaId,
+                T.NOMBRE AS TipoEntradaNombre,
+                T.PRECIO,
+                T.PUNTOS,
+                T.LIMITECOMPRA
+            FROM
+                FechaEvento AS F
+            LEFT JOIN
+                TipoEntrada AS T ON F.ID = T.IDFECHAEVENTO
+            WHERE
+                F.IDEVENTO = @IdEvento
+            ORDER BY
+                F.FECHAHORA, T.ID;";
+
+                var parametrosFunciones = new ParameterList();
+                parametrosFunciones.Add("@IdEvento", eventoId);
+                DB.Select(queryFunciones, parametrosFunciones);
+
+                // Usamos un Diccionario para agrupar los tipos de entrada en sus funciones
+                var funcionesDict = new Dictionary<int, ResponseFechaEvento>();
+
+                while (DB.Read())
+                {
+                    int fechaEventoId = DB.GetInt("FechaEventoId");
+
+                    // Si la función (FechaEvento) no está en el diccionario, la creamos
+                    if (!funcionesDict.ContainsKey(fechaEventoId))
+                    {
+                        DateTime fechaHora = DB.GetDateTime("FECHAHORA");
+                        var nuevaFuncion = new ResponseFechaEvento
+                        {
+                            id = fechaEventoId,
+                            fecha = fechaHora.ToString("yyyy-MM-dd"),
+                            hora = fechaHora.ToString("HH-mm"),
+                            tiposDeEntrada = new List<ResponseTipoEntrada>()
+                        };
+                        funcionesDict.Add(fechaEventoId, nuevaFuncion);
+                    }
+
+                    // Añadimos el TipoEntrada a la función correspondiente
+                    // (Verificamos si existe, por si una función no tiene tipos de entrada)
+                    if (!DB.IsDBNull("TipoEntradaId"))
+                    {
+                        var tipoEntrada = new ResponseTipoEntrada
+                        {
+                            id = DB.GetInt("TipoEntradaId"),
+                            nombre = DB.GetString("TipoEntradaNombre"),
+                            precio = double.Parse(DB.GetDecimal("PRECIO").ToString()),
+                            puntos = DB.GetInt("PUNTOS"),
+                            agotado = false, // Tu lógica original
+                            limiteCompra = DB.GetInt("LIMITECOMPRA") // <<< MAPEO DEL NUEVO CAMPO
+                        };
+                        funcionesDict[fechaEventoId].tiposDeEntrada.Add(tipoEntrada);
+                    }
+                }
+                DB.CloseReader(); // Cerrar el segundo reader
+
+                // Convertir los valores del diccionario a la lista final
+                resultado.funciones = funcionesDict.Values.ToList();
+            } // Fin del lock(DB)
+
+            return resultado;
+        }
     }
 }

@@ -500,6 +500,72 @@ namespace EventodromoRest.Controllers
         }
 
 
+        [HttpGet]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<DatosPersonalesDTO> GetMisDatosPersonales()
+        {
+            try
+            {
+                // 1. Leer el token de la cabecera (tu patrón existente)
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<DatosPersonalesDTO>
+                    {
+                        Success = false,
+                        Message = "Token no proporcionado o inválido.",
+                        Error = "Unauthorized"
+                    };
+                }
 
+                // 2. Extraer el token y obtener el ID del cliente
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idCliente = tokenService.ObtenerIdDesdeToken(token);
+
+                if (idCliente == null)
+                {
+                    return new GenericResponse<DatosPersonalesDTO>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "Unauthorized"
+                    };
+                }
+
+                // 3. Llamar a la Capa de Negocio (BO)
+                var clienteBO = new ClienteBO(globales, BD);
+                DatosPersonalesDTO datos = clienteBO.ObtenerDatosPersonales(idCliente.Value);
+
+                if (datos == null)
+                {
+                    return new GenericResponse<DatosPersonalesDTO>
+                    {
+                        Success = false,
+                        Message = "No se encontró información para el cliente.",
+                        Error = "Not Found"
+                    };
+                }
+
+                // 4. Éxito
+                return new GenericResponse<DatosPersonalesDTO>
+                {
+                    Success = true,
+                    Message = "Datos personales obtenidos correctamente.",
+                    Data = datos
+                };
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<DatosPersonalesDTO>
+                {
+                    Success = false,
+                    Message = "Error en el servidor.",
+                    Error = e.Message
+                };
+                // "GetMisDatosPersonales (Token)" indica que la solicitud no tiene body, solo token
+                AgregarEntradaBitacora(e, "GetMisDatosPersonales (Token)", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
     }
 }

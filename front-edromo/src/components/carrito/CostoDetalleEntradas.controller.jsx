@@ -52,7 +52,14 @@ export const CostoDetalleEntradasController = () => {
   const eventos = Object.values(eventosMap);
 
   // 7. CALCULAMOS los puntos usando el 'totalPrice' del contexto
-  const dromoPuntos = Math.floor(totalPrice / 100);
+  const dromoPuntos = cartItems.reduce((totalPuntosAcc, item) => {
+    const puntosPorItem = item.entradas.reduce((entradasAcc, entrada) => {
+      const cantidad = entrada.cantidad || 0;
+      const puntos = entrada.puntosUnitarios || 0;
+      return entradasAcc + (cantidad * puntos);
+    }, 0);
+    return totalPuntosAcc + puntosPorItem;
+  }, 0);
 
   return (
     <CostoDetalleEntradas

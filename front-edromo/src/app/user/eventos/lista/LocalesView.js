@@ -4,13 +4,13 @@ const LocalCard = ({ local }) => (
     <div className="local-card-container">
             <Image 
                 src={local.imagenURL} 
-                alt={local.nombre} 
+                alt={local.nombreLocal} 
                 layout="fill" 
                 className="local-card-image" 
             />
             <div className="local-card-overlay">
-                <h5 className="local-card-name">{local.nombre}</h5>
-                <p className="local-card-city">{local.ciudad}</p>
+                <h5 className="local-card-name">{local.nombreLocal}</h5>
+                <p className="local-card-city">{local.nombreCiudad}</p>
             </div>
     </div>
 );
@@ -25,7 +25,7 @@ export function LocalesView({ locales }) {
                 </div>
                 <div className="locales-row">
                     {locales.map(local => (
-                        <LocalCard key={local.id} local={local} />
+                        <LocalCard key={local.idLocal} local={local} />
                     ))}
                 </div>
             </div>

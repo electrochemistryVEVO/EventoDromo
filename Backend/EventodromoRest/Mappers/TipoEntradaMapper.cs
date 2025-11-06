@@ -160,7 +160,7 @@ namespace EventodromoRest.Mappers
             return fechaEventoMapper.ObtenerFechaEventoPorId(v);
         }
 
-        internal List<ResponseTipoEntrada> ListarResponseTipoEntradaPorFechaEvento(int id)
+        public List<ResponseTipoEntrada> ListarResponseTipoEntradaPorFechaEvento(int id)
         {
             List<ResponseTipoEntrada> listaTipoEntrada = new List<ResponseTipoEntrada>();
             lock (DB)

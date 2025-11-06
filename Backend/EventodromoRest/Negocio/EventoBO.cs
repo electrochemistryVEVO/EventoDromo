@@ -30,6 +30,25 @@ namespace EventodromoRest.Negocio
         public GenericResponse<ResponseObtenerEventoPorId> ObtenerEventoPorId(int eventoId)
         {
             EventoMapper mapper = new EventoMapper(globales, DB);
+            ResponseObtenerEventoPorId data = mapper.ObtenerDatosCompletosEventoPorId(eventoId);
+
+            if (data == null)
+            {
+                return new GenericResponse<ResponseObtenerEventoPorId>
+                {
+                    Success = false,
+                    Message = "Evento no encontrado.",
+                    Data = null
+                };
+            }
+
+            // Construir la respuesta
+            GenericResponse<ResponseObtenerEventoPorId> response = new GenericResponse<ResponseObtenerEventoPorId>();
+            response.Success = true;
+            response.Data = data;
+            return response;
+            /*
+            EventoMapper mapper = new EventoMapper(globales, DB);
             ResponseEvento evento = mapper.ObtenerResponseEventoPorId(eventoId);
             ResponseLocal local = new LocalMapper(globales, DB).ObtenerLocalPorIdEvento(eventoId);
             List<ResponseFechaEvento> funciones = new FechaEventoMapper(globales, DB).ListarResponseFechaEventoPorEvento(eventoId);
@@ -44,6 +63,7 @@ namespace EventodromoRest.Negocio
 
             };
             return response;
+            */
         }
         public GenericResponse<ResponseListarEventosYLocales> ListarEventosYLocales()
         {

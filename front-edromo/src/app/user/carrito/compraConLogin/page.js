@@ -9,6 +9,11 @@ import Image from "next/image";
 import { useCart } from "@/context/CartContext";
 import { useUser } from "@/context/UserContext";
 import { CostoDetalleEntradasController } from "@/components/carrito/CostoDetalleEntradas.controller";
+import { getMisDatos } from "@/services/User.service.js";
+
+// --- 1. IMPORTA EL SERVICIO QUE TRAE LAS LISTAS ---
+// (Ajusta la ruta si es diferente, ej. @/services/signUpService.js)
+import { obtenerDatosDeRegistro } from "@/services/signUpService.js"; 
 
 function CompraConLoginPage() {
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
@@ -18,24 +23,79 @@ function CompraConLoginPage() {
     const { isLoading: isCartLoading, itemCount } = useCart();
     const { user, isAuthenticated, isLoading: isUserLoading } = useUser();
 
-    const isLoading = isCartLoading || isUserLoading;
+    // --- 2. AÑADE ESTADO PARA LAS LISTAS ---
+    const [listas, setListas] = useState({ paises: [], ciudades: [], tiposDocumento: [] });
+    const [isLoadingListas, setIsLoadingListas] = useState(true);
 
+    //isLoading ahora incluye la carga de las listas
+    const isLoading = isCartLoading || isUserLoading || isLoadingListas;
+
+    // --- 3. NUEVO useEffect PARA CARGAR LAS LISTAS (PAÍS, CIUDAD, ETC.) ---
     useEffect(() => {
-        if (user && formRef.current) {
-            const { elements } = formRef.current;
-            const setValue = (fieldName, value) => {
-                const field = elements?.namedItem(fieldName);
-                if (field && "value" in field) {
-                    field.value = value ?? "";
+        const fetchListas = async () => {
+            try {
+                const data = await obtenerDatosDeRegistro();
+                setListas({
+                    paises: data.paises || [],
+                    ciudades: data.ciudades || [],
+                    // Asegúrate que el JSON de tu API use "tiposDocumento"
+                    tiposDocumento: data.tiposDocumento || [] 
+                });
+            } catch (error) {
+                console.error("Error cargando listas para el formulario:", error);
+            } finally {
+                setIsLoadingListas(false);
+            }
+        };
+        fetchListas();
+    }, []); // Array vacío, se ejecuta solo una vez al montar
+
+    // --- 4. useEffect EXISTENTE (MODIFICADO) PARA RELLENAR EL FORMULARIO ---
+    useEffect(() => {
+        // Helper para rellenar el formulario (sin cambios)
+        const populateForm = (data) => {
+            if (formRef.current && data) {
+                const { elements } = formRef.current;
+                const setValue = (fieldName, value) => {
+                    const field = elements?.namedItem(fieldName);
+                    if (field && "value" in field) {
+                        field.value = value ?? "";
+                    }
+                };
+                
+                // Rellena el formulario
+                setValue("email", data.email);
+                setValue("nombre", data.nombre);
+                setValue("apellido", data.apellido);
+                setValue("tipoDoc", data.tipoDoc);
+                setValue("numDoc", data.numDoc);
+                setValue("pais", data.pais);
+                setValue("ciudad", data.ciudad); // <-- Ahora SÍ encontrará "Callao" en la lista
+            }
+        };
+
+        const loadAndPopulateData = async () => {
+            if (user?.token) {
+                try {
+                    const clienteData = await getMisDatos(user.token);
+                    populateForm(clienteData);
+                } catch (error) {
+                    console.error("Error al cargar datos del cliente:", error);
+                    populateForm(user); // Fallback
                 }
-            };
+            }
+        };
 
-            setValue("email", user.email);
-            setValue("nombre", user.nombre);
-            setValue("apellido", user.apellido);
+        // Solo rellena el formulario si:
+        // 1. El usuario está autenticado
+        // 2. Las listas de los dropdowns YA se han cargado
+        if (isAuthenticated && !isLoadingListas) {
+            loadAndPopulateData();
         }
-    }, [user]);
 
+    }, [isAuthenticated, user, isLoadingListas]); // <-- Depende ahora de isLoadingListas
+
+    // useEffect de protección (sin cambios)
     useEffect(() => {
         if (isLoading) return;
 
@@ -48,6 +108,7 @@ function CompraConLoginPage() {
         }
     }, [isLoading, isAuthenticated, itemCount, router]);
 
+    // Handlers (sin cambios)
     const handlePaymentMethodChange = (event) => {
         setSelectedPaymentMethod(event.target.value);
     };
@@ -64,10 +125,10 @@ function CompraConLoginPage() {
             ciudad: formData.get("ciudad"),
         };
         sessionStorage.setItem("userData", JSON.stringify(userData));
-
         router.push("/user/carrito/CompraPagoConLogin");
     };
 
+    // Return de Carga (ahora incluye isLoadingListas)
     if (isLoading || !isAuthenticated || itemCount === 0) {
         return (
             <div className={styles.pageContainer}>
@@ -76,9 +137,11 @@ function CompraConLoginPage() {
         );
     }
 
+    // --- 5. RENDERIZADO DEL FORMULARIO (ACTUALIZADO CON LISTAS DINÁMICAS) ---
     return (
         <div className={styles.pageContainer}>
             <header className={styles.header}>
+                {/* ... (tu header con los steps no cambia) ... */}
                 <div>
                     <Link href="/user/carrito/entradaDetalle" className={styles.backButton}>
                         <Image
@@ -167,9 +230,14 @@ function CompraConLoginPage() {
                                     <label htmlFor="tipoDoc" className={styles.formLabel}>
                                         Tipo de Documento
                                     </label>
+                                    {/* SELECT DE TIPO DOC DINÁMICO */}
                                     <select id="tipoDoc" name="tipoDoc" className={styles.select}>
-                                        <option>Seleccione un tipo de documento</option>
-                                        <option>DNI</option>
+                                        <option value="">Seleccione un tipo</option>
+                                        {listas.tiposDocumento.map(doc => (
+                                            <option key={doc.id} value={doc.nombre}>
+                                                {doc.nombre}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className={`w-full ${styles.formField}`}>
@@ -191,18 +259,28 @@ function CompraConLoginPage() {
                                     <label htmlFor="pais" className={styles.formLabel}>
                                         País
                                     </label>
+                                    {/* SELECT DE PAÍS DINÁMICO */}
                                     <select id="pais" name="pais" className={styles.select}>
-                                        <option>Seleccione un País</option>
-                                        <option>Perú</option>
+                                        <option value="">Seleccione un País</option>
+                                        {listas.paises.map(pais => (
+                                            <option key={pais.id} value={pais.nombre}>
+                                                {pais.nombre}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className={`w-full ${styles.formField}`}>
                                     <label htmlFor="ciudad" className={styles.formLabel}>
                                         Ciudad
                                     </label>
+                                    {/* SELECT DE CIUDAD DINÁMICO */}
                                     <select id="ciudad" name="ciudad" className={styles.select}>
-                                        <option>Seleccione su ciudad</option>
-                                        <option>Lima</option>
+                                        <option value="">Seleccione su ciudad</option>
+                                        {listas.ciudades.map(ciudad => (
+                                            <option key={ciudad.id} value={ciudad.nombre}>
+                                                {ciudad.nombre}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>

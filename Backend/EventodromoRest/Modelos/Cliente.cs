@@ -130,5 +130,15 @@
         public string? name { get; set; }
     }
 
+    public class DatosPersonalesDTO
+    {
+        public string Nombre { get; set; }
+        public string Apellido { get; set; }
+        public string Email { get; set; }
+        public string TipoDoc { get; set; } // El nombre del Tipo de Documento, ej: "DNI"
+        public string NumDoc { get; set; }
+        public string Pais { get; set; }    // El nombre del País, ej: "Perú"
+        public string Ciudad { get; set; }  // El nombre de la Ciudad, ej: "Callao"
+    }
 
 }

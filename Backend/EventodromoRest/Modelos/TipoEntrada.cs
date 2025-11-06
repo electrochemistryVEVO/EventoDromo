@@ -24,5 +24,6 @@
         public double precio { get; set; }
         public int puntos { get; set; }
         public bool agotado { get; set; }
+        public int limiteCompra { get; set; } // lo acabo de añadir
     }
 }

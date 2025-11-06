@@ -300,5 +300,65 @@ namespace EventodromoRest.Mappers
                 return count > 0;
             }
         }
+
+
+        public DatosPersonalesDTO ObtenerDatosPersonalesPorId(int idCliente)
+        {
+            lock (DB)
+            {
+                // 1. Esta consulta une Cliente con sus tablas relacionadas para obtener los nombres
+                string query = @"
+                    SELECT 
+                        C.nombres AS Nombre, 
+                        C.apellidos AS Apellido, 
+                        C.email AS Email, 
+                        TD.nombre AS TipoDoc,
+                        C.numeroDocumento AS NumDoc, 
+                        P.nombre AS Pais,
+                        CI.nombre AS Ciudad
+                    FROM 
+                        Cliente AS C
+                    LEFT JOIN 
+                        TipoDocumento AS TD ON C.idtipodocumento = TD.ID
+                    LEFT JOIN 
+                        Ciudad AS CI ON C.idciudad = CI.ID
+                    LEFT JOIN 
+                        Pais AS P ON CI.idPais = P.ID
+                    WHERE 
+                        C.ID = @IdCliente;";
+
+                var parametros = new ParameterList();
+                parametros.Add("@IdCliente", idCliente);
+
+                DB.Select(query, parametros);
+
+                if (DB.Read())
+                {
+                    // 2. Mapeamos los resultados directamente al DTO
+                    var datos = new DatosPersonalesDTO
+                    {
+                        // Usamos '?? ""' para evitar errores si un LEFT JOIN devuelve null
+                        // y asignarlo a una propiedad string no nulable.
+                        Nombre = DB.GetString("Nombre") ?? "",
+                        Apellido = DB.GetString("Apellido") ?? "",
+                        Email = DB.GetString("Email") ?? "",
+                        TipoDoc = DB.GetString("TipoDoc") ?? "",
+                        NumDoc = DB.GetString("NumDoc") ?? "",
+                        Pais = DB.GetString("Pais") ?? "",
+                        Ciudad = DB.GetString("Ciudad") ?? ""
+                    };
+
+                    // 3. Cerramos el reader, como en tu método ObtenerClientePorId
+                    DB.CloseReader();
+                    return datos;
+                }
+                else
+                {
+                    // 4. Cerramos el reader y devolvemos null si no se encontró
+                    DB.CloseReader();
+                    return null;
+                }
+            }
+        }
     }
 }

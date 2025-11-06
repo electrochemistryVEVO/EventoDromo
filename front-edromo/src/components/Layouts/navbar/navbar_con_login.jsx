@@ -25,16 +25,19 @@ const Navbar = () => {
   const [activeButtonRef, setActiveButtonRef] = useState(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const searchInputRef = useRef(null);
+  
+  // Referencias para los botones de filtro
   const precioButtonRef = useRef(null);
   const categoriasButtonRef = useRef(null);
   const ciudadButtonRef = useRef(null);
   const fechasButtonRef = useRef(null);
 
+  // ✅ MEJORADO: Manejo del dropdown como en el navbar antiguo
+  const toggleDropdown = () => {
+    setDropdownOpen(!isDropdownOpen);
+  };
+
   useEffect(() => {
-    if (!isDropdownOpen) {
-      return;
-    }
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
@@ -42,16 +45,9 @@ const Navbar = () => {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isDropdownOpen]);
+  }, []);
 
-  const handleApplyFilters = (filterData) => {
-    console.log("Filtro aplicado:", filterData);
-  };
-
-  const handleClearFilters = (filterType) => {
-    console.log("Eliminar filtro de tipo:", filterType);
-  };
-
+  // ✅ FUNCIONES DEL CONTROLADOR PARA FILTROS
   const {
     applyFilter,
     clearFilter,
@@ -78,15 +74,7 @@ const Navbar = () => {
     setActiveButtonRef(null);
   };
 
-  // const handleSearchSubmit = (event) => {
-  //   event.preventDefault();
-  //   const term = searchInputRef.current?.value.trim();
-  //   if (!term) {
-  //     return;
-  //   }
-  //   router.push(`/user/eventos/buscar?search=${encodeURIComponent(term)}`);
-  // };
-
+  // ✅ MEJORADO: Función de logout completa
   const handleLogout = () => {
     logout();
     setDropdownOpen(false);
@@ -95,9 +83,10 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="relative navbar-container">
+      <nav className="navbar-container relative">
+        {/* 1. Logo */}
         <div className="navbar-logo">
-          <Link href="/user/eventos/lista">
+          <Link href={isAuthenticated ? "/user/eventos/lista" : "/"}>
             <Image
               src="/images/logo/eventodromo.png"
               alt="EventoDromo Logo"
@@ -108,8 +97,9 @@ const Navbar = () => {
           </Link>
         </div>
 
+        {/* 2. Barra de Búsqueda y Filtros - ESTRUCTURA DEL ANTIGUO NAVBAR */}
         <div className="navbar-search-section">
-          <form className="search-bar-wrapper decorative-search" onSubmit={handleSearchSubmit}>
+          <div className="search-bar-wrapper decorative-search">
             <Image
               src="/images/icon/lupa.svg"
               alt="Buscar"
@@ -125,84 +115,165 @@ const Navbar = () => {
               onChange={handleSearchChange}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit(e); }}
             />
-          </form>
+          </div>
+
+          <div className="navbar-filters">
+            <button
+              ref={precioButtonRef}
+              className="filter-btn"
+              onClick={() => openPopover('precio', precioButtonRef)}
+            >
+              <Image
+                src="/images/icon/precioFiltro.svg"
+                alt="Precio"
+                width={20}
+                height={20}
+              />
+              <span>Precio</span>
+            </button>
+            <button
+              ref={categoriasButtonRef}
+              className="filter-btn"
+              onClick={() => openPopover('categorias', categoriasButtonRef)}
+            >
+              <Image
+                src="/images/icon/categoriasFiltro.svg"
+                alt="Categorías"
+                width={20}
+                height={20}
+              />
+              <span>Categorías</span>
+            </button>
+            <button
+              ref={ciudadButtonRef}
+              className="filter-btn"
+              onClick={() => openPopover('ciudad', ciudadButtonRef)}
+            >
+              <Image
+                src="/images/icon/ciudadFiltro.svg"
+                alt="Ciudad"
+                width={20}
+                height={20}
+              />
+              <span>Ciudad</span>
+            </button>
+            <button
+              ref={fechasButtonRef}
+              className="filter-btn"
+              onClick={() => openPopover('fechas', fechasButtonRef)}
+            >
+              <Image
+                src="/images/icon/fechasFiltro.svg"
+                alt="Fechas"
+                width={20}
+                height={20}
+              />
+              <span>Fechas</span>
+            </button>
+          </div>
         </div>
 
-        <div className="navbar-filters">
-          {/* Botones de filtro... (igual que en el navbar de no logueado) */}
-          <button
-            ref={precioButtonRef}
-            className="filter-btn"
-            onClick={() => openPopover('precio', precioButtonRef)}
-          >
-            <Image
-              src={"/images/icon/precioFiltro.svg"}
-              alt="Precio"
-              width={20}
-              height={20}
-            />
-            <span>Precio</span>
-          </button>
-          <button
-            ref={categoriasButtonRef}
-            className="filter-btn"
-            onClick={() => openPopover("categorias", categoriasButtonRef)}
-          >
-            <Image src="/images/icon/categoriasFiltro.svg" alt="Categorías" width={20} height={20} />
-            <span>Categorías</span>
-          </button>
-          <button
-            ref={ciudadButtonRef}
-            className="filter-btn"
-            onClick={() => openPopover("ciudad", ciudadButtonRef)}
-          >
-            <Image src="/images/icon/ciudadFiltro.svg" alt="Ciudad" width={20} height={20} />
-            <span>Ciudad</span>
-          </button>
-          <button
-            ref={fechasButtonRef}
-            className="filter-btn"
-            onClick={() => openPopover("fechas", fechasButtonRef)}
-          >
-            <Image src="/images/icon/fechasFiltro.svg" alt="Fechas" width={20} height={20} />
-            <span>Fechas</span>
-          </button>
-        </div>
-
+        {/* 3. Acciones de Usuario - COMBINA AMBAS VERSIONES */}
         <div className="navbar-user-actions">
           <button className="icon-btn cart-btn" onClick={openCart}>
-            <Image src="/images/icon/carrito.svg" alt="Carrito" width={28} height={28} />
+            <Image
+              src="/images/icon/carrito.svg"
+              alt="Carrito"
+              width={28}
+              height={28}
+            />
+            {/* ✅ Badge dinámico del carrito */}
             {itemCount > 0 && <span className="cart-badge">{itemCount}</span>}
           </button>
 
           {isAuthenticated ? (
+            // ✅ USUARIO AUTENTICADO - Versión mejorada del navbar antiguo
             <div className="user-profile-section" ref={dropdownRef}>
-              <button className="icon-btn user-avatar-btn" onClick={() => setDropdownOpen((prev) => !prev)}>
-                <Image src="/images/icon/cuenta-logged-in.png" alt="Usuario" width={48} height={48} />
+              <button 
+                className="icon-btn user-avatar-btn" 
+                onClick={toggleDropdown}
+              >
+                <Image
+                  src="/images/icon/cuenta-logged-in.png"
+                  alt="Usuario"
+                  width={48}
+                  height={48}
+                />
               </button>
+
+              {/* ✅ MENÚ DESPLEGABLE COMPLETO - Igual al navbar antiguo */}
               {isDropdownOpen && (
                 <div className="dropdown-menu">
-                  <Link href="/user/perfil?tab=info" className="dropdown-item">
-                    <Image src="/images/icon/mis-datos.svg" alt="" width={20} height={20} />
+                  <Link
+                    href="/user/perfil?tab=info"
+                    className="dropdown-item"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    <Image
+                      src="/images/icon/mis-datos.svg"
+                      alt=""
+                      width={20}
+                      height={20}
+                    />
                     Mis datos
                   </Link>
-                  <Link href="/user/perfil?tab=entradas" className="dropdown-item">
-                    <Image src="/images/icon/mis-entradas.svg" alt="" width={20} height={20} />
+                  <Link 
+                    href="/user/perfil?tab=entradas" 
+                    className="dropdown-item"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    <Image
+                      src="/images/icon/mis-entradas.svg"
+                      alt=""
+                      width={20}
+                      height={20}
+                    />
                     Mis Entradas
                   </Link>
-                  <Link href="/user/perfil?tab=dromopuntos" className="dropdown-item">
-                    <Image src="/images/icon/mis-puntos.svg" alt="" width={20} height={20} />
+                  <Link
+                    href="/user/perfil?tab=dromopuntos"
+                    className="dropdown-item"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    <Image
+                      src="/images/icon/mis-puntos.svg"
+                      alt=""
+                      width={20}
+                      height={20}
+                    />
                     Mis puntos
                   </Link>
-                  <div className="dropdown-divider" />
-                  <button onClick={handleLogout} className="dropdown-item dropdown-item-logout">
-                    <Image src="/images/icon/cerrar-sesion.svg" alt="" width={20} height={20} />
+                  <Link
+                    href="/user/cambiar-contrasena"
+                    className="dropdown-item"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    <Image
+                      src="/images/icon/cambiar-contrasena.svg"
+                      alt=""
+                      width={20}
+                      height={20}
+                    />
+                    Cambiar Contraseña
+                  </Link>
+                  <div className="dropdown-divider"></div>
+                  <button
+                    onClick={handleLogout}
+                    className="dropdown-item dropdown-item-logout"
+                  >
+                    <Image
+                      src="/images/icon/cerrar-sesion.svg"
+                      alt=""
+                      width={20}
+                      height={20}
+                    />
                     Cerrar Sesión
                   </button>
                 </div>
               )}
             </div>
           ) : (
+            // ✅ USUARIO NO AUTENTICADO - Del nuevo navbar
             <div className="auth-section">
               <div className="auth-buttons">
                 <Link href="/auth/login" className="auth-link">
@@ -213,52 +284,57 @@ const Navbar = () => {
                 </Link>
               </div>
               <div className="user-icon">
-                <Image src="/images/icon/cuenta.svg" alt="Usuario" width={32} height={32} />
+                <Image 
+                  src="/images/icon/cuenta.svg" 
+                  alt="Usuario" 
+                  width={32} 
+                  height={32} 
+                />
               </div>
             </div>
           )}
         </div>
-      </nav >
+      </nav>
 
-      {openFilterModal === "precio" && activeButtonRef && (
+      {/* ✅ MODALES DE FILTROS CORREGIDOS - Usan funciones del controlador */}
+      {openFilterModal === 'precio' && activeButtonRef && (
         <PrecioModal
           onClose={closePopover}
-          onApply={handleApplyFilters}
-          onClear={handleClearFilters}
+          onApply={applyFilter}
+          onClear={clearFilter}
           buttonRef={activeButtonRef}
+          initialFilters={activeFilters}
         />
       )}
-      {
-        openFilterModal === "categorias" && activeButtonRef && (
-          <CategoriasModal
-            onClose={closePopover}
-            onApply={handleApplyFilters}
-            onClear={handleClearFilters}
-            buttonRef={activeButtonRef}
-          />
-        )
-      }
-      {
-        openFilterModal === "ciudad" && activeButtonRef && (
-          <CiudadModal
-            onClose={closePopover}
-            onApply={handleApplyFilters}
-            onClear={handleClearFilters}
-            buttonRef={activeButtonRef}
-          />
-        )
-      }
-      {
-        openFilterModal === "fechas" && activeButtonRef && (
-          <FechasModal
-            onClose={closePopover}
-            onApply={handleApplyFilters}
-            onClear={handleClearFilters}
-            buttonRef={activeButtonRef}
-          />
-        )
-      }
+      {openFilterModal === 'categorias' && activeButtonRef && (
+        <CategoriasModal
+          onClose={closePopover}
+          onApply={applyFilter}
+          onClear={clearFilter}
+          buttonRef={activeButtonRef}
+          initialFilters={activeFilters}
+        />
+      )}
+      {openFilterModal === 'ciudad' && activeButtonRef && (
+        <CiudadModal
+          onClose={closePopover}
+          onApply={applyFilter}
+          onClear={clearFilter}
+          buttonRef={activeButtonRef}
+          initialFilters={activeFilters}
+        />
+      )}
+      {openFilterModal === 'fechas' && activeButtonRef && (
+        <FechasModal
+          onClose={closePopover}
+          onApply={applyFilter}
+          onClear={clearFilter}
+          buttonRef={activeButtonRef}
+          initialFilters={activeFilters}
+        />
+      )}
 
+      {/* Modal del Carrito */}
       <ModalCarritoController isOpen={isCartOpen} onClose={closeCart} />
     </>
   );

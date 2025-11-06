@@ -8,6 +8,9 @@ import { groupCartEntriesByTier } from "./groupCartEntries";
 import ModalCarritoView from "./ModalCarrito";
 import "@/css/ModalCarrito.css";
 
+// --- 1. IMPORTA EL NUEVO HOOK ---
+import { useCartTimer } from "@/services/useCartTimer";
+
 /**
  * Controller: maneja la l贸gica del modal (animaci贸n, visibilidad)
  * y la obtenci贸n de datos del carrito desde el servicio.
@@ -19,8 +22,8 @@ export default function ModalCarritoController({ isOpen, onClose }) {
     isLoading,
     removeEntryFromCart,
     incrementEntryInCart,
-    clearCart,
-    expirationTime,
+    //clearCart,
+    //expirationTime,
   } = useCart();
 
   const groupedItems = useMemo(
@@ -28,10 +31,12 @@ export default function ModalCarritoController({ isOpen, onClose }) {
     [cartItems],
   );
 
-  const [tiempoRestante, setTiempoRestante] = useState(null);
+  //const [tiempoRestante, setTiempoRestante] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const modalRef = useRef(null);
   const router = useRouter();
+
+  const tiempoRestante = useCartTimer();
 
   useEffect(() => {
     if (isOpen) {
@@ -42,6 +47,7 @@ export default function ModalCarritoController({ isOpen, onClose }) {
     return undefined;
   }, [isOpen]);
 
+  /*
   useEffect(() => {
     if (!expirationTime) {
       setTiempoRestante(null);
@@ -73,8 +79,9 @@ export default function ModalCarritoController({ isOpen, onClose }) {
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
   }, [expirationTime, clearCart]);
-
-  // 4. L贸gica para cerrar el modal
+  */
+  
+  // 4. Lógica para cerrar el modal
   const handleClose = () => {
     setIsAnimating(false);
     setTimeout(() => {
@@ -146,6 +153,7 @@ export default function ModalCarritoController({ isOpen, onClose }) {
       manageLoading = false;
     }
   };
+  
 
   // 6. Maneja el cierre con clic afuera o tecla Escape
   useEffect(() => {
@@ -166,6 +174,7 @@ export default function ModalCarritoController({ isOpen, onClose }) {
       document.removeEventListener("keydown", handleEscKey);
     };
   }, [isAnimating]);
+  
 
   if (!isOpen) {
     return null;
@@ -177,13 +186,22 @@ export default function ModalCarritoController({ isOpen, onClose }) {
       <div ref={modalRef} className="modal-carrito">
         <div className="modal-carrito__header">
           <div className="modal-carrito__header-content">
-            {/* Renderizamos el temporizador aqu铆 si existe */}
+            {/*
+            {/* Renderizamos el temporizador aqu铆 si existe /}
             {tiempoRestante && cartItems.length > 0 && (
               <div className="modal-carrito__timer">
                 <strong>{tiempoRestante}</strong>
               </div>
             )}
-            <h2 className="modal-carrito__title">馃洅 Mi Carrito</h2>
+            */}
+            {/* --- 5. LA LÓGICA DE RENDER SE SIMPLIFICA --- */}
+            {/* El hook devuelve null si no hay timer, por lo que 'cartItems.length > 0' ya no es necesario aquí */}
+            {tiempoRestante && (
+              <div className="modal-carrito__timer">
+                <strong>{tiempoRestante}</strong>
+              </div>
+            )}
+            <h2 className="modal-carrito__title">🛒 Mi Carrito</h2>
           </div>
           <button onClick={handleClose} className="modal-carrito__close-button">
             &times;

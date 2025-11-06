@@ -35,58 +35,6 @@ const EventPageController = () => {
     return eventData.data;
   }, [eventData]);
   
-  /*
-  useEffect(() => {
-    const fetchEventData = async () => {
-      try {
-        if (!id) {
-          throw new Error("No se proporcionó ID en la URL");
-        }
-
-        const data = await obtenerDetallePorId(id);
-
-        if (!data) {
-          throw new Error("La API devolvió null o undefined");
-        }
-
-        if (data.success === false) {
-          throw new Error(data.error || data.message || "Error del servidor");
-        }
-
-        if (!data.data) {
-          throw new Error("El servidor no devolvió datos del evento");
-        }
-
-        setEventData(data);
-        setError(null);
-
-      } catch (error) {
-        console.error("❌ Error en fetchEventData:", error);
-        setError(error.message);
-        setEventData({
-          success: false,
-          error: error.message,
-          message: error.message
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchEventData();
-    } else {
-      const errorMsg = "No se proporcionó un ID en la URL.";
-      setError(errorMsg);
-      setEventData({
-        success: false,
-        error: errorMsg,
-        message: errorMsg
-      });
-      setIsLoading(false);
-    }
-  }, [id]);
-  */
   useEffect(() => {
     const fetchEventData = async () => {
       if (!id) {
@@ -153,85 +101,6 @@ const EventPageController = () => {
     `${local.ciudad.nombre}, ${local.ciudad.pais?.nombre || ''}` :
     "Ciudad no disponible";
 
-  /*
-  const handleAddToCart = (bookingDetails) => {
-    console.log("--- DETALLES PARA AGREGAR AL CARRITO ---");
-    console.log("Evento:", evento.nombre);
-    console.log("Función ID:", bookingDetails.selectedFunctionId);
-    console.log("Entradas:", bookingDetails.ticketQuantities);
-    console.log("Precio Total:", `S/ ${bookingDetails.totalPrice.toFixed(2)}`);
-
-    alert("¡Entradas agregadas al carrito! Revisa la consola para ver los detalles.");
-  };
-  */
-  /*
-  const handleAddToCart = (bookingDetails) => {
-    if (!eventData || !eventData.data) {
-      console.error("Los datos del evento aun no estan cargados.");
-      return;
-    }
-
-    const { evento, funciones, local, tiposDeEntrada } = eventData.data;
-
-    const selectedFunction = funciones.find(
-      (f) => f.id.toString() === bookingDetails.selectedFunctionId
-    );
-
-    if (!selectedFunction) {
-      console.warn("No se encontro la funcion seleccionada para el carrito.");
-      return;
-    }
-
-    const entradasSeleccionadas = Object.keys(bookingDetails.ticketQuantities)
-      .filter((tierId) => bookingDetails.ticketQuantities[tierId] > 0)
-      .map((tierId) => {
-        const tipoEntrada = tiposDeEntrada.find(
-          (t) => t.id.toString() === tierId
-        );
-
-        if (!tipoEntrada) {
-          console.warn("No se encontro el tipo de entrada", tierId);
-          return null;
-        }
-
-        return {
-          tipoEntradaId: tipoEntrada.id,
-          nombre: tipoEntrada.nombre,
-          cantidad: bookingDetails.ticketQuantities[tierId],
-          precioUnitario: tipoEntrada.precio,
-        };
-      })
-      .filter(Boolean);
-
-    if (!entradasSeleccionadas.length) {
-      console.warn("No se agregaron entradas por falta de seleccion valida.");
-      return;
-    }
-
-    // Mantiene la estructura esperada por CartContext al agregar un item.
-    const cartItem = {
-      cartItemId: crypto.randomUUID(),
-      eventoInfo: {
-        id: evento.id,
-        nombre: evento.nombre,
-        imagenUrl: evento.imagenUrl,
-      },
-      localInfo: {
-        nombre: local.nombre,
-        ciudad: local.ciudad.nombre,
-      },
-      funcionInfo: {
-        id: selectedFunction.id,
-        fecha: selectedFunction.fecha,
-        hora: selectedFunction.hora,
-      },
-      entradas: entradasSeleccionadas,
-      totalItem: bookingDetails.totalPrice,
-    };
-
-    addToCart(cartItem);
-  };
-  */
   const handleAddToCart = (bookingDetails) => {
     if (!eventData || !eventData.data) {
       console.error("Los datos del evento aun no estan cargados.");
@@ -271,6 +140,7 @@ const EventPageController = () => {
           nombre: tipoEntrada.nombre,
           cantidad: bookingDetails.ticketQuantities[tierId],
           precioUnitario: tipoEntrada.precio,
+          puntosUnitarios: tipoEntrada.puntos,
         };
       })
       .filter(Boolean);
