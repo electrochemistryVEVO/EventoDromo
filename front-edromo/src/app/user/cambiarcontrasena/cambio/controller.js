@@ -111,7 +111,7 @@ export const useChangePasswordStep2Controller = () => {
   };
 
   const handleFinish = () => {
-    router.push("/user-login/web/eventos/lista");
+    router.push("/user/web/eventos/lista");
   };
 
   return {

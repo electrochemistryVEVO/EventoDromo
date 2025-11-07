@@ -360,5 +360,42 @@ namespace EventodromoRest.Mappers
                 }
             }
         }
+
+        /// <summary>
+        /// Actualiza SÓLO los campos de la página "Información Personal".
+        /// Es más rápido y seguro que ModificarCliente genérico.
+        /// </summary>
+        public int ModificarInformacionPersonal(int idCliente, DatosCliente datosCliente)
+        {
+            lock (DB)
+            {
+                string query = @"
+                    UPDATE Cliente SET 
+                        nombres = @nombres, 
+                        apellidos = @apellidos, 
+                        fechaNacimiento = @fechaNacimiento, 
+                        idSexo = @idSexo, 
+                        telefono = @telefono, 
+                        idCiudad = @idCiudad, 
+                        fechaUltimaEdicion = @fechaUltimaEdicion 
+                    WHERE 
+                        id = @id";
+
+                var parametros = new ParameterList();
+
+                parametros.Add("@nombres", datosCliente.nombres);
+                parametros.Add("@apellidos", datosCliente.apellidos);
+                parametros.Add("@fechaNacimiento", DateTime.Parse(datosCliente.fechanacimiento));
+                parametros.Add("@idSexo", datosCliente.idsexo);
+                parametros.Add("@telefono", datosCliente.telefono);
+                parametros.Add("@idCiudad", datosCliente.idciudad);
+                parametros.Add("@fechaUltimaEdicion", DateTime.Now);
+
+                parametros.Add("@id", idCliente);
+
+                int rowsAffected = DB.ExecuteNonQuery(query, parametros);
+                return rowsAffected;
+            }
+        }
     }
 }

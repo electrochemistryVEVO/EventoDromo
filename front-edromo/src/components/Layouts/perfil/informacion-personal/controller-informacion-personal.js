@@ -1,34 +1,26 @@
 import { servicePerfil } from '@/services/service-informacion-personal.js';
 
-/**
- * Función "privada" para obtener el ID del cliente.
- * En el futuro, aquí irá la lógica para leer el token o la sesión.
- * @returns {number} El ID del cliente hardcodeado.
- */
-const _getClienteId = () => {
-  // TODO: Implementar lógica de token/sesión aquí.
-  // Por ahora, devolvemos un ID fijo para pruebas.
-  // Usa el ID que corresponda a tus datos de prueba (ej: 3).
-  return 3;
-};
+// --- ELIMINAMOS LA FUNCIÓN _getClienteId() Y _getAuthInfo() ---
+// Ya no son necesarias aquí. El token vendrá desde el componente.
 
 export const controllerPerfil = {
   /**
-  * Función invocada desde el page.js al cargar la página.
-  * Llama al servicio para obtener los datos iniciales.
-  */
-  onPageLoad: async () => {
+   * Función invocada desde el page.js al cargar la página.
+   * @param {string} token - El token JWT (AHORA ES UN PARÁMETRO)
+   */
+  onPageLoad: async (token) => { // <-- 1. RECIBE EL TOKEN
     try {
-      // 1. Obtenemos el ID del cliente
-      const idCliente = _getClienteId();
+      if (!token) {
+        throw new Error("Usuario no autenticado.");
+      }
       
-      // 2. Pasamos el ID al servicio
-      const responseData = await servicePerfil.getInformacionPersonal(idCliente);
+      // 2. Pasa el token al servicio
+      const responseData = await servicePerfil.getInformacionPersonal(token);
 
-      // --- INICIO: Lógica para +18 (Movida aquí) ---
+      // --- Lógica para +18 ---
       const today = new Date();
       const maxYear = today.getFullYear() - 18;
-      const month = String(today.getMonth() + 1).padStart(2, '0'); // Enero es 0
+      const month = String(today.getMonth() + 1).padStart(2, '0');
       const day = String(today.getDate()).padStart(2, '0');
       const maxDate = `${maxYear}-${month}-${day}`;
 
@@ -40,21 +32,20 @@ export const controllerPerfil = {
   },
 
   /**
-  * Función invocada desde el page.js al hacer submit.
-  * Prepara los datos y llama al servicio de actualización.
-  * @param {object} formData - Los datos del formulario (el objeto datosCliente).
-  */
-  onSubmit: async (formData) => {
-    // El objeto formData ya tiene la estructura de 'datosCliente'
-    
+   * Función invocada desde el page.js al hacer submit.
+   * @param {string} token - El token JWT (AHORA ES UN PARÁMETRO)
+   * @param {object} formData - Los datos del formulario (el objeto datosCliente).
+   */
+  onSubmit: async (token, formData) => { // <-- 3. RECIBE EL TOKEN
     try {
-      // 1. Obtenemos el ID del cliente
-      const idCliente = _getClienteId();
+      if (!token) {
+        throw new Error("Usuario no autenticado.");
+      }
 
-      // 2. Invocamos al servicio con ambos parámetros
-      const response = await servicePerfil.actualizarUsuario(idCliente, formData);
+      // 4. Invoca al servicio con el token y los datos
+      const response = await servicePerfil.actualizarUsuario(token, formData);
       return response; // Retorna la respuesta al page.js
-      
+
     } catch (error) {
       console.error('Error en controllerPerfil.onSubmit:', error);
       return { success: false, message: error.message || 'Error al conectar con el servicio.' };

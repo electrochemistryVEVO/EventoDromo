@@ -9,7 +9,7 @@ export default function EventCard({ event, isAuthenticated = false }) {
     dateStyle: "full",
   }).format(new Date(event.fecha + "T00:00:00"));
 
-  const basePath = isAuthenticated ? "/user-login/web" : "/user";
+  const basePath = isAuthenticated ? "/user-login/web" : "/user/web";
   const detailUrl = `${basePath}/eventos/detalle?id=${event.id}`;
 
   return (

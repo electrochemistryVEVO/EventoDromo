@@ -1,10 +1,14 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-// Esta es la línea clave que te falta:
-import { controllerPerfil } from './controller-informacion-personal'; // O la ruta correcta a tu controlador
+import { controllerPerfil } from './controller-informacion-personal';
+// --- 1. IMPORTA useUser AQUÍ (EN EL COMPONENTE) ---
+import { useUser } from '@/context/UserContext.jsx';
 
 export default function PerfilPage() {
-  // Estado para los datos del formulario (datosCliente)
+  // --- 2. LLAMA AL HOOK EN EL NIVEL SUPERIOR DEL COMPONENTE ---
+  const { user } = useUser();
+
+  // (El resto de tus 'useState' están perfectos)
   const [formData, setFormData] = useState({
     nombres: '',
     apellidos: '',
@@ -14,37 +18,33 @@ export default function PerfilPage() {
     telefono: '',
     fechaNacimiento: '',
   });
-
-  // Estado para guardar los datos originales y usarlos en "Cancelar"
   const [originalFormData, setOriginalFormData] = useState(null);
-
-  // Estado para las listas de los dropdowns
   const [selectOptions, setSelectOptions] = useState({
     paises: [],
     ciudades: [],
     sexos: [],
   });
-
-  // Estado para el ID del país seleccionado (para filtrar ciudades)
   const [selectedPaisId, setSelectedPaisId] = useState('');
-
-  // Estados de UI
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState(null); // { type: 'success' | 'error', text: string }
-  const [maxDate, setMaxDate] = useState(''); // Para la restricción de fecha de nacimiento
+  const [message, setMessage] = useState(null);
+  const [maxDate, setMaxDate] = useState('');
 
-  // Función para cargar los datos iniciales
+  // --- 3. fetchData AHORA USA EL 'user.token' ---
   const fetchData = async () => {
     setIsLoading(true);
     setMessage(null);
     try {
-      // Invoca al controlador (ahora el simulado) para cargar datos
-      const data = await controllerPerfil.onPageLoad();
+      // 3.1. Valida que tengamos el token antes de llamar
+      if (!user || !user.token) {
+         throw new Error("Usuario no autenticado o token no encontrado.");
+      }
+      
+      // 3.2. Pasa el token al controlador
+      const data = await controllerPerfil.onPageLoad(user.token);
 
+      // (El resto de tu lógica de formateo de datos queda igual)
       if (data && data.datosCliente) {
-        
-        // Formatear la fecha para el input type="date" (YYYY-MM-DD)
         let fechaFormateada = data.datosCliente.fechaNacimiento;
         if (fechaFormateada && fechaFormateada.includes('/')) {
            const partes = fechaFormateada.split('/');
@@ -52,23 +52,15 @@ export default function PerfilPage() {
              fechaFormateada = `${partes[2]}-${partes[1]}-${partes[0]}`;
            }
         }
-
-        const datosClienteFormateados = {
-            ...data.datosCliente,
-            fechaNacimiento: fechaFormateada
-        };
-
+        const datosClienteFormateados = { ...data.datosCliente, fechaNacimiento: fechaFormateada };
         setFormData(datosClienteFormateados);
-        setOriginalFormData(datosClienteFormateados); // Guarda el original para "Cancelar"
+        setOriginalFormData(datosClienteFormateados);
         setMaxDate(data.maxDate || '');
-        
         setSelectOptions({
           paises: data.paises || [],
           ciudades: data.ciudades || [],
           sexos: data.sexos || [],
         });
-
-        // Encontrar el país inicial basado en la ciudad
         const ciudadActual = (data.ciudades || []).find(c => c.id === data.datosCliente.idciudad);
         if (ciudadActual) {
           setSelectedPaisId(ciudadActual.idPais);
@@ -84,63 +76,63 @@ export default function PerfilPage() {
     }
   };
 
+  // --- 4. useEffect AHORA DEPENDE DE 'user' ---
   // Cargar datos al montar el componente
   useEffect(() => {
-    fetchData();
-  }, []);
+    // Solo intenta cargar datos si 'user' (y el token) ya están disponibles
+    if (user) { 
+      fetchData();
+    }
+  }, [user]); // <-- Se ejecuta cuando 'user' se carga
 
-  // Manejador para actualizar el estado cuando cambian los inputs
+  // ... (handleChange y handlePaisChange quedan igual) ...
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // Convertir a número si es un ID de las listas
     const newValue = (name === 'idciudad' || name === 'idsexo') ? (value ? parseInt(value, 10) : '') : value;
-
     setFormData(prevState => ({
       ...prevState,
       [name]: newValue,
     }));
   };
-
-  // Manejador específico para el cambio de País
   const handlePaisChange = (e) => {
     const newPaisId = e.target.value ? parseInt(e.target.value, 10) : '';
     setSelectedPaisId(newPaisId);
-
-    // Al cambiar de país, reseteamos la ciudad en el formulario
     setFormData(prevState => ({
       ...prevState,
-      idciudad: '', // Resetea la ciudad seleccionada
+      idciudad: '',
     }));
   };
 
-  // Función que se ejecuta cuando el usuario envía el formulario
+  // --- 5. handleSubmit AHORA PASA EL 'user.token' ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
     setMessage(null);
 
-    // Invoca a la función onSubmit() del controlador (simulado)
-    const response = await controllerPerfil.onSubmit(formData);
+    // 5.1. Valida el token aquí también
+    if (!user || !user.token) {
+        setMessage({ type: 'error', text: 'Su sesión ha expirado. Por favor, recargue la página.' });
+        setIsSaving(false);
+        return;
+    }
+
+    // 5.2. Pasa el token y el formulario al controlador
+    const response = await controllerPerfil.onSubmit(user.token, formData);
 
     setIsSaving(false);
 
     if (response.success) {
       setMessage({ type: 'success', text: response.message || 'Cambios guardados con éxito' });
-      // Actualiza el "original" para que "Cancelar" refleje los nuevos datos guardados
       setOriginalFormData(formData);
     } else {
       setMessage({ type: 'error', text: response.message });
     }
   };
 
-  // Manejador para el botón "Cancelar"
+  // ... (El resto de tu código: handleCancel y todo el JSX del return, queda exactamente igual) ...
   const handleCancel = () => {
-    // Revierte el formulario a los últimos datos guardados (o los iniciales)
     if (originalFormData) {
       setFormData(originalFormData);
-
-      // Resetea también el país seleccionado
       const ciudadActual = selectOptions.ciudades.find(c => c.id === originalFormData.idciudad);
       if (ciudadActual) {
         setSelectedPaisId(ciudadActual.idPais);
@@ -151,17 +143,14 @@ export default function PerfilPage() {
     setMessage(null);
   };
 
-  // Icono de calendario simple (SVG)
   const CalendarIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-calendar" viewBox="0 0 16 16">
       <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
     </svg>
   );
 
-  // Ciudades filtradas basadas en el país seleccionado
   const filteredCiudades = selectOptions.ciudades.filter(c => c.idPais === selectedPaisId);
 
-  // Renderizado del componente (HTML y CSS con Tailwind)
   return (
     <>
       <h1 className="text-3xl font-light text-gray-800 mb-8">Información Personal</h1>
@@ -318,12 +307,11 @@ export default function PerfilPage() {
                   type="date"
                   id="fechaNacimiento"
                   name="fechaNacimiento"
-                  value={formData.fechanacimiento}
+                  value={formData.fechanacimiento} // Asegúrate que el DTO usa 'fechanacimiento'
                   onChange={handleChange}
                   max={maxDate}
                   className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
                 />
-                {/* Se elimina el icono SVG personalizado para permitir el icono nativo del input 'date' */}
               </div>
             </div>
           </div>
@@ -357,7 +345,6 @@ export default function PerfilPage() {
           </div>
         </form>
       )}
-
     </>
   );
 }

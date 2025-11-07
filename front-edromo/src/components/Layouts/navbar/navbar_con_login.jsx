@@ -205,7 +205,7 @@ const Navbar = () => {
               {isDropdownOpen && (
                 <div className="dropdown-menu">
                   <Link
-                    href="/user/perfil?tab=info"
+                    href="/user/web/perfil?tab=info"
                     className="dropdown-item"
                     onClick={() => setDropdownOpen(false)}
                   >
@@ -218,7 +218,7 @@ const Navbar = () => {
                     Mis datos
                   </Link>
                   <Link 
-                    href="/user/perfil?tab=entradas" 
+                    href="/user/web/perfil?tab=entradas" 
                     className="dropdown-item"
                     onClick={() => setDropdownOpen(false)}
                   >
@@ -231,7 +231,7 @@ const Navbar = () => {
                     Mis Entradas
                   </Link>
                   <Link
-                    href="/user/perfil?tab=dromopuntos"
+                    href="/user/web/perfil?tab=dromopuntos"
                     className="dropdown-item"
                     onClick={() => setDropdownOpen(false)}
                   >
@@ -244,7 +244,7 @@ const Navbar = () => {
                     Mis puntos
                   </Link>
                   <Link
-                    href="/user/cambiar-contrasena"
+                    href="/user/cambiarcontrasena"
                     className="dropdown-item"
                     onClick={() => setDropdownOpen(false)}
                   >

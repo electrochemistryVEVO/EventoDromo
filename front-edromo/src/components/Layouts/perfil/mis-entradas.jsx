@@ -101,7 +101,9 @@ export default function MisEntradas({
         ) : (
           entries.map((entrada, index) => (
             <MisEntradaItem
-              key={entrada.id ?? entrada.transaccion ?? index}
+              // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
+              // Creamos una key única combinando la transacción y la fecha/hora.
+              key={`${entrada.transaccion}-${entrada.fecha}-${entrada.hora}`}
               entrada={entrada}
               index={index}
             />

@@ -173,11 +173,15 @@ namespace EventodromoRest.Controllers
 
 
         [HttpGet]
-        [Route("/api/[controller]/[action]/{idCliente}")]
-        public GenericResponse<InformacionPersonal> InformacionPersonal([FromRoute] int idCliente)
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<InformacionPersonal> InformacionPersonal()
         {
             try
             {
+                // 1. Obtenemos el ID del token de forma segura
+                int idCliente = _ObtenerIdClienteDesdeToken();
+
+                // 2. Llama al BO con el ID del token
                 InformacionPersonal informacionPersonal = new ClienteBO(globales, BD).GetInformacionPersonal(idCliente);
 
                 if (informacionPersonal == null)
@@ -197,6 +201,7 @@ namespace EventodromoRest.Controllers
             }
             catch (Exception ex)
             {
+                // ... (tu 'catch' sigue funcionando igual) ...
                 GenericResponse<InformacionPersonal> response = new GenericResponse<InformacionPersonal>()
                 {
                     Success = false,
@@ -204,31 +209,29 @@ namespace EventodromoRest.Controllers
                     Data = null,
                     Error = ex.Message,
                 };
-                var requestLog = JsonSerializer.Serialize(new { IdCliente = idCliente });
+                var requestLog = JsonSerializer.Serialize(new { AuthToken = "Bearer ..." });
                 AgregarEntradaBitacora(ex, requestLog, JsonSerializer.Serialize(response));
-
                 return response;
             }
         }
 
         [HttpPut]
-        [Route("/api/[controller]/[action]/{idCliente}")]
-        public GenericResponse<bool> ActualizarInformacionPersonal([FromRoute] int idCliente, [FromBody] DatosCliente datosCliente)
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<bool> ActualizarInformacionPersonal([FromBody] DatosCliente datosCliente)
         {
             try
             {
+                int idCliente = _ObtenerIdClienteDesdeToken();
+
                 if (datosCliente == null)
                 {
                     throw new ArgumentNullException(nameof(datosCliente), "El cuerpo de la solicitud no puede estar vacío.");
                 }
-                // TODO: Validar que el idCliente del token (cuando lo tengas) 
-                // coincida con el idCliente de la ruta.
 
                 bool actualizacionExitosa = new ClienteBO(globales, BD).ActualizarInformacionPersonal(idCliente, datosCliente);
 
                 if (!actualizacionExitosa)
                 {
-                    // Esto es un error de lógica de negocio, no una excepción
                     return new GenericResponse<bool>
                     {
                         Success = false,
@@ -243,7 +246,7 @@ namespace EventodromoRest.Controllers
                     Success = true,
                     Message = "Usuario actualizado correctamente",
                     Error = null,
-                    Data = actualizacionExitosa 
+                    Data = actualizacionExitosa
                 };
 
                 return response;
@@ -258,7 +261,7 @@ namespace EventodromoRest.Controllers
                     Data = false
                 };
 
-                var requestLog = JsonSerializer.Serialize(new { IdCliente = idCliente, Body = datosCliente });
+                var requestLog = JsonSerializer.Serialize(new { Body = datosCliente });
                 AgregarEntradaBitacora(ex, requestLog, JsonSerializer.Serialize(response));
 
                 return response;
@@ -566,6 +569,33 @@ namespace EventodromoRest.Controllers
                 AgregarEntradaBitacora(e, "GetMisDatosPersonales (Token)", JsonSerializer.Serialize(response));
                 return response;
             }
+        }
+
+        /// <summary>
+        /// Método auxiliar para leer el Header, validar el token
+        /// y devolver el ID del cliente.
+        /// Si el token es inválido, lanza una excepción.
+        /// </summary>
+        /// <returns>El ID (int) del cliente autenticado.</returns>
+        private int _ObtenerIdClienteDesdeToken()
+        {
+            var authHeader = Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                // El 'catch' del endpoint principal manejará esta excepción
+                throw new Exception("Token no proporcionado o inválido.");
+            }
+
+            var token = authHeader.Substring("Bearer ".Length);
+            int? idCliente = tokenService.ObtenerIdDesdeToken(token);
+
+            if (idCliente == null)
+            {
+                throw new Exception("Token inválido o expirado.");
+            }
+
+            // Devuelve el valor, no el 'int?'
+            return idCliente.Value;
         }
     }
 }

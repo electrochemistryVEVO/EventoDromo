@@ -6,6 +6,37 @@ namespace EventodromoRest.Negocio
 {
     public class EntradaBO(Globales.Globales globales, DBManager.DBManager DB)
     {
+        public GenericResponse<PaginacionResponse<EntradaEventoAuxiliar>> ListarMisEntradasPaginado(int idCliente, FiltroEntradasRequest filtros)
+        {
+            try
+            {
+                // 1. Llama al nuevo mapper optimizado
+                var mapper = new MisEntradasMapper(globales, DB);
+                PaginacionResponse<EntradaEventoAuxiliar> paginacion = mapper.ListarMisEntradasPaginado(idCliente, filtros);
+
+                return new GenericResponse<PaginacionResponse<EntradaEventoAuxiliar>>
+                {
+                    Success = true,
+                    Message = $"Se listaron {paginacion.items.Count} entradas.",
+                    Data = paginacion,
+                    Error = null
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GenericResponse<PaginacionResponse<EntradaEventoAuxiliar>>
+                {
+                    Success = false,
+                    Message = "Error al obtener las entradas.",
+                    Data = null,
+                    Error = ex.Message
+                };
+            }
+        }
+
+
+        // --- 2. ESTE MÉTODO ES EL ANTIGUO (LENTO) ---
+        // Lo dejamos aquí por si lo usas en otro lado, pero ya no lo usaremos para "Mis Entradas"
         public GenericResponse<List<EntradaEventoAuxiliar>> ListarTodasLasEntradasEventoAuxiliar()
         {
             try

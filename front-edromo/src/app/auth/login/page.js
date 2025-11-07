@@ -43,9 +43,9 @@ function App() {
       }
 
       if (response.rol === 'A') {
-        router.push("/user/dashboard");
+        router.push("/admin/dashboard");
       } else if (response.rol === 'C') {
-        router.push("/user/eventos/lista");
+        router.push("/user/web/eventos/lista");
       } else {
         setError('Rol de usuario no válido');
       }
@@ -72,7 +72,7 @@ function App() {
           />
         </div>
 
-        <Link href="/user/eventos/lista" className="volver-inicio">
+        <Link href="/user/web/eventos/lista" className="volver-inicio">
           Volver al inicio
         </Link>
 

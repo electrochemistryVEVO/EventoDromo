@@ -16,7 +16,7 @@ export default function CarouselImage({ evento }) {
       <div className="carousel-content-overlay">
         <h1 className="carousel-event-name">{evento.nombre}</h1>
         <p className="carousel-venue-name">{evento.nombreLocal}</p>
-        <Link href={`/user/eventos/detalle?id=${evento.id}`}>
+        <Link href={`/user/web/eventos/detalle?id=${evento.id}`}>
           <button className="carousel-buy-button">Comprar ahora</button>
         </Link>
       </div>

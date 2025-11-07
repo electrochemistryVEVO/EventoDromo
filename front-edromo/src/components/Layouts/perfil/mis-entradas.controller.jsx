@@ -3,39 +3,64 @@
 import React, { useEffect, useState } from "react";
 import { getEntradas } from "../../../services/mis-entradas.service";
 import MisEntradasView from "./mis-entradas";
+// --- 1. IMPORTA useUser PARA OBTENER EL TOKEN ---
+import { useUser } from "@/context/UserContext";
 
-/**
- * Controller: maneja la paginación y filtro por rango de fechas y estado.
- * PAGE_SIZE es configurable SOLO a nivel de código cambiando DEFAULT_PAGE_SIZE
- */
-const DEFAULT_PAGE_SIZE = 10; // <-- cambiar aquí para ajustar por defecto
+const DEFAULT_PAGE_SIZE = 10;
 
 export default function MisEntradasController({ initialPageSize = DEFAULT_PAGE_SIZE }) {
-  const [allEntries, setAllEntries] = useState([]);
+  // --- 2. OBTÉN EL USUARIO (Y SU TOKEN) ---
+  const { user } = useUser();
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pageSize] = useState(initialPageSize);
 
-  const [pageSize] = useState(initialPageSize); // configurable solo en código
+  // --- 3. ESTOS ESTADOS AHORA SON LOS FILTROS PARA LA API ---
   const [currentPage, setCurrentPage] = useState(1);
-
-  // filtros de fechas (ISO: yyyy-mm-dd)
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-
-  // filtro por estado: "all" | "vigente" | "vencido" (puedes añadir más)
-  // Cambiado a objeto para soportar selección múltiple (checkboxes)
   const [statusFilter, setStatusFilter] = useState({
     vigente: true,
     vencido: false,
   });
 
+  // --- 4. ESTADOS PARA ALMACENAR LA RESPUESTA DE LA API ---
+  const [pageEntries, setPageEntries] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // --- 5. useEffect ACTUALIZADO ---
+  // Ahora se ejecuta cada vez que el usuario, los filtros o la página cambian.
   useEffect(() => {
     let mounted = true;
+
+    // No hacer nada si el usuario (con el token) aún no ha cargado
+    if (!user || !user.token) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
-    getEntradas()
+    setError(null);
+
+    // Prepara los filtros para el servicio
+    const filters = {
+      startDate,
+      endDate,
+      statusFilter,
+      currentPage,
+      pageSize
+    };
+
+    // Llama al servicio con el token y los filtros
+    getEntradas(user.token, filters)
       .then((data) => {
         if (!mounted) return;
-        setAllEntries(Array.isArray(data) ? data : []);
+        // El backend nos da los datos ya paginados
+        setPageEntries(data.items || []);
+        setTotalItems(data.totalItems || 0);
+        setTotalPages(data.totalPages || 1);
       })
       .catch((err) => {
         if (!mounted) return;
@@ -45,59 +70,21 @@ export default function MisEntradasController({ initialPageSize = DEFAULT_PAGE_S
         if (!mounted) return;
         setLoading(false);
       });
+      
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [user, startDate, endDate, statusFilter, currentPage, pageSize]); // <-- El hook depende de los filtros
 
-  // función auxiliar para filtro por rango de fechas
-  const withinRange = (fechaStr) => {
-    if (!startDate && !endDate) return true;
-    if (!fechaStr) return true; // incluir si no hay fecha
-    const d = new Date(fechaStr);
-    if (Number.isNaN(d.getTime())) return true;
-    if (startDate) {
-      const s = new Date(startDate);
-      if (d < s) return false;
-    }
-    if (endDate) {
-      const e = new Date(endDate);
-      e.setHours(23, 59, 59, 999);
-      if (d > e) return false;
-    }
-    return true;
-  };
+  // --- 6. ELIMINAMOS TODA LA LÓGICA DE FILTRADO CLIENT-SIDE ---
+  // (Ya no son necesarios los helpers 'withinRange', 'matchesStatus', 
+  // 'filteredEntries', 'startIndex', etc.)
 
-  // función auxiliar para filtro por estado
-  const matchesStatus = (entry) => {
-    // Si no hay ningún filtro activo, mostrar todo
-    if (!statusFilter.vigente && !statusFilter.vencido) return true;
-
-    const estado = (entry.estado || "").toString().toLowerCase();
-
-    // Retorna true si el estado de la entrada coincide con alguno de los filtros activos
-    return (statusFilter.vigente && estado === "vigente") || (statusFilter.vencido && estado === "vencido");
-  };
-
-  // aplica filtros
-  const filteredEntries = allEntries.filter((e) => withinRange(e.fecha) && matchesStatus(e));
-
-  const totalItems = filteredEntries.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / Math.max(1, pageSize)));
-
-  // Ajusta currentPage si fuera de rango cuando cambian filtros/datos
-  useEffect(() => {
-    if (currentPage > totalPages) setCurrentPage(totalPages);
-    if (currentPage < 1) setCurrentPage(1);
-  }, [totalPages, currentPage]);
-
-  const startIndex = (currentPage - 1) * pageSize;
-  const pageEntries = filteredEntries.slice(startIndex, startIndex + pageSize);
-
+  // --- 7. HANDLERS (Ahora solo cambian el estado, lo que dispara el useEffect) ---
   const goToPage = (n) => {
     const page = Math.max(1, Math.min(totalPages, Number(n) || 1));
     setCurrentPage(page);
-    // scroll al top del contenedor
+    // (Tu lógica de scroll está bien)
     const el = document.getElementById("mis-entradas-scrollable");
     if (el) el.scrollTop = 0;
   };
@@ -105,40 +92,38 @@ export default function MisEntradasController({ initialPageSize = DEFAULT_PAGE_S
   const handlePrev = () => goToPage(currentPage - 1);
   const handleNext = () => goToPage(currentPage + 1);
 
-  // Lógica de inputs movida al controlador
   const handleStartDateChange = (newStart) => {
     const start = newStart || null;
     setStartDate(start);
-    // Validación: si la nueva fecha de inicio es posterior a la de fin, ajusta la de fin.
     if (start && endDate && new Date(start) > new Date(endDate)) {
       setEndDate(start);
     }
-    setCurrentPage(1);
+    setCurrentPage(1); // Resetea a la página 1 al cambiar filtro
   };
 
   const handleEndDateChange = (newEnd) => {
     const end = newEnd || null;
     setEndDate(end);
-    // Validación: si la nueva fecha de fin es anterior a la de inicio, ajusta la de inicio.
     if (end && startDate && new Date(end) < new Date(startDate)) {
       setStartDate(end);
     }
-    setCurrentPage(1);
+    setCurrentPage(1); // Resetea a la página 1 al cambiar filtro
   };
 
   const handleStateFilter = (status, isChecked) => {
     setStatusFilter(prev => ({ ...prev, [status]: isChecked }));
-    setCurrentPage(1);
+    setCurrentPage(1); // Resetea a la página 1 al cambiar filtro
   };
 
+  // --- 8. PASAMOS LOS DATOS DE LA API A LA VISTA ---
   return (
     <MisEntradasView
-      entries={pageEntries}
+      entries={pageEntries} // Los items de esta página
       loading={loading}
       error={error}
       currentPage={currentPage}
-      totalPages={totalPages}
-      totalItems={totalItems}
+      totalPages={totalPages} // El total de páginas (calculado por el backend)
+      totalItems={totalItems} // El total de items (calculado por el backend)
       pageSize={pageSize}
       onPageChange={goToPage}
       onPrev={handlePrev}

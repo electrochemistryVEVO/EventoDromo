@@ -55,7 +55,7 @@ export const useChangePasswordController = () => {
           // Si la función anterior no lanzó un error, la contraseña es correcta.
           // Navegamos al siguiente paso del flujo.
           // IMPORTANTE: Ajusta la ruta a la que corresponda.
-          router.push("/user-login/cambiarcontrasena/cambio");
+          router.push("/user/cambiarcontrasena/cambio");
         } else {
           setError("La contraseña es incorrecta. Intente de nuevo.");
         }
