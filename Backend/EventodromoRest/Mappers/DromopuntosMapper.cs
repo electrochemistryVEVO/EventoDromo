@@ -1,75 +1,92 @@
 using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace EventodromoRest.Mappers
 {
     public class DromopuntosMapper(Globales.Globales globales, DBManager.DBManager DB)
     {
+        private readonly DBManager.DBManager DB = DB;
+
         /// <summary>
-        /// Obtiene una lista de los lotes de puntos que aún no han expirado.
+        /// Obtiene Puntos por Vencer Y Movimientos en una sola consulta optimizada.
         /// </summary>
-        /// <param name="idCliente">El ID del cliente.</param>
-        /// <returns>Una lista de objetos PuntoPorVencerDTO.</returns>
-        public List<PuntoPorVencerDTO> ListarPuntosPorVencer(int idCliente)
+        public ResumenDromopuntosDTO ObtenerResumenCompletoSQL(int idCliente)
         {
-            var listaPuntos = new List<PuntoPorVencerDTO>();
-            lock (DB)
+            var resumen = new ResumenDromopuntosDTO
             {
-                // TODO: Escribe aquí tu consulta SQL para obtener los lotes de puntos activos.
-                string query = "SELECT id, cantidad, fechaExpiracion FROM Punto WHERE idCliente = @idCliente AND fechaExpiracion > NOW() ORDER BY fechaExpiracion ASC";
-                var parametros = new ParameterList();
-                parametros.Add("@idCliente", idCliente);
-
-                DB.Select(query, parametros);
-                while (DB.Read())
-                {
-                    // TODO: Asegúrate de que los nombres de las columnas ("id", "cantidad", "fechaExpiracion") coincidan con tu base de datos.
-                    var punto = new PuntoPorVencerDTO
-                    {
-                        Id = DB.GetInt("id"),
-                        Cantidad = DB.GetInt("cantidad"),
-                        FechaExpiracion = DB.GetDateTime("fechaExpiracion")
-                    };
-                    listaPuntos.Add(punto);
-                }
-                return listaPuntos;
-            }
-        }
-
-        /// <summary>
-        /// Obtiene el historial completo de movimientos de DromoPuntos para un cliente.
-        /// </summary>
-        /// <param name="idCliente">El ID del cliente.</param>
-        /// <returns>Una lista de objetos MovimientoDromopuntoDTO.</returns>
-        public List<MovimientoDromopuntoDTO> ListarMovimientosDromopuntos(int idCliente)
-        {
-            var listaMovimientos = new List<MovimientoDromopuntoDTO>();
+                PorVencer = new List<PuntoPorVencerDTO>(),
+                Movimientos = new List<MovimientoDromopuntoDTO>()
+            };
 
             lock (DB)
             {
-                // TODO: Reemplazar esta consulta con la lógica real de tu base de datos.
-                // Esta consulta es un ejemplo que une tres tipos de movimientos.
+                // Esta consulta combina 3 fuentes de datos en una sola llamada
                 string query = @"
-            SET @row_number := 0;
-            SELECT
-                (@row_number := @row_number + 1) AS id,
-                'ingreso' AS tipoMovimiento,
-                e.nombre AS nombreEventoAsociado,
-                t.fechaHoraCompra AS fechaMovimiento,
-                SUM(lt.puntosGanados) AS cantidad
-            FROM Cliente c
-            JOIN Transaccion t ON c.id = t.idCliente
-            JOIN LineaTransaccion lt ON lt.idTransaccion = t.id
-            JOIN Entrada en ON en.id = lt.idEntrada
-            JOIN TipoEntrada te ON en.idTipoEntrada = te.id
-            JOIN FechaEvento fe ON te.idFechaEvento = fe.id
-            JOIN Evento e ON e.id = fe.idEvento
-            WHERE c.id = @idCliente
-            GROUP BY 
-                t.id, e.nombre, t.fechaHoraCompra
-            ORDER BY 
-                t.id;
-        ";
+                SELECT 
+                    'porVencer' AS tipoResultado,
+                    P.id, 
+                    P.cantidad, 
+                    P.fechaExpiracion,
+                    NULL AS tipoMovimiento,
+                    NULL AS nombreEventoAsociado,
+                    NULL AS fechaMovimiento
+                FROM Punto P
+                WHERE P.idCliente = @idCliente AND P.cantidad > 0 AND P.fechaExpiracion > NOW()
+
+                UNION ALL
+
+                SELECT 
+                    'movimiento' AS tipoResultado,
+                    LT.id,
+                    LT.puntosGanados AS cantidad,
+                    NULL AS fechaExpiracion,
+                    'ingreso' AS tipoMovimiento,
+                    E.nombre AS nombreEventoAsociado,
+                    T.fechaHoraCompra AS fechaMovimiento
+                FROM Transaccion T
+                JOIN LineaTransaccion LT ON T.id = LT.idTransaccion
+                JOIN Entrada EN ON LT.idEntrada = EN.id
+                JOIN TipoEntrada TE ON EN.idTipoEntrada = TE.id
+                JOIN FechaEvento FE ON TE.idFechaEvento = FE.id
+                JOIN Evento E ON FE.idEvento = E.id
+                WHERE T.idCliente = @idCliente AND LT.puntosGanados > 0
+
+                UNION ALL
+
+                SELECT 
+                    'movimiento' AS tipoResultado,
+                    TP.id,
+                    -T.montoTotal AS cantidad, 
+                    NULL AS fechaExpiracion,
+                    'salida' AS tipoMovimiento,
+                    E.nombre AS nombreEventoAsociado,
+                    T.fechaHoraCompra AS fechaMovimiento
+                FROM Transaccion T
+                JOIN TransaccionPuntos TP ON T.id = TP.idTransaccion
+                JOIN LineaTransaccion LT ON T.id = LT.idTransaccion 
+                JOIN Entrada EN ON LT.idEntrada = EN.id
+                JOIN TipoEntrada TE ON EN.idTipoEntrada = TE.id
+                JOIN FechaEvento FE ON TE.idFechaEvento = FE.id
+                JOIN Evento E ON FE.idEvento = E.id
+                WHERE T.idCliente = @idCliente
+                GROUP BY T.id 
+
+                UNION ALL
+
+                SELECT 
+                    'movimiento' AS tipoResultado,
+                    P.id,
+                    -P.cantidad AS cantidad,
+                    NULL AS fechaExpiracion,
+                    'expiracion' AS tipoMovimiento,
+                    'Puntos expirados' AS nombreEventoAsociado,
+                    P.fechaExpiracion AS fechaMovimiento
+                FROM Punto P
+                WHERE P.idCliente = @idCliente AND P.cantidad > 0 AND P.fechaExpiracion <= NOW();
+                ";
+                // NOTA: No agregamos ORDER BY aquí para optimizar, el BO lo hará en memoria.
 
                 var parametros = new ParameterList();
                 parametros.Add("@idCliente", idCliente);
@@ -78,20 +95,32 @@ namespace EventodromoRest.Mappers
 
                 while (DB.Read())
                 {
-                    var movimiento = new MovimientoDromopuntoDTO
+                    string tipoResultado = DB.GetString("tipoResultado");
+
+                    if (tipoResultado == "porVencer")
                     {
-                        Id = DB.GetInt("id"), // El ID debe ser único en el resultado de la consulta
-                        TipoMovimiento = DB.GetString("tipoMovimiento"),
-                        NombreEventoAsociado = DB.GetString("nombreEventoAsociado"),
-                        FechaMovimiento = DB.GetDateTime("fechaMovimiento"),
-                        Cantidad = DB.GetInt("cantidad")
-                    };
-                    listaMovimientos.Add(movimiento);
+                        resumen.PorVencer.Add(new PuntoPorVencerDTO
+                        {
+                            Id = DB.GetInt("id"),
+                            Cantidad = DB.GetInt("cantidad"),
+                            FechaExpiracion = DB.GetDateTime("fechaExpiracion")
+                        });
+                    }
+                    else if (tipoResultado == "movimiento")
+                    {
+                        resumen.Movimientos.Add(new MovimientoDromopuntoDTO
+                        {
+                            Id = DB.GetInt("id"),
+                            TipoMovimiento = DB.GetString("tipoMovimiento"),
+                            NombreEventoAsociado = DB.GetString("nombreEventoAsociado"),
+                            FechaMovimiento = DB.GetDateTime("fechaMovimiento"),
+                            Cantidad = DB.GetInt("cantidad")
+                        });
+                    }
                 }
+                DB.CloseReader();
             }
-
-            return listaMovimientos;
+            return resumen;
         }
-
     }
 }

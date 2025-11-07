@@ -86,7 +86,7 @@ const Navbar = () => {
       <nav className="navbar-container relative">
         {/* 1. Logo */}
         <div className="navbar-logo">
-          <Link href={isAuthenticated ? "/user/eventos/lista" : "/"}>
+          <Link href={isAuthenticated ? "/user/web/eventos/lista" : "/"}>
             <Image
               src="/images/logo/eventodromo.png"
               alt="EventoDromo Logo"

@@ -1,53 +1,36 @@
 ﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
+using EventodromoRest.Servicios; // 1. ASEGÚRATE DE IMPORTAR TokenService
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims; // Necesario para ClaimTypes
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace EventodromoRest.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    //[Authorize]
-    public class DromopuntosController(Globales.Globales globales, DBManager.DBManager BD) : BaseController
+    public class DromopuntosController(Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
         private readonly Globales.Globales globales = globales;
+        private readonly TokenService tokenService = tokenService;
 
         [HttpGet]
-        [Route("/api/[controller]/ObtenerResumen")] // La ruta ya no espera {idCliente} como parámetro
-        public GenericResponse<ResumenDromopuntosDTO> ObtenerResumen() // El método ya no recibe idCliente como parámetro
+        [Route("/api/[controller]/ObtenerResumen")]
+        public GenericResponse<ResumenDromopuntosDTO> ObtenerResumen()
         {
-            int idClienteFromToken = 0; // Inicializamos a un valor inválido por defecto
-            string? userIdString = null; // Para capturar el valor string del ID del token para el log
-
             try
             {
-                // 1. Extraer el ID del cliente del token de autenticación.
-                // El atributo [Authorize] ya ha validado el token y poblado el objeto User.
-                // Asumimos que el claim que contiene el ID del cliente se llama "idCliente".
-                // Si usas un claim estándar como ClaimTypes.NameIdentifier, cámbialo aquí.
-                
-                userIdString = User.FindFirst("idCliente")?.Value;
+                int idClienteFromToken = _obtenerIdClienteDesdeToken();
 
-                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out idClienteFromToken))
-                {
-                    // Si el ID no se encuentra o no es un entero válido en el token,
-                    // esto indica un problema con la configuración del token o la autenticación.
-                    throw new UnauthorizedAccessException("ID de cliente no encontrado o inválido en el token de autenticación.");
-                }
-                
-                // 2. Instanciamos el Business Object (BO) que contiene la lógica de negocio.
                 var dromopuntosBO = new DromopuntosBO(globales, BD);
-                // 3. Llamamos al método del BO para obtener el resumen completo, usando el ID extraído del token.
+
                 return dromopuntosBO.ObtenerResumenCompleto(idClienteFromToken);
-                //return dromopuntosBO.ObtenerResumenCompleto(3);
             }
             catch (Exception e)
             {
-                // 3. Si algo falla, creamos una respuesta de error estandarizada.
                 var response = new GenericResponse<ResumenDromopuntosDTO>
                 {
                     Success = false,
@@ -56,13 +39,28 @@ namespace EventodromoRest.Controllers
                     Error = e.Message
                 };
 
-                // 4. Registramos el error en la bitácora para futura revisión, usando el ID del token si se obtuvo.
-                // Si idClienteFromToken es 0, significa que no se pudo parsear, usamos el userIdString original o "N/A".
-                var requestLog = JsonSerializer.Serialize(new { IdCliente = idClienteFromToken != 0 ? idClienteFromToken.ToString() : (userIdString ?? "N/A") });
+                var requestLog = JsonSerializer.Serialize(new { AuthToken = "Bearer ..." }); 
                 AgregarEntradaBitacora(e, requestLog, JsonSerializer.Serialize(response));
-
                 return response;
             }
+        }
+
+        private int _obtenerIdClienteDesdeToken()
+        {
+            var authHeader = Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                throw new Exception("Token no proporcionado o inválido.");
+            }
+
+            var token = authHeader.Substring("Bearer ".Length);
+            int? idCliente = tokenService.ObtenerIdDesdeToken(token);
+
+            if (idCliente == null)
+            {
+                throw new Exception("Token inválido o expirado.");
+            }
+            return idCliente.Value;
         }
     }
 }

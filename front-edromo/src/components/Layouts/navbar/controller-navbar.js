@@ -80,7 +80,7 @@ export function useNavbarController() {
 
         // Construye queryString y navega
         const queryString = new URLSearchParams(newFilters).toString();
-        router.push(`/user/eventos/lista?${queryString}`);
+        router.push(`/user/web/eventos/lista?${queryString}`);
     };
 
     // --- FUNCIÓN PARA LIMPIAR/ELIMINAR UN FILTRO ---
@@ -107,7 +107,7 @@ export function useNavbarController() {
 
         // Construye queryString y navega
         const queryString = new URLSearchParams(newFilters).toString();
-        router.push(`/user/eventos/lista?${queryString}`);
+        router.push(`/user/web/eventos/lista?${queryString}`);
     };
 
     // --- HANDLERS PARA EL INPUT DE BÚSQUEDA ---
