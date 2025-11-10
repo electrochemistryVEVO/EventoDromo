@@ -9,7 +9,7 @@ const SuccessModal = ({ onClose }) => {
 
     const handleRedirect = () => {
         clearCart();
-        router.push("/user/perfil?tab=entradas");
+        router.push("/user/web/perfil?tab=entradas");
         // onClose(); // Opcional, si el modal debe cerrarse antes de redirigir
     };
 

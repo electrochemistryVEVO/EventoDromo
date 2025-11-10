@@ -14,6 +14,53 @@ namespace EventodromoRest.DBManager
         private DbCommand? command;
         private DbDataReader? reader;
 
+        private IDbContextTransaction? _currentTransaction;
+
+        public void BeginTransaction()
+        {
+            // Solo inicia una nueva transacción si no hay una activa
+            if (_currentTransaction == null)
+            {
+                _currentTransaction = Database.BeginTransaction();
+            }
+        }
+
+        public void Commit()
+        {
+            try
+            {
+                // Confirma la transacción si existe
+                _currentTransaction?.Commit();
+            }
+            catch
+            {
+                // Si el commit falla, haz un rollback
+                _currentTransaction?.Rollback();
+                throw;
+            }
+            finally
+            {
+                // Limpia la transacción actual
+                _currentTransaction?.Dispose();
+                _currentTransaction = null;
+            }
+        }
+
+        public void Rollback()
+        {
+            try
+            {
+                // Deshace la transacción si existe
+                _currentTransaction?.Rollback();
+            }
+            finally
+            {
+                // Limpia la transacción actual
+                _currentTransaction?.Dispose();
+                _currentTransaction = null;
+            }
+        }
+
         public void OpenConnection()
         {
             if (Database.GetDbConnection().State != ConnectionState.Open)
@@ -32,13 +79,19 @@ namespace EventodromoRest.DBManager
         public int ExecuteNonQuery(string sql, ParameterList parameters)
         {
             using var cmd = Database.GetDbConnection().CreateCommand();
+
+            // ¡CAMBIO CLAVE! Asocia el comando a la transacción activa si existe.
+            if (_currentTransaction != null)
+            {
+                cmd.Transaction = _currentTransaction.GetDbTransaction();
+            }
+
             cmd.CommandText = sql;
             var arr = parameters.ToArray(cmd);
             cmd.Parameters.AddRange(arr);
             OpenConnection();
             return cmd.ExecuteNonQuery();
         }
-
 
         /// <summary>
         /// Ejecuta un comando SQL que devuelve un único valor 
@@ -47,6 +100,13 @@ namespace EventodromoRest.DBManager
         public object? ExecuteScalar(string sql, ParameterList parameters)
         {
             using var cmd = Database.GetDbConnection().CreateCommand();
+
+            // ¡CAMBIO CLAVE! Asocia el comando a la transacción activa si existe.
+            if (_currentTransaction != null)
+            {
+                cmd.Transaction = _currentTransaction.GetDbTransaction();
+            }
+
             cmd.CommandText = sql;
             var arr = parameters.ToArray(cmd);
             cmd.Parameters.AddRange(arr);
@@ -121,7 +181,8 @@ namespace EventodromoRest.DBManager
         {
             if (reader is null) throw new InvalidOperationException("DataReader no inicializado.");
             int i = reader.GetOrdinal(column);
-            return reader.GetDateTime(i);
+            var dbValue = reader.GetDateTime(i);
+            return DateTime.SpecifyKind(dbValue, DateTimeKind.Utc);
         }
 
         public decimal GetDecimal(string column)
@@ -159,10 +220,13 @@ namespace EventodromoRest.DBManager
             command = Database.GetDbConnection().CreateCommand();
             command.CommandText = sql;
 
-            var dbTx = Database.CurrentTransaction?.GetDbTransaction();
-            if (dbTx is not null) command.Transaction = dbTx;
+            // ¡CAMBIO CLAVE! Asocia el comando a la transacción activa si existe.
+            if (_currentTransaction != null)
+            {
+                command.Transaction = _currentTransaction.GetDbTransaction();
+            }
 
-            if(parameters is null) parameters = new ParameterList();
+            if (parameters is null) parameters = new ParameterList();
             var arr = parameters.ToArray(command);
             if (arr.Length > 0) command.Parameters.AddRange(arr);
 

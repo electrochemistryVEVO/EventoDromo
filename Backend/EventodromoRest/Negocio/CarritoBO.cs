@@ -1,9 +1,9 @@
-﻿using Azure;
-using Azure.Core;
-using EventodromoRest.Mappers;
+﻿using EventodromoRest.Mappers;
 using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using Microsoft.IdentityModel.Tokens;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace EventodromoRest.Negocio
 {
@@ -33,7 +33,7 @@ namespace EventodromoRest.Negocio
             return new GenericResponse<ResponseObtenerCarrito>
             {
                 Success = true,
-                Message = "Carrito obtenido correctamente",
+                Message = "Item agregado correctamente",
                 Error = null,
                 Data = response
             };
@@ -41,62 +41,54 @@ namespace EventodromoRest.Negocio
 
         private ResponseObtenerCarrito TransformarCarrito(List<ObtenerCarritoDTO> carrito)
         {
-            var response = new ResponseObtenerCarrito();
-
-            if (!carrito.IsNullOrEmpty())
+            // Si la lista de la base de datos es nula o vacía, devolvemos null.
+            if (carrito.IsNullOrEmpty())
             {
-                response.idCarrito = carrito[0].idCarrito;
-                response.fechaExpiracion = carrito[0].fechaExpiracion;
+                return null;
+            }
 
-                var listaEventos = new List<EventoCarritoDTO>();
-                foreach (var item in carrito)
+            var response = new ResponseObtenerCarrito
+            {
+                idCarrito = carrito[0].idCarrito,
+                fechaExpiracion = carrito[0].fechaExpiracion,
+                eventos = new List<EventoCarritoDTO>() // Inicializamos la lista de eventos
+            };
+
+            // Agrupamos todas las entradas por el ID del evento
+            var gruposPorEvento = carrito.GroupBy(item => item.eventoInfo.idEvento);
+
+            foreach (var grupo in gruposPorEvento)
+            {
+                var primerItemDelGrupo = grupo.First();
+
+                // Creamos el DTO para el evento
+                var eventoDto = new EventoCarritoDTO
+                {
+                    idEvento = primerItemDelGrupo.eventoInfo.idEvento,
+                    nombreEvento = primerItemDelGrupo.eventoInfo.nombreEvento,
+                    imagenURL = primerItemDelGrupo.eventoInfo.imagenURL,
+                    localInfo = primerItemDelGrupo.localInfo,
+                    funcionInfo = primerItemDelGrupo.funcionInfo,
+                    entradas = new List<EntradaDTO>() // Inicializamos la lista de entradas para este evento
+                };
+
+                // Iteramos sobre cada entrada dentro del grupo del evento
+                foreach (var item in grupo)
                 {
                     var entrada = item.entrada;
-                    var eventoExistente = listaEventos.FirstOrDefault(x => x.idEvento == entrada.idTipoEntrada);
-                    if (eventoExistente == null)
+                    var nuevaEntrada = new EntradaDTO
                     {
-                        eventoExistente = new EventoCarritoDTO
-                        {
-                            idEvento = item.eventoInfo.idEvento,
-                            nombreEvento = item.eventoInfo.nombreEvento,
-                            imagenURL = item.eventoInfo.imagenURL,
-                            localInfo = item.localInfo,
-                            funcionInfo = item.funcionInfo,
-                            entradas = new List<EntradaDTO>()
-                        };
+                        idEntrada = entrada.idEntrada,
+                        idTipoEntrada = entrada.idTipoEntrada,
+                        nombreTipoEntrada = entrada.nombreTipoEntrada,
+                        precio = entrada.precio
+                    };
 
-                        var nuevaEntrada = new EntradaDTO
-                        {
-                            idEntrada = entrada.idEntrada,
-                            idTipoEntrada = entrada.idTipoEntrada,
-                            nombreTipoEntrada = entrada.nombreTipoEntrada,
-                            precio = entrada.precio
-                        };
-
-                        eventoExistente.totalEvento += nuevaEntrada.precio;
-                        eventoExistente.entradas.Add(nuevaEntrada);
-                        listaEventos.Add(eventoExistente);
-                    }
-                    else
-                    {
-                        var nuevaEntrada = new EntradaDTO
-                        {
-                            idTipoEntrada = entrada.idTipoEntrada,
-                            nombreTipoEntrada = entrada.nombreTipoEntrada,
-                            precio = entrada.precio
-                        };
-
-                        eventoExistente.totalEvento += nuevaEntrada.precio;
-                        eventoExistente.entradas.Add(nuevaEntrada);
-                    }
-
-                    response.totalCarrito += entrada.precio;
+                    eventoDto.entradas.Add(nuevaEntrada);
+                    eventoDto.totalEvento += nuevaEntrada.precio; // Sumamos al total del evento
+                    response.totalCarrito += nuevaEntrada.precio; // Sumamos al total general del carrito
                 }
-                response.eventos = listaEventos;
-            }
-            else
-            {
-                response = null;
+                response.eventos.Add(eventoDto);
             }
 
             return response;
@@ -114,6 +106,52 @@ namespace EventodromoRest.Negocio
                 Message = "Item eliminado correctamente.",
                 Error = null,
                 Data = response
+            };
+        }
+
+
+        /// <summary>
+        /// Sincroniza el carrito de un invitado con la base de datos, validando el stock.
+        /// </summary>
+        public GenericResponse<ResponseSincronizarCarrito> SincronizarCarrito(int idCliente, RequestSincronizarCarrito request)
+        {
+            var carritoMapper = new CarritoMapper(globales, DB);
+
+            // 1. Llamamos al nuevo método del mapper, que devuelve el carrito y los items rechazados
+            var (carritoData, rechazadosData) = carritoMapper.SincronizarCarrito(idCliente, request);
+
+            // 2. Reutilizamos tu lógica existente para dar formato a la respuesta del carrito
+            var carritoTransformado = TransformarCarrito(carritoData);
+
+            // 3. Creamos el objeto de respuesta final que incluye ambas partes
+            var responseData = new ResponseSincronizarCarrito
+            {
+                carrito = carritoTransformado,
+                rechazados = rechazadosData
+            };
+
+            return new GenericResponse<ResponseSincronizarCarrito>
+            {
+                Success = true,
+                Message = "Carrito sincronizado correctamente.",
+                Data = responseData
+            };
+        }
+
+        /// <summary>
+        /// Limpia completamente el carrito de un usuario y libera el stock reservado.
+        /// </summary>
+        public GenericResponse<object> LimpiarCarrito(int idCliente)
+        {
+            var carritoMapper = new CarritoMapper(globales, DB);
+            carritoMapper.LimpiarCarrito(idCliente);
+
+            // Para esta operación, no necesitamos devolver datos, solo la confirmación.
+            return new GenericResponse<object>
+            {
+                Success = true,
+                Message = "Carrito limpiado correctamente.",
+                Data = null
             };
         }
     }

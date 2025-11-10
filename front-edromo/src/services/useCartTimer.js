@@ -8,14 +8,26 @@ import { useCart } from "@/context/CartContext";
 // Usamos MM:SS ya que el timer es de 10 minutos.
 const formatTime = (ms) => {
   if (ms <= 0) return "00:00";
-  const totalSeconds = Math.floor(ms / 1000);
+  
+  let totalSeconds = Math.floor(ms / 1000);
+  
+  const hours = Math.floor(totalSeconds / 3600);
+  totalSeconds %= 3600; // Segundos restantes después de quitar las horas
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
-    2,
-    "0",
-  )}`;
+  
+  const paddedMinutes = String(minutes).padStart(2, "0");
+  const paddedSeconds = String(seconds).padStart(2, "0");
+
+  if (hours > 0) {
+    // Si hay horas, las mostramos. Ej: "05:09:46"
+    return `${String(hours).padStart(2, "0")}:${paddedMinutes}:${paddedSeconds}`;
+  }
+  
+  // Si no, solo mostramos minutos y segundos. Ej: "09:59"
+  return `${paddedMinutes}:${paddedSeconds}`;
 };
+
 
 export const useCartTimer = () => {
   // Obtenemos los datos clave del contexto
@@ -31,17 +43,17 @@ export const useCartTimer = () => {
       return;
     }
 
+    console.log("useCartTimer DEBUG:", {
+        expirationTime, // Timestamp del backend
+        now: Date.now(), // Timestamp actual del navegador
+        difference_ms: expirationTime - Date.now(), // La resta en milisegundos
+        difference_minutes: (expirationTime - Date.now()) / 60000 // La resta en minutos
+    });
+
     const updateTimer = () => {
       const remaining = expirationTime - Date.now();
 
-      if (remaining <= 0) {
-        setTimeLeft("00:00");
-        // NOTA: No llamamos a clearCart() aquí.
-        // Tu CartContext ya tiene un "efecto vigilante" que maneja la expiración.
-        // Este hook solo se encarga de *mostrar* el tiempo.
-      } else {
-        setTimeLeft(formatTime(remaining));
-      }
+      setTimeLeft(formatTime(remaining));
     };
 
     updateTimer(); // Ejecutar al inicio

@@ -1,4 +1,4 @@
-// CartContext.jsx
+// src/context/CartContext.jsx
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
 import { useUser } from "./UserContext";
@@ -7,7 +7,7 @@ import {
   addItemToDbCart,
   removeItemFromDbCart,
   clearDbCart,
-} from "@/services/Cart.service"; 
+} from "@/services/Cart.service";
 
 const CART_EXPIRATION_MINUTES = 10;
 const CartContext = createContext();
@@ -17,9 +17,9 @@ const computeEntradasTotal = (entradas = []) =>
     const qty = Number(entrada?.cantidad ?? entrada?.quantity ?? 0) || 0;
     const price = Number(
       entrada?.precioUnitario ??
-        entrada?.precio ??
-        entrada?.precioPorUnidad ??
-        0,
+      entrada?.precio ??
+      entrada?.precioPorUnidad ??
+      0,
     );
     return acc + qty * price;
   }, 0);
@@ -88,7 +88,11 @@ export const CartProvider = ({ children }) => {
         const guestCartJson = localStorage.getItem("cart");
         let guestItems = [];
         if (guestCartJson) {
-          guestItems = JSON.parse(guestCartJson);
+          try {
+            guestItems = JSON.parse(guestCartJson);
+          } catch {
+            console.warn("No se pudo parsear el carrito de invitado.");
+          }
         }
 
         const token = resolveAuthToken();
@@ -99,6 +103,7 @@ export const CartProvider = ({ children }) => {
           setIsLoading(false);
           return;
         }
+
         const response = await mergeGuestCartWithDb(guestItems, token);
 
         if (response.success) {
@@ -107,6 +112,16 @@ export const CartProvider = ({ children }) => {
           localStorage.removeItem("cart");
           localStorage.removeItem("cartExpiration");
           console.log("Carrito sincronizado con la BD.");
+
+          if (response.data.rejectedItems && response.data.rejectedItems.length > 0) {
+            const nombresRechazados = response.data.rejectedItems.map(item => item.nombre).join(', ');
+            const mensaje = `Algunas entradas no se pudieron agregar por falta de stock: ${nombresRechazados}.`;
+            console.warn(mensaje);
+            // Idealmente, mostrar una notificación "toast"
+            // toast.error(mensaje, { duration: 6000 });
+            alert(mensaje); // Usamos alert como fallback simple.
+          }
+
         } else {
           console.error("Error al sincronizar carrito:", response.error);
           const unauthorized = /401|unauthorized|no autorizado/i.test(
@@ -150,9 +165,9 @@ export const CartProvider = ({ children }) => {
 
     loadCart();
   }, [isAuthenticated, user?.token, logout]);
-  
+
   // ... (tus useEffect de persistencia y vigilante están bien) ...
-    // --- EFECTOS DE PERSISTENCIA (SOLO PARA INVITADOS) ---
+  // --- EFECTOS DE PERSISTENCIA (SOLO PARA INVITADOS) ---
   useEffect(() => {
     if (!isAuthenticated) {
       localStorage.setItem("cart", JSON.stringify(cartItems));
@@ -399,9 +414,9 @@ export const CartProvider = ({ children }) => {
 
       const tipoEntradaNumeric = Number(
         matchingEntrada?.tipoEntradaId ??
-          matchingEntrada?.idTipoEntrada ??
-          matchingEntrada?.tipoEntrada?.id ??
-          tipoEntradaId,
+        matchingEntrada?.idTipoEntrada ??
+        matchingEntrada?.tipoEntrada?.id ??
+        tipoEntradaId,
       );
 
       if (!Number.isFinite(tipoEntradaNumeric) || tipoEntradaNumeric <= 0) {

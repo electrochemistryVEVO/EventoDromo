@@ -187,7 +187,7 @@ const SuccessModal = ({ onClose }) => {
 
     const handleRedirect = () => {
         clearCart();
-        router.push("/user/perfil?tab=entradas");
+        router.push("/user/web/perfil?tab=entradas");
     };
 
     return (

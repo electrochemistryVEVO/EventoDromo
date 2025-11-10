@@ -1,3 +1,4 @@
+// src/services/service-informacion-personal.js
 export const servicePerfil = {
   /**
   * Obtiene la información inicial del perfil.

@@ -39,7 +39,7 @@ function EntradaDetallePage() {
           <h1 className={styles.title}>Mi Carrito está vacío</h1>
         </div>
         <button
-          onClick={() => router.push("/user/eventos/lista")}
+          onClick={() => router.push("/user/web/eventos/lista")}
           className="w-full flex flex-row justify-center items-center gap-4 max-w-sm rounded-2xl bg-[#EFECEC] py-4 text-base font-bold text-gray-500 transition border-gray-400 border-2"
         >
           <img

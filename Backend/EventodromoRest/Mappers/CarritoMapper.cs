@@ -1,8 +1,7 @@
-﻿using Azure.Core;
+﻿// Archivo: Mappers/CarritoMapper.cs
 using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.IdentityModel.Tokens;
 
 namespace EventodromoRest.Mappers
@@ -55,159 +54,112 @@ namespace EventodromoRest.Mappers
 
         public int InsertarCarrito(Carrito carrito)
         {
-            lock (DB)
-            {
-                string query = "INSERT INTO Carrito (idCliente, fechaExpiracion, fechaCreacion) VALUES (@idCliente, @fechaExpiracion, @fechaCreacion); SELECT LAST_INSERT_ID();";
-                var parametros = new ParameterList();
-                parametros.Add("@idCliente", carrito.idCliente);
-                parametros.Add("@fechaExpiracion", carrito.fechaExpiracion);
-                parametros.Add("@fechaCreacion", carrito.fechaCreacion);
-                object result = DB.ExecuteScalar(query, parametros);
-                int newId = Convert.ToInt32(result);
-                return newId;
-            }
+            string query = "INSERT INTO Carrito (idCliente, fechaExpiracion, fechaCreacion) VALUES (@idCliente, @fechaExpiracion, @fechaCreacion); SELECT LAST_INSERT_ID();";
+            var parametros = new ParameterList();
+            parametros.Add("@idCliente", carrito.idCliente);
+            parametros.Add("@fechaExpiracion", carrito.fechaExpiracion);
+            parametros.Add("@fechaCreacion", carrito.fechaCreacion);
+
+            object result = DB.ExecuteScalar(query, parametros);
+            return Convert.ToInt32(result);
         }
 
         public Carrito ObtenerCarritoPorId(int id)
         {
-            lock (DB)
+            string query = "SELECT * FROM Carrito WHERE id = @id";
+            var parametros = new ParameterList();
+            parametros.Add("@id", id);
+
+            Carrito carrito = null;
+
+            DB.Select(query, parametros);
+            try
             {
-                string query = "SELECT * FROM Carrito WHERE id = @id";
-                var parametros = new ParameterList();
-                parametros.Add("@id", id);
-
-                Carrito carrito = null;
-
-                DB.Select(query, parametros);
-                try
+                if (DB.Read())
                 {
-                    if (DB.Read())
+                    carrito = new()
                     {
-                        carrito = new()
-                        {
-                            id = DB.GetInt("id"),
-                            idCliente = DB.GetInt("idCliente"),
-                            fechaExpiracion = DB.GetDateTime("fechaExpiracion"),
-                            fechaCreacion = DB.GetDateTime("fechaCreacion")
-                        };
-                    }
+                        id = DB.GetInt("id"),
+                        idCliente = DB.GetInt("idCliente"),
+                        fechaExpiracion = DB.GetDateTime("fechaExpiracion"),
+                        fechaCreacion = DB.GetDateTime("fechaCreacion")
+                    };
                 }
-                finally
-                {
-                    DB.CloseReader();
-                }
-
-                if (carrito != null)
-                {
-                    // Cargar cliente luego de cerrar el reader
-                    carrito.cliente = ObtenerClientePorId(carrito.idCliente);
-                }
-
-                return carrito;
             }
+            finally
+            {
+                DB.CloseReader();
+            }
+
+            if (carrito != null)
+            {
+                // Cargar la entidad relacionada después de que el reader se ha cerrado
+                carrito.cliente = ObtenerClientePorId(carrito.idCliente);
+            }
+
+            return carrito;
         }
 
         public List<ObtenerCarritoDTO> ObtenerCarrito(int idCliente)
         {
-            List<ObtenerCarritoDTO> listaCarrito = new List<ObtenerCarritoDTO>();
-            lock (DB)
+            var listaCarrito = new List<ObtenerCarritoDTO>();
+            string query =
+                "select " +
+                "c.id as idCarrito, ev.id as idEvento, ev.nombre as nombreEvento, ev.imagenURL as imagenURL, " +
+                "l.nombre as nombreLocal, cd.nombre as nombreCiudad, f.id as idFuncion, f.fechaHora as fecha, " +
+                "e.id AS idEntrada, t.id as idTipoEntrada, t.nombre as nombreTipoEntrada, t.precio as precioEntrada, " +
+                "c.fechaExpiracion " +
+                "from Entrada e " +
+                "join Carrito c on e.idCarrito = c.id " +
+                "join TipoEntrada t on t.id = e.idTipoEntrada " +
+                "join FechaEvento f on f.id = t.idFechaEvento " +
+                "join Evento ev on ev.id = f.idEvento " +
+                "join Local l on l.id = ev.idLocal " +
+                "join Ciudad cd on cd.id = l.idCiudad " +
+                "where c.idCliente = @idCliente and UTC_TIMESTAMP() < c.fechaExpiracion;";
+
+            var parametros = new ParameterList();
+            parametros.Add("@idCliente", idCliente);
+
+            DB.Select(query, parametros);
+            try
             {
-                string query =
-                    "select " +
-                    "c.id as idCarrito, " +
-                    "ev.id as idEvento, " +
-                    "ev.nombre as nombreEvento, " +
-                    "ev.imagenURL as imagenURL, " +
-                    "l.nombre as nombreLocal, " +
-                    "cd.nombre as nombreCiudad, " +
-                    "f.id as idFuncion, " +
-                    "f.fechaHora as fecha, " +
-                    "e.id AS idEntrada, " +
-                    "t.id as idTipoEntrada, " +
-                    "t.nombre as nombreTipoEntrada, " +
-                    "t.precio as precioEntrada, " +
-                    "c.fechaExpiracion " +
-                    "from " +
-                    "Entrada e " +
-                    "join Carrito c on e.idCarrito = c.id " +
-                    "join TipoEntrada t on t.id = e.idTipoEntrada " +
-                    "join FechaEvento f on f.id = t.idFechaEvento " +
-                    "join Evento ev on ev.id = f.idEvento " +
-                    "join Local l on l.id = ev.idLocal " +
-                    "join Ciudad cd on cd.id = l.idCiudad " +
-                    "where " +
-                    "c.idCliente = @idCliente " +
-                    "and c.fechaCreacion < now() " +
-                    "and now() < c.fechaExpiracion;";
-
-                var parametros = new ParameterList();
-                parametros.Add("@idCliente", idCliente);
-
-                DB.Select(query, parametros);
-                try
+                while (DB.Read())
                 {
-                    while (DB.Read())
+                    ObtenerCarritoDTO registro = new()
                     {
-                        ObtenerCarritoDTO registro = new()
-                        {
-                            idCarrito = DB.GetInt("idCarrito"),
-                            eventoInfo = new EventoCarritoDTO
-                            {
-                                idEvento = DB.GetInt("idEvento"),
-                                nombreEvento = DB.GetString("nombreEvento"),
-                                imagenURL = DB.GetString("imagenURL")
-                            },
-                            localInfo = new LocalDTO
-                            {
-                                nombre = DB.GetString("nombreLocal"),
-                                ciudad = DB.GetString("nombreCiudad")
-                            },
-                            funcionInfo = new FuncionDTO
-                            {
-                                id = DB.GetInt("idFuncion"),
-                                fechaHora = DB.GetDateTime("fecha")
-                            },
-                            entrada = new EntradaDTO
-                            {
-                                idEntrada = DB.GetInt("idEntrada"),
-                                idTipoEntrada = DB.GetInt("idTipoEntrada"),
-                                nombreTipoEntrada = DB.GetString("nombreTipoEntrada"),
-                                precio = DB.GetDecimal("precioEntrada")
-                            },
-                            fechaExpiracion = DB.GetDateTime("fechaExpiracion")
-                        };
-                        listaCarrito.Add(registro);
-                    }
+                        idCarrito = DB.GetInt("idCarrito"),
+                        eventoInfo = new EventoCarritoDTO { idEvento = DB.GetInt("idEvento"), nombreEvento = DB.GetString("nombreEvento"), imagenURL = DB.GetString("imagenURL") },
+                        localInfo = new LocalDTO { nombre = DB.GetString("nombreLocal"), ciudad = DB.GetString("nombreCiudad") },
+                        funcionInfo = new FuncionDTO { id = DB.GetInt("idFuncion"), fechaHora = DB.GetDateTime("fecha") },
+                        entrada = new EntradaDTO { idEntrada = DB.GetInt("idEntrada"), idTipoEntrada = DB.GetInt("idTipoEntrada"), nombreTipoEntrada = DB.GetString("nombreTipoEntrada"), precio = DB.GetDecimal("precioEntrada") },
+                        fechaExpiracion = DB.GetDateTime("fechaExpiracion")
+                    };
+                    listaCarrito.Add(registro);
                 }
-                finally
-                {
-                    DB.CloseReader();
-                }
+            }
+            finally
+            {
+                DB.CloseReader();
             }
 
-            if (listaCarrito.Count == 0)
-            {
-                return null;
-            }
-            else
-            {
-                return listaCarrito;
-            }
+            return listaCarrito;
         }
 
         public List<ObtenerCarritoDTO> AgregarItemAlCarrito(int idCliente, RequestAgregarItemAlCarrito request)
         {
-            lock (DB)
+            DB.BeginTransaction();
+            try
             {
                 var carritoExistente = ObtenerCarrito(idCliente);
                 int idCarrito;
                 if (carritoExistente.IsNullOrEmpty())
                 {
-                    Carrito nuevoCarrito = new()
-                    {
-                        idCliente = idCliente,
-                        fechaCreacion = DateTime.Now,
-                        fechaExpiracion = request.fechaExpiracion
+                    Carrito nuevoCarrito = new() 
+                    { 
+                        idCliente = idCliente, 
+                        fechaCreacion = DateTime.UtcNow, 
+                        fechaExpiracion = request.fechaExpiracion 
                     };
                     idCarrito = InsertarCarrito(nuevoCarrito);
                 }
@@ -221,28 +173,182 @@ namespace EventodromoRest.Mappers
                 {
                     for (int i = 0; i < entrada.cantidad; i++)
                     {
-                        Entrada nuevaEntrada = new()
-                        {
-                            idCarrito = idCarrito,
-                            idTipoEntrada = entrada.idTipoEntrada
-                        };
+                        Entrada nuevaEntrada = new() { idCarrito = idCarrito, idTipoEntrada = entrada.idTipoEntrada };
                         entradaMapper.InsertarEntrada(nuevaEntrada);
                     }
                 }
 
+                DB.Commit();
                 return ObtenerCarrito(idCliente);
+            }
+            catch (Exception)
+            {
+                DB.Rollback();
+                throw;
             }
         }
 
-        public List<ObtenerCarritoDTO> EliminarItemDelCarrito(int idCliente, int idEntrada) 
+        public List<ObtenerCarritoDTO> EliminarItemDelCarrito(int idCliente, int idEntrada)
         {
-            lock (DB)
+            DB.BeginTransaction();
+            try
             {
                 string query = "DELETE FROM Entrada WHERE id = @idEntrada;";
                 var parametros = new ParameterList();
                 parametros.Add("@idEntrada", idEntrada);
                 DB.ExecuteNonQuery(query, parametros);
+
+                DB.Commit();
                 return ObtenerCarrito(idCliente);
+            }
+            catch (Exception)
+            {
+                DB.Rollback();
+                throw;
+            }
+        }
+
+        public (List<ObtenerCarritoDTO> carrito, List<RechazadoDTO> rechazados) SincronizarCarrito(int idCliente, RequestSincronizarCarrito request)
+        {
+            var rechazados = new List<RechazadoDTO>();
+
+            DB.BeginTransaction();
+            try
+            {
+                // --- LÓGICA REESCRITA PARA EVITAR DEADLOCK ---
+                // 1. Intentamos insertar un carrito NUEVO solo si el cliente NO tiene uno ACTIVO.
+                // Esta operación es atómica y evita el patrón conflictivo de SELECT-then-INSERT.
+                string upsertQuery =
+                    "INSERT INTO Carrito (idCliente, fechaCreacion, fechaExpiracion) " +
+                    "SELECT @idCliente, UTC_TIMESTAMP(), UTC_TIMESTAMP() + INTERVAL 10 MINUTE " +
+                    "WHERE NOT EXISTS (SELECT 1 FROM Carrito WHERE idCliente = @idCliente AND fechaExpiracion > UTC_TIMESTAMP());";
+
+                var upsertParams = new ParameterList();
+                upsertParams.Add("@idCliente", idCliente);
+                DB.ExecuteNonQuery(upsertQuery, upsertParams);
+
+                // 2. Ahora, con total seguridad, obtenemos el ID del carrito que DEBE existir.
+                // (ya sea el que existía antes o el que acabamos de crear).
+                string queryCarrito = "SELECT id FROM Carrito WHERE idCliente = @idCliente AND fechaExpiracion > UTC_TIMESTAMP() LIMIT 1";
+                var selectParams = new ParameterList();
+                selectParams.Add("@idCliente", idCliente);
+                object carritoIdObj = DB.ExecuteScalar(queryCarrito, selectParams);
+
+                if (carritoIdObj == null || carritoIdObj == DBNull.Value)
+                {
+                    // Este error solo debería ocurrir si la consulta de inserción condicional falla,
+                    // lo cual sería un problema muy grave a nivel de base de datos.
+                    throw new Exception("No se pudo crear o encontrar un carrito para el cliente después del intento de inserción.");
+                }
+                int idCarrito = Convert.ToInt32(carritoIdObj);
+
+                string updateExpirationQuery = "UPDATE Carrito SET fechaExpiracion = UTC_TIMESTAMP() + INTERVAL 10 MINUTE WHERE id = @idCarrito;";
+                var updateParams = new ParameterList();
+                updateParams.Add("@idCarrito", idCarrito);
+                DB.ExecuteNonQuery(updateExpirationQuery, updateParams);
+
+                // 3. El resto del flujo para añadir entradas continúa como antes.
+                foreach (var entradaReq in request.entradas)
+                {
+                    string queryStock = "SELECT nombre, cantidadEntradas, cantidadVendida FROM TipoEntrada WHERE id = @idTipoEntrada FOR UPDATE;";
+                    var parametrosStock = new ParameterList();
+                    parametrosStock.Add("@idTipoEntrada", entradaReq.idTipoEntrada);
+
+                    int cantidadDisponible = 0;
+                    string nombreTipoEntrada = "Entrada Desconocida";
+
+                    DB.Select(queryStock, parametrosStock);
+                    try
+                    {
+                        if (DB.Read())
+                        {
+                            nombreTipoEntrada = DB.GetString("nombre");
+                            cantidadDisponible = DB.GetInt("cantidadEntradas") - DB.GetInt("cantidadVendida");
+                        }
+                    }
+                    finally { DB.CloseReader(); }
+
+                    if (cantidadDisponible >= entradaReq.cantidad)
+                    {
+                        string queryUpdateStock = "UPDATE TipoEntrada SET cantidadVendida = cantidadVendida + @cantidad WHERE id = @idTipoEntrada;";
+                        var parametrosUpdate = new ParameterList();
+                        parametrosUpdate.Add("@cantidad", entradaReq.cantidad);
+                        parametrosUpdate.Add("@idTipoEntrada", entradaReq.idTipoEntrada);
+                        DB.ExecuteNonQuery(queryUpdateStock, parametrosUpdate);
+
+                        var entradaMapper = new EntradaMapper(globales, DB);
+                        for (int i = 0; i < entradaReq.cantidad; i++)
+                        {
+                            Entrada nuevaEntrada = new() { idCarrito = idCarrito, idTipoEntrada = entradaReq.idTipoEntrada };
+                            entradaMapper.InsertarEntrada(nuevaEntrada);
+                        }
+                    }
+                    else
+                    {
+                        rechazados.Add(new RechazadoDTO { idTipoEntrada = entradaReq.idTipoEntrada, nombre = nombreTipoEntrada, cantidadSolicitada = entradaReq.cantidad, cantidadDisponible = cantidadDisponible });
+                    }
+                }
+
+                DB.Commit();
+                // Al final, llamamos a ObtenerCarrito que nos devolverá el contenido completo.
+                var carritoFinal = ObtenerCarrito(idCliente);
+                return (carritoFinal, rechazados);
+            }
+            catch (Exception)
+            {
+                DB.Rollback();
+                throw;
+            }
+        }
+
+
+        public void LimpiarCarrito(int idCliente)
+        {
+            DB.BeginTransaction();
+            try
+            {
+                string queryEntradas =
+                    "SELECT e.idTipoEntrada, COUNT(e.id) as cantidad, c.id as idCarrito " +
+                    "FROM Entrada e JOIN Carrito c ON e.idCarrito = c.id " +
+                    "WHERE c.idCliente = @idCliente AND UTC_TIMESTAMP() < c.fechaExpiracion " +
+                    "GROUP BY e.idTipoEntrada, c.id;";
+
+                var parametros = new ParameterList();
+                parametros.Add("@idCliente", idCliente);
+                var entradasParaLiberar = new List<(int idTipoEntrada, int cantidad, int idCarrito)>();
+
+                DB.Select(queryEntradas, parametros);
+                try
+                {
+                    while (DB.Read()) { entradasParaLiberar.Add((DB.GetInt("idTipoEntrada"), DB.GetInt("cantidad"), DB.GetInt("idCarrito"))); }
+                }
+                finally { DB.CloseReader(); }
+
+                if (entradasParaLiberar.Any())
+                {
+                    int idCarrito = entradasParaLiberar.First().idCarrito;
+
+                    foreach (var item in entradasParaLiberar)
+                    {
+                        string queryUpdateStock = "UPDATE TipoEntrada SET cantidadVendida = cantidadVendida - @cantidad WHERE id = @idTipoEntrada;";
+                        var pUpdate = new ParameterList();
+                        pUpdate.Add("@cantidad", item.cantidad);
+                        pUpdate.Add("@idTipoEntrada", item.idTipoEntrada);
+                        DB.ExecuteNonQuery(queryUpdateStock, pUpdate);
+                    }
+
+                    var pCarrito = new ParameterList();
+                    pCarrito.Add("@idCarrito", idCarrito);
+                    DB.ExecuteNonQuery("DELETE FROM Entrada WHERE idCarrito = @idCarrito", pCarrito);
+                    DB.ExecuteNonQuery("DELETE FROM Carrito WHERE id = @idCarrito", pCarrito);
+                }
+
+                DB.Commit();
+            }
+            catch (Exception)
+            {
+                DB.Rollback();
+                throw;
             }
         }
     }

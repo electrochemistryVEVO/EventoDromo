@@ -22,6 +22,15 @@ const CART_ENDPOINTS = {
     process.env.NEXT_PUBLIC_CART_REMOVE_ENDPOINT,
     "Carrito/EliminarItemDelCarrito",
   ),
+  sync: normalizeEndpoint(
+    process.env.NEXT_PUBLIC_CART_SYNC_ENDPOINT,
+    "Carrito/SincronizarCarrito", // O el nombre que le des en el backend
+  ),
+  // ¡NUEVO ENDPOINT!
+  clear: normalizeEndpoint(
+    process.env.NEXT_PUBLIC_CART_CLEAR_ENDPOINT,
+    "Carrito/LimpiarCarrito", // O el nombre que le des en el backend
+  ),
 };
 
 const generateFallbackId = () => {
@@ -90,9 +99,8 @@ const ensureCartItemStructure = (evento, containerId, index = 0) => {
     };
   }
 
-  const fallbackId = `${containerId}-${evento.idEvento ?? `evt-${index + 1}`}-${
-    evento.funcionInfo?.id ?? `func-${index + 1}`
-  }`;
+  const fallbackId = `${containerId}-${evento.idEvento ?? `evt-${index + 1}`}-${evento.funcionInfo?.id ?? `func-${index + 1}`
+    }`;
 
   const cartItemId = ensureCartItemId(
     { cartItemId: evento.cartItemId },
@@ -170,10 +178,10 @@ const buildAddItemPayload = (cartItem, expirationTime) => {
     }
     const cantidad = Number(
       entrada.cantidad ??
-        entrada.quantity ??
-        entrada.cantidadTotal ??
-        entrada.numeroEntradas ??
-        0,
+      entrada.quantity ??
+      entrada.cantidadTotal ??
+      entrada.numeroEntradas ??
+      0,
     );
 
     if (!Number.isFinite(cantidad) || cantidad <= 0) {
@@ -204,8 +212,17 @@ const buildAddItemPayload = (cartItem, expirationTime) => {
 const parseExpiration = (value) => {
   if (!value) return null;
   if (typeof value === "number") return value;
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed) ? null : parsed;
+  if (typeof value !== "string") return null;
+
+  const dateObject = new Date(value);
+
+  // Verificamos si la fecha creada es válida.
+  // Si el string era inválido, `getTime()` devuelve NaN.
+  if (Number.isNaN(dateObject.getTime())) {
+    return null;
+  }
+
+  return dateObject.getTime();
 };
 
 const normalizeCartPayload = (raw) => {
@@ -315,25 +332,45 @@ const mergeServerAndGuestItems = (serverItems = [], guestItems = []) => {
 };
 
 export const mergeGuestCartWithDb = async (guestItems = [], token) => {
-  try {
-    const { data } = await fetchCartWithToken(token);
+  // Esta función ahora será la encargada de la "materialización".
+  // Su trabajo es enviar el carrito de invitado al backend para su validación.
 
-    const mergedItems = mergeServerAndGuestItems(
-      data.items,
-      guestItems,
+  // 1. Construimos un payload similar al de 'addItemToDbCart' pero para múltiples items.
+  const entradas = guestItems.flatMap(item =>
+    buildAddItemPayload(item, null).entradas
+  );
+
+  if (entradas.length === 0) {
+    // Si no había nada en el carrito de invitado, solo pedimos el carrito de la BD.
+    return fetchCartWithToken(token);
+  }
+
+  const payload = {
+    // El backend espera una lista de entradas a agregar.
+    entradas,
+  };
+
+  try {
+    const headers = buildAuthHeaders(token);
+    // 2. Llamamos al nuevo endpoint de sincronización
+    const response = await api.post(
+      CART_ENDPOINTS.sync,
+      payload,
+      headers ? { headers } : {},
     );
 
-    const expirationTime =
-      data.expirationTime ??
-      (mergedItems.length > 0
-        ? Date.now() + DEFAULT_EXPIRATION_MS
-        : null);
+    // 3. La respuesta del backend ya es el carrito final y validado.
+    // La normalizamos y la devolvemos. El backend también podría devolver una lista de 'rechazados'.
+    // Asumiremos que el backend devuelve un objeto con { carrito: {...}, rechazados: [...] }
+
+    const normalized = normalizeCartPayload(response?.carrito ?? response);
 
     return {
       success: true,
       data: {
-        items: mergedItems,
-        expirationTime,
+        ...normalized,
+        // Adjuntamos los items rechazados para que el Context pueda notificar al usuario.
+        rejectedItems: response?.rechazados ?? [],
       },
     };
   } catch (error) {
@@ -349,10 +386,7 @@ export const addItemToDbCart = async (item, expirationTime, token) => {
   const payload = buildAddItemPayload(item, expirationTime);
 
   if (!payload.entradas.length) {
-    return {
-      success: false,
-      error: "No hay entradas válidas para agregar",
-    };
+    return { success: false, error: "No hay entradas válidas para agregar" };
   }
 
   try {
@@ -363,28 +397,25 @@ export const addItemToDbCart = async (item, expirationTime, token) => {
       headers ? { headers } : {},
     );
 
+    // --- ¡AÑADE ESTA LÍNEA DE CORRECCIÓN! ---
+    // Normalizamos la respuesta para asegurar que expirationTime es un número.
     const normalized = normalizeCartPayload(response ?? null);
 
     return {
       success: true,
-      data: normalized,
+      // Devolvemos los datos normalizados, no la respuesta cruda.
+      data: normalized, 
     };
   } catch (error) {
     console.error("[Cart.service] Error al agregar item:", error);
-    return {
-      success: false,
-      error: error.message || "Error al agregar item al carrito",
-    };
+    return { success: false, error: error.message || "Error al agregar item al carrito" };
   }
 };
 
 export const removeItemFromDbCart = async (entradaId, token) => {
   const normalizedId = Number(entradaId);
   if (!Number.isFinite(normalizedId) || normalizedId <= 0) {
-    return {
-      success: false,
-      error: "Id de entrada inválido",
-    };
+    return { success: false, error: "Id de entrada inválido" };
   }
 
   try {
@@ -394,22 +425,32 @@ export const removeItemFromDbCart = async (entradaId, token) => {
       headers ? { headers } : {},
     );
 
+    // --- ¡AÑADE ESTA LÍNEA DE CORRECCIÓN! ---
+    // Normalizamos también aquí para mantener la consistencia.
     const normalized = normalizeCartPayload(response ?? null);
 
     return {
       success: true,
+      // Devolvemos los datos normalizados.
       data: normalized,
     };
   } catch (error) {
     console.error("[Cart.service] Error al eliminar la entrada del carrito:", error);
-    return {
-      success: false,
-      error: error.message || "No se pudo eliminar la entrada del carrito",
-    };
+    return { success: false, error: error.message || "No se pudo eliminar la entrada" };
   }
 };
 
-export const clearDbCart = async (_token) => ({
-  success: false,
-  error: "Servicio para limpiar el carrito no implementado",
-});
+export const clearDbCart = async (token) => {
+  try {
+    const headers = buildAuthHeaders(token);
+    // Usamos DELETE en un endpoint específico para limpiar el carrito.
+    await api.delete(CART_ENDPOINTS.clear, headers ? { headers } : {});
+    return { success: true };
+  } catch (error) {
+    console.error("[Cart.service] Error al limpiar el carrito de la BD:", error);
+    return {
+      success: false,
+      error: error.message || "No se pudo limpiar el carrito",
+    };
+  }
+};

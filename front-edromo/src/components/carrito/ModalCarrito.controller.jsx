@@ -12,7 +12,7 @@ import "@/css/ModalCarrito.css";
 import { useCartTimer } from "@/services/useCartTimer";
 
 /**
- * Controller: maneja la l贸gica del modal (animaci贸n, visibilidad)
+ * Controller: maneja la lógica del modal (animación, visibilidad)
  * y la obtenci贸n de datos del carrito desde el servicio.
  */
 export default function ModalCarritoController({ isOpen, onClose }) {
