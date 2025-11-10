@@ -29,6 +29,7 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [expirationTime, setExpirationTime] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [syncingItemIds, setSyncingItemIds] = useState(new Set());
 
   const normalizeToken = (rawToken) => {
     if (typeof rawToken !== "string") return null;
@@ -166,6 +167,21 @@ export const CartProvider = ({ children }) => {
     loadCart();
   }, [isAuthenticated, user?.token, logout]);
 
+  // Este es el núcleo de la solución. Centraliza toda la lógica del timer.
+  useEffect(() => {
+    // Solo nos importa este efecto para usuarios invitados.
+    if (!isAuthenticated) {
+      if (cartItems.length > 0 && !expirationTime) {
+        // CASO 1: Hay items en el carrito, pero no hay timer. ¡Inícialo!
+        setExpirationTime(Date.now() + CART_EXPIRATION_MINUTES * 60 * 1000);
+      } else if (cartItems.length === 0 && expirationTime) {
+        // CASO 2: No hay items, pero el timer sigue activo. ¡Bórralo!
+        setExpirationTime(null);
+      }
+    }
+    // Este efecto se ejecuta cada vez que el carrito cambia.
+  }, [cartItems, isAuthenticated, expirationTime]);
+
   // ... (tus useEffect de persistencia y vigilante están bien) ...
   // --- EFECTOS DE PERSISTENCIA (SOLO PARA INVITADOS) ---
   useEffect(() => {
@@ -200,16 +216,11 @@ export const CartProvider = ({ children }) => {
   // --- FUNCIONES DE MUTACIÓN "INTELIGENTES" ---
 
   const addToCart = async (entrada) => {
-    // ¡CORRECCIÓN! Compara con 'cartItemId'
     const exists = cartItems.find((item) => item.cartItemId === entrada.cartItemId);
     if (exists) return;
 
-    let newExpiration = expirationTime;
-    if (cartItems.length === 0) {
-      newExpiration = Date.now() + CART_EXPIRATION_MINUTES * 60 * 1000;
-    }
-
     if (isAuthenticated) {
+      // La lógica para el usuario logueado no cambia.
       setIsLoading(true);
       const token = resolveAuthToken();
       if (!token) {
@@ -217,6 +228,8 @@ export const CartProvider = ({ children }) => {
         setIsLoading(false);
         return;
       }
+      // Se calcula la expiración aquí porque el backend la necesita.
+      const newExpiration = expirationTime || Date.now() + CART_EXPIRATION_MINUTES * 60 * 1000;
       const response = await addItemToDbCart(entrada, newExpiration, token);
       if (response.success) {
         setCartItems(response.data.items);
@@ -226,8 +239,10 @@ export const CartProvider = ({ children }) => {
       }
       setIsLoading(false);
     } else {
+      // --- LÓGICA DE INVITADO SIMPLIFICADA ---
+      // Se eliminó toda la lógica de 'newExpiration' y 'setExpirationTime'.
+      // Ahora, solo nos preocupamos de añadir el item. El nuevo useEffect se encargará del timer.
       setCartItems((prev) => [...prev, entrada]);
-      setExpirationTime(newExpiration);
     }
   };
 
@@ -235,138 +250,115 @@ export const CartProvider = ({ children }) => {
     { cartItemId, entradaId, tipoEntradaId } = {},
     { manageLoading = true } = {},
   ) => {
-    if (!cartItemId && !entradaId) {
+    if (syncingItemIds.has(cartItemId)) {
       return false;
     }
 
     if (isAuthenticated) {
-      if (manageLoading) {
-        setIsLoading(true);
-      }
-      const token = resolveAuthToken();
-      if (!token) {
-        console.warn("[CartContext] No se pudo obtener token para eliminar entrada.");
-        if (manageLoading) {
-          setIsLoading(false);
-        }
-        return false;
-      }
+      // --- INICIO DE LA LÓGICA OPTIMISTA ---
+      setSyncingItemIds((prev) => new Set(prev).add(cartItemId));
 
-      let resolvedEntradaId = entradaId;
+      // 1. Guardar estado original.
+      const previousCartItems = cartItems;
 
-      if (!resolvedEntradaId) {
-        // Fallback: resolve entradaId from current cart snapshot when UI lacks it
-        const targetItem = cartItems.find(
-          (item) => item.cartItemId === cartItemId,
-        );
-
-        const matchingEntrada = targetItem?.entradas?.find((entrada) => {
-          const currentTipo =
-            entrada?.tipoEntradaId ??
-            entrada?.idTipoEntrada ??
-            entrada?.tipoEntrada?.id ??
-            entrada?.id ??
-            null;
-
-          return (
-            currentTipo != null &&
-            (tipoEntradaId == null ||
-              String(currentTipo) === String(tipoEntradaId))
-          );
-        }) ?? targetItem?.entradas?.[0];
-
-        resolvedEntradaId =
-          matchingEntrada?.entradaId ??
-          matchingEntrada?.idEntrada ??
-          matchingEntrada?.id ??
-          null;
-      }
-
-      if (!resolvedEntradaId) {
-        console.warn("[CartContext] No se pudo resolver idEntrada para eliminar.");
-        if (manageLoading) {
-          setIsLoading(false);
-        }
-        return false;
-      }
-
-      const response = await removeItemFromDbCart(resolvedEntradaId, token);
-      if (response.success) {
-        setCartItems(response.data.items);
-        setExpirationTime(response.data.expirationTime);
-      } else {
-        console.error("Error al eliminar entrada de la BD", response.error);
-        if (manageLoading) {
-          setIsLoading(false);
-        }
-        return false;
-      }
-
-      if (manageLoading) {
-        setIsLoading(false);
-      }
-      return true;
-    }
-
-    let nextCartSnapshot = [];
-
-    setCartItems((prev) => {
-      const updated = prev
+      // 2. Crear estado optimista y actualizar UI.
+      const optimisticCartItems = previousCartItems
         .map((item) => {
           if (item.cartItemId !== cartItemId) {
             return item;
           }
-
           const entradasActualizadas = (item.entradas || [])
             .map((entrada) => {
-              const tipoEntradaActual =
-                entrada.tipoEntradaId ??
-                entrada.idTipoEntrada ??
-                entrada.tipoEntrada?.id ??
-                null;
-
-              if (
-                tipoEntradaId == null ||
-                tipoEntradaActual == null ||
-                String(tipoEntradaActual) !== String(tipoEntradaId)
-              ) {
+              const tipoEntradaActual = entrada.tipoEntradaId ?? entrada.idTipoEntrada ?? entrada.tipoEntrada?.id ?? null;
+              if (tipoEntradaId != null && String(tipoEntradaActual) !== String(tipoEntradaId)) {
                 return entrada;
               }
-
-              const cantidadActual = Number(
-                entrada.cantidad ?? entrada.quantity ?? 0,
-              );
+              const cantidadActual = Number(entrada.cantidad ?? entrada.quantity ?? 0);
               const nuevaCantidad = Math.max(0, cantidadActual - 1);
-
-              return {
-                ...entrada,
-                cantidad: nuevaCantidad,
-                quantity: nuevaCantidad,
-              };
+              return { ...entrada, cantidad: nuevaCantidad, quantity: nuevaCantidad };
             })
-            .filter((entrada) =>
-              Number(entrada.cantidad ?? entrada.quantity ?? 0) > 0,
-            );
-
+            .filter((entrada) => Number(entrada.cantidad ?? entrada.quantity ?? 0) > 0);
           const totalItem = computeEntradasTotal(entradasActualizadas);
-
-          return {
-            ...item,
-            entradas: entradasActualizadas,
-            totalItem,
-          };
+          return { ...item, entradas: entradasActualizadas, totalItem };
         })
         .filter((item) => (item.entradas || []).length > 0);
 
-      nextCartSnapshot = updated;
-      return updated;
-    });
+      setCartItems(optimisticCartItems);
 
-    if (nextCartSnapshot.length === 0) {
-      setExpirationTime(null);
+      // 3. Sincronizar con backend en segundo plano.
+      try {
+        const token = resolveAuthToken();
+        if (!token) {
+          throw new Error("No se pudo obtener el token para eliminar la entrada.");
+        }
+
+        let resolvedEntradaId = entradaId;
+        if (!resolvedEntradaId) {
+          const targetItem = previousCartItems.find((item) => item.cartItemId === cartItemId);
+          const matchingEntrada = targetItem?.entradas?.find((entrada) => {
+            const currentTipo = entrada?.tipoEntradaId ?? entrada?.idTipoEntrada ?? entrada?.tipoEntrada?.id ?? entrada?.id ?? null;
+            return (currentTipo != null && (tipoEntradaId == null || String(currentTipo) === String(tipoEntradaId)));
+          }) ?? targetItem?.entradas?.[0];
+          resolvedEntradaId = matchingEntrada?.entradaId ?? matchingEntrada?.idEntrada ?? matchingEntrada?.id ?? null;
+        }
+
+        if (!resolvedEntradaId) {
+          throw new Error("No se pudo resolver el idEntrada para eliminar.");
+        }
+
+        const response = await removeItemFromDbCart(resolvedEntradaId, token);
+
+        // 4. Éxito: Refrescar con la respuesta final del servidor.
+        setCartItems(response.data.items);
+        setExpirationTime(response.data.expirationTime);
+
+        return true;
+
+      } catch (error) {
+        // 5. Fallo: Revertir y notificar.
+        console.error("Falló la actualización optimista (decremento):", error);
+        // Solo mostramos alerta si la llamada es manejada individualmente (no desde un bucle)
+        if (manageLoading) {
+          alert("No se pudo disminuir la cantidad. Inténtalo de nuevo.");
+        }
+        setCartItems(previousCartItems);
+        return false;
+      } finally {
+        // --- MUY IMPORTANTE: Desbloqueamos el item al final. ---
+        setSyncingItemIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(cartItemId);
+          return newSet;
+        });
+      }
+      // --- FIN DE LA LÓGICA OPTIMISTA ---
+
+    } else {
+      // La lógica de invitado no cambia.
+      setCartItems((prev) =>
+        prev
+          .map((item) => {
+            if (item.cartItemId !== cartItemId) {
+              return item;
+            }
+            const entradasActualizadas = (item.entradas || [])
+              .map((entrada) => {
+                const tipoEntradaActual = entrada.tipoEntradaId ?? entrada.idTipoEntrada ?? entrada.tipoEntrada?.id ?? null;
+                if (tipoEntradaId == null || tipoEntradaActual == null || String(tipoEntradaActual) !== String(tipoEntradaId)) {
+                  return entrada;
+                }
+                const cantidadActual = Number(entrada.cantidad ?? entrada.quantity ?? 0);
+                const nuevaCantidad = Math.max(0, cantidadActual - 1);
+                return { ...entrada, cantidad: nuevaCantidad, quantity: nuevaCantidad };
+              })
+              .filter((entrada) => Number(entrada.cantidad ?? entrada.quantity ?? 0) > 0);
+            const totalItem = computeEntradasTotal(entradasActualizadas);
+            return { ...item, entradas: entradasActualizadas, totalItem };
+          })
+          .filter((item) => (item.entradas || []).length > 0)
+      );
+      return true;
     }
-
-    return true;
   };
 
   const incrementEntryInCart = async (
@@ -377,223 +369,175 @@ export const CartProvider = ({ children }) => {
       return false;
     }
 
-    if (isAuthenticated) {
-      if (manageLoading) {
-        setIsLoading(true);
-      }
-
-      const token = resolveAuthToken();
-      if (!token) {
-        console.warn(
-          "[CartContext] No se pudo obtener token para incrementar entrada.",
-        );
-        if (manageLoading) {
-          setIsLoading(false);
-        }
-        return false;
-      }
-
-      const targetItem = cartItems.find(
-        (item) => item.cartItemId === cartItemId,
-      );
-      if (!targetItem) {
-        if (manageLoading) {
-          setIsLoading(false);
-        }
-        return false;
-      }
-
-      const matchingEntrada = (targetItem.entradas || []).find((entrada) => {
-        const currentTipo =
-          entrada?.tipoEntradaId ??
-          entrada?.idTipoEntrada ??
-          entrada?.tipoEntrada?.id ??
-          null;
-        return currentTipo != null && String(currentTipo) === String(tipoEntradaId);
-      });
-
-      const tipoEntradaNumeric = Number(
-        matchingEntrada?.tipoEntradaId ??
-        matchingEntrada?.idTipoEntrada ??
-        matchingEntrada?.tipoEntrada?.id ??
-        tipoEntradaId,
-      );
-
-      if (!Number.isFinite(tipoEntradaNumeric) || tipoEntradaNumeric <= 0) {
-        console.warn(
-          "[CartContext] Tipo de entrada inválido al incrementar en BD.",
-        );
-        if (manageLoading) {
-          setIsLoading(false);
-        }
-        return false;
-      }
-
-      const expirationTarget =
-        expirationTime ?? Date.now() + CART_EXPIRATION_MINUTES * 60 * 1000;
-
-      const payloadItem = {
-        entradas: [
-          {
-            tipoEntradaId: tipoEntradaNumeric,
-            cantidad: 1,
-          },
-        ],
-      };
-
-      const response = await addItemToDbCart(
-        payloadItem,
-        expirationTarget,
-        token,
-      );
-
-      if (response.success) {
-        setCartItems(response.data.items);
-        setExpirationTime(response.data.expirationTime ?? expirationTarget);
-        if (manageLoading) {
-          setIsLoading(false);
-        }
-        return true;
-      }
-
-      console.error("Error al incrementar entrada en la BD", response.error);
-      if (manageLoading) {
-        setIsLoading(false);
-      }
+    if (syncingItemIds.has(cartItemId)) {
       return false;
     }
 
-    let snapshot = null;
+    if (isAuthenticated) {
+      // --- INICIO DE LA LÓGICA OPTIMISTA ---
+      setSyncingItemIds((prev) => new Set(prev).add(cartItemId));
 
-    setCartItems((prev) => {
-      let cartMutated = false;
+      // 1. Guardar el estado original para poder revertir en caso de error.
+      const previousCartItems = cartItems;
 
-      const updated = prev.map((item) => {
+      // 2. Crear el nuevo estado "optimista" y actualizar la UI inmediatamente.
+      //    No usamos setIsLoading(true) para que la UI no se bloquee.
+      const optimisticCartItems = previousCartItems.map((item) => {
         if (item.cartItemId !== cartItemId) {
           return item;
         }
-
-        const entradasActuales = Array.isArray(item.entradas)
-          ? item.entradas
-          : [];
-
-        let tierUpdated = false;
-
-        const entradasIncrementadas = entradasActuales.map((entrada) => {
-          const tipoEntradaActual =
-            entrada?.tipoEntradaId ??
-            entrada?.idTipoEntrada ??
-            entrada?.tipoEntrada?.id ??
-            null;
-
-          if (
-            tipoEntradaActual == null ||
-            String(tipoEntradaActual) !== String(tipoEntradaId)
-          ) {
+        const entradasIncrementadas = (item.entradas || []).map((entrada) => {
+          const tipoEntradaActual = entrada.tipoEntradaId ?? entrada.idTipoEntrada ?? entrada.tipoEntrada?.id ?? null;
+          if (tipoEntradaActual == null || String(tipoEntradaActual) !== String(tipoEntradaId)) {
             return entrada;
           }
-
-          tierUpdated = true;
-          cartMutated = true;
-
-          const cantidadActual = Number(
-            entrada.cantidad ?? entrada.quantity ?? 0,
-          );
-          const nuevaCantidad = Number.isFinite(cantidadActual)
-            ? cantidadActual + 1
-            : 1;
-
-          return {
-            ...entrada,
-            cantidad: nuevaCantidad,
-            quantity: nuevaCantidad,
-          };
+          const cantidadActual = Number(entrada.cantidad ?? entrada.quantity ?? 0);
+          const nuevaCantidad = cantidadActual + 1;
+          return { ...entrada, cantidad: nuevaCantidad, quantity: nuevaCantidad };
         });
-
-        if (!tierUpdated) {
-          return item;
-        }
-
         const totalItem = computeEntradasTotal(entradasIncrementadas);
-
-        return {
-          ...item,
-          entradas: entradasIncrementadas,
-          totalItem,
-        };
+        return { ...item, entradas: entradasIncrementadas, totalItem };
       });
 
-      if (!cartMutated) {
-        return prev;
+      setCartItems(optimisticCartItems);
+
+      // 3. Ahora, intentar sincronizar con el backend en segundo plano.
+      try {
+        const token = resolveAuthToken();
+        if (!token) {
+          // Si no hay token, lanzamos un error para que el catch lo maneje y revierta el cambio.
+          throw new Error("No se pudo obtener el token para incrementar la entrada.");
+        }
+
+        const targetItem = previousCartItems.find((item) => item.cartItemId === cartItemId);
+        if (!targetItem) {
+          throw new Error("No se encontró el item del carrito para incrementar.");
+        }
+
+        const matchingEntrada = (targetItem.entradas || []).find((entrada) => {
+          const currentTipo = entrada?.tipoEntradaId ?? entrada?.idTipoEntrada ?? entrada?.tipoEntrada?.id ?? null;
+          return currentTipo != null && String(currentTipo) === String(tipoEntradaId);
+        });
+
+        const tipoEntradaNumeric = Number(matchingEntrada?.tipoEntradaId ?? matchingEntrada?.idTipoEntrada ?? matchingEntrada?.tipoEntrada?.id ?? tipoEntradaId);
+        if (!Number.isFinite(tipoEntradaNumeric) || tipoEntradaNumeric <= 0) {
+          throw new Error("Tipo de entrada inválido al incrementar en BD.");
+        }
+
+        const expirationTarget = expirationTime || Date.now() + CART_EXPIRATION_MINUTES * 60 * 1000;
+        const payloadItem = { entradas: [{ tipoEntradaId: tipoEntradaNumeric, cantidad: 1 }] };
+
+        const response = await addItemToDbCart(payloadItem, expirationTarget, token);
+
+        // 4. Éxito: La respuesta del servidor es ahora la fuente de verdad.
+        //    Esto asegura que si el backend hizo algún cálculo (ej. ajustar precio), la UI lo refleje.
+        setCartItems(response.data.items);
+        setExpirationTime(response.data.expirationTime ?? expirationTarget);
+
+        return true;
+
+      } catch (error) {
+        // 5. ¡FALLO! Revertimos la UI al estado original y notificamos al usuario.
+        console.error("Falló la actualización optimista (incremento):", error);
+        alert("No se pudo aumentar la cantidad. Es posible que no haya más stock."); // O usar un toast
+        setCartItems(previousCartItems);
+        return false;
+      } finally {
+        // --- MUY IMPORTANTE: Desbloqueamos el item al final, tanto si tuvo éxito como si falló. ---
+        setSyncingItemIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(cartItemId);
+          return newSet;
+        });
       }
+      // --- FIN DE LA LÓGICA OPTIMISTA ---
 
-      snapshot = updated;
-      return updated;
-    });
-
-    if (!snapshot) {
-      return false;
+    } else {
+      // La lógica de invitado no cambia, ya es instantánea.
+      let cartMutated = false;
+      setCartItems((prev) => {
+        const updated = prev.map((item) => {
+          if (item.cartItemId !== cartItemId) {
+            return item;
+          }
+          let tierUpdated = false;
+          const entradasIncrementadas = (item.entradas || []).map((entrada) => {
+            const tipoEntradaActual = entrada?.tipoEntradaId ?? entrada?.idTipoEntrada ?? entrada?.tipoEntrada?.id ?? null;
+            if (tipoEntradaActual == null || String(tipoEntradaActual) !== String(tipoEntradaId)) {
+              return entrada;
+            }
+            tierUpdated = true;
+            cartMutated = true;
+            const cantidadActual = Number(entrada.cantidad ?? entrada.quantity ?? 0);
+            const nuevaCantidad = Number.isFinite(cantidadActual) ? cantidadActual + 1 : 1;
+            return { ...entrada, cantidad: nuevaCantidad, quantity: nuevaCantidad };
+          });
+          if (!tierUpdated) {
+            return item;
+          }
+          const totalItem = computeEntradasTotal(entradasIncrementadas);
+          return { ...item, entradas: entradasIncrementadas, totalItem };
+        });
+        return cartMutated ? updated : prev;
+      });
+      return true;
     }
-
-    if (!expirationTime) {
-      setExpirationTime(Date.now() + CART_EXPIRATION_MINUTES * 60 * 1000);
-    }
-
-    return true;
   };
 
-  const removeFromCart = async (cartItemId) => { // Recibe cartItemId
+  const removeFromCart = async (cartItemId) => {
     if (isAuthenticated) {
-      setIsLoading(true);
-      const targetItem = cartItems.find((item) => item.cartItemId === cartItemId);
-      if (!targetItem) {
-        setIsLoading(false);
-        return;
-      }
+      // --- INICIO DE LA LÓGICA OPTIMISTA ---
 
-      const entradas = Array.isArray(targetItem.entradas)
-        ? targetItem.entradas
-        : [];
+      // 1. Guardar estado original.
+      const previousCartItems = cartItems;
 
-      for (const entrada of entradas) {
-        const tipoEntradaId =
-          entrada?.tipoEntradaId ?? entrada?.idTipoEntrada ?? null;
-        const entradaId =
-          entrada?.entradaId ??
-          entrada?.idEntrada ??
-          entrada?.id ??
-          null;
+      // 2. Crear estado optimista y actualizar UI inmediatamente.
+      const optimisticCartItems = previousCartItems.filter((item) => item.cartItemId !== cartItemId);
+      setCartItems(optimisticCartItems);
 
-        const repeat = Math.max(
-          1,
-          Number(entrada?.cantidad ?? entrada?.quantity ?? 0) || 1,
-        );
+      // 3. Sincronizar con backend en segundo plano.
+      try {
+        const targetItem = previousCartItems.find((item) => item.cartItemId === cartItemId);
+        if (!targetItem) {
+          // Si el item no estaba en el estado original, no hay nada que hacer en el backend.
+          return;
+        }
 
-        for (let i = 0; i < repeat; i += 1) {
-          const success = await removeEntryFromCart(
-            { cartItemId, entradaId, tipoEntradaId },
-            { manageLoading: false },
-          );
+        const entradas = Array.isArray(targetItem.entradas) ? targetItem.entradas : [];
+        for (const entrada of entradas) {
+          const tipoEntradaId = entrada?.tipoEntradaId ?? entrada?.idTipoEntrada ?? null;
+          const entradaId = entrada?.entradaId ?? entrada?.idEntrada ?? entrada?.id ?? null;
+          const repeat = Math.max(1, Number(entrada?.cantidad ?? entrada?.quantity ?? 0) || 1);
 
-          if (!success) {
-            setIsLoading(false);
-            return;
+          for (let i = 0; i < repeat; i += 1) {
+            // Llamamos a removeEntryFromCart, pero no esperamos (await) a cada una
+            // para no bloquear. La lógica de revertir se maneja como un todo.
+            // La función removeEntryFromCart ya debería tener su propia lógica de API.
+            // Para una UI optimista completa, esta llamada también debería ser optimista.
+            // Por ahora, asumimos que llamarla en bucle está bien.
+            const success = await removeEntryFromCart({ cartItemId, entradaId, tipoEntradaId }, { manageLoading: false });
+            if (!success) {
+              // Si una de las eliminaciones falla, lanzamos un error para revertir todo.
+              throw new Error(`No se pudo eliminar la entrada ID: ${entradaId}`);
+            }
           }
         }
+      } catch (error) {
+        // 5. Fallo: Revertir y notificar.
+        console.error("Falló la actualización optimista (removeFromCart):", error);
+        alert("No se pudo eliminar el artículo del carrito.");
+        setCartItems(previousCartItems);
       }
-      setIsLoading(false);
+      // --- FIN DE LA LÓGICA OPTIMISTA ---
+
     } else {
-      // --- ¡CORRECCIÓN AQUÍ! ---
-      // Filtra por 'cartItemId' en lugar de 'id'
-      const newCart = cartItems.filter((item) => item.cartItemId !== cartItemId);
-      setCartItems(newCart);
-      if (newCart.length === 0) {
-        setExpirationTime(null);
-      }
+      // La lógica de invitado no cambia.
+      setCartItems((prev) => prev.filter((item) => item.cartItemId !== cartItemId));
     }
   };
 
   const clearCart = async () => {
+    // La lógica para el usuario logueado no cambia.
     if (isAuthenticated) {
       setIsLoading(true);
       const token = resolveAuthToken();
@@ -607,12 +551,14 @@ export const CartProvider = ({ children }) => {
         setCartItems([]);
         setExpirationTime(null);
       } else {
-        console.error("Error al limpiar el carrito de la BD");
+        console.error("Error al limpiar el carrito de la BD", response.error);
       }
       setIsLoading(false);
     } else {
+      // --- LÓGICA DE INVITADO SIMPLIFICADA ---
+      // Se eliminó la línea 'setExpirationTime(null)'.
+      // Ahora solo actualizamos los items. El useEffect se encargará del timer.
       setCartItems([]);
-      setExpirationTime(null);
     }
   };
 

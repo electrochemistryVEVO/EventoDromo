@@ -20,7 +20,8 @@ export default function ModalCarrito({
   onRemoveTier,
   onDecreaseTier,
   onIncreaseTier,
-  onCheckout
+  onCheckout,
+  syncingItemIds
 }) {
   
   // Estado de Carga
@@ -97,7 +98,7 @@ export default function ModalCarrito({
                       <button
                         type="button"
                         onClick={() => onDecreaseTier(item)}
-                        disabled={isLoading || quantity <= 0}
+                        disabled={isLoading || quantity <= 0 || isSyncing}
                         className="flex items-center justify-center w-8 h-8 rounded-full border border-slate-300 text-base font-semibold transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
                         aria-label={`Disminuir cantidad de ${eventName} ${tierName}`}
                       >
@@ -107,7 +108,7 @@ export default function ModalCarrito({
                       <button
                         type="button"
                         onClick={() => onIncreaseTier(item)}
-                        disabled={isLoading}
+                        disabled={isLoading || isSyncing}
                         className="flex items-center justify-center w-8 h-8 rounded-full border border-slate-300 text-base font-semibold transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
                         aria-label={`Incrementar cantidad de ${eventName} ${tierName}`}
                       >
