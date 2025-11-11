@@ -15,6 +15,7 @@ async function apiFetch(endpoint, options = {}) {
 
     const baseHeaders = {
         'Content-Type': 'application/json',
+        "Access-Control-Allow-Origin:":"*",
         ...options.headers,
     };
 
