@@ -2,7 +2,7 @@
 
 import React from "react";
 
-const formatCurrency = (value) => `S/. ${value.toFixed(2)}`;
+const formatCurrency = (value) => `S/. ${value?.toFixed(2) ?? 0}`;
 
 // 1. Renombramos el componente (antes 'CostoDetalleEntradasView')
 export const CostoDetalleEntradas = ({
@@ -16,13 +16,13 @@ export const CostoDetalleEntradas = ({
     if (isLoading)
       return <p className="p-4 text-center">Cargando detalle...</p>;
     if (error) return <p className="p-4 text-center text-red-500">{error}</p>;
-    if (eventos.length === 0)
+    if (eventos?.length === 0)
       return <p className="p-4 text-center">No hay entradas para mostrar.</p>;
 
     return (
       // Contenedor desplazable
       <div className="pr-2 overflow-y-auto max-h-96">
-        {eventos.map((evento) => (
+        {eventos?.map((evento) => (
           <div key={evento.id} className="mb-6">
             <h3 className="pb-2 mb-3 text-lg font-bold text-gray-800 border-b-2 border-gray-300">
               {evento.eventoNombre}
@@ -70,7 +70,7 @@ export const CostoDetalleEntradas = ({
         Total: {formatCurrency(totalGeneral)}
       </div>
       <div className="mt-8 w-fit rounded-lg bg-[#00C49A] px-8 py-3 text-center text-base font-semibold text-white shadow-md mx-auto">
-        ¡En esta compra ganarás {dromoPuntos.toFixed(0)} DromoPuntos!
+        ¡En esta compra ganarás {dromoPuntos?.toFixed(0) ?? 0} DromoPuntos!
       </div>
     </div>
   );
