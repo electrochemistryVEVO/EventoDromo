@@ -46,7 +46,7 @@ services:
             PMA_USER: admin
             PMA_PASSWORD: 12345
         ports:
-            - "0.0.0.0:8081:8080"
+            - "0.0.0.0:8080:8080"
         depends_on:
             - db
         networks:
