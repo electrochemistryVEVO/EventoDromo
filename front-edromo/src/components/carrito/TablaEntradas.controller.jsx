@@ -4,7 +4,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useCart } from "@/context/CartContext"; 
 import { groupCartEntriesByTier } from "./groupCartEntries";
-import { TablaEntradas } from "./TablaEntradas";
+import { TablaEntradas } from "./tablaEntradas";
 
 export const TablaEntradasController = () => {
   const {

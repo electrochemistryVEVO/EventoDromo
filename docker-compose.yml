@@ -19,7 +19,7 @@ services:
         entrypoint: ["/bin/bash", "/init.sh"]
 
     www:
-        build: ./Frontend/
+        build: ./front-edromo/
         restart: unless-stopped
         environment:
             ASPNET_HOST: 127.0.0.1
