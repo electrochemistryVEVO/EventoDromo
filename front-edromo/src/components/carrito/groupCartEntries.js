@@ -1,10 +1,11 @@
 export const groupCartEntriesByTier = (cartItems = []) => {
   const groups = [];
+  const usedRowIds = new Set();
 
-  cartItems.forEach((item) => {
+  cartItems.forEach((item, itemIndex) => {
     if (!item) return;
 
-    const cartItemId = item.cartItemId ?? item.id ?? null;
+    const cartItemId = item.cartItemId ?? item.id ?? `item-${itemIndex}`;
     const eventName = item?.eventoInfo?.nombre || "Evento no disponible";
     const imageUrl = item?.eventoInfo?.imagenUrl || "/images/placeholder.png";
     const fecha = item?.funcionInfo?.fecha || "Fecha no disponible";
@@ -12,6 +13,7 @@ export const groupCartEntriesByTier = (cartItems = []) => {
 
     const entradas = Array.isArray(item?.entradas) ? item.entradas : [];
 
+    // ✅ CORRECCIÓN: Agrupar por evento + función + tipo de entrada
     const groupedByTier = new Map();
 
     entradas.forEach((entrada) => {
@@ -24,11 +26,27 @@ export const groupCartEntriesByTier = (cartItems = []) => {
         entrada.id ??
         null;
 
-      const tierKey = `${tipoEntradaId ?? entrada?.nombre ?? "entrada"}`;
+      if (!tipoEntradaId) return;
+
+      // ✅ CLAVE DE AGRUPACIÓN: evento + función + tipo de entrada
+      // Esto agrupará entradas del mismo tipo en el mismo evento/función
+      const tierKey = `${cartItemId}-${tipoEntradaId}`;
 
       if (!groupedByTier.has(tierKey)) {
+        // ✅ GENERAR ROWID ÚNICO PERO CONSISTENTE PARA EL GRUPO
+        const rowId = tierKey; // Usamos la misma clave para agrupación
+        
+        // Solo añadir sufijo si ya existe (muy raro)
+        let finalRowId = rowId;
+        let counter = 1;
+        while (usedRowIds.has(finalRowId)) {
+          finalRowId = `${rowId}-${counter}`;
+          counter++;
+        }
+        usedRowIds.add(finalRowId);
+
         groupedByTier.set(tierKey, {
-          rowId: `${cartItemId}-${tierKey}`,
+          rowId: finalRowId,
           cartItemId,
           tipoEntradaId,
           tierName: entrada?.nombre || entrada?.tipoEntradaNombre || "Entrada",
@@ -70,15 +88,21 @@ export const groupCartEntriesByTier = (cartItems = []) => {
         entrada.carritoDetalleId ??
         null;
 
+      // ✅ ACUMULAR la cantidad en lugar de crear registros separados
       for (let i = 0; i < cantidad; i += 1) {
         group.entryRecords.push({
           entradaId,
           tipoEntradaId,
           unitPrice,
+          // ID único para operaciones individuales
+          uniqueEntryId: entradaId 
+            ? `${entradaId}-${i}`
+            : `${cartItemId}-${tipoEntradaId}-${i}`
         });
       }
     });
 
+    // Procesar los grupos formados
     groupedByTier.forEach((group) => {
       const totalPrice = group.entryRecords.reduce(
         (acc, record) => acc + Number(record.unitPrice || 0),
@@ -92,8 +116,22 @@ export const groupCartEntriesByTier = (cartItems = []) => {
         entryIds: group.entryRecords
           .map((record) => record.entradaId)
           .filter((id) => id != null),
+        uniqueEntryIds: group.entryRecords.map(record => record.uniqueEntryId)
       });
     });
+  });
+
+  // ✅ DEBUG MEJORADO
+  console.log('🔍 groupCartEntriesByTier - Resultado:', {
+    inputCartItems: cartItems.length,
+    outputGroups: groups.length,
+    groups: groups.map(g => ({
+      rowId: g.rowId,
+      eventName: g.eventName,
+      tierName: g.tierName,
+      quantity: g.quantity,
+      totalPrice: g.totalPrice
+    }))
   });
 
   return groups;

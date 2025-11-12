@@ -64,6 +64,8 @@ export default function ModalCarrito({
     <div className="flex-1 overflow-y-auto">
       <ul className="p-5 list-none">
         {items.map((item) => {
+          const isSyncing = syncingItemIds.has(item.cartItemId);
+          
           const {
             rowId,
             eventName,

@@ -20,6 +20,7 @@ export default function ModalCarritoController({ isOpen, onClose }) {
     cartItems,
     totalPrice,
     isLoading,
+    syncingItemIds,
     removeEntryFromCart,
     incrementEntryInCart,
     //clearCart,
@@ -210,6 +211,7 @@ export default function ModalCarritoController({ isOpen, onClose }) {
         <ModalCarritoView
           items={groupedItems}
           isLoading={isLoading}
+          syncingItemIds={syncingItemIds}
           error={null}
           total={totalPrice}
           onClose={handleClose}

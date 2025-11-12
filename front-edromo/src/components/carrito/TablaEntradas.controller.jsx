@@ -4,7 +4,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useCart } from "@/context/CartContext"; 
 import { groupCartEntriesByTier } from "./groupCartEntries";
-import { TablaEntradas } from "./TablaEntradas";
+import { TablaEntradas } from "./tablaEntradas";
 
 export const TablaEntradasController = () => {
   const {
@@ -80,18 +80,22 @@ export const TablaEntradasController = () => {
       return;
     }
 
-    const iterableIds = row.entryIds?.length
-      ? row.entryIds
+    // ✅ CORRECCIÓN: Usar uniqueEntryIds en lugar de entryIds
+    const iterableIds = row.uniqueEntryIds?.length
+      ? row.uniqueEntryIds
       : Array.from({ length: row.quantity }, () => null);
 
     let manageLoading = true;
 
-    for (const entradaId of iterableIds) {
+    for (const uniqueId of iterableIds) {
+      // ✅ CORRECCIÓN: Encontrar el record correspondiente al uniqueId
+      const record = row.entryRecords?.find(r => r.uniqueEntryId === uniqueId);
+      
       const success = await removeEntryFromCart(
         {
           cartItemId: row.cartItemId,
-          entradaId,
-          tipoEntradaId: row.tipoEntradaId,
+          entradaId: record?.entradaId || null,
+          tipoEntradaId: record?.tipoEntradaId || row.tipoEntradaId,
         },
         { manageLoading },
       );
@@ -131,17 +135,18 @@ export const TablaEntradasController = () => {
   };
 
   const handleDecreaseQuantity = async (row) => {
-    if (!row) {
+    if (!row || row.entryRecords.length === 0) {
       return;
     }
 
-    const entradaId = row.entryIds?.[0] ?? null;
+    // ✅ CORRECCIÓN: Tomar el ÚLTIMO record para eliminar
+    const lastRecord = row.entryRecords[row.entryRecords.length - 1];
 
     await removeEntryFromCart(
       {
         cartItemId: row.cartItemId,
-        entradaId,
-        tipoEntradaId: row.tipoEntradaId,
+        entradaId: lastRecord.entradaId,
+        tipoEntradaId: lastRecord.tipoEntradaId,
       },
       { manageLoading: true },
     );
@@ -165,7 +170,20 @@ export const TablaEntradasController = () => {
   const isIndeterminate =
     selectedIds.size > 0 && selectedIds.size < rows.length;
 
-  // 2. MODIFICADO: Renderiza el componente 'TablaEntradas'
+  // ✅ DEBUG: Verificar que no hay duplicados
+  useEffect(() => {
+    const rowIds = rows.map(row => row.rowId);
+    const uniqueIds = new Set(rowIds);
+    
+    if (rowIds.length !== uniqueIds.size) {
+      console.warn('⚠️ Se encontraron rowIds duplicados:', {
+        total: rowIds.length,
+        unique: uniqueIds.size,
+        duplicates: rowIds.filter((id, index) => rowIds.indexOf(id) !== index)
+      });
+    }
+  }, [rows]);
+
   return (
     <TablaEntradas
       items={rows} 

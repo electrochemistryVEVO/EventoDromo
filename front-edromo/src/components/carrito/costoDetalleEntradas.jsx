@@ -1,10 +1,10 @@
+// src/components/carrito/costoDetalleEntradas.jsx
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 
 const formatCurrency = (value) => `S/. ${value.toFixed(2)}`;
 
-// 1. Renombramos el componente (antes 'CostoDetalleEntradasView')
 export const CostoDetalleEntradas = ({
   eventos,
   totalGeneral,
@@ -12,6 +12,30 @@ export const CostoDetalleEntradas = ({
   isLoading,
   error,
 }) => {
+  // ✅ DEBUG: Verificar IDs únicos
+  useEffect(() => {
+    if (eventos && eventos.length > 0) {
+      const allEntradaIds = eventos.flatMap(evento => 
+        evento.entradas.map(entrada => entrada.id)
+      );
+      const uniqueIds = new Set(allEntradaIds);
+      
+      console.log('🔍 CostoDetalleEntradas - IDs:', {
+        totalEntradas: allEntradaIds.length,
+        uniqueIds: uniqueIds.size,
+        hasDuplicates: allEntradaIds.length !== uniqueIds.size
+      });
+
+      if (allEntradaIds.length !== uniqueIds.size) {
+        console.error('❌ DUPLICADOS EN CostoDetalleEntradas:');
+        const duplicates = allEntradaIds.filter((id, index) => 
+          allEntradaIds.indexOf(id) !== index
+        );
+        console.error('Duplicados:', duplicates);
+      }
+    }
+  }, [eventos]);
+
   const renderContent = () => {
     if (isLoading)
       return <p className="p-4 text-center">Cargando detalle...</p>;
@@ -20,7 +44,6 @@ export const CostoDetalleEntradas = ({
       return <p className="p-4 text-center">No hay entradas para mostrar.</p>;
 
     return (
-      // Contenedor desplazable
       <div className="pr-2 overflow-y-auto max-h-96">
         {eventos.map((evento) => (
           <div key={evento.id} className="mb-6">
@@ -76,5 +99,4 @@ export const CostoDetalleEntradas = ({
   );
 };
 
-// 2. Exportamos como 'default' para compatibilidad
 export default CostoDetalleEntradas;

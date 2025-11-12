@@ -255,37 +255,9 @@ export const CartProvider = ({ children }) => {
     }
 
     if (isAuthenticated) {
-      // --- INICIO DE LA LÓGICA OPTIMISTA ---
+      // ✅ ELIMINADO: La lógica optimista completa
       setSyncingItemIds((prev) => new Set(prev).add(cartItemId));
 
-      // 1. Guardar estado original.
-      const previousCartItems = cartItems;
-
-      // 2. Crear estado optimista y actualizar UI.
-      const optimisticCartItems = previousCartItems
-        .map((item) => {
-          if (item.cartItemId !== cartItemId) {
-            return item;
-          }
-          const entradasActualizadas = (item.entradas || [])
-            .map((entrada) => {
-              const tipoEntradaActual = entrada.tipoEntradaId ?? entrada.idTipoEntrada ?? entrada.tipoEntrada?.id ?? null;
-              if (tipoEntradaId != null && String(tipoEntradaActual) !== String(tipoEntradaId)) {
-                return entrada;
-              }
-              const cantidadActual = Number(entrada.cantidad ?? entrada.quantity ?? 0);
-              const nuevaCantidad = Math.max(0, cantidadActual - 1);
-              return { ...entrada, cantidad: nuevaCantidad, quantity: nuevaCantidad };
-            })
-            .filter((entrada) => Number(entrada.cantidad ?? entrada.quantity ?? 0) > 0);
-          const totalItem = computeEntradasTotal(entradasActualizadas);
-          return { ...item, entradas: entradasActualizadas, totalItem };
-        })
-        .filter((item) => (item.entradas || []).length > 0);
-
-      setCartItems(optimisticCartItems);
-
-      // 3. Sincronizar con backend en segundo plano.
       try {
         const token = resolveAuthToken();
         if (!token) {
@@ -294,7 +266,7 @@ export const CartProvider = ({ children }) => {
 
         let resolvedEntradaId = entradaId;
         if (!resolvedEntradaId) {
-          const targetItem = previousCartItems.find((item) => item.cartItemId === cartItemId);
+          const targetItem = cartItems.find((item) => item.cartItemId === cartItemId);
           const matchingEntrada = targetItem?.entradas?.find((entrada) => {
             const currentTipo = entrada?.tipoEntradaId ?? entrada?.idTipoEntrada ?? entrada?.tipoEntrada?.id ?? entrada?.id ?? null;
             return (currentTipo != null && (tipoEntradaId == null || String(currentTipo) === String(tipoEntradaId)));
@@ -308,30 +280,26 @@ export const CartProvider = ({ children }) => {
 
         const response = await removeItemFromDbCart(resolvedEntradaId, token);
 
-        // 4. Éxito: Refrescar con la respuesta final del servidor.
+        // ✅ SOLO actualizamos con la respuesta del backend
         setCartItems(response.data.items);
         setExpirationTime(response.data.expirationTime);
 
         return true;
 
       } catch (error) {
-        // 5. Fallo: Revertir y notificar.
-        console.error("Falló la actualización optimista (decremento):", error);
-        // Solo mostramos alerta si la llamada es manejada individualmente (no desde un bucle)
+        console.error("Error al eliminar entrada:", error);
         if (manageLoading) {
           alert("No se pudo disminuir la cantidad. Inténtalo de nuevo.");
         }
-        setCartItems(previousCartItems);
+        // ❌ NO hay reversión porque nunca actualizamos optimistamente
         return false;
       } finally {
-        // --- MUY IMPORTANTE: Desbloqueamos el item al final. ---
         setSyncingItemIds((prev) => {
           const newSet = new Set(prev);
           newSet.delete(cartItemId);
           return newSet;
         });
       }
-      // --- FIN DE LA LÓGICA OPTIMISTA ---
 
     } else {
       // La lógica de invitado no cambia.
@@ -374,161 +342,116 @@ export const CartProvider = ({ children }) => {
     }
 
     if (isAuthenticated) {
-      // --- INICIO DE LA LÓGICA OPTIMISTA ---
+      // ✅ ELIMINADO: La lógica optimista completa
       setSyncingItemIds((prev) => new Set(prev).add(cartItemId));
 
-      // 1. Guardar el estado original para poder revertir en caso de error.
-      const previousCartItems = cartItems;
-
-      // 2. Crear el nuevo estado "optimista" y actualizar la UI inmediatamente.
-      //    No usamos setIsLoading(true) para que la UI no se bloquee.
-      const optimisticCartItems = previousCartItems.map((item) => {
-        if (item.cartItemId !== cartItemId) {
-          return item;
-        }
-        const entradasIncrementadas = (item.entradas || []).map((entrada) => {
-          const tipoEntradaActual = entrada.tipoEntradaId ?? entrada.idTipoEntrada ?? entrada.tipoEntrada?.id ?? null;
-          if (tipoEntradaActual == null || String(tipoEntradaActual) !== String(tipoEntradaId)) {
-            return entrada;
-          }
-          const cantidadActual = Number(entrada.cantidad ?? entrada.quantity ?? 0);
-          const nuevaCantidad = cantidadActual + 1;
-          return { ...entrada, cantidad: nuevaCantidad, quantity: nuevaCantidad };
-        });
-        const totalItem = computeEntradasTotal(entradasIncrementadas);
-        return { ...item, entradas: entradasIncrementadas, totalItem };
-      });
-
-      setCartItems(optimisticCartItems);
-
-      // 3. Ahora, intentar sincronizar con el backend en segundo plano.
       try {
         const token = resolveAuthToken();
-        if (!token) {
-          // Si no hay token, lanzamos un error para que el catch lo maneje y revierta el cambio.
-          throw new Error("No se pudo obtener el token para incrementar la entrada.");
-        }
+        if (!token) throw new Error("No se pudo obtener el token.");
 
-        const targetItem = previousCartItems.find((item) => item.cartItemId === cartItemId);
-        if (!targetItem) {
-          throw new Error("No se encontró el item del carrito para incrementar.");
-        }
-
-        const matchingEntrada = (targetItem.entradas || []).find((entrada) => {
-          const currentTipo = entrada?.tipoEntradaId ?? entrada?.idTipoEntrada ?? entrada?.tipoEntrada?.id ?? null;
-          return currentTipo != null && String(currentTipo) === String(tipoEntradaId);
-        });
-
-        const tipoEntradaNumeric = Number(matchingEntrada?.tipoEntradaId ?? matchingEntrada?.idTipoEntrada ?? matchingEntrada?.tipoEntrada?.id ?? tipoEntradaId);
-        if (!Number.isFinite(tipoEntradaNumeric) || tipoEntradaNumeric <= 0) {
-          throw new Error("Tipo de entrada inválido al incrementar en BD.");
-        }
+        const tipoEntradaNumeric = Number(tipoEntradaId);
+        if (!Number.isFinite(tipoEntradaNumeric) || tipoEntradaNumeric <= 0) throw new Error("Tipo de entrada inválido.");
 
         const expirationTarget = expirationTime || Date.now() + CART_EXPIRATION_MINUTES * 60 * 1000;
         const payloadItem = { entradas: [{ tipoEntradaId: tipoEntradaNumeric, cantidad: 1 }] };
-
         const response = await addItemToDbCart(payloadItem, expirationTarget, token);
 
-        // 4. Éxito: La respuesta del servidor es ahora la fuente de verdad.
-        //    Esto asegura que si el backend hizo algún cálculo (ej. ajustar precio), la UI lo refleje.
+        // ✅ SOLO actualizamos con la respuesta del backend
         setCartItems(response.data.items);
         setExpirationTime(response.data.expirationTime ?? expirationTarget);
 
         return true;
 
       } catch (error) {
-        // 5. ¡FALLO! Revertimos la UI al estado original y notificamos al usuario.
-        console.error("Falló la actualización optimista (incremento):", error);
-        alert("No se pudo aumentar la cantidad. Es posible que no haya más stock."); // O usar un toast
-        setCartItems(previousCartItems);
+        console.error("Error al incrementar entrada:", error);
+        if (manageLoading) {
+          alert("No se pudo aumentar la cantidad. Es posible que no haya más stock.");
+        }
+        // ❌ NO hay reversión porque nunca actualizamos optimistamente
         return false;
       } finally {
-        // --- MUY IMPORTANTE: Desbloqueamos el item al final, tanto si tuvo éxito como si falló. ---
         setSyncingItemIds((prev) => {
           const newSet = new Set(prev);
           newSet.delete(cartItemId);
           return newSet;
         });
       }
-      // --- FIN DE LA LÓGICA OPTIMISTA ---
 
     } else {
-      // La lógica de invitado no cambia, ya es instantánea.
-      let cartMutated = false;
-      setCartItems((prev) => {
-        const updated = prev.map((item) => {
-          if (item.cartItemId !== cartItemId) {
-            return item;
-          }
-          let tierUpdated = false;
-          const entradasIncrementadas = (item.entradas || []).map((entrada) => {
-            const tipoEntradaActual = entrada?.tipoEntradaId ?? entrada?.idTipoEntrada ?? entrada?.tipoEntrada?.id ?? null;
-            if (tipoEntradaActual == null || String(tipoEntradaActual) !== String(tipoEntradaId)) {
-              return entrada;
-            }
-            tierUpdated = true;
-            cartMutated = true;
-            const cantidadActual = Number(entrada.cantidad ?? entrada.quantity ?? 0);
-            const nuevaCantidad = Number.isFinite(cantidadActual) ? cantidadActual + 1 : 1;
-            return { ...entrada, cantidad: nuevaCantidad, quantity: nuevaCantidad };
-          });
-          if (!tierUpdated) {
-            return item;
-          }
-          const totalItem = computeEntradasTotal(entradasIncrementadas);
-          return { ...item, entradas: entradasIncrementadas, totalItem };
+      // La lógica de invitado no cambia.
+      setCartItems((prev) => prev.map((item) => {
+        if (item.cartItemId !== cartItemId) return item;
+        const entradasIncrementadas = (item.entradas || []).map((entrada) => {
+          const tipoEntradaActual = entrada.tipoEntradaId ?? entrada.idTipoEntrada ?? entrada.tipoEntrada?.id ?? null;
+          if (tipoEntradaActual == null || String(tipoEntradaActual) !== String(tipoEntradaId)) return entrada;
+          const cantidadActual = Number(entrada.cantidad ?? entrada.quantity ?? 0);
+          return { ...entrada, cantidad: cantidadActual + 1, quantity: cantidadActual + 1 };
         });
-        return cartMutated ? updated : prev;
-      });
+        return { ...item, entradas: entradasIncrementadas, totalItem: computeEntradasTotal(entradasIncrementadas) };
+      }));
       return true;
     }
   };
 
   const removeFromCart = async (cartItemId) => {
+    // Si el item ya se está sincronizando, ignoramos la acción.
+    if (syncingItemIds.has(cartItemId)) {
+      return;
+    }
+
     if (isAuthenticated) {
-      // --- INICIO DE LA LÓGICA OPTIMISTA ---
+      // Marcamos el item como "sincronizando".
+      setSyncingItemIds((prev) => new Set(prev).add(cartItemId));
 
-      // 1. Guardar estado original.
-      const previousCartItems = cartItems;
-
-      // 2. Crear estado optimista y actualizar UI inmediatamente.
-      const optimisticCartItems = previousCartItems.filter((item) => item.cartItemId !== cartItemId);
-      setCartItems(optimisticCartItems);
-
-      // 3. Sincronizar con backend en segundo plano.
       try {
-        const targetItem = previousCartItems.find((item) => item.cartItemId === cartItemId);
+        const targetItem = cartItems.find((item) => item.cartItemId === cartItemId);
         if (!targetItem) {
-          // Si el item no estaba en el estado original, no hay nada que hacer en el backend.
+          console.warn("El artículo a eliminar no se encontró en el carrito.");
           return;
         }
 
+        // Eliminar todas las entradas del item llamando a removeEntryFromCart
         const entradas = Array.isArray(targetItem.entradas) ? targetItem.entradas : [];
+
+        // Usamos Promise.all para esperar a que todas las eliminaciones terminen
+        const deletePromises = [];
+
         for (const entrada of entradas) {
           const tipoEntradaId = entrada?.tipoEntradaId ?? entrada?.idTipoEntrada ?? null;
           const entradaId = entrada?.entradaId ?? entrada?.idEntrada ?? entrada?.id ?? null;
           const repeat = Math.max(1, Number(entrada?.cantidad ?? entrada?.quantity ?? 0) || 1);
 
           for (let i = 0; i < repeat; i += 1) {
-            // Llamamos a removeEntryFromCart, pero no esperamos (await) a cada una
-            // para no bloquear. La lógica de revertir se maneja como un todo.
-            // La función removeEntryFromCart ya debería tener su propia lógica de API.
-            // Para una UI optimista completa, esta llamada también debería ser optimista.
-            // Por ahora, asumimos que llamarla en bucle está bien.
-            const success = await removeEntryFromCart({ cartItemId, entradaId, tipoEntradaId }, { manageLoading: false });
-            if (!success) {
-              // Si una de las eliminaciones falla, lanzamos un error para revertir todo.
-              throw new Error(`No se pudo eliminar la entrada ID: ${entradaId}`);
-            }
+            deletePromises.push(
+              removeEntryFromCart({ cartItemId, entradaId, tipoEntradaId }, { manageLoading: false })
+            );
           }
         }
+
+        // Esperar a que todas las eliminaciones se completen
+        const results = await Promise.allSettled(deletePromises);
+
+        // Verificar si alguna eliminación falló
+        const hasFailures = results.some(result => result.status === 'rejected');
+        if (hasFailures) {
+          throw new Error("Algunas entradas no se pudieron eliminar del carrito.");
+        }
+
+        // ✅ El estado ya se actualizó automáticamente mediante las llamadas a removeEntryFromCart
+        // No necesitamos hacer setCartItems aquí
+
       } catch (error) {
-        // 5. Fallo: Revertir y notificar.
-        console.error("Falló la actualización optimista (removeFromCart):", error);
+        console.error("Error al eliminar item del carrito:", error);
         alert("No se pudo eliminar el artículo del carrito.");
-        setCartItems(previousCartItems);
+        // ❌ NO revertimos porque nunca actualizamos optimistamente
+      } finally {
+        // Desbloqueamos el item sin importar el resultado.
+        setSyncingItemIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(cartItemId);
+          return newSet;
+        });
       }
-      // --- FIN DE LA LÓGICA OPTIMISTA ---
 
     } else {
       // La lógica de invitado no cambia.
@@ -562,6 +485,68 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  const addTicketsToCart = async (ticketsInfo) => {
+    // Evitar duplicados durante la sincronización
+    if (syncingItemIds.has(ticketsInfo.cartItemId)) {
+      return;
+    }
+
+    if (isAuthenticated) {
+      setSyncingItemIds((prev) => new Set(prev).add(ticketsInfo.cartItemId));
+
+      try {
+        const token = resolveAuthToken();
+        if (!token) throw new Error("No se pudo obtener el token.");
+
+        const expirationTarget = expirationTime || Date.now() + CART_EXPIRATION_MINUTES * 60 * 1000;
+
+        // ✅ SOLUCIÓN: Esperar DIRECTAMENTE al backend SIN actualización optimista
+        const response = await addItemToDbCart(ticketsInfo, expirationTarget, token);
+
+        // ✅ Actualizar SOLO con la respuesta del backend
+        setCartItems(response.data.items);
+        setExpirationTime(response.data.expirationTime ?? expirationTarget);
+
+      } catch (error) {
+        console.error("Error al agregar entradas:", error);
+        alert("No se pudieron agregar las entradas al carrito.");
+      } finally {
+        setSyncingItemIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(ticketsInfo.cartItemId);
+          return newSet;
+        });
+      }
+
+    } else {
+      // Lógica de invitado (sin cambios)
+      setCartItems((prevCartItems) => {
+        const existingItem = prevCartItems.find(item =>
+          item.eventoInfo.id === ticketsInfo.eventoInfo.id &&
+          item.funcionInfo.id === ticketsInfo.funcionInfo.id
+        );
+
+        if (existingItem) {
+          return prevCartItems.map(item => {
+            if (item.cartItemId !== existingItem.cartItemId) return item;
+            const existingEntradasMap = new Map(item.entradas.map(e => [e.tipoEntradaId, e]));
+            ticketsInfo.entradas.forEach(newEntrada => {
+              if (existingEntradasMap.has(newEntrada.tipoEntradaId)) {
+                existingEntradasMap.get(newEntrada.tipoEntradaId).cantidad += newEntrada.cantidad;
+              } else {
+                existingEntradasMap.set(newEntrada.tipoEntradaId, newEntrada);
+              }
+            });
+            const mergedEntradas = Array.from(existingEntradasMap.values());
+            return { ...item, entradas: mergedEntradas, totalItem: computeEntradasTotal(mergedEntradas) };
+          });
+        } else {
+          return [...prevCartItems, ticketsInfo];
+        }
+      });
+    }
+  };
+
   // --- VALORES CALCULADOS ---
 
   // --- ¡CORRECCIÓN AQUÍ! ---
@@ -575,11 +560,13 @@ export const CartProvider = ({ children }) => {
     totalPrice,
     itemCount,
     isLoading,
+    syncingItemIds,
     addToCart,
     removeFromCart,
     removeEntryFromCart,
     incrementEntryInCart,
     clearCart,
+    addTicketsToCart,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

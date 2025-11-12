@@ -17,7 +17,7 @@ import LocationInfo from "@/components/detalle-evento/LocationInfo";
 import { useCart } from "@/context/CartContext";
 
 const EventPageController = () => {
-  const { addToCart } = useCart();
+  const { addTicketsToCart } = useCart();
   // --- HOOKS AL INICIO ---
   const [isLoading, setIsLoading] = useState(true);
   const [eventData, setEventData] = useState(null);
@@ -171,7 +171,7 @@ const EventPageController = () => {
       totalItem: bookingDetails.totalPrice,
     };
 
-    addToCart(cartItem);
+    addTicketsToCart(cartItem);
     // alert("Entradas agregadas al carrito!");
   };
 
