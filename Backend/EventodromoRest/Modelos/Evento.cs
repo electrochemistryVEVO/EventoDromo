@@ -135,4 +135,41 @@
         public int limiteCompra { get; set; }
         public int puntos { get; set; }
     }
+
+    // --- En Modelos/GetEventoDetalleDTO.cs ---
+    // Esta es la clase principal que se convertirá en el JSON
+    public class DatosEventoDetalleDTO
+    {
+        public string Nombre { get; set; }
+        public string Descripcion { get; set; }
+        public string ImagenURL { get; set; }
+        public int LocalId { get; set; }
+        public int TipoEventoId { get; set; }
+        public int Capacidad { get; set; } // Viene de Local
+        public string FechaPublicacion { get; set; } // Formato ISO
+        public string FechaCompra { get; set; }    // Formato ISO
+        public List<DatosEventoHorarioDTO> Horarios { get; set; }
+        public List<DatosEventoEntradaDTO> Entradas { get; set; }
+    }
+
+    // --- En Modelos/HorarioDTO.cs ---
+    // DTO para la lista de horarios
+    public class DatosEventoHorarioDTO
+    {
+        public int Id { get; set; }
+        public string Fecha { get; set; } // YYYY-MM-DD
+        public string Hora { get; set; }  // HH:mm
+    }
+
+    // --- En Modelos/EntradaDTO.cs ---
+    // DTO para la lista de tipos de entrada
+    public class DatosEventoEntradaDTO
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; }
+        public decimal Precio { get; set; }
+        public int Cantidad { get; set; } // (cantidadEntradas en la BD)
+        public int LimiteCompra { get; set; }
+        public int Puntos { get; set; }
+    }
 }

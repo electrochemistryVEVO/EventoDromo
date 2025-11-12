@@ -2,6 +2,7 @@
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
 using EventodromoRest.Servicios;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Text.Json;
@@ -214,6 +215,35 @@ namespace EventodromoRest.Controllers
                     Message = "Ocurrió un error interno al procesar la solicitud.",
                     Error = ex.Message
                 };
+            }
+        }
+
+        [HttpGet]
+        [Route("/api/[controller]/[action]")]
+ 
+       public IActionResult EventoObtenerDatos(int id)
+        {
+            try
+            {
+                var eventoBO = new EventoBO(globales, BD);
+                var response = eventoBO.ObtenerDetalleEvento(id);
+
+                if (!response.Success)
+                {
+                    // Si el BO devuelve un error (ej. no encontrado)
+                    if (response.Message.Contains("No se encontró"))
+                    {
+                        return NotFound(response); // 404 Not Found
+                    }
+                    return BadRequest(response); // 400 Bad Request
+                }
+
+                return Ok(response.Data); // 200 OK (Solo envía el DTO)
+            }
+            catch (Exception e)
+            {
+                // ... (Tu manejo de excepciones y bitácora)
+                return StatusCode(500, "Error interno del servidor");
             }
         }
     }

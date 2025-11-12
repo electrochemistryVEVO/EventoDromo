@@ -185,5 +185,38 @@ namespace EventodromoRest.Mappers
                 return listaTipoEntrada;
             }
         }
+
+        public List<TipoEntrada> ListarEntradasPorEvento(int idEvento)
+        {
+            var lista = new List<TipoEntrada>();
+            lock (DB)
+            {
+                // Este query une TipoEntrada con FechaEvento para filtrar por el idEvento
+                string query =
+                    "SELECT te.* " +
+                    "FROM TipoEntrada te " +
+                    "INNER JOIN FechaEvento fe ON te.idFechaEvento = fe.id " +
+                    "WHERE fe.idEvento = @ID_EVENTO";
+
+                var parametros = new ParameterList();
+                parametros.Add("@ID_EVENTO", idEvento);
+                DB.Select(query, parametros);
+                while (DB.Read())
+                {
+                    lista.Add(new TipoEntrada
+                    {
+                        id = DB.GetInt("id"),
+                        precio = DB.GetDecimal("precio"),
+                        limiteCompra= DB.GetInt("limiteCompra"),
+                        puntos = DB.GetInt("puntos"),
+                        nombre = DB.GetString("nombre"),
+                        cantidadEntradas= DB.GetInt("cantidadEntradas"),
+                        cantidadVendida = DB.GetInt("cantidadVendida"),
+                        idFechaEvento = DB.GetInt("idFechaEvento")
+                    });
+                }
+            }
+            return lista;
+        }
     }
 }
