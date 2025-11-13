@@ -6,6 +6,7 @@ using EventodromoRest.Servicios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace EventodromoRest.Controllers
@@ -13,7 +14,7 @@ namespace EventodromoRest.Controllers
     [ApiController]
     [Route("/api/[controller]")]
     [Authorize]
-    public class LocalController (Globales.Globales globales, DBManager.DBManager BD) : BaseController
+    public class LocalController(Globales.Globales globales, DBManager.DBManager BD) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
         private readonly Globales.Globales globales = globales;
@@ -176,6 +177,42 @@ namespace EventodromoRest.Controllers
                     Data = 0
                 };
                 AgregarEntradaBitacora(e, "", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<Local> LocalCrearLocales([FromBody] CrearLocalDTO dto)
+        {
+            try
+            {
+                // --- 3. LÓGICA DEL TOKEN REACTIVADA ---
+                var adminIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+                if (adminIdClaim == null)
+                {
+                    // Esto maneja el caso de un token válido pero sin ID
+                    return new GenericResponse<Local> { Success = false, Message = "Error de autenticación: No se pudo identificar al administrador.", Error = "Unauthorized" };
+                }
+
+                int adminId = int.Parse(adminIdClaim.Value);
+                // --- FIN DE LÓGICA DE TOKEN ---
+
+                // 5. Llamamos al Negocio (BO) y le pasamos el ID del admin
+                var bo = new LocalBO(globales, BD);
+                var response = bo.CrearLocal(dto, adminId);
+                return response;
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<Local>
+                {
+                    Success = false,
+                    Message = "Error fatal en el controlador de Local.",
+                    Error = e.Message
+                };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(dto), JsonSerializer.Serialize(response));
                 return response;
             }
         }
