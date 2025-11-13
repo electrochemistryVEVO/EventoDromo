@@ -11,6 +11,7 @@ const TicketTypeCard = ({
   onRemove,
   onChange,
   isReadOnly = false,
+  isLocked = false,
 }) => {
   return (
     <div className="p-4 border rounded-lg bg-white relative">
@@ -20,7 +21,7 @@ const TicketTypeCard = ({
         </h3>
         <button
           onClick={() => onRemove(ticketData.id)}
-          disabled={isReadOnly}
+          disabled={isReadOnly || isLocked}
           className="text-gray-400 hover:text-red-500 font-bold text-xl"
         >
           &times;
@@ -107,8 +108,14 @@ export const EventTicketsForm = ({
   removeTipoEntrada,
   handleTipoEntradaChange,
   aforoRestante,
+  descuentosAsociados,
   isReadOnly = false,
 }) => {
+  // Creamos un Set con los IDs de los tipos de entrada que están en uso
+  const lockedTicketIds = new Set(
+    descuentosAsociados.map((d) => parseInt(d.tipoEntradaId, 10))
+  );
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mt-6">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
@@ -146,6 +153,7 @@ export const EventTicketsForm = ({
             onRemove={removeTipoEntrada}
             onChange={handleTipoEntradaChange}
             isReadOnly={isReadOnly}
+            isLocked={lockedTicketIds.has(tipo.id)}
           />
         ))}
       </div>

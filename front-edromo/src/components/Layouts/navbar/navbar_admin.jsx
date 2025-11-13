@@ -61,10 +61,10 @@ const Navbar = () => {
       }
     };
 
-    if (!isLoading && isAuthenticated && user?.token && user?.rol === 'A') {
+    if (!isLoading && isAuthenticated && user?.token && user?.rol === "A") {
       getUser(user.token); // <-- Ahora esto funciona
     } else if (!isLoading && !isAuthenticated) {
-      setUserName("Invitado");
+      setUserName("Administrador");
     }
   }, [user, isAuthenticated, isLoading]);
 
@@ -97,10 +97,11 @@ const Navbar = () => {
             <Link
               href={link.href}
               key={link.name}
-              className={`flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-colors duration-200 ease-in-out ${isActive
-                ? "bg-white text-[#00A99D] font-semibold"
-                : "hover:bg-white/20"
-                }`}
+              className={`flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-colors duration-200 ease-in-out ${
+                isActive
+                  ? "bg-white text-[#00A99D] font-semibold"
+                  : "hover:bg-white/20"
+              }`}
             >
               <Image
                 src={isActive ? link.activeIcon : link.icon}

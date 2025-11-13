@@ -47,7 +47,7 @@ export const useEventCreator = () => {
   const [fechas, setFechas] = useState([]);
   // Estado para la lista dinámica de "Tipos de entrada". Es un array de objetos.
   const [tiposEntrada, setTiposEntrada] = useState([]);
-
+  const [descuentos, setDescuentos] = useState([]);
   // Estado para los datos de los menús desplegables.
   const [locales, setLocales] = useState([]);
   const [eventTypes, setEventTypes] = useState([]);
@@ -179,13 +179,51 @@ export const useEventCreator = () => {
         puntos: "",
       },
     ]);
-  const removeTipoEntrada = (id) =>
+  const removeTipoEntrada = (id) => {
+    // VALIDACIÓN: Antes de borrar, comprobar si este tipo de entrada está usado por un descuento.
+    const estaEnUso = descuentos.some(
+      (d) => parseInt(d.tipoEntradaId, 10) === id
+    );
+    if (estaEnUso) {
+      alert(
+        "No puede eliminar este tipo de entrada porque está siendo utilizado por al menos un descuento. Por favor, elimine o modifique el descuento primero."
+      );
+      return; // Detiene la ejecución de la función
+    }
     setTiposEntrada((prev) => prev.filter((t) => t.id !== id));
+
+    // Si se elimina un tipo de entrada, también eliminamos los descuentos asociados.
+    setDescuentos((prev) =>
+      prev.filter((d) => parseInt(d.tipoEntradaId, 10) !== id)
+    );
+  };
   const handleTipoEntradaChange = (id, field, value) =>
     setTiposEntrada((prev) =>
       prev.map((t) => (t.id === id ? { ...t, [field]: value } : t))
     );
 
+  // --- NUEVA LÓGICA AÑADIDA para "Descuentos" ---
+  const addDescuento = () =>
+    setDescuentos((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        nombre: "",
+        codigo: "",
+        tipo: "Porcentaje",
+        valor: "",
+        fechaInicio: "",
+        fechaFin: "",
+        usosMaximos: "",
+        tipoEntradaId: "", // ID del tipo de entrada vinculado
+      },
+    ]);
+  const removeDescuento = (id) =>
+    setDescuentos((prev) => prev.filter((d) => d.id !== id));
+  const handleDescuentoChange = (id, field, value) =>
+    setDescuentos((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, [field]: value } : d))
+    );
   // --- SECCIÓN DE ESTADO DERIVADO (useMemo) ---
   // Calcula valores que dependen de otros estados de forma optimizada.
 
@@ -263,6 +301,28 @@ export const useEventCreator = () => {
         "completar todos los campos de los Tipos de entrada"
       );
     }
+    // --- NUEVA VALIDACIÓN AÑADIDA para Descuentos ---
+    if (descuentos.length > 0) {
+      if (
+        descuentos.some(
+          (d) =>
+            !d.nombre.trim() ||
+            !d.codigo.trim() ||
+            !d.valor ||
+            !d.fechaInicio ||
+            !d.fechaFin ||
+            !d.usosMaximos ||
+            !d.tipoEntradaId
+        )
+      ) {
+        validationErrors.push("completar todos los campos de los Descuentos");
+      }
+      if (descuentos.some((d) => d.fechaFin < d.fechaInicio)) {
+        validationErrors.push(
+          "la fecha de fin de un descuento no puede ser anterior a la de inicio"
+        );
+      }
+    }
 
     if (validationErrors.length > 0) {
       setError(
@@ -287,6 +347,7 @@ export const useEventCreator = () => {
         ...eventInfo,
         fechas,
         tiposEntrada,
+        descuentos, // <-- Incluimos los descuentos en el payload final
         imagenURL: imageUrl, // <-- ¡Aquí usamos la URL que nos devolvió la función!
       };
 
@@ -329,5 +390,9 @@ export const useEventCreator = () => {
     removeTipoEntrada,
     handleTipoEntradaChange,
     handleSubmit,
+    descuentos,
+    addDescuento,
+    removeDescuento,
+    handleDescuentoChange,
   };
 };

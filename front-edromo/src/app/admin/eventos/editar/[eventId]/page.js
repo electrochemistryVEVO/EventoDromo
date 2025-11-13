@@ -10,6 +10,7 @@ import { useEventEditor } from "../controller.js"; // Ajusta la ruta si es neces
 import { EventInfoForm } from "@/components/crear-evento/EventInfoForm.jsx";
 import { EventDatesForm } from "@/components/crear-evento/EventDatesForm.jsx";
 import { EventTicketsForm } from "@/components/crear-evento/EventTicketsForm.jsx";
+import { EventDiscountsForm } from "@/components/crear-evento/EventDiscountsForm.jsx";
 
 // Componente para mostrar un spinner o esqueleto de carga
 const LoadingSpinner = () => (
@@ -38,6 +39,10 @@ const EditarEventoPage = () => {
     error,
     isSuccess,
     minDateTime,
+    descuentos,
+    addDescuento,
+    removeDescuento,
+    handleDescuentoChange,
     handleInfoChange,
     handleImageChange,
     addFecha,
@@ -143,6 +148,15 @@ const EditarEventoPage = () => {
             removeTipoEntrada={removeTipoEntrada}
             handleTipoEntradaChange={handleTipoEntradaChange}
             aforoRestante={aforoRestante}
+            descuentosAsociados={descuentos}
+          />
+          {/* --- Componente 4: Descuentos del Evento --- */}
+          <EventDiscountsForm
+            descuentos={descuentos}
+            tiposEntrada={tiposEntrada}
+            addDescuento={addDescuento}
+            removeDescuento={removeDescuento}
+            handleDescuentoChange={handleDescuentoChange}
           />
 
           {/* --- Acciones Finales --- */}

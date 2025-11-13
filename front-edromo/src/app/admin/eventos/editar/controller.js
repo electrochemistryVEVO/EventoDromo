@@ -38,10 +38,12 @@ export const useEventEditor = (eventId) => {
   const [eventInfo, setEventInfo] = useState(initialEventInfo);
   const [fechas, setFechas] = useState([]);
   const [tiposEntrada, setTiposEntrada] = useState([]);
+  const [descuentos, setDescuentos] = useState([]);
 
   // --- NUEVOS ESTADOS para rastrear eliminaciones ---
   const [deletedFechasIds, setDeletedFechasIds] = useState([]);
   const [deletedTiposEntradaIds, setDeletedTiposEntradaIds] = useState([]);
+  const [deletedDescuentosIds, setDeletedDescuentosIds] = useState([]);
 
   // --- ESTADOS PARA DATOS EXTERNOS Y UI (Iguales) ---
   const [locales, setLocales] = useState([]);
@@ -93,6 +95,7 @@ export const useEventEditor = (eventId) => {
         // Poblamos las listas dinámicas. Asignamos el ID que viene del backend.
         setFechas(eventData.horarios);
         setTiposEntrada(eventData.entradas);
+        setDescuentos(eventData.descuentos || []);
 
         // Poblamos los dropdowns
         setLocales(localesData);
@@ -214,11 +217,51 @@ export const useEventEditor = (eventId) => {
   };
 
   const removeTipoEntrada = (id) => {
+    // VALIDACIÓN: No permitir borrar si el tipo de entrada está en uso por un descuento
+    const estaEnUso = descuentos.some(
+      (d) => parseInt(d.tipoEntradaId, 10) === id
+    );
+    if (estaEnUso) {
+      alert(
+        "No puede eliminar este tipo de entrada porque está siendo utilizado por al menos un descuento. Por favor, elimine o modifique el descuento primero."
+      );
+      return;
+    }
+
     if (typeof id === "number" && !isNaN(id)) {
       setDeletedTiposEntradaIds((prev) => [...prev, id]);
     }
     setTiposEntrada((prev) => prev.filter((t) => t.id !== id));
   };
+
+  // --- NUEVOS MANEJADORES PARA DESCUENTOS ---
+  const addDescuento = () =>
+    setDescuentos((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        nombre: "",
+        codigo: "",
+        tipo: "Porcentaje",
+        valor: "",
+        fechaInicio: "",
+        fechaFin: "",
+        usosMaximos: "",
+        tipoEntradaId: "",
+      },
+    ]);
+
+  const removeDescuento = (id) => {
+    if (typeof id === "number" && !isNaN(id)) {
+      setDeletedDescuentosIds((prev) => [...prev, id]);
+    }
+    setDescuentos((prev) => prev.filter((d) => d.id !== id));
+  };
+
+  const handleDescuentoChange = (id, field, value) =>
+    setDescuentos((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, [field]: value } : d))
+    );
 
   /**
    * @constant aforoRestante
@@ -294,6 +337,28 @@ export const useEventEditor = (eventId) => {
       );
     }
 
+    if (descuentos.length > 0) {
+      if (
+        descuentos.some(
+          (d) =>
+            !d.nombre.trim() ||
+            !d.codigo.trim() ||
+            !d.valor ||
+            !d.fechaInicio ||
+            !d.fechaFin ||
+            !d.usosMaximos ||
+            !d.tipoEntradaId
+        )
+      ) {
+        validationErrors.push("completar todos los campos de los Descuentos");
+      }
+      if (descuentos.some((d) => d.fechaFin < d.fechaInicio)) {
+        validationErrors.push(
+          "la fecha de fin de un descuento no puede ser anterior a la de inicio"
+        );
+      }
+    }
+
     if (validationErrors.length > 0) {
       setError(
         `Por favor, corrija los siguientes errores: ${validationErrors.join(
@@ -318,10 +383,12 @@ export const useEventEditor = (eventId) => {
         ...eventInfo,
         fechas,
         tiposEntrada,
+        descuentos,
         imagenURL: imageUrl,
         // Incluimos los IDs a eliminar, para que el backend sepa qué borrar.
         deletedFechasIds,
         deletedTiposEntradaIds,
+        deletedDescuentosIds,
       };
 
       // Llamamos al servicio de ACTUALIZACIÓN
@@ -347,6 +414,10 @@ export const useEventEditor = (eventId) => {
     error,
     isSuccess,
     minDateTime,
+    descuentos,
+    addDescuento,
+    removeDescuento,
+    handleDescuentoChange,
     handleInfoChange,
     handleImageChange,
     addFecha,

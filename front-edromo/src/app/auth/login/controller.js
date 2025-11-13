@@ -29,8 +29,6 @@ export async function onSubmit(formData) {
       sessionStorage.setItem(
         "session",
         JSON.stringify({
-          email: loginInfo.Correo, // Guardamos el email del formulario
-          //cliente,
           rol,
           token, // 🔹 Guardamos el token
         })
