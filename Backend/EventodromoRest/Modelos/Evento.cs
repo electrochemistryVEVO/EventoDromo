@@ -138,7 +138,7 @@
 
     public class ResponseEventoGetEvents
     {
-        public List<EventoDTO> Data { get; set; }           // ← lista de eventos simplificados
+        public List<ResponseEventoGetEventsEventos> Data { get; set; }           // ← lista de eventos simplificados
         public Pagination Pagination { get; set; }          // ← bloque de paginación
     }
 
