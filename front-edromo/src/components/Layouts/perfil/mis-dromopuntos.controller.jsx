@@ -16,6 +16,8 @@ export default function MisDromopuntosController() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [puntosPorSol, setPuntosPorSol] = useState(10);
+
   // --- 3. useEffect AHORA DEPENDE DE [user] ---
   useEffect(() => {
     let isMounted = true;
@@ -61,6 +63,9 @@ export default function MisDromopuntosController() {
             porVencer: porVencerProcesado
           });
           setMovimientos((resumen.movimientos || []).sort((a, b) => new Date(b.fechaMovimiento) - new Date(a.fechaMovimiento)));
+          if (resumen.puntosPorSol > 0) {
+            setPuntosPorSol(resumen.puntosPorSol);
+          }
         }
       } catch (err) {
         if (isMounted) {
@@ -87,6 +92,7 @@ export default function MisDromopuntosController() {
       loading={loading}
       error={error}
       currentPage={currentPage}
-      onPageChange={setCurrentPage} />
+      onPageChange={setCurrentPage}
+      puntosPorSol={puntosPorSol} />
   );
 }

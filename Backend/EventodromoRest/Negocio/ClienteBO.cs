@@ -1,5 +1,6 @@
 ﻿using EventodromoRest.Mappers;
 using EventodromoRest.Modelos;
+using System;
 
 namespace EventodromoRest.Negocio
 {
@@ -15,10 +16,19 @@ namespace EventodromoRest.Negocio
             {
                 success = false,
                 rol = ' ',
-                idCliente = 0//dps de token
+                idCliente = 0,//dps de token
+                totalPuntos = 0
             };
             if (cliente != null)
             {
+                var puntoMapper = new PuntoMapper(globales, DB);
+                int totalPuntos = 0;
+
+                if (tipoUsuario == 'C')
+                {
+                    totalPuntos = puntoMapper.ObtenerPuntosTotales(idCliente);
+                }
+
                 loginResponse.success = true;
                 loginResponse.rol = tipoUsuario;
                 loginResponse.idCliente = idCliente;

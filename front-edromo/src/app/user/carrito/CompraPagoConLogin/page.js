@@ -273,18 +273,8 @@ function CompraPagoConLoginPage() {
 
     const isLoading = isCartLoading || isUserLoading;
 
-    const [userPuntos, setUserPuntos] = useState(0); 
-    const [puntosPorSol, setPuntosPorSol] = useState(10);
-
-    useEffect(() => {
-        // Simula la carga de los puntos del usuario
-        if (user) {
-            // Aquí llamarías a un servicio para getMisDatos() que incluya los puntos
-            // Por ahora, usamos el valor de DromoPuntosInfo como simulación:
-            setUserPuntos(1250); 
-        }
-        // (Aquí llamarías a un servicio para getPuntosPorSol)
-    }, [user]);
+    const userPuntos = user?.totalPuntos ?? 0;
+    const [puntosPorSol, setPuntosPorSol] = useState(10); // hardcodeo
 
     // Efecto de protección (sin cambios)
     useEffect(() => {

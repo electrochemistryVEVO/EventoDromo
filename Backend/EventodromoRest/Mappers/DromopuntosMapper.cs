@@ -27,13 +27,13 @@ namespace EventodromoRest.Mappers
                 SELECT 
                     'porVencer' AS tipoResultado,
                     P.id, 
-                    P.cantidad, 
+                    P.cantidadRestante AS cantidad, 
                     P.fechaExpiracion,
                     NULL AS tipoMovimiento,
                     NULL AS nombreEventoAsociado,
                     NULL AS fechaMovimiento
                 FROM Punto P
-                WHERE P.idCliente = @idCliente AND P.cantidad > 0 AND P.fechaExpiracion > NOW()
+                WHERE P.idCliente = @idCliente AND P.cantidadRestante > 0 AND P.fechaExpiracion > NOW()
 
                 UNION ALL
 
@@ -121,6 +121,21 @@ namespace EventodromoRest.Mappers
                 DB.CloseReader();
             }
             return resumen;
+        }
+
+        public decimal ObtenerPuntosPorSol()
+        {
+            lock (DB)
+            {
+                string query = "SELECT puntos_por_sol FROM configuracion WHERE id = 1";
+                object result = DB.ExecuteScalar(query, new ParameterList());
+
+                if (result != null && result != DBNull.Value)
+                {
+                    return Convert.ToDecimal(result);
+                }
+                return 10.0m; // Fallback
+            }
         }
     }
 }
