@@ -11,7 +11,7 @@ import styles from "@/css/compraPagoConLogin.module.css";
 import { CostoDetalleEntradasController } from "@/components/carrito/CostoDetalleEntradas.controller";
 import CartTimer from "@/components/carrito/CartTimer";
 
-import { procesarPagoConTarjeta } from "@/services/Transaccion.service";
+import { procesarPagoConTarjeta, procesarPagoConPuntos } from "@/services/Transaccion.service";
 // --- COMPONENTES INTERNOS DE LA PÁGINA ---
 
 const UserInfo = () => {
@@ -124,15 +124,35 @@ const CreditCardForm = ({ cardDetails, formErrors, handleInputChange }) => (
 );
 
 // --- Info de DromoPuntos ---
-const DromoPuntosInfo = () => (
-    <div className="p-4 rounded-lg border-2 border-gray-300 flex flex-col items-start bg-white w-full max-w-[340px] ml-7">
-        <p className="font-semibold text-gray-800">Tienes 1250 DromoPuntos</p>
-        <p className="text-sm text-gray-600">Esta compra requiere 800 puntos.</p>
-        <button className="mt-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-md px-3 py-1 font-medium">
-            Usar mis puntos
-        </button>
-    </div>
-);
+const DromoPuntosInfo = ({ userPuntos, totalPrice, puntosPorSol }) => {
+    // Calcular cuántos puntos se necesitan para esta compra
+    const puntosRequeridos = Math.ceil(totalPrice * puntosPorSol);
+    const tieneSuficientesPuntos = userPuntos >= puntosRequeridos;
+
+    return (
+        <div className="p-4 rounded-lg border-2 border-gray-300 flex flex-col items-start bg-white w-full max-w-[340px] ml-7">
+
+            {/* 1. Muestra puntos del usuario */}
+            <p className="font-semibold text-gray-800">
+                Tienes {userPuntos} DromoPuntos
+            </p>
+
+            {/* 2. Muestra puntos requeridos */}
+            <p className="text-sm text-gray-600">
+                Esta compra requiere {puntosRequeridos} puntos.
+            </p>
+
+            {/* 3. Muestra un error si no alcanzan los puntos */}
+            {!tieneSuficientesPuntos && (
+                <p className="mt-2 text-sm font-semibold text-red-600">
+                    No tienes suficientes puntos para esta compra.
+                </p>
+            )}
+
+            {/* El botón de "Usar mis puntos" lo moveremos al botón principal de "Pagar" */}
+        </div>
+    );
+};
 
 // --- Contenedor de Métodos de Pago ---
 const PaymentMethod = ({
@@ -140,46 +160,63 @@ const PaymentMethod = ({
     handlePaymentMethodChange,
     cardDetails,
     formErrors,
-    handleCardInputChange
-}) => (
-    <section className={styles.card}>
-        <h2 className={styles.cardTitle}>Método de Pago</h2>
-        <div className="flex flex-col gap-4 -mt-2">
-            <label className={styles.radioLabel}>
-                <input
-                    type="radio"
-                    className={styles.radioInput}
-                    name="paymentGroup"
-                    value="tarjeta"
-                    checked={selectedPaymentMethod === "tarjeta"}
-                    onChange={handlePaymentMethodChange}
-                />
-                Pago con tarjeta de crédito / débito
-            </label>
+    handleCardInputChange,
+    userPuntos,
+    totalPrice,
+    puntosPorSol
+}) => {
 
-            {selectedPaymentMethod === "tarjeta" && (
-                <CreditCardForm
-                    cardDetails={cardDetails}
-                    formErrors={formErrors}
-                    handleInputChange={handleCardInputChange}
-                />
-            )}
+    // --- CALCULA SI EL PAGO CON PUNTOS ES VÁLIDO ---
+    const puntosRequeridos = Math.ceil(totalPrice * puntosPorSol);
+    const puedePagarConPuntos = userPuntos >= puntosRequeridos;
+    return (
+        <section className={styles.card}>
+            <h2 className={styles.cardTitle}>Método de Pago</h2>
+            <div className="flex flex-col gap-4 -mt-2">
+                <label className={styles.radioLabel}>
+                    <input
+                        type="radio"
+                        className={styles.radioInput}
+                        name="paymentGroup"
+                        value="tarjeta"
+                        checked={selectedPaymentMethod === "tarjeta"}
+                        onChange={handlePaymentMethodChange}
+                    />
+                    Pago con tarjeta de crédito / débito
+                </label>
 
-            <label className={styles.radioLabel}>
-                <input
-                    type="radio"
-                    className={styles.radioInput}
-                    name="paymentGroup"
-                    value="dromopuntos"
-                    checked={selectedPaymentMethod === "dromopuntos"}
-                    onChange={handlePaymentMethodChange}
+                {selectedPaymentMethod === "tarjeta" && (
+                    <CreditCardForm
+                        cardDetails={cardDetails}
+                        formErrors={formErrors}
+                        handleInputChange={handleCardInputChange}
+                    />
+                )}
+
+                <label className={`${styles.radioLabel} ${!puedePagarConPuntos ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <input
+                        type="radio"
+                        className={styles.radioInput}
+                        name="paymentGroup"
+                        value="dromopuntos"
+                        checked={selectedPaymentMethod === "dromopuntos"}
+                        onChange={handlePaymentMethodChange}
+                        // Deshabilita la opción si no tiene puntos suficientes
+                        disabled={!puedePagarConPuntos}
+                    />
+                    Usar DromoPuntos
+                </label>
+
+                {/* Muestra la info de puntos (sea cual sea el método) para que el user vea el cálculo */}
+                <DromoPuntosInfo
+                    userPuntos={userPuntos}
+                    totalPrice={totalPrice}
+                    puntosPorSol={puntosPorSol}
                 />
-                Usar DromoPuntos
-            </label>
-            {selectedPaymentMethod === "dromopuntos" && <DromoPuntosInfo />}
-        </div>
-    </section>
-);
+            </div>
+        </section>
+    );
+};
 
 // --- Modal de Compra Exitosa ---
 const SuccessModal = ({ onClose }) => {
@@ -235,6 +272,19 @@ function CompraPagoConLoginPage() {
     const [isProcessing, setIsProcessing] = useState(false); // Para el loader del botón "Pagar"
 
     const isLoading = isCartLoading || isUserLoading;
+
+    const [userPuntos, setUserPuntos] = useState(0); 
+    const [puntosPorSol, setPuntosPorSol] = useState(10);
+
+    useEffect(() => {
+        // Simula la carga de los puntos del usuario
+        if (user) {
+            // Aquí llamarías a un servicio para getMisDatos() que incluya los puntos
+            // Por ahora, usamos el valor de DromoPuntosInfo como simulación:
+            setUserPuntos(1250); 
+        }
+        // (Aquí llamarías a un servicio para getPuntosPorSol)
+    }, [user]);
 
     // Efecto de protección (sin cambios)
     useEffect(() => {
@@ -298,76 +348,84 @@ function CompraPagoConLoginPage() {
 
     // Manejador del botón "Pagar"
     const handlePaymentSubmit = async () => {
-        // 1. Validar el formulario de tarjeta
-        if (selectedPaymentMethod === "tarjeta") {
-            if (!validateForm()) {
-                return; // Detiene si hay errores
-            }
-        }
-
-        // (Aquí puedes agregar la lógica para "dromopuntos" si lo deseas)
-        if (selectedPaymentMethod === "dromopuntos") {
-            alert("El pago con DromoPuntos aún no está implementado.");
-            return;
-        }
-
-        // 2. Iniciar carga
         setIsProcessing(true);
-        setFormErrors({}); // Limpia errores antiguos
-
-        // --- INICIO DE LA LÓGICA REAL ---
+        setFormErrors({});
+        
         try {
-            // 3. Obtener datos de facturación
+            // --- Obtener datos comunes ---
             const storedData = JSON.parse(sessionStorage.getItem("userData"));
-
-            // ❗ Verificación importante:
             if (!storedData || !storedData.tipoDocId) {
                 throw new Error("No se encontraron los datos de facturación (tipoDocId). Vuelva al paso anterior.");
             }
-
-            // 4. Obtener token
             const token = user?.token;
             if (!token) {
                 throw new Error("Sesión inválida. Por favor, inicie sesión de nuevo.");
             }
-
-            // 5. Construir Payload
-            const payload = {
-                datosTarjeta: {
-                    numero: cardDetails.number.replace(/\s/g, ""), // Enviar número limpio
-                    nombreTitular: cardDetails.name,
-                    expiracion: cardDetails.expiry, // Formato "MM / AA"
-                    cvv: cardDetails.cvv,
-                },
-                datosFacturacion: {
-                    email: storedData.email,
-                    nombres: storedData.nombre,
-                    apellidos: storedData.apellido,
-                    idTipoDocumento: storedData.tipoDocId, // ❗ AQUI ESTÁ LA CLAVE
-                    numeroDocumento: storedData.numDoc,
-                }
+            
+            // --- Datos de Facturación (para ambos métodos) ---
+            const datosFacturacion = {
+                email: storedData.email,
+                nombres: storedData.nombre,
+                apellidos: storedData.apellido,
+                idTipoDocumento: storedData.tipoDocId,
+                numeroDocumento: storedData.numDoc,
             };
 
-            // 6. Llamar al servicio REAL
-            const response = await procesarPagoConTarjeta(payload, token);
+            let response; // Variable para guardar la respuesta
 
-            if (response.success) {
-                // 7. Éxito REAL
-                setIsProcessing(false);
-                setShowModal(true); // Muestra el modal "Compra Exitosa"
+            // --- Lógica de Pago por TARJETA ---
+            if (selectedPaymentMethod === "tarjeta") {
+                if (!validateForm()) {
+                    setIsProcessing(false); // Detiene si hay errores de tarjeta
+                    return; 
+                }
+                
+                const payload = {
+                    datosTarjeta: {
+                        numero: cardDetails.number.replace(/\s/g, ""),
+                        nombreTitular: cardDetails.name,
+                        expiracion: cardDetails.expiry,
+                        cvv: cardDetails.cvv,
+                    },
+                    datosFacturacion: datosFacturacion
+                };
+                
+                response = await procesarPagoConTarjeta(payload, token);
+            
+            // --- Lógica de Pago por PUNTOS ---
+            } else if (selectedPaymentMethod === "dromopuntos") {
+                
+                const puntosRequeridos = Math.ceil(totalPrice * puntosPorSol);
+                if (userPuntos < puntosRequeridos) {
+                    throw new Error("Puntos insuficientes para realizar esta compra.");
+                }
+
+                const payload = {
+                    datosFacturacion: datosFacturacion,
+                    puntosAGastar: puntosRequeridos
+                };
+
+                response = await procesarPagoConPuntos(payload, token);
+
             } else {
-                // 8. Falla REAL (ej. fondos insuficientes desde el backend)
-                throw new Error(response.error || "Pago rechazado por el banco.");
+                throw new Error("Por favor, seleccione un método de pago.");
             }
+            
+            // --- Manejo de Respuesta (Unificado) ---
+            if (response.success) {
+                setIsProcessing(false);
+                setShowModal(true); // ¡Éxito!
+            } else {
+                throw new Error(response.error || "El pago fue rechazado.");
+            }
+
         } catch (error) {
-            // 9. Error general (de red, etc.)
+            // --- Manejo de Error (Unificado) ---
             console.error("Fallo el handlePaymentSubmit:", error);
             setFormErrors({ general: error.message });
             setIsProcessing(false);
         }
-        // --- FIN DE LA LÓGICA REAL ---
     };
-
 
     if (isLoading || !isAuthenticated || itemCount === 0) {
         return (
@@ -427,6 +485,9 @@ function CompraPagoConLoginPage() {
                     cardDetails={cardDetails}
                     formErrors={formErrors}
                     handleCardInputChange={handleCardInputChange}
+                    userPuntos={userPuntos}
+                    totalPrice={totalPrice}
+                    puntosPorSol={puntosPorSol}
                 />
 
                 {/* 3. Columna de Resumen de Compra */}
@@ -441,6 +502,11 @@ function CompraPagoConLoginPage() {
                                 <div className="flex flex-col items-center w-full gap-1">
                                     <div className="text-xl font-bold">Total: S/. {totalPrice.toFixed(2)}</div>
                                 </div>
+                            )}
+
+                            {/* Muestra Total en PUNTOS si es dromopuntos */}
+                            {selectedPaymentMethod === "dromopuntos" && (
+                                <div className="text-xl font-bold">Total: {Math.ceil(totalPrice * puntosPorSol)} Puntos</div>
                             )}
 
                             {selectedPaymentMethod ? (

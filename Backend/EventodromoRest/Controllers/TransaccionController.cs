@@ -85,6 +85,28 @@ namespace EventodromoRest.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<ResponseProcesarPago> ProcesarPagoPuntos([FromBody] RequestProcesarPagoPuntos request)
+        {
+            try
+            {
+                ValidarBody(request);
+                var idCliente = GetIdClienteFromToken(); // Usamos el helper que ya existe
+
+                // Llamamos al nuevo método del BO que crearemos en el siguiente paso
+                return new TransaccionBO(globales, BD).ProcesarPagoPuntos(idCliente, request);
+            }
+            catch (Exception e)
+            {
+                // Devolvemos el mismo tipo de respuesta (ResponseProcesarPago)
+                // para que el modal de "Éxito" funcione igual.
+                var response = new GenericResponse<ResponseProcesarPago> { Success = false, Error = e.Message };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
         // --- 6. (Opcional) AÑADE ESTE HELPER DENTRO DE LA CLASE ---
         // (Para no repetir código y obtener el ID del cliente)
         private int GetIdClienteFromToken()

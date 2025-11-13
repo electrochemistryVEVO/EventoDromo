@@ -1,51 +1,57 @@
-// src/service/admin-service.js
+// src/services/admin-service.js
 
 /**
- * Obtiene el token de autenticación almacenado.
+ * Obtiene el token de autenticación almacenado del UserContext.
  * @returns {string|null} - El token JWT o null si no existe.
  */
 export const getAuthToken = () => {
-  const sessionJSON = sessionStorage.getItem("session");
+  try {
+    // 1. Lee la clave "user" de localStorage (donde UserContext la guarda)
+    const userJSON = localStorage.getItem("user");
 
-  // Variable para guardar el token final
-  let userToken = null;
-  // 2. MUY IMPORTANTE: Verificar que el dato exista antes de continuar
-  if (sessionJSON) {
-    // 3. Convertir (parsear) la cadena JSON a un objeto de JavaScript real
-    const sessionData = JSON.parse(sessionJSON);
-    // 4. Ahora sí, acceder a la propiedad "token" del objeto
-    userToken = sessionData.token;
+    if (!userJSON) {
+      return null;
+    }
+    
+    // 2. Parsea el objeto y devuelve la propiedad "token"
+    const userData = JSON.parse(userJSON);
+    return userData?.token || null;
+
+  } catch (error) {
+    console.error("Error al leer token de localStorage:", error);
+    return null;
   }
-  return userToken;
 };
 
 /**
- * Realiza una llamada fetch al backend para obtener los datos del usuario.
+ * Realiza una llamada fetch al backend para obtener los datos del admin.
+ * @param {string} token - El token JWT para autenticar la llamada.
  * @returns {Promise<Object>} - Una promesa que resuelve con los datos del usuario.
  */
-export const fetchUserData = async () => {
+export const fetchUserData = async (token) => {
   const API_URL = "http://localhost:5189/api/Administrador/FetchAdminData";
   try {
-    const token = getAuthToken();
+    // 3. El token ahora se pasa como argumento (no se lee aquí)
     if (!token) {
       console.error(
-        "fetchUserData: No se encontró el token de autenticación en localStorage."
+        "fetchUserData: No se proporcionó un token."
       );
-      return { name: "Invitado" }; // Retornamos temprano si no hay token.
+      return { name: "Invitado" }; 
     }
+
     const response = await fetch(API_URL, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    // Convierte la respuesta a JSON sin importar si fue exitosa o no, para poder leer el mensaje.
+
     const result = await response.json();
-    // Línea de depuración clave: mira en la consola del navegador qué está respondiendo el backend.
     console.log("Respuesta completa del backend:", result);
+
     if (response.ok && result.success === true) {
       return {
-        name: result.data.name,
+        name: result.data.name, 
       };
     } else {
       throw new Error(

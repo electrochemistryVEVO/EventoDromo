@@ -92,6 +92,29 @@ namespace EventodromoRest.Negocio
                 Data = response
             };
         }
+
+        public GenericResponse<ResponseProcesarPago> ProcesarPagoPuntos(int idCliente, RequestProcesarPagoPuntos request)
+        {
+            // --- 1. Lógica de Base de Datos ---
+            // Llamamos al Mapper, que crearemos en el siguiente paso.
+            // El Mapper se encargará de la transacción de BD completa,
+            // incluyendo la validación de fondos de puntos (lógica FIFO).
+            var transaccionMapper = new TransaccionMapper(globales, DB);
+            var response = transaccionMapper.CrearTransaccionPuntos(idCliente, request);
+
+            // --- 2. (Opcional) Enviar email de confirmación, etc. ---
+            // ...
+
+            // --- 3. Devolver respuesta exitosa ---
+            // Reutilizamos el 'ResponseProcesarPago' para que el modal
+            // de "Éxito" del frontend funcione para ambos tipos de pago.
+            return new GenericResponse<ResponseProcesarPago>
+            {
+                Success = true,
+                Message = "Pago con puntos procesado exitosamente.",
+                Data = response
+            };
+        }
     }
 
 }

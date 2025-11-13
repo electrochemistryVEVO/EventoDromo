@@ -9,4 +9,10 @@
         public Cliente? cliente { get; set; }
         public DateTime? fechaexpiracion { get; set; }
     }
+
+    public class LotePunto
+    {
+        public int Id { get; set; }
+        public int CantidadRestante { get; set; }
+    }
 }

@@ -244,7 +244,7 @@ const Navbar = () => {
                     Mis puntos
                   </Link>
                   <Link
-                    href="/user/cambiarcontrasena"
+                    href="/user/cambiarcontrasena/cambio"
                     className="dropdown-item"
                     onClick={() => setDropdownOpen(false)}
                   >

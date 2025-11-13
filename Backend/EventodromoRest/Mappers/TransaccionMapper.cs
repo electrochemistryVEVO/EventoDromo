@@ -450,5 +450,182 @@ namespace EventodromoRest.Mappers
             finally { DB.CloseReader(); }
             return lista;
         }
+
+        public ResponseProcesarPago CrearTransaccionPuntos(int idCliente, RequestProcesarPagoPuntos request)
+        {
+            DB.BeginTransaction();
+            try
+            {
+                // --- 1. Obtener Carrito Activo ---
+                var carrito = ObtenerCarritoActivoPorCliente(idCliente);
+                if (carrito == null) throw new Exception("Tu carrito está vacío o ha expirado.");
+
+                // --- 2. Obtener Entradas y Precios (Cálculo Server-Side) ---
+                var entradasConPrecio = ObtenerEntradasConPrecio(carrito.id);
+                if (!entradasConPrecio.Any()) throw new Exception("No se encontraron entradas válidas en tu carrito.");
+
+                // --- 3. Verificar Puntos (Server-Side) ---
+                decimal montoTotalCalculado = entradasConPrecio.Sum(e => e.Precio);
+                decimal puntosPorSol = ObtenerPuntosPorSol();
+                int puntosRequeridosServidor = (int)Math.Ceiling(montoTotalCalculado * puntosPorSol);
+
+                // Verificamos que el front no mienta
+                if (request.PuntosAGastar != puntosRequeridosServidor)
+                {
+                    throw new Exception("El costo en puntos ha cambiado. Por favor, intente de nuevo.");
+                }
+
+                // --- 4. Consumir Puntos (Lógica FIFO) ---
+                // Este método valida el saldo y ejecuta los UPDATEs. Si falla, lanza excepción.
+                ConsumirPuntos(idCliente, puntosRequeridosServidor);
+
+                // --- 5. Insertar Transacción Principal (Monto 0.00) ---
+                string numeroDeTransaccion = Guid.NewGuid().ToString("N");
+                string queryTrans = "INSERT INTO Transaccion (idCarrito, fechaHoraCompra, numeroTransaccion, nombresCliente, apellidosCliente, emailCliente, numeroDocumentoCliente, idTipoDocumento, montoTotal, idCliente) " +
+                                    "VALUES (@idCarrito, UTC_TIMESTAMP(), @numTrans, @nombres, @apellidos, @email, @numDoc, @idTipoDoc, 0.00, @idCliente); SELECT LAST_INSERT_ID();"; // <-- Monto 0
+                var pTrans = new ParameterList();
+                pTrans.Add("@idCarrito", carrito.id);
+                pTrans.Add("@numTrans", numeroDeTransaccion);
+                pTrans.Add("@nombres", request.DatosFacturacion.Nombres);
+                pTrans.Add("@apellidos", request.DatosFacturacion.Apellidos);
+                pTrans.Add("@email", request.DatosFacturacion.Email);
+                pTrans.Add("@numDoc", request.DatosFacturacion.NumeroDocumento);
+                pTrans.Add("@idTipoDoc", request.DatosFacturacion.IdTipoDocumento);
+                pTrans.Add("@idCliente", idCliente);
+
+                int idTransaccion = Convert.ToInt32(DB.ExecuteScalar(queryTrans, pTrans));
+
+                // --- 6. Vincular Puntos y Transacción ---
+                string queryLinkPuntos = "INSERT INTO TransaccionPuntos (idTransaccion, idCliente) VALUES (@idTrans, @idCli);";
+                var pLinkPuntos = new ParameterList();
+                pLinkPuntos.Add("@idTrans", idTransaccion);
+                pLinkPuntos.Add("@idCli", idCliente);
+                DB.ExecuteNonQuery(queryLinkPuntos, pLinkPuntos);
+
+                // --- 7. Vincular cada Entrada (LineaTransaccion) ---
+                // Guardamos el precio original (para métricas) pero 0 puntos ganados.
+                foreach (var entrada in entradasConPrecio)
+                {
+                    string queryLinea = "INSERT INTO LineaTransaccion (idTransaccion, idEntrada, precio, puntosGanados) VALUES (@idTrans, @idEntrada, @precio, 0);"; // Puntos Ganados = 0
+                    var pLinea = new ParameterList();
+                    pLinea.Add("@idTrans", idTransaccion);
+                    pLinea.Add("@idEntrada", entrada.IdEntrada);
+                    pLinea.Add("@precio", entrada.Precio); // Guardamos el precio original
+                    DB.ExecuteNonQuery(queryLinea, pLinea);
+                }
+
+                // --- 8. Registrar en Auditoría (ID 4 = "Uso de Puntos") ---
+                string queryAudit = "INSERT INTO Auditoria (idCliente, idTipoAuditoria, descripcion, fechaHora, monto) VALUES (@idCli, 4, 'Canje de puntos por compra', UTC_TIMESTAMP(), @monto);";
+                var pAudit = new ParameterList();
+                pAudit.Add("@idCli", idCliente);
+                pAudit.Add("@monto", -puntosRequeridosServidor); // Monto negativo
+                DB.ExecuteNonQuery(queryAudit, pAudit);
+
+                // --- 9. "CERRAR" EL CARRITO ---
+                string queryCerrarCarrito = "UPDATE Carrito SET fechaExpiracion = UTC_TIMESTAMP() WHERE id = @idCarrito";
+                var pCarritoId = new ParameterList();
+                pCarritoId.Add("@idCarrito", carrito.id);
+                DB.ExecuteNonQuery(queryCerrarCarrito, pCarritoId);
+
+                // --- 10. ¡Confirmar Transacción! ---
+                DB.Commit();
+
+                // --- 11. Retornar Respuesta Exitosa ---
+                return new ResponseProcesarPago
+                {
+                    IdTransaccion = idTransaccion,
+                    NumeroTransaccion = numeroDeTransaccion,
+                    FechaCompra = DateTime.UtcNow,
+                    MontoTotal = 0.00m // Pago fue con puntos
+                };
+            }
+            catch (Exception)
+            {
+                DB.Rollback(); // Si algo falla (ej. Puntos insuficientes), deshacemos todo
+                throw;
+            }
+        }
+
+        private decimal ObtenerPuntosPorSol()
+        {
+            // Lee la configuración de tu BD. Asumo ID 1.
+            string query = "SELECT puntos_por_sol FROM configuracion WHERE id = 1";
+            object result = DB.ExecuteScalar(query, new ParameterList());
+            if (result != null && result != DBNull.Value)
+            {
+                return Convert.ToDecimal(result);
+            }
+            // Fallback por si la tabla está vacía, (10.00 como dijiste)
+            return 10.00m;
+        }
+
+        private void ConsumirPuntos(int idCliente, int puntosAGastar)
+        {
+            // 1. Bloqueamos los lotes del cliente para evitar que compre dos veces
+            string queryLotes = "SELECT id, cantidadRestante FROM Punto " +
+                                "WHERE idCliente = @idCli AND cantidadRestante > 0 AND fechaExpiracion > UTC_TIMESTAMP() " +
+                                "ORDER BY fechaExpiracion ASC FOR UPDATE;";
+            var pLotes = new ParameterList();
+            pLotes.Add("@idCli", idCliente);
+
+            var lotesDisponibles = new List<LotePunto>();
+            DB.Select(queryLotes, pLotes);
+            try
+            {
+                while (DB.Read())
+                {
+                    lotesDisponibles.Add(new LotePunto
+                    {
+                        Id = DB.GetInt("id"),
+                        CantidadRestante = DB.GetInt("cantidadRestante")
+                    });
+                }
+            }
+            finally { DB.CloseReader(); }
+
+            // 2. Verificar si tiene fondos suficientes
+            int totalDisponible = lotesDisponibles.Sum(l => l.CantidadRestante);
+            if (totalDisponible < puntosAGastar)
+            {
+                throw new Exception("Puntos insuficientes. El usuario no tiene los puntos necesarios.");
+            }
+
+            // 3. Consumir los lotes (Lógica FIFO)
+            int puntosRestantesPorGastar = puntosAGastar;
+
+            foreach (var lote in lotesDisponibles)
+            {
+                if (puntosRestantesPorGastar <= 0) break; // Ya gastamos todo
+
+                int puntosAConsumirDeEsteLote;
+                if (lote.CantidadRestante >= puntosRestantesPorGastar)
+                {
+                    // Este lote cubre todo lo que falta
+                    puntosAConsumirDeEsteLote = puntosRestantesPorGastar;
+                }
+                else
+                {
+                    // Este lote se consume por completo
+                    puntosAConsumirDeEsteLote = lote.CantidadRestante;
+                }
+
+                // Actualizamos la BD
+                int nuevoSaldoDelLote = lote.CantidadRestante - puntosAConsumirDeEsteLote;
+                string queryUpdatePunto = "UPDATE Punto SET cantidadRestante = @restante WHERE id = @idPunto";
+                var pUpdate = new ParameterList();
+                pUpdate.Add("@restante", nuevoSaldoDelLote);
+                pUpdate.Add("@idPunto", lote.Id);
+                DB.ExecuteNonQuery(queryUpdatePunto, pUpdate);
+
+                // Actualizamos el contador para el bucle
+                puntosRestantesPorGastar -= puntosAConsumirDeEsteLote;
+            }
+
+            // Seguridad extra, aunque el check inicial debería bastar
+            if (puntosRestantesPorGastar > 0)
+            {
+                throw new Exception("Error al consumir puntos, saldo inconsistente.");
+            }
+        }
     }
 }

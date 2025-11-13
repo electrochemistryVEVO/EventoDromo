@@ -58,4 +58,13 @@
         public decimal Precio { get; set; }
         public int Puntos { get; set; }
     }
+
+    public class RequestProcesarPagoPuntos
+    {
+        // Reutilizamos el DTO que ya existe
+        public DatosFacturacionDTO DatosFacturacion { get; set; }
+
+        // La cantidad de puntos que el frontend calculó
+        public int PuntosAGastar { get; set; }
+    }
 }

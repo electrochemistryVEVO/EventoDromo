@@ -24,8 +24,8 @@ function App() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  //const router = useRouter();
+  //const searchParams = useSearchParams();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,7 +35,7 @@ function App() {
       // Usamos la lógica de tu versión "nueva" (autenticarUsuario con email/password)
       const response = await autenticarUsuario(email, password);
       login(response);
-
+      /*
       const redirectUrl = searchParams.get("redirect");
       if (redirectUrl) {
         router.push(redirectUrl);
@@ -49,6 +49,7 @@ function App() {
       } else {
         setError('Rol de usuario no válido');
       }
+        */
     } catch (error) {
       setError(error.message);
     }

@@ -2,7 +2,7 @@ import { api } from "@/lib/api"; // Asegúrate que esta ruta sea correcta
 
 const TRANSACCION_ENDPOINTS = {
   procesarTarjeta: "/Transaccion/ProcesarPagoTarjeta",
-  // (Aquí podríamos agregar procesarPuntos en el futuro)
+  procesarPuntos: "/Transaccion/ProcesarPagoPuntos",
 };
 
 /**
@@ -28,6 +28,30 @@ export const procesarPagoConTarjeta = async (payload, token) => {
   } catch (error) {
     console.error("Error al procesar el pago:", error);
     // tu apiFetch lanza un Error con el 'errorMessage'
+    return { success: false, error: error.message || "Error al conectar con el servidor" };
+  }
+};
+
+/**
+ * Llama al backend para procesar un pago con DromoPuntos.
+ * @param {object} payload - El objeto con 'datosFacturacion' y 'puntosAGastar'.
+ * @param {string} token - El token JWT del usuario.
+ * @returns {Promise<object>} - Respuesta del servicio.
+ */
+export const procesarPagoConPuntos = async (payload, token) => {
+  try {
+    const response = await api.post(
+      TRANSACCION_ENDPOINTS.procesarPuntos,
+      payload,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+    
+    return { success: true, data: response };
+
+  } catch (error) {
+    console.error("Error al procesar el pago con puntos:", error);
     return { success: false, error: error.message || "Error al conectar con el servidor" };
   }
 };

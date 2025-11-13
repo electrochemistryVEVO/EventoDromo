@@ -8,6 +8,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchUserData } from "@/services/admin-service";
 
+import { useUser } from "@/context/UserContext";
+
 // Array con la información de los enlaces de navegación
 const navLinks = [
   {
@@ -41,16 +43,38 @@ const Navbar = () => {
   const currentPath = usePathname();
   // Estado para almacenar el nombre del usuario
   const [userName, setUserName] = useState("..."); // Mostramos '...' mientras carga
+  const { user, isAuthenticated, isLoading } = useUser();
   useEffect(() => {
-    // Función asíncrona para llamar al servicio
-    const getUser = async () => {
-      const userData = await fetchUserData();
-      if (userData && userData.name) {
-        setUserName(userData.name);
+    // --- 1. ACEPTA EL TOKEN AQUÍ ---
+    const getUser = async (token) => {
+      try {
+        // --- 2. PASA EL TOKEN AQUÍ ---
+        const userData = await fetchUserData(token);
+        if (userData && userData.name) {
+          setUserName(userData.name);
+        } else {
+          setUserName("Admin"); // Fallback si el nombre no viene
+        }
+      } catch (error) {
+        console.error("Navbar no pudo cargar datos del admin:", error);
+        setUserName("Admin (Error)");
       }
     };
-    getUser();
-  }, []); // El array vacío asegura que se ejecute solo una vez
+
+    if (!isLoading && isAuthenticated && user?.token && user?.rol === 'A') {
+      getUser(user.token); // <-- Ahora esto funciona
+    } else if (!isLoading && !isAuthenticated) {
+      setUserName("Invitado");
+    }
+  }, [user, isAuthenticated, isLoading]);
+
+  if (isLoading) {
+    return (
+      <nav className="bg-[#00C49A] flex items-center justify-between px-6 py-2 text-white shadow-md h-[88px]">
+        <div className="text-3xl font-bold tracking-wider">Cargando...</div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="bg-[#00C49A] flex items-center justify-between px-6 py-2 text-white shadow-md">
@@ -73,11 +97,10 @@ const Navbar = () => {
             <Link
               href={link.href}
               key={link.name}
-              className={`flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-colors duration-200 ease-in-out ${
-                isActive
-                  ? "bg-white text-[#00A99D] font-semibold"
-                  : "hover:bg-white/20"
-              }`}
+              className={`flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-colors duration-200 ease-in-out ${isActive
+                ? "bg-white text-[#00A99D] font-semibold"
+                : "hover:bg-white/20"
+                }`}
             >
               <Image
                 src={isActive ? link.activeIcon : link.icon}
