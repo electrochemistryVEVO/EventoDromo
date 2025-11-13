@@ -4,17 +4,21 @@ const BASE_API_URL = "http://localhost:5189/api";
  * @returns {string|null} - El token JWT o null si no existe.
  */
 const getAuthToken = () => {
-  const sessionJSON = sessionStorage.getItem("session");
-  // Variable para guardar el token final
-  let userToken = null;
-  // 2. MUY IMPORTANTE: Verificar que el dato exista antes de continuar
-  if (sessionJSON) {
-    // 3. Convertir (parsear) la cadena JSON a un objeto de JavaScript real
-    const sessionData = JSON.parse(sessionJSON);
-    // 4. Ahora sí, acceder a la propiedad "token" del objeto
-    userToken = sessionData.token;
+  try {
+    // 1. Lee la clave "user" de localStorage (donde UserContext la guarda)
+    const userJSON = localStorage.getItem("user");
+
+    if (!userJSON) {
+      return null;
+    }
+
+    // 2. Parsea el objeto y devuelve la propiedad "token"
+    const userData = JSON.parse(userJSON);
+    return userData?.token || null;
+  } catch (error) {
+    console.error("Error al leer token de localStorage:", error);
+    return null;
   }
-  return userToken;
 };
 
 /**

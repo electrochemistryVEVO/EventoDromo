@@ -14,7 +14,7 @@ import FechasModal from "@/components/Layouts/navbar/filtros/FechasModal";
 import "@/css/navbar-style.css";
 import "@/css/navbar-logged-in.css";
 
-import { useNavbarController } from './controller-navbar.js';
+import { useNavbarController } from "./controller-navbar.js";
 
 const Navbar = () => {
   const router = useRouter();
@@ -25,7 +25,7 @@ const Navbar = () => {
   const [activeButtonRef, setActiveButtonRef] = useState(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  
+
   // Referencias para los botones de filtro
   const precioButtonRef = useRef(null);
   const categoriasButtonRef = useRef(null);
@@ -113,7 +113,9 @@ const Navbar = () => {
               className="search-input"
               value={searchTerm}
               onChange={handleSearchChange}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit(e); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearchSubmit(e);
+              }}
             />
           </div>
 
@@ -121,7 +123,7 @@ const Navbar = () => {
             <button
               ref={precioButtonRef}
               className="filter-btn"
-              onClick={() => openPopover('precio', precioButtonRef)}
+              onClick={() => openPopover("precio", precioButtonRef)}
             >
               <Image
                 src="/images/icon/precioFiltro.svg"
@@ -134,7 +136,7 @@ const Navbar = () => {
             <button
               ref={categoriasButtonRef}
               className="filter-btn"
-              onClick={() => openPopover('categorias', categoriasButtonRef)}
+              onClick={() => openPopover("categorias", categoriasButtonRef)}
             >
               <Image
                 src="/images/icon/categoriasFiltro.svg"
@@ -147,7 +149,7 @@ const Navbar = () => {
             <button
               ref={ciudadButtonRef}
               className="filter-btn"
-              onClick={() => openPopover('ciudad', ciudadButtonRef)}
+              onClick={() => openPopover("ciudad", ciudadButtonRef)}
             >
               <Image
                 src="/images/icon/ciudadFiltro.svg"
@@ -160,7 +162,7 @@ const Navbar = () => {
             <button
               ref={fechasButtonRef}
               className="filter-btn"
-              onClick={() => openPopover('fechas', fechasButtonRef)}
+              onClick={() => openPopover("fechas", fechasButtonRef)}
             >
               <Image
                 src="/images/icon/fechasFiltro.svg"
@@ -189,8 +191,8 @@ const Navbar = () => {
           {isAuthenticated ? (
             // ✅ USUARIO AUTENTICADO - Versión mejorada del navbar antiguo
             <div className="user-profile-section" ref={dropdownRef}>
-              <button 
-                className="icon-btn user-avatar-btn" 
+              <button
+                className="icon-btn user-avatar-btn"
                 onClick={toggleDropdown}
               >
                 <Image
@@ -217,8 +219,8 @@ const Navbar = () => {
                     />
                     Mis datos
                   </Link>
-                  <Link 
-                    href="/user/web/perfil?tab=entradas" 
+                  <Link
+                    href="/user/web/perfil?tab=entradas"
                     className="dropdown-item"
                     onClick={() => setDropdownOpen(false)}
                   >
@@ -244,7 +246,7 @@ const Navbar = () => {
                     Mis puntos
                   </Link>
                   <Link
-                    href="/user/cambiarcontrasena/cambio"
+                    href="/user/cambiarcontrasena/contrasenaActual"
                     className="dropdown-item"
                     onClick={() => setDropdownOpen(false)}
                   >
@@ -284,11 +286,11 @@ const Navbar = () => {
                 </Link>
               </div>
               <div className="user-icon">
-                <Image 
-                  src="/images/icon/cuenta.svg" 
-                  alt="Usuario" 
-                  width={32} 
-                  height={32} 
+                <Image
+                  src="/images/icon/cuenta.svg"
+                  alt="Usuario"
+                  width={32}
+                  height={32}
                 />
               </div>
             </div>
@@ -297,7 +299,7 @@ const Navbar = () => {
       </nav>
 
       {/* ✅ MODALES DE FILTROS CORREGIDOS - Usan funciones del controlador */}
-      {openFilterModal === 'precio' && activeButtonRef && (
+      {openFilterModal === "precio" && activeButtonRef && (
         <PrecioModal
           onClose={closePopover}
           onApply={applyFilter}
@@ -306,7 +308,7 @@ const Navbar = () => {
           initialFilters={activeFilters}
         />
       )}
-      {openFilterModal === 'categorias' && activeButtonRef && (
+      {openFilterModal === "categorias" && activeButtonRef && (
         <CategoriasModal
           onClose={closePopover}
           onApply={applyFilter}
@@ -315,7 +317,7 @@ const Navbar = () => {
           initialFilters={activeFilters}
         />
       )}
-      {openFilterModal === 'ciudad' && activeButtonRef && (
+      {openFilterModal === "ciudad" && activeButtonRef && (
         <CiudadModal
           onClose={closePopover}
           onApply={applyFilter}
@@ -324,7 +326,7 @@ const Navbar = () => {
           initialFilters={activeFilters}
         />
       )}
-      {openFilterModal === 'fechas' && activeButtonRef && (
+      {openFilterModal === "fechas" && activeButtonRef && (
         <FechasModal
           onClose={closePopover}
           onApply={applyFilter}

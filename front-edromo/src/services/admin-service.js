@@ -12,11 +12,10 @@ export const getAuthToken = () => {
     if (!userJSON) {
       return null;
     }
-    
+
     // 2. Parsea el objeto y devuelve la propiedad "token"
     const userData = JSON.parse(userJSON);
     return userData?.token || null;
-
   } catch (error) {
     console.error("Error al leer token de localStorage:", error);
     return null;
@@ -33,10 +32,8 @@ export const fetchUserData = async (token) => {
   try {
     // 3. El token ahora se pasa como argumento (no se lee aquí)
     if (!token) {
-      console.error(
-        "fetchUserData: No se proporcionó un token."
-      );
-      return { name: "Invitado" }; 
+      console.error("fetchUserData: No se proporcionó un token.");
+      return { name: "Invitado" };
     }
 
     const response = await fetch(API_URL, {
@@ -51,7 +48,7 @@ export const fetchUserData = async (token) => {
 
     if (response.ok && result.success === true) {
       return {
-        name: result.data.name, 
+        name: result.data.name,
       };
     } else {
       throw new Error(

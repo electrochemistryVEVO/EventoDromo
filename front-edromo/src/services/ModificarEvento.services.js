@@ -6,10 +6,21 @@
 const BASE_API_URL = "http://localhost:5189/api";
 
 const getAuthToken = () => {
-  const sessionJSON = sessionStorage.getItem("session");
-  if (!sessionJSON) return null;
-  const sessionData = JSON.parse(sessionJSON);
-  return sessionData.token;
+  try {
+    // 1. Lee la clave "user" de localStorage (donde UserContext la guarda)
+    const userJSON = localStorage.getItem("user");
+
+    if (!userJSON) {
+      return null;
+    }
+
+    // 2. Parsea el objeto y devuelve la propiedad "token"
+    const userData = JSON.parse(userJSON);
+    return userData?.token || null;
+  } catch (error) {
+    console.error("Error al leer token de localStorage:", error);
+    return null;
+  }
 };
 
 /**
