@@ -135,4 +135,39 @@
         public int limiteCompra { get; set; }
         public int puntos { get; set; }
     }
+
+    public class ResponseEventoGetEvents
+    {
+        public List<EventoDTO> Data { get; set; }           // ← lista de eventos simplificados
+        public Pagination Pagination { get; set; }          // ← bloque de paginación
+    }
+
+    public class Pagination
+    {
+        public int CurrentPage { get; set; }
+        public int TotalPages { get; set; }
+        public int TotalEvents { get; set; }
+    }
+
+    public class ResponseEventoGetEventsEventos
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; }
+        public string Local { get; set; }
+        public string Tipo { get; set; }
+        public DateTime FechaPublicacion { get; set; }
+        public DateTime FechaCompra { get; set; }
+        public DateTime? Horario { get; set; }
+        public OcupacionDTO Ocupacion { get; set; }
+        public decimal IngresosBrutos { get; set; }
+        // estado lo quitamos, como dijiste
+    }
+
+    public class OcupacionDTO
+    {
+        public int Actual { get; set; }
+        public int Total { get; set; }
+    }
+
+
 }

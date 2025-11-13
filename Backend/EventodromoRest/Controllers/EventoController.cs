@@ -90,6 +90,7 @@ namespace EventodromoRest.Controllers
             }
         }
 
+
         [HttpGet]
         [Route("/api/[controller]/[action]")]
         public GenericResponse<ResponseListarEventosYLocales> ListarFiltradosConLocales()
@@ -111,6 +112,101 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
+
+        [HttpGet]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<ResponseEventoGetEvents> EventoGetEvents(
+            [FromQuery] string? search,
+            [FromQuery] int? localId,
+            [FromQuery] string? status,
+            [FromQuery] string? startDate,
+            [FromQuery] string? endDate,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                // 1️⃣ Validar token JWT
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<ResponseEventoGetEvents>
+                    {
+                        Success = false,
+                        Message = "Acceso no autorizado. Se requiere un token válido.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<ResponseEventoGetEvents>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                // 2️⃣ Parsear fechas opcionales
+                DateTime? start = null;
+                DateTime? end = null;
+                if (DateTime.TryParse(startDate, out DateTime s)) start = s;
+                if (DateTime.TryParse(endDate, out DateTime e)) end = e;
+
+                // 3️⃣ Llamar a la capa de negocio
+                var resultado = new EventoBO(globales, BD).GetEventosFiltrados(
+                    search,
+                    localId,
+                    status,
+                    start,
+                    end,
+                    page,
+                    pageSize
+                );
+
+                // 4️⃣ Retornar resultado
+                if (resultado!=null)
+                {
+                    return new GenericResponse<ResponseEventoGetEvents>
+                    {
+                        Success = true,
+                        Message = "Se obtuvo lista de eventos correctamente",
+                        Error=null,
+                        Data = resultado,
+                    };
+                }
+                else
+                {
+                    return new GenericResponse<ResponseEventoGetEvents>
+                    {
+                        Success = false,
+                        Message = "Error al obtener los eventos.",
+                        Error = "No se encontraron resultados o ocurrió un error.",
+                        Data = null
+                    };
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                var response = new GenericResponse<ResponseEventoGetEvents>
+                {
+                    Success = false,
+                    Message = "Error interno al listar los eventos.",
+                    Error = ex.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(ex, "", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
 
         [HttpPost]
         [Route("/api/[controller]/[action]")]
