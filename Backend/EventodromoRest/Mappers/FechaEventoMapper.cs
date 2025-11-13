@@ -161,5 +161,26 @@ namespace EventodromoRest.Mappers
             var eventoMapper = new EventoMapper(globales, DB);
             return eventoMapper.ObtenerEventoPorId(v);
         }
+        public List<FechaEvento> ListarHorariosPorEvento(int idEvento)
+        {
+            var lista = new List<FechaEvento>();
+            lock (DB)
+            {
+                string query = "SELECT * FROM FechaEvento WHERE idEvento = @ID_EVENTO ORDER BY fechaHora ASC";
+                var parametros = new ParameterList();
+                parametros.Add("@ID_EVENTO", idEvento);
+                DB.Select(query, parametros);
+                while (DB.Read())
+                {
+                    lista.Add(new FechaEvento
+                    {
+                        id = DB.GetInt("id"),
+                        fechaHora = DB.GetDateTime("fechaHora"),
+                        idEvento = DB.GetInt("idEvento")
+                    });
+                }
+            }
+            return lista;
+        }
     }
 }
