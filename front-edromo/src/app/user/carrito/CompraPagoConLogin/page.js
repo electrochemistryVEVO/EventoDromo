@@ -11,6 +11,7 @@ import styles from "@/css/compraPagoConLogin.module.css";
 import { CostoDetalleEntradasController } from "@/components/carrito/CostoDetalleEntradas.controller";
 import CartTimer from "@/components/carrito/CartTimer";
 
+import { procesarPagoConTarjeta } from "@/services/Transaccion.service";
 // --- COMPONENTES INTERNOS DE LA PÁGINA ---
 
 const UserInfo = () => {
@@ -18,7 +19,7 @@ const UserInfo = () => {
     const [formData, setFormData] = useState(null);
 
     useEffect(() => {
-        const storedData = sessionStorage.getItem("userData"); 
+        const storedData = sessionStorage.getItem("userData");
         if (storedData) {
             setFormData(JSON.parse(storedData));
         }
@@ -134,12 +135,12 @@ const DromoPuntosInfo = () => (
 );
 
 // --- Contenedor de Métodos de Pago ---
-const PaymentMethod = ({ 
-    selectedPaymentMethod, 
-    handlePaymentMethodChange, 
-    cardDetails, 
-    formErrors, 
-    handleCardInputChange 
+const PaymentMethod = ({
+    selectedPaymentMethod,
+    handlePaymentMethodChange,
+    cardDetails,
+    formErrors,
+    handleCardInputChange
 }) => (
     <section className={styles.card}>
         <h2 className={styles.cardTitle}>Método de Pago</h2>
@@ -155,15 +156,15 @@ const PaymentMethod = ({
                 />
                 Pago con tarjeta de crédito / débito
             </label>
-            
+
             {selectedPaymentMethod === "tarjeta" && (
-                <CreditCardForm 
+                <CreditCardForm
                     cardDetails={cardDetails}
                     formErrors={formErrors}
                     handleInputChange={handleCardInputChange}
                 />
             )}
-            
+
             <label className={styles.radioLabel}>
                 <input
                     type="radio"
@@ -218,7 +219,7 @@ function CompraPagoConLoginPage() {
         itemCount,
         totalPrice,
     } = useCart();
-    const { isAuthenticated, isLoading: isUserLoading } = useUser();
+    const { user, isAuthenticated, isLoading: isUserLoading } = useUser();
 
     const [showModal, setShowModal] = useState(false);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
@@ -290,7 +291,7 @@ function CompraPagoConLoginPage() {
         if (cvv.length < 3) {
             errors.cvv = "El CVV debe tener 3 o 4 dígitos.";
         }
-        
+
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
     };
@@ -303,25 +304,68 @@ function CompraPagoConLoginPage() {
                 return; // Detiene si hay errores
             }
         }
-        
-        // 2. Simular pago (Estado de carga)
-        setIsProcessing(true);
-        setFormErrors({}); // Limpia errores antiguos
-        
-        // Simula la llamada a la API (2 segundos)
-        await new Promise(resolve => setTimeout(resolve, 2000));
 
-        // 3. Simular un pago rechazado (para realismo)
-        // Puedes probar escribiendo "111" en el CVV
-        if (cardDetails.cvv === "111") {
-            setFormErrors({ general: "Pago rechazado. Fondos insuficientes." });
-            setIsProcessing(false);
+        // (Aquí puedes agregar la lógica para "dromopuntos" si lo deseas)
+        if (selectedPaymentMethod === "dromopuntos") {
+            alert("El pago con DromoPuntos aún no está implementado.");
             return;
         }
 
-        // 4. Simular pago exitoso
-        setIsProcessing(false);
-        setShowModal(true); // Muestra el modal de "Compra Exitosa"
+        // 2. Iniciar carga
+        setIsProcessing(true);
+        setFormErrors({}); // Limpia errores antiguos
+
+        // --- INICIO DE LA LÓGICA REAL ---
+        try {
+            // 3. Obtener datos de facturación
+            const storedData = JSON.parse(sessionStorage.getItem("userData"));
+
+            // ❗ Verificación importante:
+            if (!storedData || !storedData.tipoDocId) {
+                throw new Error("No se encontraron los datos de facturación (tipoDocId). Vuelva al paso anterior.");
+            }
+
+            // 4. Obtener token
+            const token = user?.token;
+            if (!token) {
+                throw new Error("Sesión inválida. Por favor, inicie sesión de nuevo.");
+            }
+
+            // 5. Construir Payload
+            const payload = {
+                datosTarjeta: {
+                    numero: cardDetails.number.replace(/\s/g, ""), // Enviar número limpio
+                    nombreTitular: cardDetails.name,
+                    expiracion: cardDetails.expiry, // Formato "MM / AA"
+                    cvv: cardDetails.cvv,
+                },
+                datosFacturacion: {
+                    email: storedData.email,
+                    nombres: storedData.nombre,
+                    apellidos: storedData.apellido,
+                    idTipoDocumento: storedData.tipoDocId, // ❗ AQUI ESTÁ LA CLAVE
+                    numeroDocumento: storedData.numDoc,
+                }
+            };
+
+            // 6. Llamar al servicio REAL
+            const response = await procesarPagoConTarjeta(payload, token);
+
+            if (response.success) {
+                // 7. Éxito REAL
+                setIsProcessing(false);
+                setShowModal(true); // Muestra el modal "Compra Exitosa"
+            } else {
+                // 8. Falla REAL (ej. fondos insuficientes desde el backend)
+                throw new Error(response.error || "Pago rechazado por el banco.");
+            }
+        } catch (error) {
+            // 9. Error general (de red, etc.)
+            console.error("Fallo el handlePaymentSubmit:", error);
+            setFormErrors({ general: error.message });
+            setIsProcessing(false);
+        }
+        // --- FIN DE LA LÓGICA REAL ---
     };
 
 
@@ -374,8 +418,8 @@ function CompraPagoConLoginPage() {
 
             <main className={styles.mainGrid}>
                 {/* 1. Componente de Información del Usuario */}
-                <UserInfo /> 
-                
+                <UserInfo />
+
                 {/* 2. Componente de Métodos de Pago */}
                 <PaymentMethod
                     selectedPaymentMethod={selectedPaymentMethod}
@@ -384,15 +428,15 @@ function CompraPagoConLoginPage() {
                     formErrors={formErrors}
                     handleCardInputChange={handleCardInputChange}
                 />
-                
+
                 {/* 3. Columna de Resumen de Compra */}
                 <section className={styles.card}>
                     <h2 className={styles.cardTitle}>Resumen de la compra</h2>
-                    <CartTimer variant="minimal"/>
+                    <CartTimer variant="minimal" />
                     <div className="flex flex-col h-full gap-4">
                         <CostoDetalleEntradasController />
                         <div className="flex flex-col items-center gap-4 pt-4 mt-auto border-t border-gray-300">
-                            
+
                             {selectedPaymentMethod === "tarjeta" && (
                                 <div className="flex flex-col items-center w-full gap-1">
                                     <div className="text-xl font-bold">Total: S/. {totalPrice.toFixed(2)}</div>

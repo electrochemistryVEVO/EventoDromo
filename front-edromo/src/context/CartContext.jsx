@@ -7,6 +7,7 @@ import {
   addItemToDbCart,
   removeItemFromDbCart,
   clearDbCart,
+  removeEntireTierFromCart,
 } from "@/services/Cart.service";
 
 const CART_EXPIRATION_MINUTES = 10;
@@ -459,6 +460,69 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // ✅ AÑADE ESTA NUEVA FUNCIÓN JUSTO AQUÍ
+  const removeTierFromCart = async (cartItemId, tipoEntradaId) => {
+    if (syncingItemIds.has(cartItemId)) return false;
+
+    setSyncingItemIds(prev => new Set(prev).add(cartItemId));
+
+    // ✅ GUARDAR ESTADO PREVIO PARA ROLLBACK
+    const previousCartItems = cartItems;
+
+    try {
+      // ✅ ACTUALIZACIÓN OPTIMISTA
+      setCartItems(prev => prev.map(item => {
+        if (item.cartItemId !== cartItemId) return item;
+
+        const entradasFiltradas = item.entradas.filter(
+          entrada => entrada.tipoEntradaId !== tipoEntradaId
+        );
+
+        if (entradasFiltradas.length === 0) {
+          return null;
+        }
+
+        return {
+          ...item,
+          entradas: entradasFiltradas,
+          totalItem: computeEntradasTotal(entradasFiltradas)
+        };
+      }).filter(Boolean));
+
+      // ✅ LLAMADA AL BACKEND (nueva integración)
+      if (isAuthenticated) {
+        const token = resolveAuthToken();
+        if (!token) throw new Error("No se pudo obtener el token");
+
+        const response = await removeEntireTierFromCart(cartItemId, tipoEntradaId, token);
+
+        if (!response.success) {
+          throw new Error(response.error);
+        }
+
+        // ✅ ACTUALIZAR CON LA RESPUESTA DEL BACKEND
+        setCartItems(response.data.items);
+        setExpirationTime(response.data.expirationTime);
+      }
+
+      console.log('✅ Eliminación completada - Frontend y Backend sincronizados');
+      return true;
+
+    } catch (error) {
+      console.error("Error al eliminar grupo:", error);
+      // ✅ ROLLBACK en caso de error
+      setCartItems(previousCartItems);
+      alert(error.message || "No se pudo eliminar el grupo de entradas");
+      return false;
+    } finally {
+      setSyncingItemIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(cartItemId);
+        return newSet;
+      });
+    }
+  };
+
   const clearCart = async () => {
     // La lógica para el usuario logueado no cambia.
     if (isAuthenticated) {
@@ -564,6 +628,7 @@ export const CartProvider = ({ children }) => {
     addToCart,
     removeFromCart,
     removeEntryFromCart,
+    removeTierFromCart,
     incrementEntryInCart,
     clearCart,
     addTicketsToCart,

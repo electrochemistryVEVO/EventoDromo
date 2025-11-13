@@ -57,4 +57,10 @@ namespace EventodromoRest.Modelos
         // La lista de items que no se pudieron agregar
         public List<RechazadoDTO> rechazados { get; set; }
     }
+
+    public class RequestEliminarTipoEntrada
+    {
+        public string CartItemId { get; set; }
+        public int TipoEntradaId { get; set; }
+    }
 }

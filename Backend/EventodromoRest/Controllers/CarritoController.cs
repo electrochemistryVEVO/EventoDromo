@@ -191,5 +191,33 @@ namespace EventodromoRest.Controllers
                 return StatusCode(500, $"El test falló: {e.Message}\n{e.StackTrace}");
             }
         }
+
+        [HttpDelete]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<ResponseObtenerCarrito> EliminarTipoEntradaDelCarrito([FromBody] RequestEliminarTipoEntrada request)
+        {
+            try
+            {
+                ValidarBody(request);
+                var userIdString = User.FindFirst("idCliente")?.Value;
+                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idCliente))
+                {
+                    throw new Exception("ID de cliente inválido en el token.");
+                }
+                return new CarritoBO(globales, BD).EliminarTipoEntradaDelCarrito(idCliente, request);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<ResponseObtenerCarrito>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
     }
 }

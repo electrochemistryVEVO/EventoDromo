@@ -13,7 +13,7 @@ import { getMisDatos } from "@/services/User.service.js";
 
 // --- 1. IMPORTA EL SERVICIO QUE TRAE LAS LISTAS ---
 // (Ajusta la ruta si es diferente, ej. @/services/signUpService.js)
-import { obtenerDatosDeRegistro } from "@/services/signUpService.js"; 
+import { obtenerDatosDeRegistro } from "@/services/signUpService.js";
 import CartTimer from "@/components/carrito/CartTimer";
 
 function CompraConLoginPage() {
@@ -40,7 +40,7 @@ function CompraConLoginPage() {
                     paises: data.paises || [],
                     ciudades: data.ciudades || [],
                     // Asegúrate que el JSON de tu API use "tiposDocumento"
-                    tiposDocumento: data.tiposDocumento || [] 
+                    tiposDocumento: data.tiposDocumento || []
                 });
             } catch (error) {
                 console.error("Error cargando listas para el formulario:", error);
@@ -63,15 +63,32 @@ function CompraConLoginPage() {
                         field.value = value ?? "";
                     }
                 };
-                
+
                 // Rellena el formulario
                 setValue("email", data.email);
                 setValue("nombre", data.nombre);
                 setValue("apellido", data.apellido);
-                setValue("tipoDoc", data.tipoDoc);
                 setValue("numDoc", data.numDoc);
-                setValue("pais", data.pais);
-                setValue("ciudad", data.ciudad); // <-- Ahora SÍ encontrará "Callao" en la lista
+
+                const tipoDocNombre = data.tipoDoc; // ej: "DNI"
+                const docEncontrado = listas.tiposDocumento.find(
+                    d => d.nombre === tipoDocNombre
+                );
+                setValue("tipoDoc", docEncontrado ? docEncontrado.id : ""); // Pone el ID (ej: 1)
+
+                // 2. Buscar ID de País
+                const paisNombre = data.pais; // ej: "Perú"
+                const paisEncontrado = listas.paises.find(
+                    p => p.nombre === paisNombre
+                );
+                setValue("pais", paisEncontrado ? paisEncontrado.id : ""); // Pone el ID
+
+                // 3. Buscar ID de Ciudad
+                const ciudadNombre = data.ciudad; // ej: "Callao"
+                const ciudadEncontrada = listas.ciudades.find(
+                    c => c.nombre === ciudadNombre
+                );
+                setValue("ciudad", ciudadEncontrada ? ciudadEncontrada.id : ""); // Pone el ID
             }
         };
 
@@ -116,14 +133,36 @@ function CompraConLoginPage() {
 
     const handleVerifyData = () => {
         const formData = new FormData(formRef.current);
+        // 1. Tipo de Documento
+        const tipoDocIdString = formData.get("tipoDoc"); // <-- Lee el ID (ej: "1")
+        const tipoDocSeleccionado = listas.tiposDocumento.find(
+            doc => doc.id.toString() === tipoDocIdString
+        );
+        const tipoDocNombre = tipoDocSeleccionado ? tipoDocSeleccionado.nombre : "";
+
+        // 2. País
+        const paisIdString = formData.get("pais"); // <-- Lee el ID
+        const paisSeleccionado = listas.paises.find(
+            p => p.id.toString() === paisIdString
+        );
+        const paisNombre = paisSeleccionado ? paisSeleccionado.nombre : "";
+
+        // 3. Ciudad
+        const ciudadIdString = formData.get("ciudad"); // <-- Lee el ID
+        const ciudadSeleccionada = listas.ciudades.find(
+            c => c.id.toString() === ciudadIdString
+        );
+        const ciudadNombre = ciudadSeleccionada ? ciudadSeleccionada.nombre : "";
+
         const userData = {
             nombre: formData.get("nombre"),
             apellido: formData.get("apellido"),
             email: formData.get("email"),
-            tipoDoc: formData.get("tipoDoc"),
+            tipoDocId: Number(tipoDocIdString), // <-- El ID para el backend
+            tipoDoc: tipoDocNombre,
             numDoc: formData.get("numDoc"),
-            pais: formData.get("pais"),
-            ciudad: formData.get("ciudad"),
+            pais: paisNombre,
+            ciudad: ciudadNombre,
         };
         sessionStorage.setItem("userData", JSON.stringify(userData));
         router.push("/user/carrito/CompraPagoConLogin");
@@ -235,7 +274,7 @@ function CompraConLoginPage() {
                                     <select id="tipoDoc" name="tipoDoc" className={styles.select}>
                                         <option value="">Seleccione un tipo</option>
                                         {listas.tiposDocumento.map(doc => (
-                                            <option key={doc.id} value={doc.nombre}>
+                                            <option key={doc.id} value={doc.id}>
                                                 {doc.nombre}
                                             </option>
                                         ))}
@@ -264,7 +303,7 @@ function CompraConLoginPage() {
                                     <select id="pais" name="pais" className={styles.select}>
                                         <option value="">Seleccione un País</option>
                                         {listas.paises.map(pais => (
-                                            <option key={pais.id} value={pais.nombre}>
+                                            <option key={pais.id} value={pais.id}>
                                                 {pais.nombre}
                                             </option>
                                         ))}
@@ -278,7 +317,7 @@ function CompraConLoginPage() {
                                     <select id="ciudad" name="ciudad" className={styles.select}>
                                         <option value="">Seleccione su ciudad</option>
                                         {listas.ciudades.map(ciudad => (
-                                            <option key={ciudad.id} value={ciudad.nombre}>
+                                            <option key={ciudad.id} value={ciudad.id}>
                                                 {ciudad.nombre}
                                             </option>
                                         ))}
@@ -326,7 +365,7 @@ function CompraConLoginPage() {
 
                 <section className={styles.card}>
                     <h2 className={styles.cardTitle}>Resumen de la compra</h2>
-                    <CartTimer variant="minimal"/>
+                    <CartTimer variant="minimal" />
                     <CostoDetalleEntradasController />
                     <div className="flex flex-col items-center gap-4 mt-4">
                         {selectedPaymentMethod ? (

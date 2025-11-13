@@ -12,6 +12,7 @@ export const TablaEntradasController = () => {
     isLoading,
     removeEntryFromCart,
     incrementEntryInCart,
+    removeTierFromCart,
   } = useCart();
 
   const rows = useMemo(
@@ -76,46 +77,23 @@ export const TablaEntradasController = () => {
   };
 
   const executeRowRemoval = async (row) => {
-    if (!row) {
-      return;
-    }
+  if (!row) return;
 
-    // ✅ CORRECCIÓN: Usar uniqueEntryIds en lugar de entryIds
-    const iterableIds = row.uniqueEntryIds?.length
-      ? row.uniqueEntryIds
-      : Array.from({ length: row.quantity }, () => null);
+  // ✅ USAR LA NUEVA FUNCIÓN de eliminación optimista
+  const success = await removeTierFromCart(row.cartItemId, row.tipoEntradaId);
 
-    let manageLoading = true;
-
-    for (const uniqueId of iterableIds) {
-      // ✅ CORRECCIÓN: Encontrar el record correspondiente al uniqueId
-      const record = row.entryRecords?.find(r => r.uniqueEntryId === uniqueId);
-      
-      const success = await removeEntryFromCart(
-        {
-          cartItemId: row.cartItemId,
-          entradaId: record?.entradaId || null,
-          tipoEntradaId: record?.tipoEntradaId || row.tipoEntradaId,
-        },
-        { manageLoading },
-      );
-
-      if (!success) {
-        break;
-      }
-
-      manageLoading = false;
-    }
-
-    setSelectedIds((prev) => {
-      if (!prev.has(row.rowId)) {
-        return prev;
-      }
+  if (success) {
+    // Eliminar de la selección si estaba seleccionado
+    setSelectedIds(prev => {
+      if (!prev.has(row.rowId)) return prev;
       const next = new Set(prev);
       next.delete(row.rowId);
       return next;
     });
-  };
+  } else {
+    alert("No se pudo eliminar el grupo de entradas");
+  }
+};
 
   const handleRemoveItem = async (row) => {
     if (!row) {

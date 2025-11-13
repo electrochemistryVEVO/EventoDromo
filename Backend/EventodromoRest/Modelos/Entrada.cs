@@ -25,6 +25,7 @@
         public int idTipoEntrada { get; set; }
         public string nombreTipoEntrada { get; set; }
         public decimal precio { get; set; }
+        public int limiteCompra { get; set; }
     }
 
     public class EntradaAgregarAlCarritoDTO

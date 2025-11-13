@@ -154,5 +154,28 @@ namespace EventodromoRest.Negocio
                 Data = null
             };
         }
+
+
+        public GenericResponse<ResponseObtenerCarrito> EliminarTipoEntradaDelCarrito(int idCliente, RequestEliminarTipoEntrada request)
+        {
+            if (request.TipoEntradaId <= 0)
+            {
+                throw new Exception("El ID del tipo de entrada es inválido");
+            }
+
+            var carritoMapper = new CarritoMapper(globales, DB);
+
+            var carritoData = carritoMapper.EliminarTipoEntradaDelCarrito(idCliente, request.TipoEntradaId);
+
+            var response = TransformarCarrito(carritoData);
+
+            return new GenericResponse<ResponseObtenerCarrito>
+            {
+                Success = true,
+                Message = "Grupo de entradas eliminado correctamente.",
+                Error = null,
+                Data = response
+            };
+        }
     }
 }

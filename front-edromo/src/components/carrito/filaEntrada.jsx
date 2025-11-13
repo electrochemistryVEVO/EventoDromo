@@ -71,7 +71,7 @@ export const FilaEntrada = ({
         <button
           type="button"
           onClick={onIncrease}
-          disabled={isLoading}
+          disabled={isLoading || (item.limiteCompra > 0 && item.quantity >= item.limiteCompra)}
           className="flex items-center justify-center w-9 h-9 rounded-full border border-slate-300 text-lg font-semibold transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           aria-label={`Incrementar cantidad de ${eventName} ${tierName}`}
         >

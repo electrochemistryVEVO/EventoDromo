@@ -62,6 +62,36 @@ namespace EventodromoRest.Negocio
                 };
             }
         }
+
+        public GenericResponse<ResponseProcesarPago> ProcesarPagoTarjeta(int idCliente, RequestProcesarPago request)
+        {
+            // --- 1. Validación de Negocio (Simulación de Pasarela) ---
+            // Usamos el "111" que simulaste en tu frontend.
+            if (request.DatosTarjeta.Cvv == "111")
+            {
+                // Este throw será atrapado por el Controller y devuelto como un error 400.
+                throw new Exception("Pago rechazado. Fondos insuficientes.");
+            }
+            // Aquí irían otras validaciones, como la fecha de expiración.
+
+            // --- 2. Lógica de Base de Datos ---
+            // Llamamos al Mapper, que crearemos en el siguiente paso.
+            // El Mapper se encargará de la transacción de BD completa.
+            var transaccionMapper = new TransaccionMapper(globales, DB);
+            var response = transaccionMapper.CrearTransaccionTarjeta(idCliente, request);
+
+            // --- 3. (Opcional) Enviar email de confirmación, etc. ---
+            // Aquí podrías agregar una lógica para enviar un correo
+            // al 'request.DatosFacturacion.Email' con los detalles de la compra.
+
+            // --- 4. Devolver respuesta exitosa ---
+            return new GenericResponse<ResponseProcesarPago>
+            {
+                Success = true,
+                Message = "Pago procesado exitosamente.",
+                Data = response
+            };
+        }
     }
 
 }

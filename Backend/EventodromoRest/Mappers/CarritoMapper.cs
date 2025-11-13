@@ -107,7 +107,7 @@ namespace EventodromoRest.Mappers
                 "select " +
                 "c.id as idCarrito, ev.id as idEvento, ev.nombre as nombreEvento, ev.imagenURL as imagenURL, " +
                 "l.nombre as nombreLocal, cd.nombre as nombreCiudad, f.id as idFuncion, f.fechaHora as fecha, " +
-                "e.id AS idEntrada, t.id as idTipoEntrada, t.nombre as nombreTipoEntrada, t.precio as precioEntrada, " +
+                "e.id AS idEntrada, t.id as idTipoEntrada, t.nombre as nombreTipoEntrada, t.precio as precioEntrada, t.limiteCompra," +
                 "c.fechaExpiracion " +
                 "from Entrada e " +
                 "join Carrito c on e.idCarrito = c.id " +
@@ -132,7 +132,7 @@ namespace EventodromoRest.Mappers
                         eventoInfo = new EventoCarritoDTO { idEvento = DB.GetInt("idEvento"), nombreEvento = DB.GetString("nombreEvento"), imagenURL = DB.GetString("imagenURL") },
                         localInfo = new LocalDTO { nombre = DB.GetString("nombreLocal"), ciudad = DB.GetString("nombreCiudad") },
                         funcionInfo = new FuncionDTO { id = DB.GetInt("idFuncion"), fechaHora = DB.GetDateTime("fecha") },
-                        entrada = new EntradaDTO { idEntrada = DB.GetInt("idEntrada"), idTipoEntrada = DB.GetInt("idTipoEntrada"), nombreTipoEntrada = DB.GetString("nombreTipoEntrada"), precio = DB.GetDecimal("precioEntrada") },
+                        entrada = new EntradaDTO { idEntrada = DB.GetInt("idEntrada"), idTipoEntrada = DB.GetInt("idTipoEntrada"), nombreTipoEntrada = DB.GetString("nombreTipoEntrada"), precio = DB.GetDecimal("precioEntrada"), limiteCompra = DB.GetInt("limiteCompra") },
                         fechaExpiracion = DB.GetDateTime("fechaExpiracion")
                     };
                     listaCarrito.Add(registro);
@@ -193,10 +193,33 @@ namespace EventodromoRest.Mappers
             DB.BeginTransaction();
             try
             {
-                string query = "DELETE FROM Entrada WHERE id = @idEntrada;";
-                var parametros = new ParameterList();
-                parametros.Add("@idEntrada", idEntrada);
-                DB.ExecuteNonQuery(query, parametros);
+                // 1. Necesitamos saber qué TipoEntrada es ANTES de borrar
+                string queryTipo = "SELECT idTipoEntrada FROM Entrada WHERE id = @idEntrada";
+                var pTipo = new ParameterList();
+                pTipo.Add("@idEntrada", idEntrada);
+
+                object tipoEntradaObj = DB.ExecuteScalar(queryTipo, pTipo);
+
+                // 2. Borramos la entrada
+                string queryDelete = "DELETE FROM Entrada WHERE id = @idEntrada;";
+                var pDelete = new ParameterList();
+                pDelete.Add("@idEntrada", idEntrada);
+                DB.ExecuteNonQuery(queryDelete, pDelete);
+
+                // 3. Devolvemos 1 al stock de ese TipoEntrada (si lo encontramos)
+                if (tipoEntradaObj != null && tipoEntradaObj != DBNull.Value)
+                {
+                    int idTipoEntrada = Convert.ToInt32(tipoEntradaObj);
+
+                    // Usamos CASE para evitar números negativos (protección contra data corrupta)
+                    string queryUpdateStock = "UPDATE TipoEntrada " +
+                                              "SET cantidadVendida = CASE WHEN (cantidadVendida - 1) < 0 THEN 0 ELSE (cantidadVendida - 1) END " +
+                                              "WHERE id = @idTipoEntrada;";
+
+                    var pUpdate = new ParameterList();
+                    pUpdate.Add("@idTipoEntrada", idTipoEntrada);
+                    DB.ExecuteNonQuery(queryUpdateStock, pUpdate);
+                }
 
                 DB.Commit();
                 return ObtenerCarrito(idCliente);
@@ -330,7 +353,11 @@ namespace EventodromoRest.Mappers
 
                     foreach (var item in entradasParaLiberar)
                     {
-                        string queryUpdateStock = "UPDATE TipoEntrada SET cantidadVendida = cantidadVendida - @cantidad WHERE id = @idTipoEntrada;";
+                        // Usamos CASE para evitar números negativos
+                        string queryUpdateStock = "UPDATE TipoEntrada " +
+                                                  "SET cantidadVendida = CASE WHEN (cantidadVendida - @cantidad) < 0 THEN 0 ELSE (cantidadVendida - @cantidad) END " +
+                                                  "WHERE id = @idTipoEntrada;";
+
                         var pUpdate = new ParameterList();
                         pUpdate.Add("@cantidad", item.cantidad);
                         pUpdate.Add("@idTipoEntrada", item.idTipoEntrada);
@@ -344,6 +371,63 @@ namespace EventodromoRest.Mappers
                 }
 
                 DB.Commit();
+            }
+            catch (Exception)
+            {
+                DB.Rollback();
+                throw;
+            }
+        }
+
+
+        /// <summary>
+        /// Elimina todas las entradas de un tipo específico (tier) del carrito
+        /// y devuelve el stock.
+        /// </summary>
+        /// <returns>La lista actualizada de items del carrito.</returns>
+        public List<ObtenerCarritoDTO> EliminarTipoEntradaDelCarrito(int idCliente, int idTipoEntrada)
+        {
+            DB.BeginTransaction();
+            try
+            {
+                string queryCarrito = "SELECT id FROM Carrito WHERE idCliente = @idCliente AND fechaExpiracion > UTC_TIMESTAMP() LIMIT 1";
+                var pCarrito = new ParameterList();
+                pCarrito.Add("@idCliente", idCliente);
+                object carritoIdObj = DB.ExecuteScalar(queryCarrito, pCarrito);
+
+                if (carritoIdObj == null || carritoIdObj == DBNull.Value)
+                {
+                    DB.Commit();
+                    return new List<ObtenerCarritoDTO>();
+                }
+
+                int idCarrito = Convert.ToInt32(carritoIdObj);
+
+                string queryCount = "SELECT COUNT(id) FROM Entrada WHERE idCarrito = @idCarrito AND idTipoEntrada = @idTipoEntrada";
+                var pParams = new ParameterList();
+                pParams.Add("@idCarrito", idCarrito);
+                pParams.Add("@idTipoEntrada", idTipoEntrada);
+
+                int cantidadAEliminar = Convert.ToInt32(DB.ExecuteScalar(queryCount, pParams));
+
+                if (cantidadAEliminar > 0)
+                {
+                    string queryDelete = "DELETE FROM Entrada WHERE idCarrito = @idCarrito AND idTipoEntrada = @idTipoEntrada";
+                    DB.ExecuteNonQuery(queryDelete, pParams);
+
+                    // Usamos CASE para evitar números negativos
+                    string queryUpdateStock = "UPDATE TipoEntrada " +
+                                              "SET cantidadVendida = CASE WHEN (cantidadVendida - @cantidad) < 0 THEN 0 ELSE (cantidadVendida - @cantidad) END " +
+                                              "WHERE id = @idTipoEntrada;";
+
+                    var pUpdate = new ParameterList();
+                    pUpdate.Add("@cantidad", cantidadAEliminar);
+                    pUpdate.Add("@idTipoEntrada", idTipoEntrada);
+                    DB.ExecuteNonQuery(queryUpdateStock, pUpdate);
+                }
+
+                DB.Commit();
+                return ObtenerCarrito(idCliente);
             }
             catch (Exception)
             {

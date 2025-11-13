@@ -23,6 +23,7 @@ export default function ModalCarritoController({ isOpen, onClose }) {
     syncingItemIds,
     removeEntryFromCart,
     incrementEntryInCart,
+    removeTierFromCart,
     //clearCart,
     //expirationTime,
   } = useCart();
@@ -131,28 +132,7 @@ export default function ModalCarritoController({ isOpen, onClose }) {
       return;
     }
 
-    const iterableIds = row.entryIds?.length
-      ? row.entryIds
-      : Array.from({ length: row.quantity }, () => null);
-
-    let manageLoading = true;
-
-    for (const entradaId of iterableIds) {
-      const success = await removeEntryFromCart(
-        {
-          cartItemId: row.cartItemId,
-          entradaId,
-          tipoEntradaId: row.tipoEntradaId,
-        },
-        { manageLoading },
-      );
-
-      if (!success) {
-        break;
-      }
-
-      manageLoading = false;
-    }
+    await removeTierFromCart(row.cartItemId, row.tipoEntradaId);
   };
   
 

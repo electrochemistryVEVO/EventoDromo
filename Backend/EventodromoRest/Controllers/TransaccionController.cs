@@ -1,6 +1,7 @@
 ﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -13,6 +14,7 @@ namespace EventodromoRest.Controllers
 
         [HttpGet]
         [Route("/api/[controller]/[action]")]
+        [Authorize]
         public GenericResponse<List<Transaccion>> ListarTransacciones()
         {
             try
@@ -61,6 +63,38 @@ namespace EventodromoRest.Controllers
                 AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
                 return response;
             }
+        }
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<ResponseProcesarPago> ProcesarPagoTarjeta([FromBody] RequestProcesarPago request)
+        {
+            try
+            {
+                ValidarBody(request);
+                var idCliente = GetIdClienteFromToken(); // Helper para obtener el ID del JWT
+
+                // Llamamos al Business Object (BO) que crearemos en el siguiente paso
+                return new TransaccionBO(globales, BD).ProcesarPagoTarjeta(idCliente, request);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<ResponseProcesarPago> { Success = false, Error = e.Message };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+        // --- 6. (Opcional) AÑADE ESTE HELPER DENTRO DE LA CLASE ---
+        // (Para no repetir código y obtener el ID del cliente)
+        private int GetIdClienteFromToken()
+        {
+            var userIdString = User.FindFirst("idCliente")?.Value;
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idCliente))
+            {
+                throw new Exception("ID de cliente inválido en el token.");
+            }
+            return idCliente;
         }
     }
 }

@@ -141,6 +141,7 @@ const EventPageController = () => {
           cantidad: bookingDetails.ticketQuantities[tierId],
           precioUnitario: tipoEntrada.precio,
           puntosUnitarios: tipoEntrada.puntos,
+          limiteCompra: tipoEntrada.limiteCompra,
         };
       })
       .filter(Boolean);

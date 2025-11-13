@@ -3,9 +3,12 @@ export const groupCartEntriesByTier = (cartItems = []) => {
   const usedRowIds = new Set();
 
   cartItems.forEach((item, itemIndex) => {
-    if (!item) return;
+    if (!item || !item.cartItemId){
+      console.warn("Item de carrito inválido o sin cartItemId, omitiendo:", item);
+      return;
+    }
 
-    const cartItemId = item.cartItemId ?? item.id ?? `item-${itemIndex}`;
+    const cartItemId = item.cartItemId;
     const eventName = item?.eventoInfo?.nombre || "Evento no disponible";
     const imageUrl = item?.eventoInfo?.imagenUrl || "/images/placeholder.png";
     const fecha = item?.funcionInfo?.fecha || "Fecha no disponible";
@@ -55,10 +58,15 @@ export const groupCartEntriesByTier = (cartItems = []) => {
           fecha,
           hora,
           entryRecords: [],
+          limiteCompra: Number(entrada.limiteCompra ?? 0),
         });
       }
 
       const group = groupedByTier.get(tierKey);
+      
+      if (Number(entrada.limiteCompra ?? 0) > group.limiteCompra) {
+          group.limiteCompra = Number(entrada.limiteCompra ?? 0);
+      }
 
       const cantidad = Math.max(
         1,
@@ -97,7 +105,8 @@ export const groupCartEntriesByTier = (cartItems = []) => {
           // ID único para operaciones individuales
           uniqueEntryId: entradaId 
             ? `${entradaId}-${i}`
-            : `${cartItemId}-${tipoEntradaId}-${i}`
+            : `${cartItemId}-${tipoEntradaId}-${i}`,
+          limiteCompra: Number(entrada.limiteCompra ?? 0),
         });
       }
     });
@@ -130,7 +139,8 @@ export const groupCartEntriesByTier = (cartItems = []) => {
       eventName: g.eventName,
       tierName: g.tierName,
       quantity: g.quantity,
-      totalPrice: g.totalPrice
+      totalPrice: g.totalPrice,
+      limiteCompra: g.limiteCompra,
     }))
   });
 

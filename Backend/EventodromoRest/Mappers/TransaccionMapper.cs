@@ -294,5 +294,161 @@ namespace EventodromoRest.Mappers
             return tipoEntradaMapper.ObtenerTipoEntradaPorId(id);
         }
 
+        public ResponseProcesarPago CrearTransaccionTarjeta(int idCliente, RequestProcesarPago request)
+        {
+            DB.BeginTransaction();
+            try
+            {
+                // --- 1. Obtener Carrito Activo ---
+                var carrito = ObtenerCarritoActivoPorCliente(idCliente);
+                if (carrito == null) throw new Exception("Tu carrito está vacío o ha expirado.");
+
+                // --- 2. Obtener Entradas y Precios (Cálculo Server-Side) ---
+                var entradasConPrecio = ObtenerEntradasConPrecio(carrito.id);
+                if (!entradasConPrecio.Any()) throw new Exception("No se encontraron entradas válidas en tu carrito.");
+
+                decimal montoTotalCalculado = entradasConPrecio.Sum(e => e.Precio);
+                int puntosTotalesGanados = entradasConPrecio.Sum(e => e.Puntos);
+
+                // --- 3. Insertar Tarjeta (solo los últimos 4 dígitos) ---
+                string numeroTarjeta = request.DatosTarjeta.Numero.Replace(" ", "");
+                string ultimos4Digitos = numeroTarjeta.Length > 4
+                    ? numeroTarjeta.Substring(numeroTarjeta.Length - 4)
+                    : numeroTarjeta;
+
+                string queryTarjeta = "INSERT INTO Tarjeta (numero) VALUES (@ultimos4); SELECT LAST_INSERT_ID();";
+                var pTarjeta = new ParameterList();
+                pTarjeta.Add("@ultimos4", ultimos4Digitos);
+                int idTarjeta = Convert.ToInt32(DB.ExecuteScalar(queryTarjeta, pTarjeta));
+
+                // --- 4. Insertar Transacción Principal ---
+                string numeroDeTransaccion = Guid.NewGuid().ToString("N");
+                string queryTrans = "INSERT INTO Transaccion (idCarrito, fechaHoraCompra, numeroTransaccion, nombresCliente, apellidosCliente, emailCliente, numeroDocumentoCliente, idTipoDocumento, montoTotal, idCliente) " +
+                                    "VALUES (@idCarrito, UTC_TIMESTAMP(), @numTrans, @nombres, @apellidos, @email, @numDoc, @idTipoDoc, @monto, @idCliente); SELECT LAST_INSERT_ID();";
+                var pTrans = new ParameterList();
+                pTrans.Add("@idCarrito", carrito.id);
+                pTrans.Add("@numTrans", numeroDeTransaccion);
+                pTrans.Add("@nombres", request.DatosFacturacion.Nombres);
+                pTrans.Add("@apellidos", request.DatosFacturacion.Apellidos);
+                pTrans.Add("@email", request.DatosFacturacion.Email);
+                pTrans.Add("@numDoc", request.DatosFacturacion.NumeroDocumento);
+                pTrans.Add("@idTipoDoc", request.DatosFacturacion.IdTipoDocumento);
+                pTrans.Add("@monto", montoTotalCalculado);
+                pTrans.Add("@idCliente", idCliente);
+
+                int idTransaccion = Convert.ToInt32(DB.ExecuteScalar(queryTrans, pTrans));
+
+                // --- 5. Vincular Tarjeta y Transacción ---
+                string queryLinkTarj = "INSERT INTO TransaccionTarjeta (idTransaccion, idTarjeta) VALUES (@idTrans, @idTarj);";
+                var pLinkTarj = new ParameterList();
+                pLinkTarj.Add("@idTrans", idTransaccion);
+                pLinkTarj.Add("@idTarj", idTarjeta);
+                DB.ExecuteNonQuery(queryLinkTarj, pLinkTarj);
+
+                // --- 6. Vincular cada Entrada (LineaTransaccion) ---
+                foreach (var entrada in entradasConPrecio)
+                {
+                    string queryLinea = "INSERT INTO LineaTransaccion (idTransaccion, idEntrada, precio, puntosGanados) VALUES (@idTrans, @idEntrada, @precio, @puntos);";
+                    var pLinea = new ParameterList();
+                    pLinea.Add("@idTrans", idTransaccion);
+                    pLinea.Add("@idEntrada", entrada.IdEntrada);
+                    pLinea.Add("@precio", entrada.Precio);
+                    pLinea.Add("@puntos", entrada.Puntos);
+                    DB.ExecuteNonQuery(queryLinea, pLinea);
+                }
+
+                // --- 7. Registrar Puntos Ganados (si hay) ---
+                if (puntosTotalesGanados > 0)
+                {
+                    string queryPuntos = "INSERT INTO Punto (cantidad, fechaHoraRegistro, idCliente, fechaExpiracion) VALUES (@cant, UTC_TIMESTAMP(), @idCli, UTC_TIMESTAMP() + INTERVAL 1 YEAR);";
+                    var pPuntos = new ParameterList();
+                    pPuntos.Add("@cant", puntosTotalesGanados);
+                    pPuntos.Add("@idCli", idCliente);
+                    DB.ExecuteNonQuery(queryPuntos, pPuntos);
+                }
+
+                // --- 8. Registrar en Auditoría (Asumo ID 1 = "Compra") ---
+                string queryAudit = "INSERT INTO Auditoria (idCliente, idTipoAuditoria, descripcion, fechaHora, monto) VALUES (@idCli, 1, 'Compra de entradas', UTC_TIMESTAMP(), @monto);";
+                var pAudit = new ParameterList();
+                pAudit.Add("@idCli", idCliente);
+                pAudit.Add("@monto", montoTotalCalculado);
+                DB.ExecuteNonQuery(queryAudit, pAudit);
+
+                // --- 9. "CERRAR" EL CARRITO (¡CORREGIDO!) ---
+                // No borramos el carrito, solo actualizamos su expiración
+                // para que ya no aparezca como "activo".
+                string queryCerrarCarrito = "UPDATE Carrito SET fechaExpiracion = UTC_TIMESTAMP() WHERE id = @idCarrito";
+                var pCarritoId = new ParameterList();
+                pCarritoId.Add("@idCarrito", carrito.id);
+                DB.ExecuteNonQuery(queryCerrarCarrito, pCarritoId);
+                // ¡Ya no borramos las entradas!
+
+                // --- 10. ¡Confirmar Transacción! ---
+                DB.Commit();
+
+                // --- 11. Retornar Respuesta Exitosa ---
+                return new ResponseProcesarPago
+                {
+                    IdTransaccion = idTransaccion,
+                    NumeroTransaccion = numeroDeTransaccion,
+                    FechaCompra = DateTime.UtcNow,
+                    MontoTotal = montoTotalCalculado
+                };
+            }
+            catch (Exception)
+            {
+                DB.Rollback(); // Si algo falla, deshacemos todo
+                throw;
+            }
+        }
+
+        private Carrito ObtenerCarritoActivoPorCliente(int idCliente)
+        {
+            // Busca un carrito que no haya expirado
+            string query = "SELECT * FROM Carrito WHERE idCliente = @idCli AND fechaExpiracion > UTC_TIMESTAMP() LIMIT 1";
+            var p = new ParameterList();
+            p.Add("@idCli", idCliente);
+            DB.Select(query, p);
+            try
+            {
+                if (DB.Read())
+                {
+                    return new Carrito
+                    {
+                        id = DB.GetInt("id"),
+                        idCliente = DB.GetInt("idCliente"),
+                        fechaExpiracion = DB.GetDateTime("fechaExpiracion")
+                    };
+                }
+            }
+            finally { DB.CloseReader(); }
+            return null; // No hay carrito activo
+        }
+
+        private List<PrecioEntradaDTO> ObtenerEntradasConPrecio(int idCarrito)
+        {
+            var lista = new List<PrecioEntradaDTO>();
+            // Consulta optimizada: Trae solo los datos necesarios
+            string query = "SELECT e.id, te.precio, te.puntos FROM Entrada e " +
+                           "JOIN TipoEntrada te ON e.idTipoEntrada = te.id " +
+                           "WHERE e.idCarrito = @idCarrito";
+            var p = new ParameterList();
+            p.Add("@idCarrito", idCarrito);
+            DB.Select(query, p);
+            try
+            {
+                while (DB.Read())
+                {
+                    lista.Add(new PrecioEntradaDTO
+                    {
+                        IdEntrada = DB.GetInt("id"),
+                        Precio = DB.GetDecimal("precio"),
+                        Puntos = DB.GetInt("puntos")
+                    });
+                }
+            }
+            finally { DB.CloseReader(); }
+            return lista;
+        }
     }
 }
