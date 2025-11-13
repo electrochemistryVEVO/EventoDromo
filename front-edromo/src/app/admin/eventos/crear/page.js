@@ -8,6 +8,7 @@ import { useEventCreator } from "./controller"; // Ajusta la ruta si es necesari
 import { EventInfoForm } from "@/components/crear-evento/EventInfoForm.jsx";
 import { EventDatesForm } from "@/components/crear-evento/EventDatesForm.jsx";
 import { EventTicketsForm } from "@/components/crear-evento/EventTicketsForm.jsx";
+import { EventDiscountsForm } from "@/components/crear-evento/EventDiscountsForm.jsx";
 
 const CrearEventoPage = () => {
   const router = useRouter();
@@ -33,6 +34,10 @@ const CrearEventoPage = () => {
     handleImageChange, // Obtener la nueva función del controlador
     handleSubmit,
     minDateTime, // Obtener la nueva prop del controlador
+    descuentos,
+    addDescuento,
+    removeDescuento,
+    handleDescuentoChange,
   } = useEventCreator();
 
   // Opcional: Redirigir al usuario tras una creación exitosa.
@@ -98,6 +103,15 @@ const CrearEventoPage = () => {
             removeTipoEntrada={removeTipoEntrada}
             handleTipoEntradaChange={handleTipoEntradaChange}
             aforoRestante={aforoRestante}
+            descuentosAsociados={descuentos}
+          />
+          {/* --- Componente 4: Descuentos del Evento --- */}
+          <EventDiscountsForm
+            descuentos={descuentos}
+            tiposEntrada={tiposEntrada} // Pasar los tipos de entrada para el select
+            addDescuento={addDescuento}
+            removeDescuento={removeDescuento}
+            handleDescuentoChange={handleDescuentoChange}
           />
 
           {/* --- Acciones Finales y Mensajes de Error --- */}

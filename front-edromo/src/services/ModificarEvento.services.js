@@ -56,6 +56,19 @@ export const getEventById = async (eventId) => {
         puntos: 3,
       },
     ],
+    descuentos: [
+      {
+        id: 51,
+        nombre: "Preventa Fans",
+        codigo: "FANCLUB20",
+        tipo: "Porcentaje",
+        valor: 20,
+        fechaInicio: "2025-10-30T12:00",
+        fechaFin: "2025-11-05T23:59",
+        usosMaximos: 50,
+        tipoEntradaId: 102, // Vinculado a VIP
+      },
+    ],
   };
 
   console.log("Simulated event data fetched:", mockEventData);
@@ -104,6 +117,21 @@ export const updateEvent = async (eventId, eventData) => {
       limiteCompra: parseInt(t.limiteCompra, 10),
       puntos: parseInt(t.puntos, 10),
     })),
+    descuentos: eventData.descuentos.map((d) => ({
+      id: d.id,
+      nombre: d.nombre,
+      codigo: d.codigo,
+      tipo: d.tipo,
+      valor: parseFloat(d.valor),
+      fechaInicio: d.fechaInicio,
+      fechaFin: d.fechaFin,
+      usosMaximos: parseInt(d.usosMaximos, 10),
+      tipoEntradaId: parseInt(d.tipoEntradaId, 10),
+    })),
+    // --- NUEVOS ARRAYS DE IDs ELIMINADOS ---
+    deletedFechasIds: eventData.deletedFechasIds,
+    deletedTiposEntradaIds: eventData.deletedTiposEntradaIds,
+    deletedDescuentosIds: eventData.deletedDescuentosIds,
   };
 
   console.log(
@@ -207,5 +235,116 @@ export const updateEvent = async (eventId, eventData) => {
     console.error("Error crítico en el servicio updateEvent:", error);
     throw error;
   }
+};
+*/
+
+/**
+ * Realiza una llamada a la API para obtener los detalles completos de un evento por su ID.
+ * @param {string|number} eventId - El ID del evento.
+ * @returns {Promise<object>} Los datos completos del evento, incluyendo descuentos.
+ */
+/*
+export const getEventById = async (eventId) => {
+  const token = getAuthToken();
+  if (!token) throw new Error("Token de autenticación no encontrado.");
+
+  const response = await fetch(`${BASE_API_URL}/Evento/GetEvento/${eventId}`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const errorData = await response
+      .json()
+      .catch(() => ({ message: `Error del servidor: ${response.status}` }));
+    throw new Error(
+      errorData.message || "Error al obtener los detalles del evento."
+    );
+  }
+
+  const apiResponse = await response.json();
+  if (apiResponse && apiResponse.success) {
+    // Asumimos que la respuesta ahora incluye un array 'descuentos'
+    return apiResponse.data || {};
+  } else {
+    throw new Error(
+      apiResponse.message || "La respuesta del API no fue exitosa."
+    );
+  }
+};
+*/
+
+/**
+ * Envía los datos actualizados de un evento al backend, incluyendo la gestión de descuentos.
+ * @param {string|number} eventId - El ID del evento a actualizar.
+ * @param {object} eventData - Los datos completos del formulario.
+ * @returns {Promise<object>} La respuesta del backend.
+ */
+/*
+export const updateEvent = async (eventId, eventData) => {
+  const token = getAuthToken();
+  if (!token) throw new Error("Token de autenticación no encontrado.");
+
+  // --- El payload ahora incluye los descuentos y los IDs a eliminar ---
+  const payload = {
+    nombre: eventData.nombre,
+    descripcion: eventData.descripcion,
+    localId: parseInt(eventData.localId, 10),
+    tipoEventoId: parseInt(eventData.tipoEventoId, 10),
+    capacidad: parseInt(eventData.capacidad, 10),
+    fechaPublicacion: eventData.fechaPublicacion,
+    fechaCompra: eventData.fechaCompra,
+    imagenURL: eventData.imagenURL,
+    horarios: eventData.fechas.map((f) => ({
+      id: f.id,
+      fecha: f.fecha,
+      hora: f.hora,
+    })),
+    entradas: eventData.tiposEntrada.map((t) => ({
+      id: t.id,
+      nombre: t.nombre,
+      precio: parseFloat(t.precio),
+      cantidad: parseInt(t.cantidad, 10),
+      limiteCompra: parseInt(t.limiteCompra, 10),
+      puntos: parseInt(t.puntos, 10),
+    })),
+    descuentos: eventData.descuentos.map((d) => ({
+      id: d.id,
+      nombre: d.nombre,
+      codigo: d.codigo,
+      tipo: d.tipo,
+      valor: parseFloat(d.valor),
+      fechaInicio: d.fechaInicio,
+      fechaFin: d.fechaFin,
+      usosMaximos: parseInt(d.usosMaximos, 10),
+      tipoEntradaId: parseInt(d.tipoEntradaId, 10),
+    })),
+    deletedFechasIds: eventData.deletedFechasIds,
+    deletedTiposEntradaIds: eventData.deletedTiposEntradaIds,
+    deletedDescuentosIds: eventData.deletedDescuentosIds,
+  };
+
+  const response = await fetch(
+    `${BASE_API_URL}/Evento/ActualizarEvento/${eventId}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response
+      .json()
+      .catch(() => ({ message: `Error del servidor: ${response.status}` }));
+    throw new Error(
+      errorData.message || "Ocurrió un error al actualizar el evento."
+    );
+  }
+
+  return await response.json();
 };
 */

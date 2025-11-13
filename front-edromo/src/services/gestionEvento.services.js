@@ -257,11 +257,11 @@ export const createEvent = async (eventData) => {
     nombre: eventData.nombre,
     descripcion: eventData.descripcion,
     localId: parseInt(eventData.localId, 10),
-    tipoEventoId: parseInt(eventData.tipoEventoId, 10), // Corregido de eventInfo a eventData
+    tipoEventoId: parseInt(eventData.tipoEventoId, 10),
     capacidad: parseInt(eventData.capacidad, 10),
     fechaPublicacion: eventData.fechaPublicacion,
     fechaCompra: eventData.fechaCompra,
-    imagenURL: eventData.imagenURL, // <-- El cambio principal: ahora es una URL.
+    imagenURL: eventData.imagenURL,
     horarios: eventData.fechas.map((f) => `${f.fecha}T${f.hora}`),
     entradas: eventData.tiposEntrada.map((t) => ({
       nombre: t.nombre,
@@ -269,6 +269,16 @@ export const createEvent = async (eventData) => {
       cantidad: parseInt(t.cantidad, 10),
       limiteCompra: parseInt(t.limiteCompra, 10),
       puntos: parseInt(t.puntos, 10),
+    })),
+    descuentos: eventData.descuentos.map((d) => ({
+      nombre: d.nombre,
+      codigo: d.codigo,
+      tipo: d.tipo, // 'Porcentaje' o 'Fijo'
+      valor: parseFloat(d.valor),
+      fechaInicio: d.fechaInicio,
+      fechaFin: d.fechaFin,
+      usosMaximos: parseInt(d.usosMaximos, 10),
+      tipoEntradaId: parseInt(d.tipoEntradaId, 10), // El ID del tipo de entrada vinculado
     })),
   };
 

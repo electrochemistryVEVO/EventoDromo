@@ -33,6 +33,7 @@ export const useEventViewer = (eventId) => {
   const [eventInfo, setEventInfo] = useState(initialEventInfo);
   const [fechas, setFechas] = useState([]);
   const [tiposEntrada, setTiposEntrada] = useState([]);
+  const [descuentos, setDescuentos] = useState([]);
   const [locales, setLocales] = useState([]);
   const [eventTypes, setEventTypes] = useState([]);
 
@@ -72,6 +73,7 @@ export const useEventViewer = (eventId) => {
 
         setFechas(eventData.horarios);
         setTiposEntrada(eventData.entradas);
+        setDescuentos(eventData.descuentos || []);
         setLocales(localesData);
         setEventTypes(eventTypesData);
       } catch (err) {
@@ -95,5 +97,6 @@ export const useEventViewer = (eventId) => {
     eventTypes,
     isLoading,
     error,
+    descuentos,
   };
 };

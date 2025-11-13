@@ -10,6 +10,7 @@ import { useEventViewer } from "../controller"; // Asegúrate de que la ruta sea
 import { EventInfoForm } from "@/components/crear-evento/EventInfoForm.jsx";
 import { EventDatesForm } from "@/components/crear-evento/EventDatesForm.jsx";
 import { EventTicketsForm } from "@/components/crear-evento/EventTicketsForm.jsx";
+import { EventDiscountsForm } from "@/components/crear-evento/EventDiscountsForm.jsx";
 
 // Componente de carga (puedes reutilizar el mismo que en la página de edición)
 const LoadingSpinner = () => (
@@ -31,6 +32,7 @@ const VerEventoPage = () => {
     fechas,
     tiposEntrada,
     locales,
+    descuentos,
     eventTypes,
     isLoading,
     error,
@@ -120,6 +122,14 @@ const VerEventoPage = () => {
           <EventDatesForm fechas={fechas} isReadOnly={true} />
 
           <EventTicketsForm tiposEntrada={tiposEntrada} isReadOnly={true} />
+
+          {descuentos && descuentos.length > 0 && (
+            <EventDiscountsForm
+              descuentos={descuentos}
+              tiposEntrada={tiposEntrada} // Lo pasamos para que el <select> muestre el nombre correcto
+              isReadOnly={true}
+            />
+          )}
         </fieldset>
       </div>
     </div>
