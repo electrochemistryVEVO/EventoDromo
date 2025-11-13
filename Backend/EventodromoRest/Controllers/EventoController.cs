@@ -216,5 +216,34 @@ namespace EventodromoRest.Controllers
                 };
             }
         }
+
+        [HttpGet]
+        [Route("/api/[controller]/[action]")]
+
+        public GenericResponse<EventoDetalleDTO> EventoObtenerDatos(int id)
+        {
+            try
+            {
+                // 1. Llama al negocio
+                var eventoBO = new EventoBO(globales, BD);
+                var response = eventoBO.ObtenerDetalleEvento(id);
+
+                // 2. Devuelve la respuesta del negocio (sea éxito o error)
+                return response;
+            }
+            catch (Exception e)
+            {
+                // 3. Manejo de excepción (tu patrón de bitácora)
+                var response = new GenericResponse<EventoDetalleDTO>
+                {
+                    Success = false,
+                    Message = "Error fatal en el controlador.",
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, $"id: {id}", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
     }
 }

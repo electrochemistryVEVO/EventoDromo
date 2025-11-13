@@ -135,4 +135,37 @@
         public int limiteCompra { get; set; }
         public int puntos { get; set; }
     }
+
+    public class EventoDetalleDTO
+    {
+        public string Nombre { get; set; }
+        public string Descripcion { get; set; }
+        public string ImagenURL { get; set; }
+        public int LocalId { get; set; }
+        public int TipoEventoId { get; set; }
+        public int Capacidad { get; set; } // Viene de la tabla Local
+        public string FechaPublicacion { get; set; } // Formato ISO 8601
+        public string FechaCompra { get; set; }    // Formato ISO 8601
+        public List<EventoDatosHorarioDTO> Horarios { get; set; }
+        public List<EventoDatosEntradaDTO> Entradas { get; set; }
+    }
+
+    
+    public class EventoDatosHorarioDTO
+    {
+        public int Id { get; set; }
+        public string Fecha { get; set; } 
+        public string Hora { get; set; }  
+    }
+
+    
+    public class EventoDatosEntradaDTO
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; }
+        public decimal Precio { get; set; }
+        public int Cantidad { get; set; } 
+        public int LimiteCompra { get; set; }
+        public int Puntos { get; set; }
+    }
 }

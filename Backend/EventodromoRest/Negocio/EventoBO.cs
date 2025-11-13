@@ -161,5 +161,71 @@ namespace EventodromoRest.Negocio
             return idEvento;
         }
 
+        public GenericResponse<EventoDetalleDTO> ObtenerDetalleEvento(int idEvento)
+        {
+            try
+            {
+                // --- 1. Instanciar Mappers ---
+                var eventoMapper = new EventoMapper(globales, DB);
+                var fechaEventoMapper = new FechaEventoMapper(globales, DB);
+                var tipoEntradaMapper = new TipoEntradaMapper(globales, DB);
+
+                // --- 2. Obtener datos principales ---
+                // Tu EventoMapper.ObtenerEventoPorId ya carga el Local (necesario para la capacidad)
+                Evento evento = eventoMapper.ObtenerEventoPorId(idEvento);
+
+                if (evento == null)
+                {
+                    return new GenericResponse<EventoDetalleDTO> { Success = false, Message = "No se encontró el evento con el ID " + idEvento, Error = "Not Found" };
+                }
+
+                // --- 3. Obtener listas relacionadas (Horarios y Entradas) ---
+                List<FechaEvento> horariosDB = fechaEventoMapper.ListarHorariosPorEvento(idEvento);
+                List<TipoEntrada> entradasDB = tipoEntradaMapper.ListarEntradasPorEvento(idEvento);
+
+                // --- 4. Transformar (Mapear) a los DTOs ---
+                var dto = new EventoDetalleDTO
+                {
+                    Nombre = evento.nombre,
+                    Descripcion = evento.descripcion,
+                    ImagenURL = evento.imagenURL,
+                    LocalId = evento.idLocal,
+                    TipoEventoId = evento.idTipoEvento,
+                    Capacidad = evento.Local?.capacidad ?? 0, 
+
+                    // Formato ISO 8601 "YYYY-MM-DDTHH:mm" (la 's' es "sortable")
+                    FechaPublicacion = evento.fechaPublicacion.ToString("s"),
+                    FechaCompra = evento.fechaCompra.ToString("s"),
+
+                    // Mapear la lista de horarios
+                    Horarios = horariosDB.Select(h => new EventoDatosHorarioDTO
+                    {
+                        Id = h.id??0,
+                        Fecha = h.fechaHora.HasValue ? h.fechaHora.Value.ToString("yyyy-MM-dd") : "", // Formato YYYY-MM-DD
+                        Hora = h.fechaHora.HasValue ? h.fechaHora.Value.ToString("HH:mm") : ""      // Formato HH:mm
+                    }).ToList(),
+
+                    // Mapear la lista de entradas
+                    Entradas = entradasDB.Select(e => new EventoDatosEntradaDTO
+                    {
+                        Id = e.id,
+                        Nombre = e.nombre,
+                        Precio = e.precio,
+                        Cantidad = e.cantidadEntradas??0, // Renombrado
+                        LimiteCompra = e.limiteCompra ?? 0,
+                        Puntos = e.puntos ?? 0
+                    }).ToList()
+                };
+
+                // --- 5. Retornar éxito ---
+                return new GenericResponse<EventoDetalleDTO> { Success = true, Message = "Evento obtenido", Data = dto };
+            }
+            catch (Exception ex)
+            {
+                // En caso de un error de SQL o lógica
+                return new GenericResponse<EventoDetalleDTO> { Success = false, Message = "Error interno al obtener el evento.", Error = ex.Message };
+            }
+        }
+
     }
 }
