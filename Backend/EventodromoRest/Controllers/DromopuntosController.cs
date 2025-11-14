@@ -11,6 +11,7 @@ namespace EventodromoRest.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
+    [Authorize]
     public class DromopuntosController(Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
@@ -62,5 +63,33 @@ namespace EventodromoRest.Controllers
             }
             return idCliente.Value;
         }
+
+        [HttpPut]
+        [Route("/api/[controller]/[action]/{nuevoValor:int}")]
+        public GenericResponse<object> ActualizarValorDromoPuntos([FromRoute] int nuevoValor)
+        {
+            try
+            {
+                var userIdString = User.FindFirst("idCliente")?.Value;
+                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idCliente))
+                {
+                    throw new Exception("ID de usuario inválido en el token.");
+                }
+                return new DromopuntosBO(globales, BD).ActualizarValorDromoPuntos(nuevoValor);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<object>
+                {
+                    Success = false,
+                    Message = "El valor del DromoPunto debe ser un número mayor a cero.",
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, null, JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
     }
 }
