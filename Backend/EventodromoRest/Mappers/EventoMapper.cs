@@ -581,5 +581,110 @@ namespace EventodromoRest.Mappers
 
             return resultado;
         }
+
+        public List<Evento> ObtenerEventosFiltrados(
+            string? search,
+            int? localId,
+            string? status,
+            DateTime? startDate,
+            DateTime? endDate,
+            int page,
+            int pageSize,
+            out int totalEventos)
+        {
+            lock (DB)
+            {
+                // Construcción dinámica del WHERE
+                string where = "WHERE 1=1 ";
+                var parametros = new ParameterList();
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    where += "AND E.NOMBRE LIKE CONCAT('%', @SEARCH, '%') ";
+                    parametros.Add("@SEARCH", search);
+                }
+
+                if (localId.HasValue)
+                {
+                    where += "AND E.IDLOCAL = @LOCALID ";
+                    parametros.Add("@LOCALID", localId.Value);
+                }
+
+                if (!string.IsNullOrEmpty(status))
+                {
+                    // ejemplo: status = "activo" o "eliminado"
+                    if (status.ToLower() == "activo")
+                        where += "AND E.ISDELETED = 0 ";
+                    else if (status.ToLower() == "eliminado")
+                        where += "AND E.ISDELETED = 1 ";
+                }
+
+                if (startDate.HasValue)
+                {
+                    where += "AND E.FECHAPUBLICACION >= @STARTDATE ";
+                    parametros.Add("@STARTDATE", startDate.Value);
+                }
+
+                if (endDate.HasValue)
+                {
+                    where += "AND E.FECHAPUBLICACION <= @ENDDATE ";
+                    parametros.Add("@ENDDATE", endDate.Value);
+                }
+
+                // Paginación: calcular OFFSET
+                int offset = (page - 1) * pageSize;
+
+                // Consulta principal
+                string query = $@"
+            SELECT SQL_CALC_FOUND_ROWS
+                E.*
+            FROM Evento E
+            {where}
+            ORDER BY E.FECHAPUBLICACION DESC
+            LIMIT @OFFSET, @PAGESIZE;
+        ";
+
+                parametros.Add("@OFFSET", offset);
+                parametros.Add("@PAGESIZE", pageSize);
+
+                List<Evento> listaEvento = new();
+
+                DB.Select(query, parametros);
+                while (DB.Read())
+                {
+                    var evento = new Evento
+                    {
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        descripcion = DB.GetString("DESCRIPCION"),
+                        idTipoEvento = DB.GetInt("IDTIPOEVENTO"),
+                        idLocal = DB.GetInt("IDLOCAL"),
+                        creadoPor = DB.GetInt("CREADOPOR"),
+                        fechaPublicacion = DB.GetDateTime("FECHAPUBLICACION"),
+                        fechaCompra = DB.GetDateTime("FECHACOMPRA"),
+                        isDeleted = DB.GetBoolean("ISDELETED"),
+                        imagenURL = DB.GetString("IMAGENURL"),
+                    };
+                    listaEvento.Add(evento);
+                }
+                DB.CloseReader();
+
+                // Obtener el total real (sin LIMIT)
+                DB.Select("SELECT FOUND_ROWS() AS Total;", null);
+                totalEventos = DB.Read() ? DB.GetInt("Total") : listaEvento.Count;
+                DB.CloseReader();
+
+                // Cargar los objetos relacionados
+                foreach (var evento in listaEvento)
+                {
+                    evento.TipoEvento = ObtenerTipoEventoPorId(evento.idTipoEvento);
+                    evento.Local = ObtenerLocalPorId(evento.idLocal);
+                }
+
+                return listaEvento;
+            }
+        }
+
+
     }
 }

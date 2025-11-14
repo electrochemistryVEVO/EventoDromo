@@ -9,6 +9,69 @@ namespace EventodromoRest.Negocio
 {
     public class EventoBO(Globales.Globales globales, DBManager.DBManager DB)
     {
+        public ResponseEventoGetEvents? GetEventosFiltrados(
+    string? search,
+    int? localId,
+    string? status,
+    DateTime? startDate,
+    DateTime? endDate,
+    int page,
+    int pageSize)
+        {
+            var mapper = new EventoMapper(globales, DB);
+
+            // 1️⃣ Obtener eventos filtrados desde la BD
+            List<Evento> listaEventos = mapper.ObtenerEventosFiltrados(
+                search,
+                localId,
+                status,
+                startDate,
+                endDate,
+                page,
+                pageSize,
+                out int totalEventos
+            );
+
+            if (listaEventos == null || listaEventos.Count == 0)
+                return null;
+
+            // 2️⃣ Calcular total de páginas
+            int totalPaginas = (int)Math.Ceiling((double)totalEventos / pageSize);
+
+            // 3️⃣ Mapear eventos a DTOs
+            List<ResponseEventoGetEventsEventos> eventosDTO = listaEventos.Select(e => new ResponseEventoGetEventsEventos
+            {
+                Id = e.id,
+                Nombre = e.nombre,
+                Local = e.Local?.nombre ?? "Sin local",
+                Tipo = e.TipoEvento?.nombre ?? "Sin tipo",
+                FechaPublicacion = e.fechaPublicacion,
+                FechaCompra = e.fechaCompra,
+                /*Horario = e.fechaEvento, // si tienes ese campo
+                Ocupacion = new OcupacionDTO
+                {
+                    Actual = e.ocupacionActual,
+                    Total = e.ocupacionTotal
+                },
+                
+                IngresosBrutos = e.ingresosBrutos
+                */
+            }).ToList();
+
+            // 4️⃣ Armar respuesta
+            return new ResponseEventoGetEvents
+            {
+                Data = eventosDTO,
+                Pagination = new Pagination
+                {
+                    CurrentPage = page,
+                    TotalPages = totalPaginas,
+                    TotalEvents = totalEventos
+                }
+            };
+        }
+
+
         public GenericResponse<IEnumerable<Evento>> ListarEventosPorTipo(int tipoEventoId)
         {
             EventoMapper mapper = new EventoMapper(globales, DB);
