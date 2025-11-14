@@ -1,4 +1,3 @@
-'use server'
 // =================================================================================================
 // --- DATOS HARCODEADOS ---
 // Estos datos simulan la respuesta que el backend debería enviar. Útiles para maquetar.
