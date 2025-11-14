@@ -194,6 +194,8 @@
         public List<EventoHorarioDTO> Horarios { get; set; } // ← NUEVO
 
         public decimal IngresosBrutos { get; set; }
+
+        public string Estado { get; set; }
     }
 
 

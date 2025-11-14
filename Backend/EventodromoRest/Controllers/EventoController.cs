@@ -262,6 +262,7 @@ namespace EventodromoRest.Controllers
             try
             {
                 
+                
                 // 1️⃣ Validar token JWT
                 var authHeader = Request.Headers["Authorization"].ToString();
                 if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))

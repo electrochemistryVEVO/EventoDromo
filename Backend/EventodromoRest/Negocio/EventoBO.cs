@@ -1,4 +1,5 @@
 ﻿using EventodromoRest.Controllers;
+using EventodromoRest.Globales;
 using EventodromoRest.Mappers;
 using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
@@ -269,6 +270,7 @@ namespace EventodromoRest.Negocio
             // Agrupar por evento → horarios
             var horariosPorEvento = horarios.GroupBy(h => h.idEvento)
                                             .ToDictionary(g => g.Key, g => g.ToList());
+            DateTime ahora = DateTime.Now;
 
             // 3️⃣ Mapear dto final
             var eventosDTO = listaEventos.Select(e =>
@@ -307,6 +309,31 @@ namespace EventodromoRest.Negocio
                     };
                 }).ToList();
 
+                string estado = "Creado";
+
+                if (e.isDeleted)
+                {
+                    estado = "Cancelado";
+                }
+                else if (horariosDTO.Count > 0 && horariosDTO.All(h => h.Horario < ahora))
+                {
+                    estado = "Concluido";
+                }
+                else if (ahora < e.fechaPublicacion)
+                {
+                    estado = "Creado";
+                }
+                else if (ahora >= e.fechaPublicacion && ahora < e.fechaCompra)
+                {
+                    estado = "Publicado";
+                }
+                else if (ahora >= e.fechaCompra)
+                {
+                    // Si aún hay horarios futuros → "En venta"
+                    bool hayFuturos = horariosDTO.Any(h => h.Horario >= ahora);
+                    estado = hayFuturos ? "En venta" : "Concluido";
+                }
+
                 return new ResponseEventoGetEventsEventos
                 {
                     Id = e.id,
@@ -316,6 +343,7 @@ namespace EventodromoRest.Negocio
                     FechaPublicacion = e.fechaPublicacion,
                     FechaCompra = e.fechaCompra,
                     Horarios = horariosDTO,
+                    Estado = estado,
                     IngresosBrutos = ingresosBrutosEvento
                 };
 
