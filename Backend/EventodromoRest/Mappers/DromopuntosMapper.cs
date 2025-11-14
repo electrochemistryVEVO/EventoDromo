@@ -122,5 +122,16 @@ namespace EventodromoRest.Mappers
             }
             return resumen;
         }
+
+        public int ActualizarValorDromoPuntos(int nuevoValor)
+        {
+            lock (DB)
+            {
+                string query = "UPDATE configuracion SET puntos_por_sol = @nuevoValor where id = 1";
+                var parametros = new ParameterList();
+                parametros.Add("@nuevoValor", nuevoValor);
+                return DB.ExecuteNonQuery(query, parametros);
+            }
+        }
     }
 }

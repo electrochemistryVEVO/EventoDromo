@@ -48,5 +48,27 @@ namespace EventodromoRest.Negocio
                 Error = null
             };
         }
+
+        public GenericResponse<object> ActualizarValorDromoPuntos(int nuevoValor)
+        {
+            var dromopuntosMapper = new DromopuntosMapper(_globales, _DB);
+            int filasAfectadas = dromopuntosMapper.ActualizarValorDromoPuntos(nuevoValor);
+            int valorActualizado = 0;
+            if (filasAfectadas > 0)
+            {
+                valorActualizado = nuevoValor;
+            }
+            else
+            {
+                valorActualizado = -1;
+            }
+            return new GenericResponse<object>
+            {
+                Success = true,
+                Message = "Configuración de DromoPuntos actualizada exitosamente.",
+                Data = new { valorEnSoles = valorActualizado },
+                Error = null
+            };
+        }
     }
 }
