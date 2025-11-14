@@ -32,7 +32,7 @@ export const getLocales = async () => {
   }
 
   const response = await fetch(`${BASE_API_URL}/Local/GetLocales`, {
-    method: "GET",{
+    method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
