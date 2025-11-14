@@ -71,8 +71,16 @@ export const useEventManager = () => {
         ...filters,
         page: pagination.currentPage,
       });
-      setEvents(response.data);
-      setPagination(response.pagination);
+      console.log("Respuesta RECIBIDA del servicio:", response);
+      // Accede a los datos y la paginación desde el objeto anidado "response.data"
+      if (response && response.data) {
+        setEvents(response.data.data); // Antes era response.data
+        setPagination(response.data.pagination); // Antes era response.pagination
+      } else {
+        // Maneja el caso de una respuesta inesperada para evitar errores
+        setEvents([]);
+        console.error("La respuesta del API no tiene el formato esperado.");
+      }
     } catch (err) {
       console.error("Error fetching events:", err);
       setError("No se pudieron cargar los eventos.");

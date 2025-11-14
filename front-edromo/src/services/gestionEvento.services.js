@@ -1,18 +1,16 @@
 const BASE_API_URL = "http://localhost:5189/api";
 /**
- * Obtiene el token de autenticación almacenado.
+ * Obtiene el token de autenticación almacenado del UserContext.
  * @returns {string|null} - El token JWT o null si no existe.
  */
-const getAuthToken = () => {
+export const getAuthToken = () => {
   try {
     // 1. Lee la clave "user" de localStorage (donde UserContext la guarda)
     const userJSON = localStorage.getItem("user");
 
     if (!userJSON) {
       return null;
-    }
-
-    // 2. Parsea el objeto y devuelve la propiedad "token"
+    } // 2. Parsea el objeto y devuelve la propiedad "token"
     const userData = JSON.parse(userJSON);
     return userData?.token || null;
   } catch (error) {
@@ -20,6 +18,18 @@ const getAuthToken = () => {
     return null;
   }
 };
+
+/* Antes...
+export const getAuthToken = () => {
+  const sessionJSON = sessionStorage.getItem("session");
+  let userToken = null;
+  if (sessionJSON) {
+    const sessionData = JSON.parse(sessionJSON);
+    userToken = sessionData.token;
+  }
+  return userToken;
+};
+*/
 
 /**
  * Realiza una llamada a la API para obtener la lista completa de locales.
@@ -190,21 +200,15 @@ export const getEvents = async (filters = {}) => {
     throw new Error("No se encontró el token de autenticación.");
   }
 
-  // 1. Preparamos los parámetros para la URL, omitiendo los que no se deben enviar.
+  // 1. Preparamos los parámetros para la URL
   const queryParams = { ...filters };
-  if (queryParams.local === 0) {
-    delete queryParams.local; // El backend no espera localId=0
-  }
-  if (queryParams.status === "Todos") {
-    delete queryParams.status;
-  }
-  // Renombramos 'local' a 'localId' para que coincida con la especificación del backend.
+  if (queryParams.local === 0) delete queryParams.local;
+  if (queryParams.status === "Todos") delete queryParams.status;
   if (queryParams.local) {
     queryParams.localId = queryParams.local;
     delete queryParams.local;
   }
 
-  // 2. Construimos la cadena de búsqueda (query string)
   const queryString = new URLSearchParams(queryParams).toString();
   const url = `${BASE_API_URL}/Evento/EventoGetEvents?${queryString}`;
 
@@ -213,19 +217,38 @@ export const getEvents = async (filters = {}) => {
   const response = await fetch(url, {
     method: "GET",
     headers: {
-      Authorization: token,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
-    const errorData = await response
-      .json()
-      .catch(() => ({ message: response.statusText }));
+    // Intenta parsear un JSON de error si es posible
+    const errorData = await response.json().catch(() => ({
+      message: `Error del servidor: ${response.status} ${response.statusText}`,
+    }));
     throw new Error(errorData.message || "Error al obtener los eventos");
   }
 
-  return response.json();
+  // Verificamos si la respuesta tiene contenido antes de intentar parsearla.
+  const text = await response.text();
+  if (!text) {
+    // Si la respuesta está vacía, devuelve un estado controlado
+    // en lugar de causar un error de parseo.
+    console.warn("La respuesta del API fue exitosa pero no contenía datos.");
+    return {
+      success: true,
+      data: { data: [], pagination: { currentPage: 1, totalPages: 1 } },
+    };
+  }
+
+  try {
+    // Intentamos parsear el texto que ya obtuvimos.
+    return JSON.parse(text);
+  } catch (error) {
+    console.error("Fallo al parsear la respuesta JSON:", error);
+    throw new Error("La respuesta del servidor no es un JSON válido.");
+  }
 };
 
 /**
@@ -262,11 +285,11 @@ export const createEvent = async (eventData) => {
     nombre: eventData.nombre,
     descripcion: eventData.descripcion,
     localId: parseInt(eventData.localId, 10),
-    tipoEventoId: parseInt(eventData.tipoEventoId, 10),
+    tipoEventoId: parseInt(eventData.tipoEventoId, 10), // Corregido de eventInfo a eventData
     capacidad: parseInt(eventData.capacidad, 10),
     fechaPublicacion: eventData.fechaPublicacion,
     fechaCompra: eventData.fechaCompra,
-    imagenURL: eventData.imagenURL,
+    imagenURL: eventData.imagenURL, // <-- El cambio principal: ahora es una URL.
     horarios: eventData.fechas.map((f) => `${f.fecha}T${f.hora}`),
     entradas: eventData.tiposEntrada.map((t) => ({
       nombre: t.nombre,
@@ -274,16 +297,6 @@ export const createEvent = async (eventData) => {
       cantidad: parseInt(t.cantidad, 10),
       limiteCompra: parseInt(t.limiteCompra, 10),
       puntos: parseInt(t.puntos, 10),
-    })),
-    descuentos: eventData.descuentos.map((d) => ({
-      nombre: d.nombre,
-      codigo: d.codigo,
-      tipo: d.tipo, // 'Porcentaje' o 'Fijo'
-      valor: parseFloat(d.valor),
-      fechaInicio: d.fechaInicio,
-      fechaFin: d.fechaFin,
-      usosMaximos: parseInt(d.usosMaximos, 10),
-      tipoEntradaId: parseInt(d.tipoEntradaId, 10), // El ID del tipo de entrada vinculado
     })),
   };
 
