@@ -1,7 +1,7 @@
 ﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
-using EventodromoRest.Servicios; // 1. ASEGÚRATE DE IMPORTAR TokenService
+using EventodromoRest.Servicios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;

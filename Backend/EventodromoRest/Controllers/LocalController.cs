@@ -179,5 +179,32 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
+
+        [HttpGet]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<List<OcuapcionLocalResponse>> OcupacionLocales()
+        {
+            try
+            {
+                var userIdString = User.FindFirst("idCliente")?.Value;
+                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idCliente))
+                {
+                    throw new Exception("ID de usuario inválido en el token.");
+                }
+                return new LocalBO(globales, BD).OcupacionLocales();
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<List<OcuapcionLocalResponse>>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, "", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
     }
 }

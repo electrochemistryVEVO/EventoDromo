@@ -995,9 +995,5 @@ WHERE  E.id = @idEvento;
                 return lista;
             }
         }
-
-
-
-
     }
 }
