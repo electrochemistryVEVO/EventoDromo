@@ -200,21 +200,15 @@ export const getEvents = async (filters = {}) => {
     throw new Error("No se encontró el token de autenticación.");
   }
 
-  // 1. Preparamos los parámetros para la URL, omitiendo los que no se deben enviar.
+  // 1. Preparamos los parámetros para la URL
   const queryParams = { ...filters };
-  if (queryParams.local === 0) {
-    delete queryParams.local; // El backend no espera localId=0
-  }
-  if (queryParams.status === "Todos") {
-    delete queryParams.status;
-  }
-  // Renombramos 'local' a 'localId' para que coincida con la especificación del backend.
+  if (queryParams.local === 0) delete queryParams.local;
+  if (queryParams.status === "Todos") delete queryParams.status;
   if (queryParams.local) {
     queryParams.localId = queryParams.local;
     delete queryParams.local;
   }
 
-  // 2. Construimos la cadena de búsqueda (query string)
   const queryString = new URLSearchParams(queryParams).toString();
   const url = `${BASE_API_URL}/Evento/EventoGetEvents?${queryString}`;
 
@@ -223,19 +217,38 @@ export const getEvents = async (filters = {}) => {
   const response = await fetch(url, {
     method: "GET",
     headers: {
-      Authorization: token,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
-    const errorData = await response
-      .json()
-      .catch(() => ({ message: response.statusText }));
+    // Intenta parsear un JSON de error si es posible
+    const errorData = await response.json().catch(() => ({
+      message: `Error del servidor: ${response.status} ${response.statusText}`,
+    }));
     throw new Error(errorData.message || "Error al obtener los eventos");
   }
 
-  return response.json();
+  // Verificamos si la respuesta tiene contenido antes de intentar parsearla.
+  const text = await response.text();
+  if (!text) {
+    // Si la respuesta está vacía, devuelve un estado controlado
+    // en lugar de causar un error de parseo.
+    console.warn("La respuesta del API fue exitosa pero no contenía datos.");
+    return {
+      success: true,
+      data: { data: [], pagination: { currentPage: 1, totalPages: 1 } },
+    };
+  }
+
+  try {
+    // Intentamos parsear el texto que ya obtuvimos.
+    return JSON.parse(text);
+  } catch (error) {
+    console.error("Fallo al parsear la respuesta JSON:", error);
+    throw new Error("La respuesta del servidor no es un JSON válido.");
+  }
 };
 
 /**

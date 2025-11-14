@@ -71,11 +71,19 @@ const EventsTable = ({ events, isLoading, error, onActionClick }) => {
     }
 
     return events.map((event) => {
+      const ocupacionActual = event?.horarios?.[0]?.ocupacion?.actual;
+      const ocupacionTotal = event?.horarios?.[0]?.ocupacion?.total;
+
+      // Calculamos el porcentaje, asegurándonos de que los valores sean numéricos.
+      // Usamos el operador "Nullish Coalescing" (??) para dar un valor por defecto de 0.
       const ocupacionPercent =
-        event.ocupacion.total > 0
-          ? ((event.ocupacion.actual / event.ocupacion.total) * 100).toFixed(0)
+        (ocupacionTotal ?? 0) > 0
+          ? (((ocupacionActual ?? 0) / ocupacionTotal) * 100).toFixed(0)
           : 0;
 
+      // 1. Obtenemos la fecha del horario de forma segura.
+      // Si no existe, `horarioDate` será `undefined`.
+      const horarioDate = event?.horarios?.[0]?.horario;
       return (
         <tr key={event.id} className="border-b hover:bg-gray-50">
           <td className="px-4 py-3 font-medium text-gray-900">
@@ -90,12 +98,10 @@ const EventsTable = ({ events, isLoading, error, onActionClick }) => {
             {formatDate(event.fechaCompra)}
           </td>
           <td className="px-4 py-3 text-gray-600">
-            {event.horario.startsWith("2025")
-              ? formatDate(event.horario)
-              : event.horario}
+            {horarioDate ? formatDate(horarioDate) : "No disponible"}
           </td>
           <td className="px-4 py-3 text-gray-600">
-            {`${event.ocupacion.actual}/${event.ocupacion.total}`}
+            {`${ocupacionActual ?? 0}/${ocupacionTotal ?? 0}`}
             <br />
             <span className="text-xs font-semibold">
               OCUPACIÓN: %{ocupacionPercent}
