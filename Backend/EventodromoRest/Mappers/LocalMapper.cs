@@ -285,5 +285,21 @@ namespace EventodromoRest.Mappers
                 return existe;
             }
         }
+
+        public int ModificarLocalAdmin(Local local)
+        {
+            lock (DB)
+            {
+                string query = "UPDATE Local SET NOMBRE = @NOMBRE, IDCIUDAD = @IDCIUDAD, DIRECCION = @DIRECCION, CAPACIDAD = @CAPACIDAD WHERE ID = @ID";
+                var parametros = new ParameterList();
+                parametros.Add("@NOMBRE", local.nombre);
+                parametros.Add("@IDCIUDAD", local.idCiudad);
+                parametros.Add("@DIRECCION", local.direccion);
+                parametros.Add("@CAPACIDAD", local.capacidad);
+                parametros.Add("@ID", local.id);
+                int rowsAffected = DB.ExecuteNonQuery(query, parametros);
+                return rowsAffected;
+            }
+        }
     }
 }

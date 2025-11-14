@@ -67,4 +67,19 @@
 
         public int Capacidad { get; set; }
     }
+
+    public class LocalModificarLocalRequest
+    {
+        public int idLocal { get; set; }
+        public string Nombre { get; set; }
+        public int CiudadId { get; set; }
+        public string Direccion { get; set; }
+        public int Capacidad { get; set; }
+    }
+
+    public class ResponseLocalModificarLocal
+    {
+        public bool success { get; set; }
+    }
+
 }

@@ -153,8 +153,8 @@ export async function editarLocal(modalData) {
         return []; // Retornamos temprano si no hay token.
     }
     return await getApiUrl()
-        .then((url) => (fetch(`${url}Local/ModificarLocal`, {
-            method: "PUT",
+        .then((url) => (fetch(`${url}Local/LocalModificarLocal`, {
+            method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'

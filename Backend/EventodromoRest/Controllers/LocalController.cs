@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EventodromoRest.Controllers
 {
@@ -230,5 +231,91 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<ResponseLocalModificarLocal> LocalModificarLocal([FromBody] LocalModificarLocalRequest request)
+        {
+            try
+            {
+                // 1️⃣ Validar token JWT
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<ResponseLocalModificarLocal>
+                    {
+                        Success = false,
+                        Message = "Acceso no autorizado. Se requiere un token válido.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<ResponseLocalModificarLocal>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                Local localNuevo = new Local
+                {
+                    id = request.idLocal,
+                    nombre = request.Nombre,
+                    idCiudad = request.CiudadId,
+                    direccion = request.Direccion,
+                    capacidad = request.Capacidad
+
+                };
+
+                // 5. Llamamos al Negocio (BO) y le pasamos el ID del admin
+                var bo = new LocalBO(globales, BD);
+                int response = bo.ModificarLocalAdmin(localNuevo);
+                if (response > 0)
+                {
+                    ResponseLocalModificarLocal data = new ResponseLocalModificarLocal
+                    {
+                        success = true
+                    };
+                    return new GenericResponse<ResponseLocalModificarLocal>
+                    {
+                        Success = true,
+                        Message = "Se modificó con éxito",
+                        Error = null,
+                        Data = data
+                    };
+                }
+                else
+                {
+                    return new GenericResponse<ResponseLocalModificarLocal>
+                    {
+                        Success = false,
+                        Message = "Error al modificar el local",
+                        Error = null,
+                        Data = null
+                    };
+                }
+                    
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<ResponseLocalModificarLocal>
+                {
+                    Success = false,
+                    Message = "Error fatal en el controlador de Local.",
+                    Error = e.Message
+                };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+
     }
 }

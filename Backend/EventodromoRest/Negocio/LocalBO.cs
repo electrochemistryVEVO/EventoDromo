@@ -64,7 +64,7 @@ namespace EventodromoRest.Negocio
             LocalMapper mapper = new LocalMapper(globales, DB);
             var response = new GenericResponse<int>();
             response.Success = true;
-            response.Data = mapper.ModificarLocal(local);
+            response.Data = mapper.ModificarLocalAdmin(local);
             return response;
         }
 
@@ -122,5 +122,14 @@ namespace EventodromoRest.Negocio
                 };
             }
         }
+
+        public int ModificarLocalAdmin(Local local)
+        {
+            LocalMapper mapper = new LocalMapper(globales, DB);
+            int response = mapper.ModificarLocalAdmin(local);
+            return response;
+        }
+
+
     }
 }
