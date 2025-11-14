@@ -68,6 +68,7 @@ export const getLocales = async () => {
  * @param {object} filters - Los filtros a aplicar en la búsqueda.
  * @returns {Promise<object>} Una promesa que resuelve a un objeto con los eventos y la información de paginación.
  */
+/*
 export const getEvents = async (filters = {}) => {
   console.log("Fetching events with filters:", filters);
   const token = getAuthToken();
@@ -176,17 +177,17 @@ export const getEvents = async (filters = {}) => {
     }, 1000); // Simular un retardo de red
   });
 };
-
+*/
 /**
  * Realiza una llamada a la API para obtener los eventos filtrados y paginados.
  * @param {object} filters - Los filtros a aplicar en la búsqueda.
  * @returns {Promise<object>} Una promesa que resuelve a un objeto con los eventos y la información de paginación.
  */
-/*
+
 export const getEvents = async (filters = {}) => {
   const token = getAuthToken();
   if (!token) {
-    throw new Error('No se encontró el token de autenticación.');
+    throw new Error("No se encontró el token de autenticación.");
   }
 
   // 1. Preparamos los parámetros para la URL, omitiendo los que no se deben enviar.
@@ -194,38 +195,38 @@ export const getEvents = async (filters = {}) => {
   if (queryParams.local === 0) {
     delete queryParams.local; // El backend no espera localId=0
   }
-  if (queryParams.status === 'Todos') {
+  if (queryParams.status === "Todos") {
     delete queryParams.status;
   }
   // Renombramos 'local' a 'localId' para que coincida con la especificación del backend.
   if (queryParams.local) {
-      queryParams.localId = queryParams.local;
-      delete queryParams.local;
+    queryParams.localId = queryParams.local;
+    delete queryParams.local;
   }
-
 
   // 2. Construimos la cadena de búsqueda (query string)
   const queryString = new URLSearchParams(queryParams).toString();
-  const url = `${BASE_API_URL}/admin/events?${queryString}`;
+  const url = `${BASE_API_URL}/Evento/EventoGetEvents?${queryString}`;
 
-  console.log('Realizando petición a:', url);
+  console.log("Realizando petición a:", url);
 
   const response = await fetch(url, {
-    method: 'GET',
+    method: "GET",
     headers: {
-      'Authorization': token,
-      'Content-Type': 'application/json',
+      Authorization: token,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: response.statusText }));
-    throw new Error(errorData.message || 'Error al obtener los eventos');
+    const errorData = await response
+      .json()
+      .catch(() => ({ message: response.statusText }));
+    throw new Error(errorData.message || "Error al obtener los eventos");
   }
 
   return response.json();
 };
-*/
 
 /**
  * Envía los datos de un nuevo evento al backend para su creación.

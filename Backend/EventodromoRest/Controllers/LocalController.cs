@@ -14,7 +14,7 @@ namespace EventodromoRest.Controllers
     [ApiController]
     [Route("/api/[controller]")]
     [Authorize]
-    public class LocalController (Globales.Globales globales, DBManager.DBManager BD) : BaseController
+    public class LocalController(Globales.Globales globales, DBManager.DBManager BD) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
         private readonly Globales.Globales globales = globales;

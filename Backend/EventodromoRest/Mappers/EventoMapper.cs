@@ -583,14 +583,14 @@ namespace EventodromoRest.Mappers
         }
 
         public List<Evento> ObtenerEventosFiltrados(
-    string? search,
-    int? localId,
-    string? status,
-    DateTime? startDate,
-    DateTime? endDate,
-    int page,
-    int pageSize,
-    out int totalEventos)
+            string? search,
+            int? localId,
+            string? status,
+            DateTime? startDate,
+            DateTime? endDate,
+            int page,
+            int pageSize,
+            out int totalEventos)
         {
             lock (DB)
             {
