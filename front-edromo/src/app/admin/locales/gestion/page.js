@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 //import { Modal } from "bootstrap";
 import { listarCiudades, listarLocales, obtenerLocalPorId } from "@/services/gestionLocal.service";
-import { submitInput, loadLocal, modifyLocal, deleteLocal } from "@/app/admin/locales/controller";
+import { submitInput, loadLocal, modifyLocal, deleteLocal } from "@/app/admin/locales/gestion/controller";
 import '@/css/adminLocales/gestionLocales.css';
 import {
     FiSearch,

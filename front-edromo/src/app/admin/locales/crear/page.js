@@ -79,33 +79,10 @@ function CrearLocal() {
         }
 
         const local = {
-            id: 0,
-            nombre: formData.get('nombre'),
-            idCiudad: idCiudad,
-            imagenURL: "",
-            ciudad: {
-                id: ciudadSeleccionada.id,
-                nombre: ciudadSeleccionada.nombre,
-                idPais: ciudadSeleccionada.idPais || 0,
-                pais: ciudadSeleccionada.pais || {
-                    id: ciudadSeleccionada.idPais || 0,
-                    nombre: ciudadSeleccionada.nombrePais || "Perú"
-                }
-            },
-            direccion: formData.get('direccion'),
-            capacidad: parseInt(formData.get('capacidad')),
-            isDeleted: false,
-            idAdministrador: adminData?.id || 0,
-            administrador: {
-                id: adminData?.id || 0,
-                nombres: adminData?.nombres || "",
-                apellidos: adminData?.apellidos || "",
-                email: adminData?.email || "",
-                passwordHash: "",
-                fechaCreacion: adminData?.fechaCreacion || new Date().toISOString()
-            },
-            nombreCiudad: ciudadSeleccionada.nombre,
-            eventos: 0
+            Nombre: formData.get('nombre'),
+            CiudadId: ciudadSeleccionada.id,
+            Direccion: formData.get('direccion'),
+            Capacidad: parseInt(formData.get('capacidad'))
         }
 
         try {

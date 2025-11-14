@@ -13,11 +13,11 @@ namespace EventodromoRest.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    [Authorize]
-    public class LocalController(Globales.Globales globales, DBManager.DBManager BD) : BaseController
+    public class LocalController(Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
         private readonly Globales.Globales globales = globales;
+        private readonly TokenService tokenService = tokenService;
 
         [HttpGet]
         [Route("/api/[controller]/[action]")]
@@ -187,21 +187,35 @@ namespace EventodromoRest.Controllers
         {
             try
             {
-                // --- 3. LÓGICA DEL TOKEN REACTIVADA ---
-                var adminIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-
-                if (adminIdClaim == null)
+                // 1️⃣ Validar token JWT
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
-                    // Esto maneja el caso de un token válido pero sin ID
-                    return new GenericResponse<Local> { Success = false, Message = "Error de autenticación: No se pudo identificar al administrador.", Error = "Unauthorized" };
+                    return new GenericResponse<Local>
+                    {
+                        Success = false,
+                        Message = "Acceso no autorizado. Se requiere un token válido.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
                 }
 
-                int adminId = int.Parse(adminIdClaim.Value);
-                // --- FIN DE LÓGICA DE TOKEN ---
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<Local>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
 
                 // 5. Llamamos al Negocio (BO) y le pasamos el ID del admin
                 var bo = new LocalBO(globales, BD);
-                var response = bo.CrearLocal(dto, adminId);
+                var response = bo.CrearLocal(dto, idAdmin??0);
                 return response;
             }
             catch (Exception e)

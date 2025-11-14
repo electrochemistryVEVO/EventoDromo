@@ -31,7 +31,7 @@ export async function listarCiudades() {
     
     try {
         const url = await getApiUrl();
-        const response = await fetch(url + 'Ciudad/ListarCiudades', {
+        const response = await fetch(url + 'Ciudad/CiudadListarCiudades', {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -74,7 +74,7 @@ export async function insertarLocal(local) {
     
     try {
         const url = await getApiUrl();
-        const response = await fetch(url + 'Local/InsertarLocal', {
+        const response = await fetch(url + 'Local/LocalCrearLocales', {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,

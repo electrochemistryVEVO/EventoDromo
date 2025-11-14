@@ -1,42 +1,54 @@
-﻿using EventodromoRest.Modelos;
+﻿using EventodromoRest.Servicios;
+using System.IdentityModel.Tokens.Jwt;
+
+
+using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
+using EventodromoRest.Servicios;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
- using Microsoft.AspNetCore.Authorization; 
 
 namespace EventodromoRest.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    
-    public class CiudadController(Globales.Globales globales, DBManager.DBManager BD) : BaseController
+    public class CiudadController(Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService) : BaseController
     {
+        //private readonly DBManager.DBManager BD = BD;
+        //private readonly Globales.Globales globales = globales;
+        private readonly TokenService tokenService = tokenService;
 
         [HttpGet]
         [Route("/api/[controller]/[action]")]
-        public GenericResponse<List<ObtenerCiudadDTO>> CiudadObtenerLista()
+        public GenericResponse<List<Ciudad>> CiudadListarCiudades()
         {
             try
             {
-                var bo = new CiudadBO(globales, BD);
-                var response = bo.ObtenerCiudades();
+                var response = new GenericResponse<List<Ciudad>>
+                {
+                    Success = true,
+                    Message = "Todo bien soy CiudadController",
+                    Error = null,
+                    Data = new CiudadBO(globales, BD).ListarCiudad()
+                };
                 return response;
             }
             catch (Exception e)
             {
-                var response = new GenericResponse<List<ObtenerCiudadDTO>>
+                var response = new GenericResponse<List<Ciudad>>
                 {
                     Success = false,
-                    Message = "Error fatal en el controlador de Ciudad.",
-                    Error = e.Message
+                    Message = null,
+                    Error = e.Message,
+                    Data = null
                 };
-                // (Tu método de log de BaseController)
-                AgregarEntradaBitacora(e, "GET /api/Ciudad/Listar", JsonSerializer.Serialize(response));
+                AgregarEntradaBitacora(e, "CiudadListarCiudades", JsonSerializer.Serialize(response));
                 return response;
             }
         }
+
     }
 }
