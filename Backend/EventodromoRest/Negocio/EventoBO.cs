@@ -227,5 +227,18 @@ namespace EventodromoRest.Negocio
             }
         }
 
+        public GenericResponse<string> ActualizarEvento(ActualizarEventoRequest request)
+        {
+            var eventoMapper = new EventoMapper(globales, DB);
+            var response = eventoMapper.ActualizarEvento(request);
+
+            return new GenericResponse<string>
+            {
+                Success = true,
+                Message = "Evento actualizado correctamente.",
+                Error = null,
+                Data = response
+            };
+        }
     }
 }
