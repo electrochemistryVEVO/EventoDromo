@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import {
   obtenerIndicadoresDashboardHarcodeado,
-  obtenerEventosMasVendidosHarcodeado,
+  //obtenerEventosMasVendidosHarcodeado,
   obtenerOcupacionLocalesHarcodeado,
   // --- Descomenta estas líneas para usar los servicios reales ---
   // obtenerIndicadoresDashboard,
-  // obtenerEventosMasVendidos,
+  obtenerEventosMasVendidos,
   // obtenerOcupacionLocales,
 } from "@/services/dashboard.services.js";
 /**
@@ -55,11 +55,11 @@ export const useAnaliticasController = () => {
         // las otras pueden continuar y podemos mostrar datos parciales.
         const resultados = await Promise.allSettled([
           obtenerIndicadoresDashboardHarcodeado(),
-          obtenerEventosMasVendidosHarcodeado(),
+          //obtenerEventosMasVendidosHarcodeado(),
+          obtenerEventosMasVendidos(),
           obtenerOcupacionLocalesHarcodeado(),
           // --- Usa estas funciones para conectar con el backend real ---
           // obtenerIndicadoresDashboard(),
-          // obtenerEventosMasVendidos(),
           // obtenerOcupacionLocales(),
         ]);
 

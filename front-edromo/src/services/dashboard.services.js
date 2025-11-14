@@ -146,8 +146,24 @@ export const obtenerOcupacionLocalesHarcodeado = async () => {
 // Estas funciones se conectarán a los endpoints reales del backend.
 // =================================================================================================
 
-const URL_BASE_API = "https://api.tu-dominio.com/v1/analiticas"; // Reemplazar con la URL real del backend
+const URL_BASE_API = "http://localhost:5189/api"; // Reemplazar con la URL real del backend
+const getAuthToken = () => {
+  try {
+    // 1. Lee la clave "user" de localStorage (donde UserContext la guarda)
+    const userJSON = localStorage.getItem("user");
 
+    if (!userJSON) {
+      return null;
+    }
+
+    // 2. Parsea el objeto y devuelve la propiedad "token"
+    const userData = JSON.parse(userJSON);
+    return userData?.token || null;
+  } catch (error) {
+    console.error("Error al leer token de localStorage:", error);
+    return null;
+  }
+};
 /**
  * Llama al endpoint del backend para obtener los KPIs del dashboard.
  * @returns {Promise<{success: boolean, data?: object, message?: string}>}
@@ -178,7 +194,15 @@ export const obtenerIndicadoresDashboard = async () => {
  */
 export const obtenerEventosMasVendidos = async () => {
   try {
-    const response = await fetch(`${URL_BASE_API}/eventos-mas-vendidos`);
+    const token = getAuthToken();
+    if (!token) throw new Error("Token de autenticación no encontrado.");
+    const response = await fetch(
+      `${URL_BASE_API}/Evento/EventoGetEventosMasVendidos`,
+      {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     if (!response.ok) {
       throw new Error(
         `Error HTTP ${response.status}: La solicitud de eventos más vendidos falló.`
