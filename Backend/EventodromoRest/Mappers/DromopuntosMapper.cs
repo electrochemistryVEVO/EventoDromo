@@ -133,5 +133,26 @@ namespace EventodromoRest.Mappers
                 return DB.ExecuteNonQuery(query, parametros);
             }
         }
+
+        public decimal? ObtenerValorActual()
+        {
+            decimal? valor = null;
+
+            lock (DB)
+            {
+                string query = "SELECT puntos_por_sol FROM configuracion WHERE id = 1";
+                DB.Select(query, new ParameterList());
+
+                if (DB.Read())
+                {
+                    valor = DB.GetDecimal("puntos_por_sol");
+                }
+
+                DB.CloseReader();
+            }
+
+            return valor;
+        }
+
     }
 }

@@ -70,5 +70,11 @@ namespace EventodromoRest.Negocio
                 Error = null
             };
         }
+
+        public decimal? ObtenerValorActual()
+        {
+            var dromopuntosMapper = new DromopuntosMapper(_globales, _DB);
+            return dromopuntosMapper.ObtenerValorActual();
+        }
     }
 }
