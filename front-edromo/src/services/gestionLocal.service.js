@@ -10,7 +10,7 @@ export async function listarLocales() {
         return []; // Retornamos temprano si no hay token.
     }
     return await getApiUrl()
-        .then((url) => (fetch(url + 'Local/ListarLocalesAdmin', {
+        .then((url) => (fetch(url + '/Local/ListarLocalesAdmin', {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -29,7 +29,7 @@ export async function listarCiudades() {
         return []; // Retornamos temprano si no hay token.
     }
     return await getApiUrl()
-        .then((url) => (fetch(url + 'Ciudad/ListarCiudades', {
+        .then((url) => (fetch(url + '/Ciudad/ListarCiudades', {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -48,7 +48,7 @@ export async function insertarLocal(local) {
         return []; // Retornamos temprano si no hay token.
     }
     return await getApiUrl()
-        .then((url) => (fetch(url + 'Local/InsertarLocal', {
+        .then((url) => (fetch(url + '/Local/InsertarLocal', {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -69,7 +69,7 @@ export async function obtenerLocalPorId(id) {
         return []; // Retornamos temprano si no hay token.
     }
     return await getApiUrl()
-        .then((url) => (fetch(`${url}Local/ObtenerLocalPorId?id=${id}`, {
+        .then((url) => (fetch(`${url}/Local/ObtenerLocalPorId?id=${id}`, {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`
@@ -88,7 +88,7 @@ export async function eliminarLocal(id) {
         return []; // Retornamos temprano si no hay token.
     }
     return await getApiUrl()
-        .then((url) => (fetch(`${url}Local/EliminarLocal?id=${id}`, {
+        .then((url) => (fetch(`${url}/Local/EliminarLocal?id=${id}`, {
             method: "DELETE",
             headers: {
                 Authorization: `Bearer ${token}`
@@ -107,7 +107,7 @@ export async function editarLocal(modalData) {
         return []; // Retornamos temprano si no hay token.
     }
     return await getApiUrl()
-        .then((url) => (fetch(`${url}Local/ModificarLocal`, {
+        .then((url) => (fetch(`${url}/Local/ModificarLocal`, {
             method: "PUT",
             headers: {
                 Authorization: `Bearer ${token}`,
