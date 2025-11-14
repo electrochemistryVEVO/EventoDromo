@@ -68,8 +68,8 @@ namespace EventodromoRest.Controllers
         }
 
         [HttpPut]
-        [Route("/api/[controller]/[action]/{nuevoValor:int}")]
-        public GenericResponse<object> ActualizarValorDromoPuntos([FromRoute] int nuevoValor)
+        [Route("/api/[controller]/[action]/{nuevoValor:decimal}")]
+        public GenericResponse<object> ActualizarValorDromoPuntos([FromRoute] decimal nuevoValor)
         {
             try
             {

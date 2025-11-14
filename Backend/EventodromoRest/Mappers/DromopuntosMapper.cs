@@ -123,7 +123,7 @@ namespace EventodromoRest.Mappers
             return resumen;
         }
 
-        public int ActualizarValorDromoPuntos(int nuevoValor)
+        public int ActualizarValorDromoPuntos(decimal nuevoValor)
         {
             lock (DB)
             {

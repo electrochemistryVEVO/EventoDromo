@@ -49,11 +49,11 @@ namespace EventodromoRest.Negocio
             };
         }
 
-        public GenericResponse<object> ActualizarValorDromoPuntos(int nuevoValor)
+        public GenericResponse<object> ActualizarValorDromoPuntos(decimal nuevoValor)
         {
             var dromopuntosMapper = new DromopuntosMapper(_globales, _DB);
             int filasAfectadas = dromopuntosMapper.ActualizarValorDromoPuntos(nuevoValor);
-            int valorActualizado = 0;
+            decimal valorActualizado = 0;
             if (filasAfectadas > 0)
             {
                 valorActualizado = nuevoValor;
