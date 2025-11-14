@@ -27,6 +27,7 @@ const getAuthToken = () => {
  * --- VERSIÓN SIMULADA (MOCK) ---
  * Obtiene los detalles completos de un evento por su ID.
  */
+/*
 export const getEventById = async (eventId) => {
   console.log(`Fetching simulated event data for ID: ${eventId}...`);
 
@@ -85,7 +86,7 @@ export const getEventById = async (eventId) => {
   console.log("Simulated event data fetched:", mockEventData);
   return mockEventData;
 };
-
+*/
 /**
  * --- VERSIÓN SIMULADA (MOCK) ---
  * Simula el envío de los datos actualizados de un evento al backend.
@@ -254,15 +255,18 @@ export const updateEvent = async (eventId, eventData) => {
  * @param {string|number} eventId - El ID del evento.
  * @returns {Promise<object>} Los datos completos del evento, incluyendo descuentos.
  */
-/*
+
 export const getEventById = async (eventId) => {
   const token = getAuthToken();
   if (!token) throw new Error("Token de autenticación no encontrado.");
 
-  const response = await fetch(`${BASE_API_URL}/Evento/GetEvento/${eventId}`, {
-    method: "GET",
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const response = await fetch(
+    `${BASE_API_URL}/Evento/EventoObtenerDatos?id=${eventId}`,
+    {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
 
   if (!response.ok) {
     const errorData = await response
@@ -274,8 +278,10 @@ export const getEventById = async (eventId) => {
   }
 
   const apiResponse = await response.json();
-  if (apiResponse && apiResponse.success) {
-    // Asumimos que la respuesta ahora incluye un array 'descuentos'
+  if (apiResponse && apiResponse.success && apiResponse.data) {
+    if (!apiResponse.data.descuentos) {
+      apiResponse.data.descuentos = [];
+    }
     return apiResponse.data || {};
   } else {
     throw new Error(
@@ -283,7 +289,6 @@ export const getEventById = async (eventId) => {
     );
   }
 };
-*/
 
 /**
  * Envía los datos actualizados de un evento al backend, incluyendo la gestión de descuentos.

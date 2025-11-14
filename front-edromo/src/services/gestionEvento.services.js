@@ -206,7 +206,7 @@ export const getEvents = async (filters = {}) => {
 
   // 2. Construimos la cadena de búsqueda (query string)
   const queryString = new URLSearchParams(queryParams).toString();
-  const url = `${BASE_API_URL}/admin/events?${queryString}`;
+  const url = `${BASE_API_URL}/Evento/EventoGetEvents?${queryString}`;
 
   console.log('Realizando petición a:', url);
 
