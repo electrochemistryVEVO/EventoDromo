@@ -95,6 +95,7 @@ export const getEventById = async (eventId) => {
  * @param {object} eventData - El objeto con todos los datos actualizados del formulario.
  * @returns {Promise<object>} Una promesa que resuelve con la respuesta de éxito simulada.
  */
+/*
 export const updateEvent = async (eventId, eventData) => {
   console.log(`1. INICIANDO ACTUALIZACIÓN SIMULADA para Evento ID: ${eventId}`);
   console.log("2. DATOS RECIBIDOS DEL FORMULARIO:", eventData);
@@ -181,10 +182,11 @@ export const updateEvent = async (eventId, eventData) => {
     }, 1500); // Retardo de 1.5 segundos para simular la operación
   });
 };
+*/
 /**
  * Envía los datos actualizados de un evento al backend.
  */
-/*
+
 export const updateEvent = async (eventId, eventData) => {
   if (!eventId || !eventData) {
     throw new Error(
@@ -248,7 +250,6 @@ export const updateEvent = async (eventId, eventData) => {
     throw error;
   }
 };
-*/
 
 /**
  * Realiza una llamada a la API para obtener los detalles completos de un evento por su ID.
