@@ -227,5 +227,112 @@ namespace EventodromoRest.Negocio
             }
         }
 
+        public ResponseEventoGetEvents? GetEventosFiltrados(
+            string? search,
+            int? localId,
+            string? status,
+            DateTime? startDate,
+            DateTime? endDate,
+            int page,
+            int pageSize)
+        {
+            var mapper = new EventoMapper(globales, DB);
+            var mapperFecha = new FechaEventoMapper(globales, DB);
+            var mapperEntrada = new TipoEntradaMapper(globales, DB);
+
+            // Obtener eventos paginados
+            List<Evento> listaEventos = mapper.ObtenerEventosFiltrados(
+                search, localId, status, startDate, endDate, page, pageSize, out int totalEventos);
+
+            if (listaEventos.Count == 0)
+                return null;
+
+            int totalPaginas = (int)Math.Ceiling((double)totalEventos / pageSize);
+
+            // IDs de eventos
+            var idsEvento = listaEventos.Select(e => e.id).ToList();
+
+            // 1️⃣ Obtener TODOS los horarios en un solo query
+            var horarios = mapperFecha.ObtenerFechaEventosPorListaEventoIds(idsEvento);
+
+            // IDs de fechaEvento
+            var idsFecha = horarios.Select(h => h.id ?? 0).ToList();
+
+            // 2️⃣ Obtener TODAS las entradas en un solo query
+            var entradas = mapperEntrada.ObtenerPorListaFechaEventoIds(idsFecha);
+
+            // Agrupar por fechaEvento → entradas
+            var entradasPorFechaEvento = entradas.GroupBy(t => t.idFechaEvento)
+                                                 .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Agrupar por evento → horarios
+            var horariosPorEvento = horarios.GroupBy(h => h.idEvento)
+                                            .ToDictionary(g => g.Key, g => g.ToList());
+
+            // 3️⃣ Mapear dto final
+            var eventosDTO = listaEventos.Select(e =>
+            {
+                var horariosDeEvento = horariosPorEvento.ContainsKey(e.id)
+                    ? horariosPorEvento[e.id]
+                    : new List<FechaEvento>();
+
+                decimal ingresosBrutosEvento = 0; // ← ACUMULADOR NUEVO
+
+                var horariosDTO = horariosDeEvento.Select(h =>
+                {
+                    var listaEntradas = entradasPorFechaEvento.ContainsKey(h.id ?? 0)
+                        ? entradasPorFechaEvento[h.id ?? 0]
+                        : new List<TipoEntrada>();
+
+                    int actual = listaEntradas.Sum(t => t.cantidadVendida ?? 0);
+                    int total = listaEntradas.Sum(t => t.cantidadEntradas ?? 0);
+
+                    // 💲 ACUMULAR INGRESOS
+                    foreach (var tipo in listaEntradas)
+                    {
+                        int vendidas = tipo.cantidadVendida ?? 0;
+                        decimal precio = tipo.precio;
+                        ingresosBrutosEvento += vendidas * precio;
+                    }
+
+                    return new EventoHorarioDTO
+                    {
+                        Horario = h.fechaHora ?? DateTime.MinValue,
+                        Ocupacion = new OcupacionDTO
+                        {
+                            Actual = actual,
+                            Total = total
+                        }
+                    };
+                }).ToList();
+
+                return new ResponseEventoGetEventsEventos
+                {
+                    Id = e.id,
+                    Nombre = e.nombre,
+                    Local = e.Local?.nombre ?? "",
+                    Tipo = e.TipoEvento?.nombre ?? "",
+                    FechaPublicacion = e.fechaPublicacion,
+                    FechaCompra = e.fechaCompra,
+                    Horarios = horariosDTO,
+                    IngresosBrutos = ingresosBrutosEvento
+                };
+
+            }).ToList();
+
+            return new ResponseEventoGetEvents
+            {
+                Data = eventosDTO,
+                Pagination = new Pagination
+                {
+                    CurrentPage = page,
+                    TotalPages = totalPaginas,
+                    TotalEvents = totalEventos
+                }
+            };
+        }
+
+
+
     }
 }
