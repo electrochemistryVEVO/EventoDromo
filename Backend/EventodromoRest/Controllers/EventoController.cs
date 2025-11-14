@@ -246,31 +246,63 @@ namespace EventodromoRest.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpGet]
         [Route("/api/[controller]/[action]")]
-        public GenericResponse<string> ActualizarEvento([FromBody] ActualizarEventoRequest request)
+        public GenericResponse<List<ResponseEventoGetEventosMasVendidos>> EventoGetEventosMasVendidos()
         {
             try
             {
-                var userIdString = User.FindFirst("idCliente")?.Value;
-                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idCliente))
+                
+                // 1️⃣ Validar token JWT
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
-                    throw new Exception("ID de cliente inválido en el token.");
+                    return new GenericResponse<List<ResponseEventoGetEventosMasVendidos>>
+                    {
+                        Success = false,
+                        Message = "Acceso no autorizado. Se requiere un token válido.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
                 }
-                return new EventoBO(globales, BD).ActualizarEvento(request);
+
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<List<ResponseEventoGetEventosMasVendidos>>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+                
+
+                var response = new EventoBO(globales, BD).EventoGetEventosMasVendidos();
+
+                return new GenericResponse<List<ResponseEventoGetEventosMasVendidos>>
+                {
+                    Success = true,
+                    Message = "Eventos más vendidos obtenidos correctamente.",
+                    Data = response
+                };
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                var response = new GenericResponse<string>
+                AgregarEntradaBitacora(ex, "EventoGetEventosMasVendidos", ex.Message);
+
+                return new GenericResponse<List<ResponseEventoGetEventosMasVendidos>>
                 {
                     Success = false,
-                    Message = null,
-                    Error = e.Message,
-                    Data = null
+                    Message = "Ocurrió un error interno al procesar la solicitud.",
+                    Error = ex.Message
                 };
-                AgregarEntradaBitacora(e, null, JsonSerializer.Serialize(response));
-                return response;
             }
         }
+
+        
+
     }
 }

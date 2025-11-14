@@ -183,4 +183,23 @@
         public List<HorarioDTO> horarios { get; set; }
         public List<EntradaYHorarioDTO> entradas { get; set; }
     }
+
+    public class ResponseEventoGetEventosMasVendidos
+    {
+        public string id { get; set; }
+        public string nombre { get; set; }
+        public string ubicacion { get; set; }
+        public decimal precio { get; set; }
+        public int entradasVendidas { get; set; }
+    }
+    public class EventoMasVendidoDTO
+    {
+        public int id { get; set; }
+        public string nombre { get; set; }
+        public string ubicacion { get; set; }
+        public decimal precio { get; set; }
+        public int entradasVendidas { get; set; }
+    }
+
+
 }

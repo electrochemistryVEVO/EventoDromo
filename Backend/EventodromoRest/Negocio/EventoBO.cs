@@ -240,5 +240,15 @@ namespace EventodromoRest.Negocio
                 Data = response
             };
         }
+
+        public List<ResponseEventoGetEventosMasVendidos> EventoGetEventosMasVendidos()
+        {
+            var mapper = new EventoMapper(globales, DB);
+
+            var lista = mapper.ObtenerEventosMasVendidos();
+
+            return lista;
+        }
+
     }
 }

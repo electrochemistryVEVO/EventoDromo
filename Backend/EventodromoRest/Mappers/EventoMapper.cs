@@ -946,5 +946,58 @@ WHERE  E.id = @idEvento;
                 return estadoActual;
             }
         }
+
+        public List<ResponseEventoGetEventosMasVendidos> ObtenerEventosMasVendidos()
+        {
+            lock (DB)
+            {
+                string query = @"
+            SELECT 
+                E.ID AS IdEvento,
+                E.NOMBRE AS NombreEvento,
+                L.NOMBRE AS NombreLocal,
+                -- Precio promedio de entradas del evento (opcional)
+                COALESCE(AVG(TE.PRECIO), 0) AS PrecioPromedio,
+                
+                -- Entradas vendidas totales
+                COALESCE(SUM(TE.CANTIDADVENDIDA), 0) AS EntradasVendidas
+
+            FROM Evento E
+            INNER JOIN Local L ON L.ID = E.IDLOCAL
+            LEFT JOIN FechaEvento FE ON FE.IDEVENTO = E.ID
+            LEFT JOIN TipoEntrada TE ON TE.IDFECHAEVENTO = FE.ID
+
+            WHERE E.ISDELETED = 0   -- Solo eventos activos
+            GROUP BY E.ID
+            ORDER BY EntradasVendidas DESC
+            LIMIT 5;
+        ";
+
+                DB.Select(query, null);
+
+                var lista = new List<ResponseEventoGetEventosMasVendidos>();
+
+                while (DB.Read())
+                {
+                    var item = new ResponseEventoGetEventosMasVendidos
+                    {
+                        id = DB.GetInt("IdEvento").ToString(),
+                        nombre = DB.GetString("NombreEvento"),
+                        ubicacion = DB.GetString("NombreLocal"),
+                        precio = DB.GetDecimal("PrecioPromedio"),
+                        entradasVendidas = DB.GetInt("EntradasVendidas")
+                    };
+
+                    lista.Add(item);
+                }
+
+                DB.CloseReader();
+                return lista;
+            }
+        }
+
+
+
+
     }
 }
