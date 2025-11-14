@@ -1,7 +1,7 @@
   //puerto en local: 5189
   //puerto en docker: 8081
 const url =
-    process.env.NEXT_PUBLIC_API_BASE_URL + "/Cliente";
+    process.env.NEXT_PUBLIC_API_BASE_URL + "/Cliente/";
 export async function obtenerDatosDeRegistro() {
     // Nota: Necesitas crear este endpoint en tu ClienteController!
     const res = await fetch(url+"ObtenerDatosSignUp");
