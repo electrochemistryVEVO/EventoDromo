@@ -9,32 +9,66 @@ namespace EventodromoRest.Mappers
         public List<Ciudad> ListarCiudad()
         {
             List<Ciudad> listaCiudad = new List<Ciudad>();
-            List<int?> idsPais = new List<int?>();
+            HashSet<int> idsPais = new HashSet<int>();
+
             lock (DB)
             {
+                // 1) Obtener ciudades
                 string query = "SELECT * FROM Ciudad";
                 DB.Select(query, null);
+
                 while (DB.Read())
                 {
-                    Ciudad ciudad = new()
+                    var ciudad = new Ciudad
                     {
                         id = DB.GetInt("ID"),
                         nombre = DB.GetString("NOMBRE"),
                         idPais = DB.GetInt("IDPAIS"),
                     };
+
                     listaCiudad.Add(ciudad);
                     idsPais.Add(ciudad.idPais);
                 }
+
                 DB.CloseReader();
 
+                if (listaCiudad.Count == 0)
+                    return listaCiudad;
+
+                // 2) Obtener países en una sola consulta
+                string paisQuery = $"SELECT * FROM Pais WHERE ID IN ({string.Join(",", idsPais)})";
+                DB.Select(paisQuery, null);
+
+                Dictionary<int, Pais> mapaPaises = new Dictionary<int, Pais>();
+
+                while (DB.Read())
+                {
+                    var pais = new Pais
+                    {
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        // agrega más campos si existen en tu tabla
+                    };
+
+                    mapaPaises[pais.id.Value] = pais;
+
+                }
+
+                DB.CloseReader();
+
+                // 3) Asignar país a cada ciudad
                 foreach (var ciudad in listaCiudad)
                 {
-                    ciudad.pais = ObtenerPaisPorId(ciudad.idPais);
+                    if (mapaPaises.TryGetValue(ciudad.idPais, out var pais))
+                    {
+                        ciudad.pais = pais;
+                    }
                 }
 
                 return listaCiudad;
             }
         }
+
 
         public int InsertarCiudad(Ciudad ciudad)
         {
@@ -71,7 +105,7 @@ namespace EventodromoRest.Mappers
                     };
                     idPais = ciudad.idPais;
                 }
-                
+
                 DB.CloseReader();
 
                 if (ciudad != null)
@@ -114,5 +148,37 @@ namespace EventodromoRest.Mappers
             var paisMapper = new PaisMapper(globales, DB);
             return paisMapper.ObtenerPaisPorId(v);
         }
+
+        public List<Ciudad> ListarCiudadSinPais()
+        {
+            List<Ciudad> listaCiudad = new List<Ciudad>();
+            List<int?> idsPais = new List<int?>();
+            lock (DB)
+            {
+                string query = "SELECT * FROM Ciudad";
+                DB.Select(query, null);
+                while (DB.Read())
+                {
+                    Ciudad ciudad = new()
+                    {
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        idPais = DB.GetInt("IDPAIS"),
+                    };
+                    listaCiudad.Add(ciudad);
+                    idsPais.Add(ciudad.idPais);
+                }
+                DB.CloseReader();
+                /*
+                foreach (var ciudad in listaCiudad)
+                {
+                    ciudad.pais = ObtenerPaisPorId(ciudad.idPais);
+                }
+                */
+                return listaCiudad;
+            }
+        }
+
     }
-}
+
+}   
