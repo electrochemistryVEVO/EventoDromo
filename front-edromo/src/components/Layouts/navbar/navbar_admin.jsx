@@ -20,7 +20,7 @@ const navLinks = [
   },
   {
     name: "Locales",
-    href: "/admin/locales",
+    href: "/admin/locales/gestion",
     icon: "/images/icon/icon-locales-white.png",
     activeIcon: "/images/icon/icon-locales-teal.png",
   },
