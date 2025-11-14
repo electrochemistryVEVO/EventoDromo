@@ -9,5 +9,5 @@ export async function cn(...inputs: ClassValue[]) {
 export async function getApiUrl(){
     //Puerto de docker: 8080
     //Puerto sin docker: 5189
-    return process.env.API_BASE_URL
+    return process.env.NEXT_PUBLIC_API_BASE_URL
 }
