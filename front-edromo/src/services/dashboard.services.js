@@ -1,3 +1,4 @@
+'use server'
 // =================================================================================================
 // --- DATOS HARCODEADOS ---
 // Estos datos simulan la respuesta que el backend debería enviar. Útiles para maquetar.
@@ -146,7 +147,7 @@ export const obtenerOcupacionLocalesHarcodeado = async () => {
 // Estas funciones se conectarán a los endpoints reales del backend.
 // =================================================================================================
 
-const URL_BASE_API = "http://localhost:5189/api"; // Reemplazar con la URL real del backend
+const URL_BASE_API = process.env.API_BASE_URL; // Reemplazar con la URL real del backend
 const getAuthToken = () => {
   try {
     // 1. Lee la clave "user" de localStorage (donde UserContext la guarda)
