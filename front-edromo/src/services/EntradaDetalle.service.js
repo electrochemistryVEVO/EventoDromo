@@ -1,5 +1,5 @@
 //const API_URL = "http://localhost:8080/api"
-const API_URL = "http://localhost:5189/api"
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 export async function obtenerDetallePorId(idEvento){
     let url = API_URL+"/Evento/ObtenerEventoPorId"
     return await fetch(url,{

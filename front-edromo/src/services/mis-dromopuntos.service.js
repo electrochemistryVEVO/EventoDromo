@@ -4,7 +4,7 @@
 const USE_BACKEND = true;
 
 // URL base de tu API. En un proyecto real, esto estaría en un archivo .env
-const API_BASE_URL = "http://localhost:5189/api/";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL+"/";
 
 /**
  * Obtiene el resumen completo de DromoPuntos (total, por vencer y movimientos)

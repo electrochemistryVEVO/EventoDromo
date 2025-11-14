@@ -31,7 +31,7 @@ export async function getEntradas(token, { startDate, endDate, statusFilter, cur
   const queryString = params.toString();
   
   // --- 3. NUEVO ENDPOINT (que crearemos en el backend) ---
-  const url = `http://localhost:5189/api/EntradaEventoAuxiliar/ListarMisEntradas?${queryString}`;
+  const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/EntradaEventoAuxiliar/ListarMisEntradas?${queryString}`;
 
   const res = await fetch(url, {
     method: 'GET',

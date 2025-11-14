@@ -9,7 +9,7 @@ export const servicePerfil = {
     // const res = await fetch("/data/informacion-personal.json");
 
     // 2. link q funciona en individual (descomentar para usar)
-    const res = await fetch(`http://localhost:5189/api/Cliente/InformacionPersonal`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/Cliente/InformacionPersonal`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -46,7 +46,7 @@ export const servicePerfil = {
   actualizarUsuario: async (token, userInfo) => {
     console.log(`Enviando actualización con token...`, userInfo);
 
-    const url = `http://localhost:5189/api/Cliente/ActualizarInformacionPersonal`;
+    const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/Cliente/ActualizarInformacionPersonal`;
     try {
       const response = await fetch(url, {
         method: 'PUT', // PUT es estándar para actualizar

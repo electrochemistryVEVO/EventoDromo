@@ -3,7 +3,7 @@
  * @description Servicios para obtener y actualizar los datos de un evento existente.
  */
 
-const BASE_API_URL = "http://localhost:5189/api";
+const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const getAuthToken = () => {
   try {

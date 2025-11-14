@@ -7,7 +7,7 @@
 export const verifyCurrentPassword = async (currentPassword, token) => {
   // IMPORTANTE: Reemplaza esta URL con el endpoint real de tu backend.
   const API_URL =
-    "http://localhost:5189/api/Cliente/VerificarContrasenaRecuperar";
+      process.env.NEXT_PUBLIC_API_BASE_URL+"/Cliente/VerificarContrasenaRecuperar";
 
   // Verificación: Asegúrate de que el token se está recibiendo.
   if (!token) {
@@ -56,7 +56,7 @@ export const verifyCurrentPassword = async (currentPassword, token) => {
 // --- CÓDIGO REAL PARA EL BACKEND (para el futuro) ---
 
 export const updatePassword = async (newPassword, token) => {
-  const API_URL = "http://localhost:5189/api/Cliente/ActualizarContrasena";
+  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL+"/Cliente/ActualizarContrasena";
 
   try {
     const response = await fetch(API_URL, {
