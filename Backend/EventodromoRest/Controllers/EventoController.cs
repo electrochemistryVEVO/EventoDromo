@@ -329,7 +329,31 @@ namespace EventodromoRest.Controllers
             }
         }
 
-
-
+        //[HttpGet]
+        //[Route("/api/[controller]/[action]")]
+        //public GenericResponse<string> ActualizarEvento([FromBody] ActualizarEventoRequest request)
+        //{
+        //    try
+        //    {
+        //        var userIdString = User.FindFirst("idCliente")?.Value;
+        //        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idCliente))
+        //        {
+        //            throw new Exception("ID de cliente inválido en el token.");
+        //        }
+        //        return new EventoBO(globales, BD).ActualizarEvento(request);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        var response = new GenericResponse<string>
+        //        {
+        //            Success = false,
+        //            Message = null,
+        //            Error = e.Message,
+        //            Data = null
+        //        };
+        //        AgregarEntradaBitacora(e, null, JsonSerializer.Serialize(response));
+        //        return response;
+        //    }
+        //}
     }
 }
