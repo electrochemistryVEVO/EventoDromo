@@ -315,7 +315,57 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
+        [HttpPost]
+        [Route("/api/[controller]/[action]")] // -> /api/Local/PonerActivoLocal
+        public GenericResponse<Local> PonerActivoLocal([FromBody] int idLocal)
+        {
+            try
+            {
+                var bo = new LocalBO(globales, BD);
+                // Llama al negocio, pasando 'false' para isDeleted
+                var response = bo.CambiarEstadoLocal(idLocal, false);
+                return response;
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<Local>
+                {
+                    Success = false,
+                    Message = "Error fatal en el controlador.",
+                    Error = e.Message
+                };
+                AgregarEntradaBitacora(e, $"idLocal: {idLocal}", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
 
+        /// <summary>
+        /// Pone un local en estado Inactivo (isDeleted = true).
+        /// Recibe el ID del local en el body.
+        /// </summary>
+        [HttpPost]
+        [Route("/api/[controller]/[action]")] // -> /api/Local/PonerInactivoLocal
+        public GenericResponse<Local> PonerInactivoLocal([FromBody] int idLocal)
+        {
+            try
+            {
+                var bo = new LocalBO(globales, BD);
+                // Llama al negocio, pasando 'true' para isDeleted
+                var response = bo.CambiarEstadoLocal(idLocal, true);
+                return response;
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<Local>
+                {
+                    Success = false,
+                    Message = "Error fatal en el controlador.",
+                    Error = e.Message
+                };
+                AgregarEntradaBitacora(e, $"idLocal: {idLocal}", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
 
     }
 }

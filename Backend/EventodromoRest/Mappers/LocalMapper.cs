@@ -301,5 +301,21 @@ namespace EventodromoRest.Mappers
                 return rowsAffected;
             }
         }
+
+        public int ActualizarEstadoLocal(int idLocal, bool isDeleted)
+        {
+            lock (DB)
+            {
+                string query = "UPDATE Local SET isDeleted = @ISDELETED WHERE ID = @ID";
+
+                var parametros = new ParameterList();
+                parametros.Add("@ISDELETED", isDeleted);
+                parametros.Add("@ID", idLocal);
+
+                // ExecuteNonQuery devuelve el número de filas afectadas
+                int rowsAffected = DB.ExecuteNonQuery(query, parametros);
+                return rowsAffected;
+            }
+        }
     }
 }
