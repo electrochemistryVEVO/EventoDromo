@@ -1,6 +1,6 @@
 export const getMisDatos = async (token) => {
   // Asumimos el mismo host/puerto que tu otro servicio
-  const res = await fetch("http://localhost:5189/api/Cliente/GetMisDatosPersonales", {
+  const res = await fetch(process.env.NEXT_PUBLIC_API_BASE_URL+"/Cliente/GetMisDatosPersonales", {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`,

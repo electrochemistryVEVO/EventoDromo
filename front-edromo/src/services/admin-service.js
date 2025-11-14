@@ -28,7 +28,7 @@ export const getAuthToken = () => {
  * @returns {Promise<Object>} - Una promesa que resuelve con los datos del usuario.
  */
 export const fetchUserData = async (token) => {
-  const API_URL = "http://localhost:5189/api/Administrador/FetchAdminData";
+  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL+"/Administrador/FetchAdminData";
   try {
     // 3. El token ahora se pasa como argumento (no se lee aquí)
     if (!token) {

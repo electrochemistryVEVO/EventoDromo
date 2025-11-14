@@ -1,4 +1,4 @@
-const BASE_API_URL = "http://localhost:5189/api";
+const BASE_API_URL = process.env.API_BASE_URL;
 /**
  * Obtiene el token de autenticación almacenado.
  * @returns {string|null} - El token JWT o null si no existe.
@@ -32,7 +32,7 @@ export const getLocales = async () => {
   }
 
   const response = await fetch(`${BASE_API_URL}/Local/GetLocales`, {
-    method: "GET",
+    method: "GET",{
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",

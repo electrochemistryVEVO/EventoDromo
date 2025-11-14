@@ -43,9 +43,6 @@ coverage/
 # Archivos de configuración de Rider
 .idea/
 
-# Archivos de build de Docker
-Dockerfile*
-
 # Archivos de configuración de equipo
 .vscode/
 

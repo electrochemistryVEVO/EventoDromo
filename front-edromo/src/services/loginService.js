@@ -2,7 +2,7 @@ export async function autenticarUsuario(loginInfo) {
   //link q funciona en individual: http://localhost:5189/api/Cliente/AutenticarLoginCliente"
   //link q funciona en docker: http://localhost:8081/api/Cliente/AutenticarLoginCliente"
   const res = await fetch(
-    "http://localhost:5189/api/Cliente/AutenticarLoginCliente",
+      process.env.NEXT_PUBLIC_API_BASE_URL+"/Cliente/AutenticarLoginCliente",
     {
       method: "POST",
       headers: {
