@@ -52,4 +52,19 @@
         public string Nombre { get; set; }
         public string Ciudad { get; set; }
     }
+
+    public class CrearLocalDTO
+    {
+
+        public string Nombre { get; set; }
+
+
+        public int CiudadId { get; set; }
+
+
+        public string Direccion { get; set; }
+
+
+        public int Capacidad { get; set; }
+    }
 }

@@ -271,5 +271,19 @@ namespace EventodromoRest.Mappers
                 return listaLocal;
             }
         }
+        public bool VerificarDireccionUnica(string direccion)
+        {
+            lock (DB)
+            {
+                string query = "SELECT 1 FROM Local WHERE direccion = @DIRECCION LIMIT 1";
+                var parametros = new ParameterList();
+                parametros.Add("@DIRECCION", direccion);
+
+                DB.Select(query, parametros);
+                bool existe = DB.Read();
+                DB.CloseReader();
+                return existe;
+            }
+        }
     }
 }

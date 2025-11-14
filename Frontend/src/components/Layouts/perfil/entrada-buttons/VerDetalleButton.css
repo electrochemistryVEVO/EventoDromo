@@ -1,0 +1,185 @@
+/* Reset pequeño para el modal */
+.vdb-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1040;
+}
+
+/* Panel lateral / modal */
+.vdb-wrap {
+  position: fixed;
+  top: 4vh;
+  right: 4vw;
+  bottom: 4vh;
+  width: 420px;
+  max-width: 92vw;
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 1050;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+/* Header (close) */
+.vdb-header {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.vdb-close {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Body scrollable */
+.vdb-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  flex: 1;
+  color: #222;
+  font-size: 14px;
+}
+
+/* Top row */
+.vdb-top {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.vdb-thumb {
+  width: 96px;
+  height: 72px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f2f2f2;
+  flex-shrink: 0;
+}
+.vdb-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.vdb-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#999;
+  font-size:13px;
+}
+
+/* Top info */
+.vdb-top-info { flex: 1; }
+.vdb-title { margin: 0 0 6px 0; font-size: 20px; font-weight: 700; }
+.vdb-subtitle { color: #666; font-size: 13px; margin-bottom: 4px; }
+.vdb-datetime { color: #111; font-weight: 600; }
+.vdb-location-label { margin-top: 8px; color:#666; font-size:13px; }
+.vdb-location { font-weight:600; margin-top:4px; }
+
+/* Sections */
+.vdb-section { margin: 12px 0 6px; font-size:16px; font-weight:700; }
+.vdb-row-grid { display: flex; justify-content: space-between; gap: 12px; }
+.vdb-label { color:#666; font-size:13px; margin-bottom:4px; }
+.vdb-strong { font-weight:700; }
+
+/* Transaction block */
+.vdb-transaction { margin-top:8px; }
+.vdb-transaction-row { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:6px; }
+.vdb-code { font-family: monospace; font-size:13px; word-break:break-all; color:#222; }
+.vdb-transaction-actions { display:flex; gap:8px; align-items:center; }
+.vdb-copied { color: green; font-size:13px; margin-top:6px; }
+
+/* Items */
+.vdb-item-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.vdb-item-left { display:flex; gap:8px; align-items:center; }
+
+/* Payment box */
+.vdb-payment { background: #eaf6f3; padding:12px; border-radius:8px; margin-top:8px; }
+.vdb-payment-row { display:flex; justify-content:space-between; margin-bottom:8px; }
+.vdb-payment-total { display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
+.vdb-total-label { font-weight:700; }
+.vdb-total-amount { font-weight:900; font-size:18px; }
+
+/* small grid for document data */
+.vdb-small-grid { display:flex; gap:20px; margin-top:8px; }
+
+/* hr */
+.vdb-hr { height:1px; background:#e6e6e6; border:none; margin:12px 0; }
+
+/* Footer */
+.vdb-footer {
+  padding: 10px 14px;
+  border-top: 1px solid #eee;
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  background: #fff;
+}
+
+/* Buttons */
+.vdb-btn {
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 14px;
+}
+.vdb-btn--primary {
+  background: #0d6efd;
+  color: #fff;
+  border: none;
+}
+.vdb-btn--outline {
+  background: #fff;
+  border: 1px solid #0d6efd;
+  color: #0d6efd;
+}
+
+/* open button (in item) */
+.vdb-open-btn {
+  padding: 6px 10px;
+  border-radius:6px;
+  border:1px solid #0d6efd;
+  background: transparent;
+  color: #0d6efd;
+  cursor:pointer;
+  font-size:13px;
+}
+
+/* Formato anterior del botón principal */
+.mei-btn {
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.18s;
+  background: #0d6efd;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(13,110,253,0.08);
+}
+.mei-btn--ver {
+  background: #0d6efd;
+  color: #fff;
+}
+.mei-btn:hover,
+.mei-btn--ver:hover {
+  background: #0954c6;
+}
+@media (max-width: 480px) {
+  .vdb-wrap { right: 3vw; left: 3vw; width: auto; top: 3vh; bottom: 3vh; }
+  .vdb-top { flex-direction: row; }
+}
