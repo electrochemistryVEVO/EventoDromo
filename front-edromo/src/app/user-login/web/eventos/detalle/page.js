@@ -1,4 +1,4 @@
-import React from "react";
+import React,{Suspense} from "react";
 // Importamos el controller que tiene toda la lógica y los componentes.
 import EventPageController from "./controller";
 // Importamos los estilos específicos para este layout.
