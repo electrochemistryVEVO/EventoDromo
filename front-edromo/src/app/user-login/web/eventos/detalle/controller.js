@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import { v4 } from 'uuid';
 
 // Servicios
 import { obtenerDetallePorId } from "@/services/EntradaDetalle.service";
@@ -178,7 +179,7 @@ const EventPageController = () => {
 
     // Mantiene la estructura esperada por CartContext al agregar un item.
     const cartItem = {
-      cartItemId: crypto.randomUUID(),
+      cartItemId: v4(),
       eventoInfo: {
         id: evento.id,
         nombre: evento.nombre,

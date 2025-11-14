@@ -1,5 +1,6 @@
 // Ruta: src/services/Cart.service.js
 import { api } from "../lib/api";
+import {v4} from "uuid";
 
 const DEFAULT_EXPIRATION_MS = 10 * 60 * 1000;
 
@@ -39,10 +40,11 @@ const CART_ENDPOINTS = {
 };
 
 const generateFallbackId = () => {
+  /*
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return crypto.randomUUID();
-  }
-  return `cart-${Math.random().toString(36).slice(2)}`;
+  }*/
+  return `cart-${v4()}`;
 };
 
 const ensureCartItemId = (item, fallbackPrefix) => {
