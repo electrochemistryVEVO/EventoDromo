@@ -32,6 +32,7 @@ namespace EventodromoRest.Negocio
                 loginResponse.success = true;
                 loginResponse.rol = tipoUsuario;
                 loginResponse.idCliente = idCliente;
+                loginResponse.totalPuntos = totalPuntos;
             }
             return loginResponse;
 

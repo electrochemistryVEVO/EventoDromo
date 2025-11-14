@@ -73,12 +73,15 @@ const normalizeEntrada = (entrada) => {
     ? Number(entrada.cantidad)
     : 1;
 
+  const puntos = Number(entrada.puntos ?? entrada.puntosUnitarios ?? 0);
+
   return {
     entradaId: entrada.idEntrada ?? null,
     tipoEntradaId: entrada.idTipoEntrada ?? null,
     nombre: entrada.nombreTipoEntrada ?? "Entrada",
     cantidad,
     precioUnitario: Number.isFinite(precio) ? precio : 0,
+    puntosUnitarios: Number.isFinite(puntos) ? puntos : 0,
     limiteCompra: Number(entrada.limiteCompra ?? 0),
   };
 };

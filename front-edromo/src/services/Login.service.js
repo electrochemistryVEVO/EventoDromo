@@ -11,7 +11,7 @@ export async function autenticarUsuario(correo, password) {
     //alert("Después de la llamada al API");
     if (response.token) {
       localStorage.setItem('authToken', response.token);
-      return { rol: response.rol, token: response.token};
+      return response;
     } else {
       throw new Error("Token no recibido del servidor.");
     }

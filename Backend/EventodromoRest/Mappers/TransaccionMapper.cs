@@ -408,7 +408,9 @@ namespace EventodromoRest.Mappers
         private Carrito ObtenerCarritoActivoPorCliente(int idCliente)
         {
             // Busca un carrito que no haya expirado
-            string query = "SELECT * FROM Carrito WHERE idCliente = @idCli AND fechaExpiracion > UTC_TIMESTAMP() LIMIT 1";
+            //string query = "SELECT * FROM Carrito WHERE idCliente = @idCli AND fechaExpiracion > UTC_TIMESTAMP() LIMIT 1";
+            string query = "SELECT * FROM Carrito WHERE idCliente = @idCli AND fechaExpiracion > UTC_TIMESTAMP() " +
+                           "ORDER BY fechaCreacion DESC LIMIT 1";
             var p = new ParameterList();
             p.Add("@idCli", idCliente);
             DB.Select(query, p);

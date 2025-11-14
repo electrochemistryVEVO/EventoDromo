@@ -126,7 +126,7 @@ const CreditCardForm = ({ cardDetails, formErrors, handleInputChange }) => (
 // --- Info de DromoPuntos ---
 const DromoPuntosInfo = ({ userPuntos, totalPrice, puntosPorSol }) => {
     // Calcular cuántos puntos se necesitan para esta compra
-    const puntosRequeridos = Math.ceil(totalPrice * puntosPorSol);
+    const puntosRequeridos = Math.ceil(totalPrice / puntosPorSol);
     const tieneSuficientesPuntos = userPuntos >= puntosRequeridos;
 
     return (
@@ -167,7 +167,7 @@ const PaymentMethod = ({
 }) => {
 
     // --- CALCULA SI EL PAGO CON PUNTOS ES VÁLIDO ---
-    const puntosRequeridos = Math.ceil(totalPrice * puntosPorSol);
+    const puntosRequeridos = Math.ceil(totalPrice / puntosPorSol);
     const puedePagarConPuntos = userPuntos >= puntosRequeridos;
     return (
         <section className={styles.card}>
@@ -385,7 +385,7 @@ function CompraPagoConLoginPage() {
             // --- Lógica de Pago por PUNTOS ---
             } else if (selectedPaymentMethod === "dromopuntos") {
                 
-                const puntosRequeridos = Math.ceil(totalPrice * puntosPorSol);
+                const puntosRequeridos = Math.ceil(totalPrice / puntosPorSol);
                 if (userPuntos < puntosRequeridos) {
                     throw new Error("Puntos insuficientes para realizar esta compra.");
                 }
@@ -496,7 +496,7 @@ function CompraPagoConLoginPage() {
 
                             {/* Muestra Total en PUNTOS si es dromopuntos */}
                             {selectedPaymentMethod === "dromopuntos" && (
-                                <div className="text-xl font-bold">Total: {Math.ceil(totalPrice * puntosPorSol)} Puntos</div>
+                                <div className="text-xl font-bold">Total: {Math.ceil(totalPrice / puntosPorSol)} Puntos</div>
                             )}
 
                             {selectedPaymentMethod ? (

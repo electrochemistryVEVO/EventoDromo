@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 export default function RootPage() {
   // Cuando este componente se renderiza (al acceder a /),
   // Next.js inmediatamente redirige al usuario.
-  redirect('/user/eventos/lista');
+  redirect('/user/web/eventos/lista');
   
   // Opcionalmente, puedes retornar null o un fragmento vacío
   // aunque 'redirect' detiene el renderizado.
