@@ -7,6 +7,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
  */
 
 async function apiFetch(endpoint, options = {}) {
+    console.log(BASE_URL)
     let token = null;
 
     if (typeof window !== 'undefined') {
@@ -31,7 +32,7 @@ async function apiFetch(endpoint, options = {}) {
     if (options.body) {
         config.body = JSON.stringify(options.body);
     }
-
+    console.log(BASE_URL)
     const response = await fetch(`${BASE_URL}${endpoint}`, config);
 
     if (!response.ok) {
