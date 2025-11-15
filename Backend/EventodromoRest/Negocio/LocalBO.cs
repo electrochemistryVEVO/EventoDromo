@@ -129,7 +129,49 @@ namespace EventodromoRest.Negocio
             int response = mapper.ModificarLocalAdmin(local);
             return response;
         }
+        public GenericResponse<Local> CambiarEstadoLocal(int idLocal, bool isDeleted)
+        {
+            try
+            {
+                // 0. Instancia el mapper (Asumo que ya tienes 'globales' y 'DB' en tu BO)
+                var mapper = new LocalMapper(globales, DB);
 
+                // 1. Intentar actualizar el estado
+                //    (Esto usa el método 'ActualizarEstadoLocal' de tu LocalMapper)
+                int rowsAffected = mapper.ActualizarEstadoLocal(idLocal, isDeleted);
+
+                // 2. Verificar si la actualización funcionó
+                if (rowsAffected == 0)
+                {
+                    return new GenericResponse<Local>
+                    {
+                        Success = false,
+                        Message = "No se encontró un local con el ID " + idLocal,
+                        Error = "Not Found"
+                    };
+                }
+
+                // 3. Obtener y devolver el local actualizado para confirmación
+                //    (Esto usa el método 'ObtenerLocalPorId' de tu LocalMapper)
+                Local localActualizado = mapper.ObtenerLocalPorId(idLocal);
+
+                return new GenericResponse<Local>
+                {
+                    Success = true,
+                    Message = $"Local {localActualizado.nombre} actualizado a {(isDeleted ? "Inactivo" : "Activo")}.",
+                    Data = localActualizado
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GenericResponse<Local>
+                {
+                    Success = false,
+                    Message = "Error interno al actualizar el estado del local.",
+                    Error = ex.Message
+                };
+            }
+        }
 
     }
 }
