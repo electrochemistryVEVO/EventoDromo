@@ -41,9 +41,14 @@ export const useEventEditor = (eventId) => {
   const [descuentos, setDescuentos] = useState([]);
 
   // --- NUEVOS ESTADOS para rastrear eliminaciones ---
+  /*
   const [deletedFechasIds, setDeletedFechasIds] = useState([]);
   const [deletedTiposEntradaIds, setDeletedTiposEntradaIds] = useState([]);
   const [deletedDescuentosIds, setDeletedDescuentosIds] = useState([]);
+*/
+  // Estado INTERNO para guardar la lista original de entradas del backend.
+  // Es crucial para poder conservar los IDs correctos al actualizar.
+  const [entradasOriginales, setEntradasOriginales] = useState([]);
 
   // --- ESTADOS PARA DATOS EXTERNOS Y UI (Iguales) ---
   const [locales, setLocales] = useState([]);
@@ -91,13 +96,38 @@ export const useEventEditor = (eventId) => {
           fechaPublicacion: eventData.fechaPublicacion,
           fechaCompra: eventData.fechaCompra,
         });
-
+        console.log("DATOS CRUDOS DEL BACKEND (entradas):", eventData.entrada);
+        console.log("DATOS CRUDOS DEL BACKEND:", eventData);
+        console.log("DATOS CRUDOS DEL BACKEND (horarios):", eventData.horarios);
         // Poblamos las listas dinámicas. Asignamos el ID que viene del backend.
         setFechas(eventData.horarios);
-        setTiposEntrada(eventData.entradas);
-        setDescuentos(eventData.descuentos || []);
 
-        // Poblamos los dropdowns
+        // 2. Guardar la lista COMPLETA de entradas originales para referencia futura
+        setEntradasOriginales(eventData.entradas);
+
+        // 3. DEDUCIR las "plantillas de entrada" a partir de los datos recibidos
+        const plantillasMap = new Map();
+        eventData.entradas.forEach((entrada) => {
+          const nombrePlantilla = entrada.nombre.split(" - ")[0]; // Extrae "General" de "General - 28 Nov"
+          if (!plantillasMap.has(nombrePlantilla)) {
+            plantillasMap.set(nombrePlantilla, {
+              id: `plantilla-${nombrePlantilla.replace(/\s+/g, "-")}`, // Usamos un ID real para la clave de React
+              nombre: nombrePlantilla,
+              precio: entrada.precio ?? "",
+              cantidad: entrada.cantidad ?? "", // Mapeamos el nombre para que coincida con el formulario
+              limiteCompra: entrada.limiteCompra ?? "",
+              puntos: entrada.puntos ?? "",
+            });
+          }
+        });
+        const plantillasGeneradas = Array.from(plantillasMap.values());
+        console.log(
+          "PLANTILLAS GENERADAS PARA EL FORMULARIO:",
+          plantillasGeneradas
+        );
+        setTiposEntrada(Array.from(plantillasMap.values()));
+
+        setDescuentos(eventData.descuentos || []);
         setLocales(localesData);
         setEventTypes(eventTypesData);
       } catch (err) {
@@ -184,7 +214,8 @@ export const useEventEditor = (eventId) => {
 
   const addFecha = () =>
     setFechas((prev) => [...prev, { id: Date.now(), fecha: "", hora: "" }]);
-
+  const removeFecha = (id) =>
+    setFechas((prev) => prev.filter((f) => f.id !== id));
   const handleFechaChange = (id, field, value) =>
     setFechas((prev) =>
       prev.map((f) => (f.id === id ? { ...f, [field]: value } : f))
@@ -206,16 +237,6 @@ export const useEventEditor = (eventId) => {
       prev.map((t) => (t.id === id ? { ...t, [field]: value } : t))
     );
 
-  // --- MODIFICAMOS las funciones de eliminar para rastrear los IDs ---
-
-  const removeFecha = (id) => {
-    // Si el ID es un número (no un timestamp), lo guardamos para el borrado en el backend.
-    if (typeof id === "number" && !isNaN(id)) {
-      setDeletedFechasIds((prev) => [...prev, id]);
-    }
-    setFechas((prev) => prev.filter((f) => f.id !== id));
-  };
-
   const removeTipoEntrada = (id) => {
     // VALIDACIÓN: No permitir borrar si el tipo de entrada está en uso por un descuento
     const estaEnUso = descuentos.some(
@@ -226,10 +247,6 @@ export const useEventEditor = (eventId) => {
         "No puede eliminar este tipo de entrada porque está siendo utilizado por al menos un descuento. Por favor, elimine o modifique el descuento primero."
       );
       return;
-    }
-
-    if (typeof id === "number" && !isNaN(id)) {
-      setDeletedTiposEntradaIds((prev) => [...prev, id]);
     }
     setTiposEntrada((prev) => prev.filter((t) => t.id !== id));
   };
@@ -252,9 +269,6 @@ export const useEventEditor = (eventId) => {
     ]);
 
   const removeDescuento = (id) => {
-    if (typeof id === "number" && !isNaN(id)) {
-      setDeletedDescuentosIds((prev) => [...prev, id]);
-    }
     setDescuentos((prev) => prev.filter((d) => d.id !== id));
   };
 
@@ -377,22 +391,62 @@ export const useEventEditor = (eventId) => {
       if (eventInfo.imagenFile) {
         imageUrl = await uploadImageAndGetUrl(eventInfo.imagenFile);
       }
+      // Generamos la lista final de entradas combinando horarios y plantillas.
+      const entradasFinales = [];
+      fechas.forEach((horario) => {
+        tiposEntrada.forEach((plantilla) => {
+          // --- ¡LÓGICA CORREGIDA PARA ENCONTRAR LA ENTRADA ORIGINAL! ---
+          // Creamos una cadena de texto de la fecha del horario para buscarla en el nombre.
+          const fechaBusqueda = new Date(horario.fecha)
+            .toLocaleDateString("es-ES", {
+              day: "numeric",
 
+              month: "short",
+            })
+            .replace(".", ""); // Ej: "15 nov"
+
+          // Buscamos la entrada original comparando el nombre de la plantilla Y la fecha en el nombre.
+          const entradaOriginal = entradasOriginales.find(
+            (e) =>
+              e.nombre.startsWith(plantilla.nombre) &&
+              e.nombre.toLowerCase().includes(fechaBusqueda.toLowerCase())
+          );
+
+          // El resto de la lógica para construir la entrada final es la misma.
+          entradasFinales.push({
+            idEntrada: entradaOriginal ? entradaOriginal.id : 0, // Usamos el 'id' de la entrada original
+            nombre: `${plantilla.nombre} - ${fechaBusqueda}`,
+            precio: parseFloat(plantilla.precio),
+            cantidadEntradas: parseInt(plantilla.cantidad, 10),
+            limiteCompra: parseInt(plantilla.limiteCompra, 10),
+            puntos: parseInt(plantilla.puntos, 10),
+            horario: {
+              id:
+                typeof horario.id === "string" || horario.id > 1_000_000
+                  ? 0
+                  : horario.id,
+              fecha: horario.fecha,
+              hora: horario.hora,
+            },
+          });
+        });
+      });
       // Ensamblamos el payload final
       const finalEventData = {
+        idEvento: parseInt(eventId, 10),
         ...eventInfo,
-        fechas,
-        tiposEntrada,
-        descuentos,
         imagenURL: imageUrl,
-        // Incluimos los IDs a eliminar, para que el backend sepa qué borrar.
-        deletedFechasIds,
-        deletedTiposEntradaIds,
-        deletedDescuentosIds,
+        horarios: fechas.map((f) => ({
+          id: typeof f.id === "string" || f.id > 1_000_000 ? 0 : f.id, // Nuevos horarios tienen ID 0
+          fecha: f.fecha,
+          hora: f.hora,
+        })),
+        entradas: entradasFinales,
+        descuentos,
       };
 
       // Llamamos al servicio de ACTUALIZACIÓN
-      await updateEvent(eventId, finalEventData);
+      await updateEvent(finalEventData);
 
       setIsSuccess(true);
     } catch (err) {

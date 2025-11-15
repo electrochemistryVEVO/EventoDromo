@@ -3,7 +3,7 @@
  * @description Servicios para obtener y actualizar los datos de un evento existente.
  */
 
-const BASE_API_URL = "http://localhost:5189/api";
+const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const getAuthToken = () => {
   try {
@@ -27,6 +27,7 @@ const getAuthToken = () => {
  * --- VERSIÓN SIMULADA (MOCK) ---
  * Obtiene los detalles completos de un evento por su ID.
  */
+/*
 export const getEventById = async (eventId) => {
   console.log(`Fetching simulated event data for ID: ${eventId}...`);
 
@@ -85,7 +86,7 @@ export const getEventById = async (eventId) => {
   console.log("Simulated event data fetched:", mockEventData);
   return mockEventData;
 };
-
+*/
 /**
  * --- VERSIÓN SIMULADA (MOCK) ---
  * Simula el envío de los datos actualizados de un evento al backend.
@@ -94,6 +95,7 @@ export const getEventById = async (eventId) => {
  * @param {object} eventData - El objeto con todos los datos actualizados del formulario.
  * @returns {Promise<object>} Una promesa que resuelve con la respuesta de éxito simulada.
  */
+/*
 export const updateEvent = async (eventId, eventData) => {
   console.log(`1. INICIANDO ACTUALIZACIÓN SIMULADA para Evento ID: ${eventId}`);
   console.log("2. DATOS RECIBIDOS DEL FORMULARIO:", eventData);
@@ -180,62 +182,109 @@ export const updateEvent = async (eventId, eventData) => {
     }, 1500); // Retardo de 1.5 segundos para simular la operación
   });
 };
+*/
 /**
- * Envía los datos actualizados de un evento al backend.
+ * Actualiza un evento existente enviando todos sus datos.
+ * El backend identifica si un horario o entrada es nuevo si su 'id' es 0.
+ *
+ * @param {object} eventData - El objeto completo con los datos del evento a actualizar.
+ * Debe coincidir con la estructura que el frontend maneja en su estado.
+ * @returns {Promise<object>} La respuesta del servidor tras la actualización.
+ * @throws {Error} Si los datos son inválidos, falta el token o la API devuelve un error.
  */
-/*
-export const updateEvent = async (eventId, eventData) => {
-  if (!eventId || !eventData) {
+export const updateEvent = async (eventData) => {
+  // --- 1. Validación de Entradas ---
+  if (!eventData) {
+    throw new Error("Se requieren los datos del evento para la actualización.");
+  }
+  if (
+    !eventData.idEvento ||
+    typeof eventData.idEvento !== "number" ||
+    eventData.idEvento <= 0
+  ) {
     throw new Error(
-      "Se requiere el ID del evento y los datos para actualizar."
+      "El objeto eventData debe contener un 'idEvento' numérico y válido."
     );
   }
+
   const token = getAuthToken();
   if (!token) {
     throw new Error("Token de autenticación no encontrado.");
   }
 
-  const payload = {
-    nombre: eventData.nombre,
-    descripcion: eventData.descripcion,
-    localId: parseInt(eventData.localId, 10),
-    tipoEventoId: parseInt(eventData.tipoEventoId, 10),
-    capacidad: parseInt(eventData.capacidad, 10),
-    fechaPublicacion: eventData.fechaPublicacion,
-    fechaCompra: eventData.fechaCompra,
-    imagenURL: eventData.imagenURL,
-    horarios: eventData.fechas.map((f) => ({
-      id: f.id,
-      fecha: f.fecha,
-      hora: f.hora,
-    })),
-    entradas: eventData.tiposEntrada.map((t) => ({
-      id: t.id,
-      nombre: t.nombre,
-      precio: parseFloat(t.precio),
-      cantidad: parseInt(t.cantidad, 10),
-      limiteCompra: parseInt(t.limiteCompra, 10),
-      puntos: parseInt(t.puntos, 10),
-    })),
-  };
+  // --- 2. Transformación de Datos (Frontend -> Backend) ---
+  // Mapeamos la estructura de datos del estado del frontend
+  // a la estructura exacta que el backend espera recibir.
 
   try {
-    const response = await fetch(
-      `${BASE_API_URL}/Evento/ActualizarEvento/${eventId}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      }
-    );
+    // Primero, creamos un mapa de los horarios para un acceso eficiente.
+    // Esto nos permitirá encontrar fácilmente el objeto horario completo para cada entrada.
+    const horariosMap = new Map();
+    (eventData.fechas || []).forEach((h) => horariosMap.set(h.id, h));
 
+    const payload = {
+      // Campos principales
+      idEvento: eventData.idEvento,
+      nombre: eventData.nombre,
+      descripcion: eventData.descripcion,
+      imagenURL: eventData.imagenURL,
+      localId: parseInt(eventData.localId, 10),
+      tipoEventoId: parseInt(eventData.tipoEventoId, 10),
+      capacidad: parseInt(eventData.capacidad, 10),
+      fechaPublicacion: eventData.fechaPublicacion, // Asegúrate que esté en formato ISO "YYYY-MM-DDTHH:mm:ss"
+      fechaCompra: eventData.fechaCompra,
+
+      // Mapeo de horarios (la estructura parece ser la misma)
+      horarios: (eventData.fechas || []).map((h) => ({
+        id: h.id, // Puede ser 0 para nuevos horarios
+        fecha: h.fecha, // "YYYY-MM-DD"
+        hora: h.hora, // "HH:mm"
+      })),
+
+      // Mapeo de entradas (la transformación más importante)
+      entradas: (eventData.tiposEntrada || []).map((t) => {
+        // Buscamos el objeto de horario completo que corresponde a esta entrada.
+        const horarioAsociado = horariosMap.get(t.horarioId);
+
+        if (!horarioAsociado) {
+          // Esta es una validación crítica. Si una entrada no tiene un horario, la solicitud es inválida.
+          throw new Error(
+            `La entrada "${t.nombre}" está asociada a un horarioId (${t.horarioId}) que no existe.`
+          );
+        }
+
+        return {
+          idEntrada: t.id, // Puede ser 0 para nuevas entradas
+          nombre: t.nombre,
+          precio: parseFloat(t.precio),
+          cantidadEntradas: parseInt(t.cantidad, 10),
+          limiteCompra: parseInt(t.limiteCompra, 10),
+          puntos: parseInt(t.puntos, 10),
+          horario: {
+            // Incrustamos el objeto de horario completo
+            id: horarioAsociado.id,
+            fecha: horarioAsociado.fecha,
+            hora: horarioAsociado.hora,
+          },
+        };
+      }),
+    };
+
+    // --- 3. Petición a la API ---
+    const response = await fetch(`${BASE_API_URL}/Evento/ActualizarEvento`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    // --- 4. Manejo de la Respuesta ---
     if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: `Error del servidor: ${response.status}` }));
+      const errorData = await response.json().catch(() => ({
+        message: `Error del servidor: ${response.status} ${response.statusText}`,
+      }));
       throw new Error(
         errorData.message || "Ocurrió un error al actualizar el evento."
       );
@@ -243,26 +292,30 @@ export const updateEvent = async (eventId, eventData) => {
 
     return await response.json();
   } catch (error) {
-    console.error("Error crítico en el servicio updateEvent:", error);
+    // Capturamos cualquier error (de validación, de red, etc.) para un mejor diagnóstico.
+    console.error("Error crítico en el servicio updateEvent:", error.message);
+    // Re-lanzamos el error para que el código que llama a esta función pueda manejarlo (ej. mostrar un toast de error).
     throw error;
   }
 };
-*/
 
 /**
  * Realiza una llamada a la API para obtener los detalles completos de un evento por su ID.
  * @param {string|number} eventId - El ID del evento.
  * @returns {Promise<object>} Los datos completos del evento, incluyendo descuentos.
  */
-/*
+
 export const getEventById = async (eventId) => {
   const token = getAuthToken();
   if (!token) throw new Error("Token de autenticación no encontrado.");
 
-  const response = await fetch(`${BASE_API_URL}/Evento/GetEvento/${eventId}`, {
-    method: "GET",
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const response = await fetch(
+    `${BASE_API_URL}/Evento/EventoObtenerDatos?id=${eventId}`,
+    {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
 
   if (!response.ok) {
     const errorData = await response
@@ -274,8 +327,10 @@ export const getEventById = async (eventId) => {
   }
 
   const apiResponse = await response.json();
-  if (apiResponse && apiResponse.success) {
-    // Asumimos que la respuesta ahora incluye un array 'descuentos'
+  if (apiResponse && apiResponse.success && apiResponse.data) {
+    if (!apiResponse.data.descuentos) {
+      apiResponse.data.descuentos = [];
+    }
     return apiResponse.data || {};
   } else {
     throw new Error(
@@ -283,7 +338,6 @@ export const getEventById = async (eventId) => {
     );
   }
 };
-*/
 
 /**
  * Envía los datos actualizados de un evento al backend, incluyendo la gestión de descuentos.

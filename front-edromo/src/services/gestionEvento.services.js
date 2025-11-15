@@ -1,16 +1,19 @@
-const BASE_API_URL = "http://localhost:5189/api";
+"use server";
+const BASE_API_URL = process.env.API_BASE_URL;
 /**
- * Obtiene el token de autenticación almacenado del UserContext.
+ * Obtiene el token de autenticación almacenado.
  * @returns {string|null} - El token JWT o null si no existe.
  */
-export const getAuthToken = () => {
+const getAuthToken = () => {
   try {
     // 1. Lee la clave "user" de localStorage (donde UserContext la guarda)
     const userJSON = localStorage.getItem("user");
 
     if (!userJSON) {
       return null;
-    } // 2. Parsea el objeto y devuelve la propiedad "token"
+    }
+
+    // 2. Parsea el objeto y devuelve la propiedad "token"
     const userData = JSON.parse(userJSON);
     return userData?.token || null;
   } catch (error) {
@@ -18,18 +21,6 @@ export const getAuthToken = () => {
     return null;
   }
 };
-
-/* Antes...
-export const getAuthToken = () => {
-  const sessionJSON = sessionStorage.getItem("session");
-  let userToken = null;
-  if (sessionJSON) {
-    const sessionData = JSON.parse(sessionJSON);
-    userToken = sessionData.token;
-  }
-  return userToken;
-};
-*/
 
 /**
  * Realiza una llamada a la API para obtener la lista completa de locales.
@@ -40,7 +31,7 @@ export const getLocales = async () => {
   if (!token) {
     throw new Error("No se encontró el token de autenticación.");
   }
-
+  console.log(BASE_API_URL);
   const response = await fetch(`${BASE_API_URL}/Local/GetLocales`, {
     method: "GET",
     headers: {
@@ -78,7 +69,6 @@ export const getLocales = async () => {
  * @param {object} filters - Los filtros a aplicar en la búsqueda.
  * @returns {Promise<object>} Una promesa que resuelve a un objeto con los eventos y la información de paginación.
  */
-/*
 export const getEvents = async (filters = {}) => {
   console.log("Fetching events with filters:", filters);
   const token = getAuthToken();
@@ -187,69 +177,56 @@ export const getEvents = async (filters = {}) => {
     }, 1000); // Simular un retardo de red
   });
 };
-*/
+
 /**
  * Realiza una llamada a la API para obtener los eventos filtrados y paginados.
  * @param {object} filters - Los filtros a aplicar en la búsqueda.
  * @returns {Promise<object>} Una promesa que resuelve a un objeto con los eventos y la información de paginación.
  */
-
+/*
 export const getEvents = async (filters = {}) => {
   const token = getAuthToken();
   if (!token) {
-    throw new Error("No se encontró el token de autenticación.");
+    throw new Error('No se encontró el token de autenticación.');
   }
 
-  // 1. Preparamos los parámetros para la URL
+  // 1. Preparamos los parámetros para la URL, omitiendo los que no se deben enviar.
   const queryParams = { ...filters };
-  if (queryParams.local === 0) delete queryParams.local;
-  if (queryParams.status === "Todos") delete queryParams.status;
+  if (queryParams.local === 0) {
+    delete queryParams.local; // El backend no espera localId=0
+  }
+  if (queryParams.status === 'Todos') {
+    delete queryParams.status;
+  }
+  // Renombramos 'local' a 'localId' para que coincida con la especificación del backend.
   if (queryParams.local) {
-    queryParams.localId = queryParams.local;
-    delete queryParams.local;
+      queryParams.localId = queryParams.local;
+      delete queryParams.local;
   }
 
+
+  // 2. Construimos la cadena de búsqueda (query string)
   const queryString = new URLSearchParams(queryParams).toString();
   const url = `${BASE_API_URL}/Evento/EventoGetEvents?${queryString}`;
 
-  console.log("Realizando petición a:", url);
+  console.log('Realizando petición a:', url);
 
   const response = await fetch(url, {
-    method: "GET",
+    method: 'GET',
     headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
+      'Authorization': token,
+      'Content-Type': 'application/json',
     },
   });
 
   if (!response.ok) {
-    // Intenta parsear un JSON de error si es posible
-    const errorData = await response.json().catch(() => ({
-      message: `Error del servidor: ${response.status} ${response.statusText}`,
-    }));
-    throw new Error(errorData.message || "Error al obtener los eventos");
+    const errorData = await response.json().catch(() => ({ message: response.statusText }));
+    throw new Error(errorData.message || 'Error al obtener los eventos');
   }
 
-  // Verificamos si la respuesta tiene contenido antes de intentar parsearla.
-  const text = await response.text();
-  if (!text) {
-    // Si la respuesta está vacía, devuelve un estado controlado
-    // en lugar de causar un error de parseo.
-    console.warn("La respuesta del API fue exitosa pero no contenía datos.");
-    return {
-      success: true,
-      data: { data: [], pagination: { currentPage: 1, totalPages: 1 } },
-    };
-  }
-
-  try {
-    // Intentamos parsear el texto que ya obtuvimos.
-    return JSON.parse(text);
-  } catch (error) {
-    console.error("Fallo al parsear la respuesta JSON:", error);
-    throw new Error("La respuesta del servidor no es un JSON válido.");
-  }
+  return response.json();
 };
+*/
 
 /**
  * Envía los datos de un nuevo evento al backend para su creación.
@@ -285,11 +262,11 @@ export const createEvent = async (eventData) => {
     nombre: eventData.nombre,
     descripcion: eventData.descripcion,
     localId: parseInt(eventData.localId, 10),
-    tipoEventoId: parseInt(eventData.tipoEventoId, 10), // Corregido de eventInfo a eventData
+    tipoEventoId: parseInt(eventData.tipoEventoId, 10),
     capacidad: parseInt(eventData.capacidad, 10),
     fechaPublicacion: eventData.fechaPublicacion,
     fechaCompra: eventData.fechaCompra,
-    imagenURL: eventData.imagenURL, // <-- El cambio principal: ahora es una URL.
+    imagenURL: eventData.imagenURL,
     horarios: eventData.fechas.map((f) => `${f.fecha}T${f.hora}`),
     entradas: eventData.tiposEntrada.map((t) => ({
       nombre: t.nombre,
@@ -297,6 +274,16 @@ export const createEvent = async (eventData) => {
       cantidad: parseInt(t.cantidad, 10),
       limiteCompra: parseInt(t.limiteCompra, 10),
       puntos: parseInt(t.puntos, 10),
+    })),
+    descuentos: eventData.descuentos.map((d) => ({
+      nombre: d.nombre,
+      codigo: d.codigo,
+      tipo: d.tipo, // 'Porcentaje' o 'Fijo'
+      valor: parseFloat(d.valor),
+      fechaInicio: d.fechaInicio,
+      fechaFin: d.fechaFin,
+      usosMaximos: parseInt(d.usosMaximos, 10),
+      tipoEntradaId: parseInt(d.tipoEntradaId, 10), // El ID del tipo de entrada vinculado
     })),
   };
 

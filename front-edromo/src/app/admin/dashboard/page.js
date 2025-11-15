@@ -161,7 +161,7 @@ const DashboardAnaliticasPage = () => {
           <AccionRapidaButton
             icono={ICON_PATHS.crearLocal}
             texto="Crear Local"
-            href="/admin/locales/crear"
+            href="/admin/locales"
             onClick={() => console.log("Crear Local")}
           />
           <AccionRapidaButton
