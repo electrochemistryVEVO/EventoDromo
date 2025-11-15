@@ -1,14 +1,10 @@
 'use client'
-import { insertarLocal, obtenerLocalPorId, editarLocal, eliminarLocal } from "@/services/gestionLocal.service";
-
-function validateInput() {
-    return true
-}
+import { insertarLocal, obtenerLocalPorId, editarLocal, eliminarLocal, restaurarLocal } from "@/services/gestionLocal.service";
 
 export async function submitInput(event) {
     event.preventDefault()
-    if (!validateInput(event.target)) return;
-    let local = {
+    
+    const local = {
         nombre: event.target.nombre.value,
         idCiudad: event.target.idCiudad.value,
         direccion: event.target.direccion.value,
@@ -16,10 +12,9 @@ export async function submitInput(event) {
         isDeleted: false,
         idAdministrador: sessionStorage.getItem('userData')?.id ?? 1
     }
-    console.log(local)
+    
     await insertarLocal(local)
     return true;
-    //return false;
 }
 
 export async function deleteLocal(id) {
@@ -29,8 +24,8 @@ export async function deleteLocal(id) {
 
 export async function modifyLocal(event, modalData) {
     event.preventDefault()
-    if (!validateInput(event.target)) return;
-    let local = {
+    
+    const local = {
         id: modalData.id,
         nombre: event.target.nombre.value,
         idCiudad: event.target.idCiudad.value,
@@ -39,27 +34,30 @@ export async function modifyLocal(event, modalData) {
         isDeleted: modalData.isDeleted,
         idAdministrador: modalData.idAdministrador
     }
-    console.log(local)
+    
     await editarLocal(local)
     return true;
 }
 
 export async function loadLocal(id, setModalData, setCreatePopup, setEdit) {
-    console.log("bud")
-    obtenerLocalPorId(id)
-        .then((data) => {
-            let local = data?.data
-            setModalData({
-                id: local.id,
-                nombre: local.nombre,
-                idCiudad: local.idCiudad,
-                direccion: local.direccion,
-                capacidad: local.capacidad,
-                isDeleted: local.isDeleted,
-                idAdministrador: local.idAdministrador
-            })
-            setEdit(true);
-            setCreatePopup(true);
-        })
+    const data = await obtenerLocalPorId(id)
+    const local = data?.data
+    
+    setModalData({
+        id: local.id,
+        nombre: local.nombre,
+        idCiudad: local.idCiudad,
+        direccion: local.direccion,
+        capacidad: local.capacidad,
+        isDeleted: local.isDeleted,
+        idAdministrador: local.idAdministrador
+    })
+    
+    setEdit(true);
+    setCreatePopup(true);
+}
 
+export async function restoreLocal(id) {
+    const result = await restaurarLocal(id);
+    return result;
 }

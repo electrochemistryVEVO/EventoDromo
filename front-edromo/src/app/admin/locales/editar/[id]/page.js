@@ -5,6 +5,8 @@ import { useRouter, useParams } from 'next/navigation'
 import { FiArrowLeft } from 'react-icons/fi'
 import { editarLocal, listarCiudades, obtenerLocalPorId } from '@/services/gestionLocal.service'
 import { fetchUserData, getAuthToken } from '@/services/admin-service'
+import LocalEditValidationModal from '@/components/modals/LocalEditValidationModal'
+import LocalEditSuccessModal from '@/components/modals/LocalEditSuccessModal'
 import '@/css/adminLocales/editarLocal.css'
 
 function EditarLocal() {
@@ -18,6 +20,10 @@ function EditarLocal() {
     const [error, setError] = useState(null)
     const [adminData, setAdminData] = useState(null)
     const [localData, setLocalData] = useState(null)
+    const [showValidationModal, setShowValidationModal] = useState(false)
+    const [showSuccessModal, setShowSuccessModal] = useState(false)
+    const [validationErrors, setValidationErrors] = useState([])
+    const [localName, setLocalName] = useState('')
 
     useEffect(() => {
         const cargarAdminData = async () => {
@@ -91,29 +97,62 @@ function EditarLocal() {
         setError(null)
         
         const formData = new FormData(event.target)
+        const nombre = formData.get('nombre')
         const idCiudad = parseInt(formData.get('idCiudad'))
-        const ciudadSeleccionada = ciudades.find(c => c.id === idCiudad)
+        const direccion = formData.get('direccion')
+        const capacidad = parseInt(formData.get('capacidad'))
         
-        if (!ciudadSeleccionada) {
-            setError('Por favor selecciona una ciudad válida')
+        setLocalName(nombre)
+        
+        // Validación de datos
+        const errors = []
+        
+        // Validar nombre del local (más de 3 caracteres)
+        if (!nombre || nombre.trim().length <= 3) {
+            errors.push('El nombre del local de tener mas de 3 caracteres')
+        }
+        
+        // Validar ciudad seleccionada
+        const ciudadSeleccionada = ciudades.find(c => c.id === idCiudad)
+        if (!ciudadSeleccionada || !idCiudad) {
+            errors.push('Debe seleccionar una ciudad que sea valida')
+        }
+        
+        // Validar dirección (más de 6 caracteres)
+        if (!direccion || direccion.trim().length <= 6) {
+            errors.push('La direccion debe tener mas de 6 caracteres')
+        }
+        
+        // Validar capacidad (número válido mayor a 0)
+        if (!capacidad || isNaN(capacidad) || capacidad <= 0) {
+            errors.push('La capacidad debe ser un numero valido')
+        }
+        
+        // Si hay errores, mostrar modal de validación
+        if (errors.length > 0) {
+            setValidationErrors(errors)
+            setShowValidationModal(true)
             setIsLoading(false)
             return
         }
 
         const localActualizado = {
             idLocal: parseInt(localId),
-            Nombre: formData.get('nombre'),
+            Nombre: nombre,
             CiudadId: idCiudad,
-            Direccion: formData.get('direccion'),
-            Capacidad: parseInt(formData.get('capacidad')),
+            Direccion: direccion,
+            Capacidad: capacidad,
         }
 
         try {
             const result = await editarLocal(localActualizado)
             
             if (result?.success) {
-                alert('Local actualizado exitosamente')
-                router.push('/admin/locales/gestion')
+                setShowSuccessModal(true)
+                // Redirigir después de 2 segundos
+                setTimeout(() => {
+                    router.push('/admin/locales/gestion')
+                }, 2000)
             } else {
                 const errorMsg = result?.message || result?.error || 'Error al actualizar local'
                 setError(errorMsg)
@@ -134,7 +173,7 @@ function EditarLocal() {
                 <header className="editar-local-header">
                     <button 
                         className="btn-back"
-                        onClick={() => router.push('/admin/locales')}
+                        onClick={() => router.push('/admin/locales/gestion')}
                         aria-label="Volver a gestión de locales"
                     >
                         <FiArrowLeft size={24} />
@@ -289,6 +328,23 @@ function EditarLocal() {
                     </form>
                 </div>
             </div>
+
+            {/* Modales */}
+            <LocalEditValidationModal
+                isOpen={showValidationModal}
+                onClose={() => setShowValidationModal(false)}
+                errors={validationErrors}
+                localName={localName}
+            />
+            
+            <LocalEditSuccessModal
+                isOpen={showSuccessModal}
+                onClose={() => {
+                    setShowSuccessModal(false)
+                    router.push('/admin/locales/gestion')
+                }}
+                count={1}
+            />
         </div>
     )
 }

@@ -2,9 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-//import { Modal } from "bootstrap";
-import { listarCiudades, listarLocales, obtenerLocalPorId } from "@/services/gestionLocal.service";
-import { submitInput, loadLocal, modifyLocal, deleteLocal } from "@/app/admin/locales/gestion/controller";
+import { listarCiudades, listarLocales } from "@/services/gestionLocal.service";
+import { submitInput, modifyLocal, deleteLocal, restoreLocal } from "@/app/admin/locales/gestion/controller";
 import '@/css/adminLocales/gestionLocales.css';
 import {
     FiSearch,
@@ -16,16 +15,6 @@ import {
     FiChevronLeft,
     FiChevronRight
 } from 'react-icons/fi';
-import Form from "next/form";
-
-// --- Mock Data ---
-const mockData = [
-    { id: 1, local: 'Estadio Nacional', ciudad: 'Lima', direccion: 'C. José Díaz S/N', capacidad: 40000, eventos: 0, estado: 'Activo' },
-    { id: 2, local: 'Estadio San Marcos', ciudad: 'Lima', direccion: 'Jr. Francisco Moreyra y...', capacidad: 30000, eventos: 3, estado: 'Activo' },
-    { id: 3, local: 'Teatro Ricardo Blume', ciudad: 'Lima', direccion: 'Jr. Huiracocha 2193-2115', capacidad: 5000, eventos: 5, estado: 'Activo' },
-    { id: 4, local: 'Estadio Inca Garcilaso d...', ciudad: 'Cusco', direccion: 'Pje. América 222', capacidad: 20000, eventos: 0, estado: 'Inactivo' },
-    { id: 5, local: 'Casona Boticario', ciudad: 'Arequipa', direccion: 'C. San José 191-101', capacidad: 40000, eventos: 2, estado: 'Activo' },
-];
 
 // --- Sub-componentes ---
 
@@ -44,20 +33,38 @@ const StatusBadge = ({ status }) => {
 /**
  * Componente para los iconos de acción
  */
-const ActionIcons = ({ status, id, setModalData, setCreatePopup, setEdit, router }) => {
+const ActionIcons = ({ status, id, setModalData, setCreatePopup, setEdit, router, localData, setDeleteModalData, setShowDeleteModal, setShowConfirmModal, setRestoreModalData, setShowRestoreModal }) => {
     if (status === 'Inactivo') {
         return (
             <div className="action-icons">
-                <FiRotateCcw className="icon-restore" />
+                <button 
+                    onClick={() => {
+                        setRestoreModalData(localData);
+                        setShowRestoreModal(true);
+                    }} 
+                    aria-label="Restaurar local"
+                >
+                    <FiRotateCcw className="icon-restore" />
+                </button>
             </div>
         );
     }
+    
+    const handleDeleteClick = () => {
+        setDeleteModalData(localData);
+        if (localData.eventos > 0) {
+            setShowDeleteModal(true);
+        } else {
+            setShowConfirmModal(true);
+        }
+    };
+    
     return (
         <div className="action-icons">
             <button onClick={() => router.push(`/admin/locales/editar/${id}`)} aria-label="Editar local">
                 <FiEdit />
             </button>
-            <button onClick={() => { deleteLocal(id) }} aria-label="Eliminar local">
+            <button onClick={handleDeleteClick} aria-label="Eliminar local">
                 <FiSlash />
             </button>
         </div>
@@ -89,32 +96,47 @@ const Pagination = () => {
 
 function GestionLocales() {
     const router = useRouter()
-    let [isEdit, setEdit] = useState(false)
-    let [ciudades, setCiudades] = useState([])
-    let [locales, setLocales] = useState([]);
-    let [modalData, setModalData] = useState({});
-
-    let [filter, setFilter] = useState('')
-    let [createPopup, setCreatePopup] = useState(false)
+    const [isEdit, setEdit] = useState(false)
+    const [ciudades, setCiudades] = useState([])
+    const [locales, setLocales] = useState([])
+    const [modalData, setModalData] = useState({})
+    const [filter, setFilter] = useState('')
+    const [estadoFilter, setEstadoFilter] = useState('Todos')
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+    const [createPopup, setCreatePopup] = useState(false)
+    const [deleteModalData, setDeleteModalData] = useState(null)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [showConfirmModal, setShowConfirmModal] = useState(false)
+    const [showRestoreModal, setShowRestoreModal] = useState(false)
+    const [restoreModalData, setRestoreModalData] = useState(null)
+    
     useEffect(() => {
         listarLocales().then((res) => { 
-            console.log('Respuesta de listarLocales:', res)
             setLocales(res?.data) 
         })
         listarCiudades().then((res) => { 
-            console.log('Respuesta de listarCiudades:', res)
-            // Verificar si la respuesta tiene la nueva estructura con success
             if (res && res.success && res.data) {
                 setCiudades(res.data)
             } else if (res && res.data) {
-                // Compatibilidad con respuesta antigua
                 setCiudades(res.data)
             } else if (res && Array.isArray(res)) {
-                // Compatibilidad con array directo
                 setCiudades(res)
             }
         })
     }, []);
+    
+    // Cerrar dropdown al hacer clic fuera
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (isDropdownOpen && !event.target.closest('.filter-dropdown-container')) {
+                setIsDropdownOpen(false)
+            }
+        }
+        
+        document.addEventListener('click', handleClickOutside)
+        return () => document.removeEventListener('click', handleClickOutside)
+    }, [isDropdownOpen])
+
     return (
         <>
             <div className="page-container">
@@ -137,14 +159,52 @@ function GestionLocales() {
                                 type="text"
                                 placeholder="Busca Local"
                                 onChange={(event) => {
-                                    console.log(event.target.value);
                                     setFilter(event.target.value.toLowerCase())
                                 }}
                             />
                         </div>
-                        <button className="btn btn-filter">
-                            <FiFilter /> Estado
-                        </button>
+                        
+                        {/* Dropdown de Estado */}
+                        <div className="filter-dropdown-container">
+                            <button 
+                                className="btn btn-filter" 
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            >
+                                <FiFilter /> Estado
+                            </button>
+                            
+                            {isDropdownOpen && (
+                                <div className="filter-dropdown">
+                                    <button 
+                                        className={`filter-option ${estadoFilter === 'Todos' ? 'active' : ''}`}
+                                        onClick={() => {
+                                            setEstadoFilter('Todos')
+                                            setIsDropdownOpen(false)
+                                        }}
+                                    >
+                                        Todos
+                                    </button>
+                                    <button 
+                                        className={`filter-option ${estadoFilter === 'Activos' ? 'active' : ''}`}
+                                        onClick={() => {
+                                            setEstadoFilter('Activos')
+                                            setIsDropdownOpen(false)
+                                        }}
+                                    >
+                                        Activos
+                                    </button>
+                                    <button 
+                                        className={`filter-option ${estadoFilter === 'Inactivos' ? 'active' : ''}`}
+                                        onClick={() => {
+                                            setEstadoFilter('Inactivos')
+                                            setIsDropdownOpen(false)
+                                        }}
+                                    >
+                                        Inactivos
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* --- Contenedor de la Tabla (para scroll horizontal) --- */}
@@ -164,9 +224,18 @@ function GestionLocales() {
                             <tbody>
                                 {locales
                                     ?.filter((e) => {
-                                        return e.nombreCiudad.toLowerCase().includes(filter)
-                                            || e.local.toLowerCase().includes(filter)
-                                            || e.direccion.toLowerCase().includes(filter)
+                                        const matchesSearch = e.nombreCiudad?.toLowerCase().includes(filter)
+                                            || e.nombre?.toLowerCase().includes(filter)
+                                            || e.direccion?.toLowerCase().includes(filter)
+                                        
+                                        let matchesEstado = true
+                                        if (estadoFilter === 'Activos') {
+                                            matchesEstado = !e.isDeleted
+                                        } else if (estadoFilter === 'Inactivos') {
+                                            matchesEstado = e.isDeleted
+                                        }
+                                        
+                                        return matchesSearch && matchesEstado
                                     })
                                     ?.map((local) => (
                                         <tr key={local.id}>
@@ -183,7 +252,17 @@ function GestionLocales() {
                                             </td>
                                             <td>
                                                 <ActionIcons status={!local.isDeleted ? 'Activo' : 'Inactivo'}
-                                                    id={local.id} setModalData={setModalData} setCreatePopup={setCreatePopup} setEdit={setEdit} router={router} />
+                                                    id={local.id} 
+                                                    setModalData={setModalData} 
+                                                    setCreatePopup={setCreatePopup} 
+                                                    setEdit={setEdit} 
+                                                    router={router}
+                                                    localData={local}
+                                                    setDeleteModalData={setDeleteModalData}
+                                                    setShowDeleteModal={setShowDeleteModal}
+                                                    setShowConfirmModal={setShowConfirmModal}
+                                                    setRestoreModalData={setRestoreModalData}
+                                                    setShowRestoreModal={setShowRestoreModal} />
                                             </td>
                                         </tr>
                                     ))}
@@ -238,7 +317,11 @@ function GestionLocales() {
                                     className="w-full border border-[var(--color-border)] rounded-md p-2 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)]"
                                 >
                                     <option value="">Selecciona una ciudad</option>
-                                    {ciudades.map((e) => (<option value={e.id}>{e.nombre}</option>))}
+                                    {ciudades.map((ciudad) => (
+                                        <option key={ciudad.id} value={ciudad.id}>
+                                            {ciudad.nombre}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
 
@@ -283,6 +366,167 @@ function GestionLocales() {
                                 Crear Local
                             </button>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* --- Modal: No se puede inactivar (con eventos activos) --- */}
+            {showDeleteModal && deleteModalData && (
+                <div className="fixed z-[999] inset-0 bg-black/50 grid h-screen w-screen place-items-center">
+                    <div className="relative max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+                        {/* Botón Cerrar */}
+                        <button 
+                            onClick={() => setShowDeleteModal(false)}
+                            className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition-colors"
+                            aria-label="Cerrar modal"
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+
+                        {/* Título */}
+                        <h2 className="text-2xl font-bold text-red-600 mb-4">
+                            No se puede inactivar este local
+                        </h2>
+
+                        {/* Mensaje */}
+                        <p className="text-gray-700 text-lg mb-6">
+                            El local <strong>{deleteModalData.nombre}</strong> no puede ser puesto en estado inactivo por que tiene <strong>{deleteModalData.eventos} eventos activos</strong>
+                        </p>
+
+                        {/* Caja de advertencia */}
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                            <div className="flex items-start gap-3">
+                                <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-semibold text-red-800 text-lg mb-1">
+                                        Eventos activos: {deleteModalData.eventos}
+                                    </h3>
+                                    <p className="text-red-700 text-sm">
+                                        Para bloquear este local, primero debe cancelar o finalizar todos los eventos activos
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Botón */}
+                        <div className="flex justify-end">
+                            <button 
+                                onClick={() => setShowDeleteModal(false)}
+                                className="px-8 py-2.5 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- Modal: Confirmación de inactivación (sin eventos activos) --- */}
+            {showConfirmModal && deleteModalData && (
+                <div className="fixed z-[999] inset-0 bg-black/50 grid h-screen w-screen place-items-center">
+                    <div className="relative max-w-xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+                        {/* Título */}
+                        <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                            ¿Estas seguro de que quieres inactivar el local "{deleteModalData.nombre}"?
+                        </h2>
+
+                        {/* Mensaje */}
+                        <p className="text-gray-600 mb-8">
+                            Esta acción marcará el local como inactivo pero podrás restaurarlo más tarde.
+                        </p>
+
+                        {/* Botones */}
+                        <div className="flex justify-end gap-3">
+                            <button 
+                                onClick={() => setShowConfirmModal(false)}
+                                className="px-6 py-2.5 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    deleteLocal(deleteModalData.id);
+                                    setShowConfirmModal(false);
+                                    listarLocales().then((res) => { 
+                                        setLocales(res?.data) 
+                                    });
+                                }}
+                                className="px-6 py-2.5 text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors font-medium"
+                            >
+                                Inactivar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- Modal: Confirmación de restauración --- */}
+            {showRestoreModal && restoreModalData && (
+                <div className="fixed z-[999] inset-0 bg-black/50 grid h-screen w-screen place-items-center">
+                    <div className="relative max-w-xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+                        {/* Título */}
+                        <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                            Restaurar Local
+                        </h2>
+
+                        {/* Mensaje */}
+                        <p className="text-gray-700 text-lg mb-8">
+                            ¿Estas seguro de que quieres restaurar el local "{restoreModalData.nombre}"? El local volverá a estar activo y disponible para eventos.
+                        </p>
+
+                        {/* Botones */}
+                        <div className="flex justify-end gap-3">
+                            <button 
+                                onClick={() => setShowRestoreModal(false)}
+                                className="px-6 py-2.5 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                onClick={async () => {
+                                    try {
+                                        console.log('[BUTTON] Iniciando restauración del local:', restoreModalData);
+                                        const result = await restoreLocal(restoreModalData.id);
+                                        console.log('[BUTTON] Resultado de restoreLocal:', result);
+                                        
+                                        // Verificar varios casos de éxito
+                                        const isSuccess = result && (
+                                            result.success === true || 
+                                            result.success === undefined ||
+                                            result.status === 'success' ||
+                                            (result.message && !result.message.toLowerCase().includes('error'))
+                                        );
+                                        
+                                        if (isSuccess) {
+                                            console.log('[BUTTON] Restauración exitosa');
+                                            alert('Local restaurado exitosamente');
+                                            setShowRestoreModal(false);
+                                            const res = await listarLocales();
+                                            console.log('[BUTTON] Lista actualizada:', res);
+                                            setLocales(res?.data);
+                                        } else {
+                                            console.error('[BUTTON] Error en restauración:', result);
+                                            alert(result?.message || 'Error al restaurar el local');
+                                        }
+                                    } catch (error) {
+                                        console.error('[BUTTON] Error capturado:', error);
+                                        alert('Error al restaurar el local: ' + error.message);
+                                    }
+                                }}
+                                className="px-6 py-2.5 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                            >
+                                Restaurar
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
