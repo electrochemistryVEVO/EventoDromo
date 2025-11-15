@@ -9,7 +9,5 @@ export async function cn(...inputs: ClassValue[]) {
 export async function getApiUrl(){
     //Puerto de docker: 8080
     //Puerto sin docker: 5189
-    let port = process.env.REACT_APP_DOCKERENV ? '8080' : '5189';
-    let url = 'http://localhost:'
-    return url+port+'/api/'
+    return process.env.NEXT_PUBLIC_API_BASE_URL
 }

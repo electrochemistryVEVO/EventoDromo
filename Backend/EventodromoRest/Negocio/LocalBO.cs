@@ -1,4 +1,5 @@
-﻿using EventodromoRest.Mappers;
+﻿using Azure;
+using EventodromoRest.Mappers;
 using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 namespace EventodromoRest.Negocio
@@ -173,5 +174,18 @@ namespace EventodromoRest.Negocio
             }
         }
 
+
+        public GenericResponse<List<OcuapcionLocalResponse>> OcupacionLocales()
+        {
+            LocalMapper mapper = new LocalMapper(globales, DB);
+            List<OcuapcionLocalResponse> ocupacionLocales = mapper.OcupacionLocales();
+            return new GenericResponse<List<OcuapcionLocalResponse>>
+            {
+                Success = true,
+                Message = "Evento actualizado correctamente.",
+                Error = null,
+                Data = ocupacionLocales
+            };
+        }
     }
 }

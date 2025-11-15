@@ -122,7 +122,7 @@
         public int capacidad { get; set; }
         public string fechaPublicacion { get; set; }
         public string fechaCompra { get; set; }
-        public string imagenURL { get; set; }  // 👈 viene directo del frontend
+        public string imagenURL { get; set; }
         public List<string> horarios { get; set; }
         public List<EntradaRequest> entradas { get; set; }
     }
@@ -143,9 +143,9 @@
         public string ImagenURL { get; set; }
         public int LocalId { get; set; }
         public int TipoEventoId { get; set; }
-        public int Capacidad { get; set; } // Viene de la tabla Local
-        public string FechaPublicacion { get; set; } // Formato ISO 8601
-        public string FechaCompra { get; set; }    // Formato ISO 8601
+        public int Capacidad { get; set; } 
+        public string FechaPublicacion { get; set; }
+        public string FechaCompra { get; set; }
         public List<EventoDatosHorarioDTO> Horarios { get; set; }
         public List<EventoDatosEntradaDTO> Entradas { get; set; }
     }
@@ -205,8 +205,6 @@
         public OcupacionDTO Ocupacion { get; set; }
     }
 
-
-
     public class OcupacionDTO
     {
         public int Actual { get; set; }
@@ -236,5 +234,39 @@
         public List<HorarioDTO> horarios { get; set; }
         public List<EntradaYHorarioDTO> entradas { get; set; }
     }
+
+
+    public class ActualizarEventoRequest
+    {
+        public int idEvento { get; set; }
+        public string nombre { get; set; }
+        public string descripcion { get; set; }
+        public string imagenURL { get; set; }
+        public int localId { get; set; }
+        public int tipoEventoId { get; set; }
+        public int capacidad { get; set; }
+        public DateTime fechaPublicacion { get; set; }
+        public DateTime fechaCompra { get; set; }
+        public List<HorarioDTO> horarios { get; set; }
+        public List<EntradaYHorarioDTO> entradas { get; set; }
+    }
+
+    public class ResponseEventoGetEventosMasVendidos
+    {
+        public string id { get; set; }
+        public string nombre { get; set; }
+        public string ubicacion { get; set; }
+        public decimal precio { get; set; }
+        public int entradasVendidas { get; set; }
+    }
+    public class EventoMasVendidoDTO
+    {
+        public int id { get; set; }
+        public string nombre { get; set; }
+        public string ubicacion { get; set; }
+        public decimal precio { get; set; }
+        public int entradasVendidas { get; set; }
+    }
+
 
 }

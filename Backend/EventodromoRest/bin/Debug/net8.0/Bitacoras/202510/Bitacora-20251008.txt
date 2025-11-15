@@ -1,0 +1,24 @@
+﻿2025-10-08 21:15:16.024 | Request: {"Correo":"juan.perez@example.com","Password":"hashed_cliente1"}
+Response: {"Success":false,"Message":null,"Error":"Unable to cast object of type \u0027System.DBNull\u0027 to type \u0027System.DateTime\u0027.","Data":null}
+Mensaje: [Excepción principal] System.InvalidCastException
+[Mensaje] Unable to cast object of type 'System.DBNull' to type 'System.DateTime'.
+[StackTrace]
+   at MySqlConnector.Core.Row.GetDateTime(Int32 ordinal) in /_/src/MySqlConnector/Core/Row.cs:line 342
+   at MySqlConnector.MySqlDataReader.GetDateTime(Int32 ordinal) in /_/src/MySqlConnector/MySqlDataReader.cs:line 268
+   at EventodromoRest.DBManager.DBManager.GetDateTime(String column) in C:\Users\home\Desktop\Carpetas\ciclos PUCP\25-2\IngeSoft\TA\RepoGrupo2\EventoDromo\Backend\EventodromoRest\DBManager\DBManager.cs:line 124
+   at EventodromoRest.Mappers.ClienteMapper.ObtenerClientePorEmailPassword(String email, String password, Char& tipoUsuario) in C:\Users\home\Desktop\Carpetas\ciclos PUCP\25-2\IngeSoft\TA\RepoGrupo2\EventoDromo\Backend\EventodromoRest\Mappers\ClienteMapper.cs:line 23
+   at EventodromoRest.Negocio.ClienteBO.AutenticarCliente(String email, String password) in C:\Users\home\Desktop\Carpetas\ciclos PUCP\25-2\IngeSoft\TA\RepoGrupo2\EventoDromo\Backend\EventodromoRest\Negocio\ClienteBO.cs:line 12
+   at EventodromoRest.Controllers.ClienteController.AutenticarLoginCliente(RequestAutenticarCliente request) in C:\Users\home\Desktop\Carpetas\ciclos PUCP\25-2\IngeSoft\TA\RepoGrupo2\EventoDromo\Backend\EventodromoRest\Controllers\ClienteController.cs:line 23
+--------------------------------------------------------------------------------
+2025-10-08 21:18:40.445 | Request: {"Correo":"juan.perez@example.com","Password":"hashed_cliente1"}
+Response: {"Success":false,"Message":null,"Error":"The column name \u0027idTipoDocumento\u0027 does not exist in the result set.","Data":null}
+Mensaje: [Excepción principal] System.IndexOutOfRangeException
+[Mensaje] The column name 'idTipoDocumento' does not exist in the result set.
+[StackTrace]
+   at MySqlConnector.Core.ResultSet.GetOrdinal(String name) in /_/src/MySqlConnector/Core/ResultSet.cs:line 349
+   at MySqlConnector.MySqlDataReader.GetOrdinal(String name) in /_/src/MySqlConnector/MySqlDataReader.cs:line 211
+   at EventodromoRest.DBManager.DBManager.GetInt(String column) in C:\Users\home\Desktop\Carpetas\ciclos PUCP\25-2\IngeSoft\TA\RepoGrupo2\EventoDromo\Backend\EventodromoRest\DBManager\DBManager.cs:line 116
+   at EventodromoRest.Mappers.ClienteMapper.ObtenerClientePorEmailPassword(String email, String password, Char& tipoUsuario) in C:\Users\home\Desktop\Carpetas\ciclos PUCP\25-2\IngeSoft\TA\RepoGrupo2\EventoDromo\Backend\EventodromoRest\Mappers\ClienteMapper.cs:line 23
+   at EventodromoRest.Negocio.ClienteBO.AutenticarCliente(String email, String password) in C:\Users\home\Desktop\Carpetas\ciclos PUCP\25-2\IngeSoft\TA\RepoGrupo2\EventoDromo\Backend\EventodromoRest\Negocio\ClienteBO.cs:line 12
+   at EventodromoRest.Controllers.ClienteController.AutenticarLoginCliente(RequestAutenticarCliente request) in C:\Users\home\Desktop\Carpetas\ciclos PUCP\25-2\IngeSoft\TA\RepoGrupo2\EventoDromo\Backend\EventodromoRest\Controllers\ClienteController.cs:line 23
+--------------------------------------------------------------------------------

@@ -35,7 +35,7 @@ export async function listarCiudades() {
     
     try {
         const url = await getApiUrl();
-        const response = await fetch(url + 'Ciudad/CiudadListarCiudades', {
+        const response = await fetch(url + '/CiudadListarCiudades', {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`,

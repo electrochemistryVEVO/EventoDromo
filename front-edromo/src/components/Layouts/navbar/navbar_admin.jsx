@@ -46,6 +46,14 @@ const Navbar = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
   const { user, isAuthenticated, isLoading } = useUser();
+
+  // Este estado nos dirá si el componente ya se ha montado en el navegador.
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    // Este efecto solo se ejecuta en el cliente, después del primer renderizado.
+    setHasMounted(true);
+  }, []); // El array vacío [] es crucial.
+
   useEffect(() => {
     // --- 1. ACEPTA EL TOKEN AQUÍ ---
     const getUser = async (token) => {
@@ -63,12 +71,18 @@ const Navbar = () => {
       }
     };
 
-    if (!isLoading && isAuthenticated && user?.token && user?.rol === "A") {
+    if (
+      hasMounted &&
+      !isLoading &&
+      isAuthenticated &&
+      user?.token &&
+      user?.rol === "A"
+    ) {
       getUser(user.token); // <-- Ahora esto funciona
     } else if (!isLoading && !isAuthenticated) {
       setUserName("Administrador");
     }
-  }, [user, isAuthenticated, isLoading]);
+  }, [user, isAuthenticated, isLoading, hasMounted]);
 
   // Efecto para cerrar el menú de usuario si se hace clic fuera
   useEffect(() => {
@@ -86,10 +100,18 @@ const Navbar = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-  if (isLoading) {
+  if (!hasMounted || isLoading) {
     return (
       <nav className="bg-[#00C49A] flex items-center justify-between px-6 py-2 text-white shadow-md h-[88px]">
-        <div className="text-3xl font-bold tracking-wider">Cargando...</div>
+        <div className="flex items-center gap-6">
+          <Image
+            src="/images/icon/logo-eventodromo.png"
+            alt="Logo Eventodromo"
+            width={150}
+            height={40}
+          />
+          <h1 className="text-3xl font-bold tracking-wider">Cargando...</h1>
+        </div>
       </nav>
     );
   }

@@ -96,25 +96,25 @@ export const useEventEditor = (eventId) => {
           fechaPublicacion: eventData.fechaPublicacion,
           fechaCompra: eventData.fechaCompra,
         });
-        console.log("DATOS CRUDOS DEL BACKEND (entradas):", eventData.entradas);
+        console.log("DATOS CRUDOS DEL BACKEND (entradas):", eventData.entrada);
         console.log("DATOS CRUDOS DEL BACKEND:", eventData);
         console.log("DATOS CRUDOS DEL BACKEND (horarios):", eventData.horarios);
         // Poblamos las listas dinámicas. Asignamos el ID que viene del backend.
-        setFechas(eventData.horarios || []);
+        setFechas(eventData.horarios);
 
         // 2. Guardar la lista COMPLETA de entradas originales para referencia futura
-        setEntradasOriginales(eventData.entradas || []);
+        setEntradasOriginales(eventData.entradas);
 
         // 3. DEDUCIR las "plantillas de entrada" a partir de los datos recibidos
         const plantillasMap = new Map();
-        (eventData.entradas || []).forEach((entrada) => {
+        eventData.entradas.forEach((entrada) => {
           const nombrePlantilla = entrada.nombre.split(" - ")[0]; // Extrae "General" de "General - 28 Nov"
           if (!plantillasMap.has(nombrePlantilla)) {
             plantillasMap.set(nombrePlantilla, {
               id: `plantilla-${nombrePlantilla.replace(/\s+/g, "-")}`, // Usamos un ID real para la clave de React
               nombre: nombrePlantilla,
               precio: entrada.precio ?? "",
-              cantidad: entrada.cantidad ?? entrada.cantidadEntradas ?? "", // Mapeamos el nombre para que coincida con el formulario
+              cantidad: entrada.cantidad ?? "", // Mapeamos el nombre para que coincida con el formulario
               limiteCompra: entrada.limiteCompra ?? "",
               puntos: entrada.puntos ?? "",
             });

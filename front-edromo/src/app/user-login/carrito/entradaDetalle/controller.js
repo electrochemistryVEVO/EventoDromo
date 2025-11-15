@@ -7,5 +7,5 @@ export const items = [
 ];
 
 export function cantidadEntradas() {
-  return items.length;
+  return items?.length;
 }

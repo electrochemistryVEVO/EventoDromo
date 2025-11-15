@@ -317,5 +317,81 @@ namespace EventodromoRest.Mappers
                 return rowsAffected;
             }
         }
+
+        public List<OcuapcionLocalResponse> OcupacionLocales ()
+        {
+            List<OcuapcionLocalResponse> listaOcupacion = new();
+            lock (DB)
+            {
+                string query = @"
+                SELECT
+                  l.id AS idLocal,
+                  l.nombre AS NombreLocal,
+                  DATE(f.fechaHora) AS Dia,
+                  SUM(t.cantidadEntradas) AS TotalEntradas,
+                  SUM(t.cantidadVendida) AS TotalVendidas
+                FROM Local l
+                LEFT JOIN Evento e ON e.idLocal = l.id AND e.isDeleted = 0
+                LEFT JOIN FechaEvento f ON f.idEvento = e.id
+                LEFT JOIN TipoEntrada t ON t.idFechaEvento = f.id
+                WHERE f.fechaHora IS NOT NULL
+                GROUP BY
+                  l.id,
+                  l.nombre,
+                  DATE(f.fechaHora)
+                ORDER BY
+                  l.id, Dia;
+                ";
+                DB.Select(query, null);
+                
+                // Diccionario para agrupar por local
+                var localesDict = new Dictionary<int, (string nombre, HashSet<DateTime> diasUnicos, List<decimal> tasasOcupacionPorDia)>();
+                
+                while (DB.Read())
+                {
+                    int idLocal = DB.GetInt("idLocal");
+                    string nombreLocal = DB.GetString("NombreLocal");
+                    DateTime dia = DB.GetDateTime("Dia");
+                    int totalEntradas = DB.GetInt("TotalEntradas");
+                    int totalVendidas = DB.GetInt("TotalVendidas");
+                    
+                    // Calcular tasa de ocupación del día (evitar división por cero)
+                    decimal tasaDia = totalEntradas > 0 
+                        ? ((decimal)totalVendidas / totalEntradas) * 100 
+                        : 0;
+                    
+                    // Agregar o actualizar local en el diccionario
+                    if (!localesDict.ContainsKey(idLocal))
+                    {
+                        localesDict[idLocal] = (nombreLocal, new HashSet<DateTime>(), new List<decimal>());
+                    }
+                    
+                    localesDict[idLocal].diasUnicos.Add(dia);
+                    localesDict[idLocal].tasasOcupacionPorDia.Add(tasaDia);
+                }
+                
+                DB.CloseReader();
+                
+                // Convertir el diccionario a la lista de respuesta
+                foreach (var kvp in localesDict)
+                {
+                    int idLocal = kvp.Key;
+                    string nombreLocal = kvp.Value.nombre;
+                    int diasOcupados = kvp.Value.diasUnicos.Count;
+                    decimal tasaOcupacionPromedio = kvp.Value.tasasOcupacionPorDia.Any() 
+                        ? kvp.Value.tasasOcupacionPorDia.Average() 
+                        : 0;
+                    
+                    listaOcupacion.Add(new OcuapcionLocalResponse
+                    {
+                        idLocal = idLocal,
+                        nombreLocal = nombreLocal,
+                        diasOcupados = diasOcupados,
+                        tasaOcupacion = Math.Round(tasaOcupacionPromedio, 1)
+                    });
+                }
+            }
+            return listaOcupacion;
+        }
     }
 }

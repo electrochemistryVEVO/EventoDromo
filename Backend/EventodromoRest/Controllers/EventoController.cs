@@ -250,6 +250,116 @@ namespace EventodromoRest.Controllers
 
         [HttpGet]
         [Route("/api/[controller]/[action]")]
+        public GenericResponse<List<ResponseEventoGetEventosMasVendidos>> EventoGetEventosMasVendidos()
+        {
+            try
+            {
+                
+                // 1️⃣ Validar token JWT
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<List<ResponseEventoGetEventosMasVendidos>>
+                    {
+                        Success = false,
+                        Message = "Acceso no autorizado. Se requiere un token válido.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<List<ResponseEventoGetEventosMasVendidos>>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+                
+
+                var response = new EventoBO(globales, BD).EventoGetEventosMasVendidos();
+
+                return new GenericResponse<List<ResponseEventoGetEventosMasVendidos>>
+                {
+                    Success = true,
+                    Message = "Eventos más vendidos obtenidos correctamente.",
+                    Data = response
+                };
+            }
+            catch (Exception ex)
+            {
+                AgregarEntradaBitacora(ex, "EventoGetEventosMasVendidos", ex.Message);
+
+                return new GenericResponse<List<ResponseEventoGetEventosMasVendidos>>
+                {
+                    Success = false,
+                    Message = "Ocurrió un error interno al procesar la solicitud.",
+                    Error = ex.Message
+                };
+            }
+        }
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<string> ActualizarEvento([FromBody] ActualizarEventoRequest request)
+        {
+            try
+            {
+                var userIdString = User.FindFirst("idCliente")?.Value;
+                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idCliente))
+                {
+                    throw new Exception("ID de cliente inválido en el token.");
+                }
+                return new EventoBO(globales, BD).ActualizarEvento(request);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<string>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, null, JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+        //[HttpGet]
+        //[Route("/api/[controller]/[action]")]
+        //public GenericResponse<string> ActualizarEvento([FromBody] ActualizarEventoRequest request)
+        //{
+        //    try
+        //    {
+        //        var userIdString = User.FindFirst("idCliente")?.Value;
+        //        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idCliente))
+        //        {
+        //            throw new Exception("ID de cliente inválido en el token.");
+        //        }
+        //        return new EventoBO(globales, BD).ActualizarEvento(request);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        var response = new GenericResponse<string>
+        //        {
+        //            Success = false,
+        //            Message = null,
+        //            Error = e.Message,
+        //            Data = null
+        //        };
+        //        AgregarEntradaBitacora(e, null, JsonSerializer.Serialize(response));
+        //        return response;
+        //    }
+        //}
+
+        [HttpGet]
+        [Route("/api/[controller]/[action]")]
         public GenericResponse<ResponseEventoGetEvents> EventoGetEvents(
             [FromQuery] string? search,
             [FromQuery] int? localId,

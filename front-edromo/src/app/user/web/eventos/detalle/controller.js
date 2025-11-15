@@ -15,6 +15,7 @@ import LocationInfo from "@/components/detalle-evento/LocationInfo";
 
 //contexto
 import { useCart } from "@/context/CartContext";
+import {v4} from "uuid";
 
 const EventPageController = () => {
   const { addTicketsToCart } = useCart();
@@ -153,7 +154,7 @@ const EventPageController = () => {
 
     // Mantiene la estructura esperada por CartContext al agregar un item.
     const cartItem = {
-      cartItemId: crypto.randomUUID(),
+      cartItemId: v4(),
       eventoInfo: {
         id: evento.id,
         nombre: evento.nombre,
