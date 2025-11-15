@@ -10,14 +10,38 @@ export async function listarLocales() {
     
     try {
         const url = await getApiUrl();
-        const response = await fetch(url + 'Local/ListarLocalesAdmin', {
+        const fullUrl = `${url}/Local/ListarLocalesAdmin`;
+        console.log('[listarLocales] Llamando a:', fullUrl);
+        const response = await fetch(fullUrl, {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`,
             },
         });
         
-        return await response.json();
+        // Verificar si la respuesta es exitosa
+        if (!response.ok) {
+            if (response.status === 401) {
+                console.error("listarLocales: No autorizado. Por favor, inicie sesión nuevamente.");
+                return [];
+            }
+            if (response.status === 404) {
+                console.error("listarLocales: Endpoint no encontrado. Verifica que el backend esté ejecutándose correctamente.");
+                return [];
+            }
+            const errorText = await response.text();
+            console.error(`listarLocales: Error HTTP ${response.status}:`, errorText);
+            return [];
+        }
+
+        // Verificar si hay contenido antes de parsear
+        const text = await response.text();
+        if (!text || text.trim() === '') {
+            console.warn("listarLocales: Respuesta vacía del servidor");
+            return [];
+        }
+
+        return JSON.parse(text);
     } catch (err) {
         console.error("Error en listarLocales:", err.message);
         return [];
@@ -35,7 +59,7 @@ export async function listarCiudades() {
     
     try {
         const url = await getApiUrl();
-        const response = await fetch(url + '/CiudadListarCiudades', {
+        const response = await fetch(`${url}/Ciudad/ListarCiudades`, {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -78,7 +102,7 @@ export async function insertarLocal(local) {
     
     try {
         const url = await getApiUrl();
-        const response = await fetch(url + 'Local/LocalCrearLocales', {
+        const response = await fetch(`${url}/Local/CrearLocales`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -119,7 +143,7 @@ export async function obtenerLocalPorId(id) {
     
     try {
         const url = await getApiUrl();
-        const response = await fetch(`${url}Local/ObtenerLocalPorId?id=${id}`, {
+        const response = await fetch(`${url}/Local/ObtenerLocalPorId?id=${id}`, {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`
@@ -148,7 +172,7 @@ export async function eliminarLocal(id) {
         console.log('[eliminarLocal] Enviando ID:', numericId);
         
         // El endpoint espera el id en el body como JSON
-        const response = await fetch(`${url}Local/PonerInactivoLocal`, {
+        const response = await fetch(`${url}/Local/PonerInactivoLocal`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -225,7 +249,7 @@ export async function editarLocal(modalData) {
     
     try {
         const url = await getApiUrl();
-        const response = await fetch(`${url}Local/LocalModificarLocal`, {
+        const response = await fetch(`${url}/Local/LocalModificarLocal`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -256,7 +280,7 @@ export async function restaurarLocal(id) {
         console.log('[restaurarLocal] Enviando ID:', numericId);
         
         // El endpoint espera el id en el body como JSON
-        const response = await fetch(`${url}Local/PonerActivoLocal`, {
+        const response = await fetch(`${url}/Local/PonerActivoLocal`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,

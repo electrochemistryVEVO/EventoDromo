@@ -211,31 +211,6 @@
         public int Total { get; set; }
     }
 
-    public class ResponseEventoGetEventosMasVendidos
-    {
-        public string id { get; set; }
-        public string nombre { get; set; }
-        public string ubicacion { get; set; }
-        public decimal precio { get; set; }
-        public int entradasVendidas { get; set; }
-    }
-
-    public class ActualizarEventoRequest
-    {
-        public int idEvento { get; set; }
-        public string nombre { get; set; }
-        public string descripcion { get; set; }
-        public string imagenURL { get; set; }
-        public int localId { get; set; }
-        public int tipoEventoId { get; set; }
-        public int capacidad { get; set; }
-        public DateTime fechaPublicacion { get; set; }
-        public DateTime fechaCompra { get; set; }
-        public List<HorarioDTO> horarios { get; set; }
-        public List<EntradaYHorarioDTO> entradas { get; set; }
-    }
-
-
     public class ActualizarEventoRequest
     {
         public int idEvento { get; set; }
@@ -259,6 +234,7 @@
         public decimal precio { get; set; }
         public int entradasVendidas { get; set; }
     }
+
     public class EventoMasVendidoDTO
     {
         public int id { get; set; }

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   obtenerIndicadoresDashboardHarcodeado,
   obtenerOcupacionLocalesHarcodeado,
-  obtenerEventosMasVendidos,
+  obtenerEventosMasVendidosHarcodeado,
 } from "@/services/dashboard.services.js";
 
 export const useAnaliticasController = () => {
@@ -20,7 +20,7 @@ export const useAnaliticasController = () => {
 
         const resultados = await Promise.allSettled([
           obtenerIndicadoresDashboardHarcodeado(),
-          obtenerEventosMasVendidos(),
+          obtenerEventosMasVendidosHarcodeado(),
           obtenerOcupacionLocalesHarcodeado(),
         ]);
 
