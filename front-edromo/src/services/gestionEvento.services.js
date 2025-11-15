@@ -1,10 +1,15 @@
-"use server";
-const BASE_API_URL = process.env.API_BASE_URL;
+const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
 /**
  * Obtiene el token de autenticación almacenado.
  * @returns {string|null} - El token JWT o null si no existe.
  */
 const getAuthToken = () => {
+  // Verificamos que estamos en el cliente antes de acceder a localStorage
+  if (typeof window === 'undefined') {
+    console.warn("getAuthToken llamado en el servidor, retornando null");
+    return null;
+  }
+  
   try {
     // 1. Lee la clave "user" de localStorage (donde UserContext la guarda)
     const userJSON = localStorage.getItem("user");
@@ -94,11 +99,15 @@ export const getEvents = async (filters = {}) => {
           tipo: "Concierto",
           fechaPublicacion: "2025-10-15T10:00:00",
           fechaCompra: "2025-10-30T11:00:00",
-          horario: "2025-11-11T20:00:00",
-          ocupacion: {
-            actual: 0,
-            total: 30000,
-          },
+          horarios: [
+            {
+              horario: "2025-11-11T20:00:00",
+              ocupacion: {
+                actual: 0,
+                total: 30000,
+              },
+            },
+          ],
           ingresosBrutos: 0.0,
           estado: "Creado",
         },
@@ -109,11 +118,15 @@ export const getEvents = async (filters = {}) => {
           tipo: "Concierto",
           fechaPublicacion: "2025-05-13T10:00:00",
           fechaCompra: "2025-05-30T11:00:00",
-          horario: "2025-10-09T21:00:00",
-          ocupacion: {
-            actual: 0,
-            total: 30000,
-          },
+          horarios: [
+            {
+              horario: "2025-10-09T21:00:00",
+              ocupacion: {
+                actual: 0,
+                total: 30000,
+              },
+            },
+          ],
           ingresosBrutos: 0.0,
           estado: "Publicado",
         },
@@ -124,11 +137,15 @@ export const getEvents = async (filters = {}) => {
           tipo: "Concierto",
           fechaPublicacion: "2025-05-10T10:00:00",
           fechaCompra: "2025-05-29T12:00:00",
-          horario: "2025-11-07T19:00:00",
-          ocupacion: {
-            actual: 11000,
-            total: 30000,
-          },
+          horarios: [
+            {
+              horario: "2025-11-07T19:00:00",
+              ocupacion: {
+                actual: 11000,
+                total: 30000,
+              },
+            },
+          ],
           ingresosBrutos: 13200.0,
           estado: "En venta",
         },
@@ -139,11 +156,15 @@ export const getEvents = async (filters = {}) => {
           tipo: "Cultural",
           fechaPublicacion: "2025-05-08T10:00:00",
           fechaCompra: "2025-05-08T11:00:00",
-          horario: "Múltiples Fechas",
-          ocupacion: {
-            actual: 11000,
-            total: 30000,
-          },
+          horarios: [
+            {
+              horario: "Múltiples Fechas",
+              ocupacion: {
+                actual: 11000,
+                total: 30000,
+              },
+            },
+          ],
           ingresosBrutos: 13200.0,
           estado: "Concluido",
         },
@@ -154,22 +175,28 @@ export const getEvents = async (filters = {}) => {
           tipo: "Deportivo",
           fechaPublicacion: "2025-04-05T10:00:00",
           fechaCompra: "2025-04-20T09:00:00",
-          horario: "2025-06-15T15:00:00",
-          ocupacion: {
-            actual: 0,
-            total: 30000,
-          },
+          horarios: [
+            {
+              horario: "2025-06-15T15:00:00",
+              ocupacion: {
+                actual: 0,
+                total: 30000,
+              },
+            },
+          ],
           ingresosBrutos: 0.0,
           estado: "Cancelado",
         },
       ];
 
       const response = {
-        data: events,
-        pagination: {
-          currentPage: filters.page || 1,
-          totalPages: 10, // Simulación de paginación
-          totalEvents: 98,
+        data: {
+          data: events,
+          pagination: {
+            currentPage: filters.page || 1,
+            totalPages: 10, // Simulación de paginación
+            totalEvents: 98,
+          },
         },
       };
       console.log("Events fetched:", response);

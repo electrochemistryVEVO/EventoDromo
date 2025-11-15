@@ -1,19 +1,13 @@
-"use client"; // Directiva necesaria en Next.js App Router para componentes con hooks
+"use client";
 
 import React from "react";
-
-// 1. Importar el Controller
 import { useAnaliticasController } from "./controller";
-
-// 2. Importar todos los componentes de presentación
 import IndicadorCard from "@/components/dashboard/IndicadorCard";
 import DashboardSectionCard from "@/components/dashboard/dashboardSectionCard";
 import EventoItem from "@/components/dashboard/EventoItem";
 import OcupacionLocalRow from "@/components/dashboard/OcupacionLocalRow";
 import AccionRapidaButton from "@/components/dashboard/AccionRapidaButton";
 
-// 3. Importar los íconos (reemplazar con los tuyos)
-// Estos son solo ejemplos. Deberías tener tus propios componentes de íconos.
 const ICON_PATHS = {
   ingresos: "/images/icon/icon-dollar.png",
   puntos: "/images/icon/icon-monedas.png",
@@ -27,46 +21,34 @@ const ICON_PATHS = {
   ocupacionLocales: "/images/icon/icon-ubicacion.png",
 };
 
-// Componente para mostrar mientras los datos cargan
-const LoadingComponent = () => (
-  <div className="flex items-center justify-center h-screen">
-    <p className="text-xl text-gray-600">Cargando datos del dashboard...</p>
-  </div>
-);
-
-// Componente para mostrar en caso de error
-const ErrorComponent = ({ message }) => (
-  <div className="flex items-center justify-center h-screen bg-red-50 p-4">
-    <p className="text-xl text-red-700">Error: {message}</p>
-  </div>
-);
-
-// --- COMPONENTE PRINCIPAL DE LA PÁGINA ---
 const DashboardAnaliticasPage = () => {
-  // 4. Usar el controller para obtener el estado y los datos
   const { isLoading, error, indicadores, eventos, ocupacion } =
     useAnaliticasController();
 
-  // 5. Manejar los estados de carga y error
   if (isLoading) {
-    return <LoadingComponent />;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-xl text-gray-600">Cargando datos del dashboard...</p>
+      </div>
+    );
   }
 
   if (error) {
-    return <ErrorComponent message={error} />;
+    return (
+      <div className="flex items-center justify-center h-screen bg-red-50 p-4">
+        <p className="text-xl text-red-700">Error: {error}</p>
+      </div>
+    );
   }
 
-  // 6. Renderizar la UI cuando los datos están listos
   return (
     <main className="p-6 md:p-8 bg-slate-100 min-h-screen">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">
         Dashboard de Analíticas
       </h1>
 
-      {/* --- Sección de Indicadores (KPIs) --- */}
       {indicadores && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
-          {/* --- CAMBIO: Pasamos las rutas de los íconos como strings --- */}
           <IndicadorCard
             icono={ICON_PATHS.ingresos}
             titulo="Ingresos Totales"
@@ -109,9 +91,7 @@ const DashboardAnaliticasPage = () => {
         </div>
       )}
 
-      {/* --- Sección Principal (Eventos y Ocupación) --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        {/* Columna de Eventos más vendidos */}
         <div className="lg:col-span-1">
           <DashboardSectionCard
             titulo="Eventos más vendidos"
@@ -125,13 +105,11 @@ const DashboardAnaliticasPage = () => {
           </DashboardSectionCard>
         </div>
 
-        {/* Columna de Ocupación de Locales */}
         <div className="lg:col-span-2">
           <DashboardSectionCard
             titulo="Ocupación de Locales"
             icono={ICON_PATHS.ocupacionLocales}
           >
-            {/* Cabecera de la tabla */}
             <div className="grid grid-cols-3 gap-4 pb-2 mb-2 border-b text-sm font-semibold text-gray-500">
               <div className="col-span-1">Local</div>
               <div className="col-span-1 text-center">Días Ocupados</div>
@@ -142,7 +120,6 @@ const DashboardAnaliticasPage = () => {
                 </span>
               </div>
             </div>
-            {/* Filas de la tabla */}
             <div className="flex flex-col">
               {ocupacion.map((local) => (
                 <OcupacionLocalRow key={local.id} local={local} />
@@ -152,7 +129,6 @@ const DashboardAnaliticasPage = () => {
         </div>
       </div>
 
-      {/* --- Sección de Acciones Rápidas --- */}
       <div>
         <h2 className="text-xl font-semibold text-gray-800 mb-4">
           Acciones Rápidas

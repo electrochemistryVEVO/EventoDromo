@@ -63,13 +63,14 @@ export const useEventManager = () => {
     setIsLoading(true);
     setError(null);
     try {
+      const currentPage = pagination?.currentPage || 1;
       console.log("Enviando filtros al servicio:", {
         ...filters,
-        page: pagination.currentPage,
+        page: currentPage,
       });
       const response = await getEvents({
         ...filters,
-        page: pagination.currentPage,
+        page: currentPage,
       });
       console.log("Respuesta RECIBIDA del servicio:", response);
       // Accede a los datos y la paginación desde el objeto anidado "response.data"
@@ -88,7 +89,7 @@ export const useEventManager = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [filters, pagination.currentPage]);
+  }, [filters, pagination?.currentPage]);
 
   /**
    * Efecto que se ejecuta una sola vez al montar el componente para cargar los locales.
@@ -149,21 +150,25 @@ export const useEventManager = () => {
    * Función para aplicar los filtros y buscar los eventos.
    * Resetea a la primera página y llama a fetchEvents.
    */
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
-    fetchEvents();
-  };
+    // Usamos setTimeout para asegurar que la paginación se actualice antes de fetchear
+    setTimeout(() => {
+      fetchEvents();
+    }, 0);
+  }, [fetchEvents]);
 
   /**
    * Manejador para cambiar de página.
    * @param {number} pageNumber - El número de página al que se quiere ir.
    */
-  const handlePageChange = (pageNumber) => {
+  const handlePageChange = useCallback((pageNumber) => {
     setPagination((prev) => ({ ...prev, currentPage: pageNumber }));
-    // Los eventos se recargarán automáticamente si se activa el useEffect de arriba.
-    // O podemos llamarlo explícitamente después de cambiar la página.
-    // Por ahora, lo dejaremos para que se active con applyFilters.
-  };
+    // Forzamos la recarga de eventos con la nueva página
+    setTimeout(() => {
+      fetchEvents();
+    }, 0);
+  }, [fetchEvents]);
 
   // --- VALORES DEVUELTOS ---
   // El hook devuelve los estados y funciones que el componente de la página necesitará.

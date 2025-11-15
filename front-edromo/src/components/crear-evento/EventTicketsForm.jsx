@@ -104,9 +104,9 @@ const TicketTypeCard = ({
 
 export const EventTicketsForm = ({
   tiposEntrada,
-  addTipoEntrada,
-  removeTipoEntrada,
-  handleTipoEntradaChange,
+  addTipoEntrada = () => {},
+  removeTipoEntrada = () => {},
+  handleTipoEntradaChange = () => {},
   aforoRestante,
   descuentosAsociados,
   isReadOnly = false,

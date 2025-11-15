@@ -28,8 +28,6 @@ const GestionEventosPage = () => {
   } = useEventManager();
 
   // 2. Estado para manejar la visibilidad y el contenido del modal.
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalContent, setModalContent] = useState({ title: "", data: null });
   const [modalState, setModalState] = useState({
     isOpen: false,
     type: null,
@@ -39,6 +37,7 @@ const GestionEventosPage = () => {
   // 3. Cargar los eventos iniciales al montar la página.
   useEffect(() => {
     applyFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // El array vacío asegura que se ejecute solo la primera vez.
 
   // 4. Función para abrir el modal con contenido específico.
@@ -173,7 +172,7 @@ const GestionEventosPage = () => {
 
         {/* --- Componente Modal --- */}
         <Modal
-          isOpen={isModalOpen}
+          isOpen={modalState.isOpen}
           onClose={closeModal}
           title={
             modalState.type === "delete"

@@ -67,9 +67,9 @@ const DateField = ({
 
 export const EventDatesForm = ({
   fechas,
-  addFecha,
-  removeFecha,
-  handleFechaChange,
+  addFecha = () => {},
+  removeFecha = () => {},
+  handleFechaChange = () => {},
   fechaCompra,
   isReadOnly = false,
 }) => {

@@ -193,7 +193,7 @@ function EditarLocal() {
                 <header className="editar-local-header">
                     <button 
                         className="btn-back"
-                        onClick={() => router.push('/admin/locales')}
+                        onClick={() => router.push('/admin/locales/gestion')}
                         aria-label="Volver a gestión de locales"
                     >
                         <FiArrowLeft size={24} />
@@ -213,7 +213,7 @@ function EditarLocal() {
             <header className="editar-local-header">
                 <button 
                     className="btn-back"
-                    onClick={() => router.push('/admin/locales')}
+                    onClick={() => router.push('/admin/locales/gestion')}
                     aria-label="Volver a gestión de locales"
                 >
                     <FiArrowLeft size={24} />

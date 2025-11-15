@@ -95,7 +95,7 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="bg-[#00C49A] flex items-center justify-between px-6 py-2 text-white shadow-md">
+    <nav className="bg-[#00C49A] flex items-center justify-between px-6 py-2 text-white shadow-md h-[88px]">
       {/* Sección Izquierda: Logo y Título */}
       <div className="flex items-center gap-6">
         <Image
