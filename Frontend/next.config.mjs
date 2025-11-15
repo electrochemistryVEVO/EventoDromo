@@ -1,40 +1,14 @@
-/** @type {import("next").NextConfig} */
+/** @type {import('next').NextConfig} */
 const nextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "cdn.sanity.io",
-      },
-      {
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com",
-      },
-      {
-        protocol: "https",
-        hostname: "avatars.githubusercontent.com",
-      },
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-      },
-      {
-        protocol: "https",
-        hostname: "pub-b7fd9c30cdbf439183b75041f5f71b92.r2.dev",
-      }
-    ],
-  },
-  /*
-  async redirects() {
+    async redirects() {
     return [
       {
-        source: "/",
-        destination: "/auth/login",
+        source: '/',          // La ruta de origen (la homepage por defecto)
+        destination: '/grupo2/login/page', // La ruta a donde quieres redirigir
         permanent: true,
       },
-    ];
+    ]
   },
-  */
 };
 
 export default nextConfig;
