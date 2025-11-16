@@ -1,5 +1,3 @@
-// src/components/navbar/Navbar.jsx
-
 "use client";
 
 import Image from "next/image";
@@ -9,7 +7,6 @@ import { useEffect, useState, useRef } from "react";
 import { fetchUserData } from "@/services/admin-service";
 import { useUser } from "@/context/UserContext";
 
-// Array con la información de los enlaces de navegación
 const navLinks = [
   {
     name: "Dashboard",
@@ -39,16 +36,14 @@ const navLinks = [
 
 const Navbar = () => {
   const currentPath = usePathname();
-  const { user, isAuthenticated, isLoading } = useUser();
+  const { user, isAuthenticated, isLoading, logout } = useUser();
   const [userName, setUserName] = useState("Administrador");
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
 
-  // Cargar datos del usuario autenticado
   useEffect(() => {
     const loadUserData = async () => {
       if (!isAuthenticated || !user?.token || user?.rol !== "A") {
-        setUserName("Administrador");
         return;
       }
 
@@ -66,7 +61,6 @@ const Navbar = () => {
     }
   }, [user, isAuthenticated, isLoading]);
 
-  // Cerrar menú de usuario al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
@@ -78,13 +72,17 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const toggleUserMenu = () => setIsUserMenuOpen((prev) => !prev);
+  const closeUserMenu = () => setIsUserMenuOpen(false);
+
+  const handleLogout = () => {
+    closeUserMenu();
+    logout();
+  };
+
   return (
-    <nav 
-      className="bg-[#00C49A] text-white shadow-lg sticky top-0 z-50" 
-      suppressHydrationWarning
-    >
+    <nav className="bg-[#00C49A] text-white shadow-lg sticky top-0 z-50" suppressHydrationWarning>
       <div className="max-w-[1920px] mx-auto px-6 py-3 flex items-center justify-between h-[88px]">
-        {/* Sección Izquierda: Logo y Título */}
         <div className="flex items-center gap-6 min-w-[300px]">
           <Image
             src="/images/icon/logo-eventodromo.png"
@@ -93,10 +91,11 @@ const Navbar = () => {
             height={40}
             priority
           />
-          <h1 className="text-2xl font-bold tracking-wider whitespace-nowrap">ADMINISTRADOR</h1>
+          <h1 className="text-2xl font-bold tracking-wider whitespace-nowrap">
+            ADMINISTRADOR
+          </h1>
         </div>
 
-        {/* Sección Central: Enlaces de Navegación */}
         <div className="flex items-center justify-center gap-2 flex-1">
           {navLinks.map((link) => {
             const isActive = currentPath === link.href || currentPath?.startsWith(link.href);
@@ -104,7 +103,7 @@ const Navbar = () => {
               <Link
                 href={link.href}
                 key={link.name}
-                className={`flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-all duration-200 ease-in-out min-w-[100px] ${
+                className={`flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-all duration-200 min-w-[100px] ${
                   isActive
                     ? "bg-white text-[#00A99D] font-semibold shadow-md"
                     : "hover:bg-white/20 text-white"
@@ -122,7 +121,6 @@ const Navbar = () => {
           })}
         </div>
 
-        {/* Sección Derecha: Información de Usuario */}
         <div className="flex items-center gap-2 min-w-[300px] justify-end" ref={userMenuRef}>
           <div className="flex items-center gap-3">
             <span className="text-sm whitespace-nowrap">Bienvenido, {userName}</span>
@@ -135,25 +133,14 @@ const Navbar = () => {
             />
           </div>
 
-          {/* Menú Desplegable de Usuario */}
           <div className="relative">
             <button
-              onClick={() => setIsUserMenuOpen((prev) => !prev)}
+              onClick={toggleUserMenu}
               className="p-2 rounded-full hover:bg-white/20 transition-colors"
               aria-label="Abrir menú de usuario"
             >
-              <svg
-                className="w-5 h-5 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M19 9l-7 7-7-7"
-                />
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
@@ -161,11 +148,17 @@ const Navbar = () => {
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-[60]">
                 <Link
                   href="/admin/dromopuntos"
-                  onClick={() => setIsUserMenuOpen(false)}
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={closeUserMenu}
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-md transition-colors"
                 >
                   Configurar DromoPuntos
                 </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-md transition-colors border-t border-gray-100"
+                >
+                  Cerrar Sesión
+                </button>
               </div>
             )}
           </div>

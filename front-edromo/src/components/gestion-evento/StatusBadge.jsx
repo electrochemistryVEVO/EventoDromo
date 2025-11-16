@@ -6,27 +6,26 @@
 import React from "react";
 
 const StatusBadge = ({ status }) => {
-  const getStatusStyles = () => {
+  // Normalizar el estado a minúsculas para las clases CSS
+  const getStatusClass = () => {
     switch (status) {
       case "Creado":
-        return "bg-green-100 text-green-800";
+        return "creado";
       case "Publicado":
-        return "bg-blue-100 text-blue-800";
+        return "publicado";
       case "En venta":
-        return "bg-purple-100 text-purple-800";
+        return "publicado"; // Mismo estilo que publicado
       case "Concluido":
-        return "bg-yellow-100 text-yellow-800";
+        return "finalizado";
       case "Cancelado":
-        return "bg-red-100 text-red-800";
+        return "cancelado";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "inactivo";
     }
   };
 
   return (
-    <span
-      className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusStyles()}`}
-    >
+    <span className={`status-badge ${getStatusClass()}`}>
       {status}
     </span>
   );

@@ -39,6 +39,10 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   const login = (userData) => {
+    // Verificar si hay un cambio de rol
+    const previousRole = user?.rol;
+    const newRole = userData?.rol;
+    
     setUser(userData);
     try {
       localStorage.setItem("user", JSON.stringify(userData));
@@ -49,15 +53,30 @@ export const UserProvider = ({ children }) => {
     // --- LÓGICA DE REDIRECCIÓN MOVİDA AQUÍ ---
     const redirectUrl = searchParams.get("redirect");
     if (redirectUrl) {
-      router.push(redirectUrl);
+      // Si hay cambio de rol, forzar recarga completa
+      if (previousRole && previousRole !== newRole) {
+        window.location.href = redirectUrl;
+      } else {
+        router.push(redirectUrl);
+      }
       return; // Salir
     }
 
     // Redirección basada en rol
     if (userData.rol === 'A') {
-      router.push("/admin/dashboard");
+      // Si cambiamos de cliente a admin, forzar recarga completa
+      if (previousRole === 'C') {
+        window.location.href = "/admin/dashboard";
+      } else {
+        router.push("/admin/dashboard");
+      }
     } else if (userData.rol === 'C') {
-      router.push("/user/web/eventos/lista");
+      // Si cambiamos de admin a cliente, forzar recarga completa
+      if (previousRole === 'A') {
+        window.location.href = "/user/web/eventos/lista";
+      } else {
+        router.push("/user/web/eventos/lista");
+      }
     } else {
       // Fallback por si el rol no es válido
       console.error('Rol de usuario no válido:', userData.rol);
@@ -66,6 +85,8 @@ export const UserProvider = ({ children }) => {
   };
 
   const logout = () => {
+    const wasAdmin = user?.rol === 'A';
+    
     setUser(null);
     try {
       localStorage.removeItem("user");
@@ -75,8 +96,21 @@ export const UserProvider = ({ children }) => {
     } catch (error) {
       console.warn("Error al borrar usuario de localStorage:", error);
     }
-    // Redirige al login al cerrar sesión
-    router.push("/auth/login");
+    
+    // Si era admin, forzar recarga completa para limpiar estilos
+    if (wasAdmin) {
+      window.location.href = "/auth/login";
+    } else {
+      router.push("/auth/login");
+    }
+  };
+
+  const isAdmin = () => {
+    return user?.rol === 'A';
+  };
+
+  const isCliente = () => {
+    return user?.rol === 'C';
   };
 
   return (
@@ -85,6 +119,8 @@ export const UserProvider = ({ children }) => {
         user,
         isLoading: user === null && typeof window !== 'undefined' && !!localStorage.getItem("user"),
         isAuthenticated: !!user,
+        isAdmin,
+        isCliente,
         login,
         logout,
       }}

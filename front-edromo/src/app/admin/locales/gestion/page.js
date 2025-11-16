@@ -74,21 +74,110 @@ const ActionIcons = ({ status, id, setModalData, setCreatePopup, setEdit, router
 /**
  * Componente para la paginación
  */
-const Pagination = () => {
+const Pagination = ({ currentPage, totalPages, onPageChange, itemsPerPage, totalItems, onItemsPerPageChange }) => {
+    // Generar números de página a mostrar
+    const getPageNumbers = () => {
+        const pages = [];
+        const maxPagesToShow = 5;
+        
+        if (totalPages <= maxPagesToShow) {
+            // Si hay pocas páginas, mostrarlas todas
+            for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            // Lógica para mostrar páginas con elipsis
+            if (currentPage <= 3) {
+                for (let i = 1; i <= 4; i++) pages.push(i);
+                pages.push('...');
+                pages.push(totalPages);
+            } else if (currentPage >= totalPages - 2) {
+                pages.push(1);
+                pages.push('...');
+                for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+            } else {
+                pages.push(1);
+                pages.push('...');
+                pages.push(currentPage - 1);
+                pages.push(currentPage);
+                pages.push(currentPage + 1);
+                pages.push('...');
+                pages.push(totalPages);
+            }
+        }
+        
+        return pages;
+    };
+    
+    const pageNumbers = getPageNumbers();
+    
     return (
-        <nav className="pagination-container">
-            <button className="pagination-arrow" aria-label="Página anterior">
-                <FiChevronLeft />
-            </button>
-            <button className="pagination-number active" aria-current="page">1</button>
-            <button className="pagination-number">2</button>
-            <span className="pagination-ellipsis">...</span>
-            <span className="pagination-number-static">9</span>
-            <span className="pagination-number-static">10</span>
-            <button className="pagination-arrow" aria-label="Siguiente página">
-                <FiChevronRight />
-            </button>
-        </nav>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+            {/* Selector de items por página */}
+            <div className="flex items-center gap-2">
+                <label htmlFor="items-per-page" className="text-sm text-gray-600">
+                    Locales por página:
+                </label>
+                <select
+                    id="items-per-page"
+                    value={itemsPerPage}
+                    onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+                    className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                </select>
+                <span className="text-sm text-gray-600">
+                    Mostrando {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)} - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems}
+                </span>
+            </div>
+            
+            {/* Controles de paginación */}
+            <nav className="pagination-container">
+                <button 
+                    className="pagination-arrow" 
+                    aria-label="Página anterior"
+                    onClick={() => onPageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    style={{ opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                >
+                    <FiChevronLeft />
+                </button>
+                
+                {pageNumbers.map((page, index) => {
+                    if (page === '...') {
+                        return (
+                            <span key={`ellipsis-${index}`} className="pagination-ellipsis">
+                                ...
+                            </span>
+                        );
+                    }
+                    
+                    return (
+                        <button
+                            key={page}
+                            className={`pagination-number ${page === currentPage ? 'active' : ''}`}
+                            aria-current={page === currentPage ? 'page' : undefined}
+                            onClick={() => onPageChange(page)}
+                        >
+                            {page}
+                        </button>
+                    );
+                })}
+                
+                <button 
+                    className="pagination-arrow" 
+                    aria-label="Siguiente página"
+                    onClick={() => onPageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    style={{ opacity: currentPage === totalPages ? 0.5 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                >
+                    <FiChevronRight />
+                </button>
+            </nav>
+        </div>
     );
 };
 
@@ -109,6 +198,10 @@ function GestionLocales() {
     const [showConfirmModal, setShowConfirmModal] = useState(false)
     const [showRestoreModal, setShowRestoreModal] = useState(false)
     const [restoreModalData, setRestoreModalData] = useState(null)
+    
+    // Estados para paginación
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(20)
     
     useEffect(() => {
         listarLocales().then((res) => { 
@@ -136,6 +229,46 @@ function GestionLocales() {
         document.addEventListener('click', handleClickOutside)
         return () => document.removeEventListener('click', handleClickOutside)
     }, [isDropdownOpen])
+    
+    // Filtrar locales
+    const filteredLocales = locales?.filter((e) => {
+        const matchesSearch = e.nombreCiudad?.toLowerCase().includes(filter)
+            || e.nombre?.toLowerCase().includes(filter)
+            || e.direccion?.toLowerCase().includes(filter)
+        
+        let matchesEstado = true
+        if (estadoFilter === 'Activos') {
+            matchesEstado = !e.isDeleted
+        } else if (estadoFilter === 'Inactivos') {
+            matchesEstado = e.isDeleted
+        }
+        
+        return matchesSearch && matchesEstado
+    }) || []
+    
+    // Calcular paginación
+    const totalItems = filteredLocales.length
+    const totalPages = Math.ceil(totalItems / itemsPerPage)
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    const currentLocales = filteredLocales.slice(startIndex, endIndex)
+    
+    // Funciones de paginación
+    const handlePageChange = (page) => {
+        if (page >= 1 && page <= totalPages) {
+            setCurrentPage(page)
+        }
+    }
+    
+    const handleItemsPerPageChange = (newItemsPerPage) => {
+        setItemsPerPage(newItemsPerPage)
+        setCurrentPage(1) // Resetear a la primera página
+    }
+    
+    // Resetear a página 1 cuando cambian los filtros
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [filter, estadoFilter])
 
     return (
         <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
@@ -222,22 +355,14 @@ function GestionLocales() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {locales
-                                    ?.filter((e) => {
-                                        const matchesSearch = e.nombreCiudad?.toLowerCase().includes(filter)
-                                            || e.nombre?.toLowerCase().includes(filter)
-                                            || e.direccion?.toLowerCase().includes(filter)
-                                        
-                                        let matchesEstado = true
-                                        if (estadoFilter === 'Activos') {
-                                            matchesEstado = !e.isDeleted
-                                        } else if (estadoFilter === 'Inactivos') {
-                                            matchesEstado = e.isDeleted
-                                        }
-                                        
-                                        return matchesSearch && matchesEstado
-                                    })
-                                    ?.map((local) => (
+                                {currentLocales.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="7" className="text-center py-8 text-gray-500">
+                                            No se encontraron locales
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    currentLocales.map((local) => (
                                         <tr key={local.id}>
                                             <td>{local.nombre}</td>
                                             <td>{local.nombreCiudad}</td>
@@ -265,13 +390,23 @@ function GestionLocales() {
                                                     setShowRestoreModal={setShowRestoreModal} />
                                             </td>
                                         </tr>
-                                    ))}
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
 
                     {/* --- Paginación --- */}
-                    <Pagination />
+                    {totalItems > 0 && (
+                        <Pagination 
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={handlePageChange}
+                            itemsPerPage={itemsPerPage}
+                            totalItems={totalItems}
+                            onItemsPerPageChange={handleItemsPerPageChange}
+                        />
+                    )}
                 </div>
             </div>
 

@@ -5,7 +5,7 @@
 
 import React from "react";
 import StatusBadge from "./StatusBadge.jsx";
-import ActionButton from "./ActionButton.jsx";
+import { FiEdit, FiSlash, FiEye } from 'react-icons/fi';
 
 // Función helper para formatear fechas
 const formatDate = (dateString) => {
@@ -43,7 +43,7 @@ const EventsTable = ({ events, isLoading, error, onActionClick }) => {
     if (isLoading) {
       return (
         <tr>
-          <td colSpan="9" className="text-center py-10 text-gray-500">
+          <td colSpan="10" className="text-center py-8 text-gray-500">
             Cargando eventos...
           </td>
         </tr>
@@ -53,7 +53,7 @@ const EventsTable = ({ events, isLoading, error, onActionClick }) => {
     if (error) {
       return (
         <tr>
-          <td colSpan="9" className="text-center py-10 text-red-500">
+          <td colSpan="10" className="text-center py-8 text-red-500">
             {error}
           </td>
         </tr>
@@ -63,7 +63,7 @@ const EventsTable = ({ events, isLoading, error, onActionClick }) => {
     if (!events || events.length === 0) {
       return (
         <tr>
-          <td colSpan="9" className="text-center py-10 text-gray-500">
+          <td colSpan="10" className="text-center py-8 text-gray-500">
             No se encontraron eventos.
           </td>
         </tr>
@@ -75,92 +75,69 @@ const EventsTable = ({ events, isLoading, error, onActionClick }) => {
       const ocupacionTotal = event?.horarios?.[0]?.ocupacion?.total;
 
       // Calculamos el porcentaje, asegurándonos de que los valores sean numéricos.
-      // Usamos el operador "Nullish Coalescing" (??) para dar un valor por defecto de 0.
       const ocupacionPercent =
         (ocupacionTotal ?? 0) > 0
           ? (((ocupacionActual ?? 0) / ocupacionTotal) * 100).toFixed(0)
           : 0;
 
-      // 1. Obtenemos la fecha del horario de forma segura.
-      // Si no existe, `horarioDate` será `undefined`.
+      // Obtenemos la fecha del horario de forma segura.
       const horarioDate = event?.horarios?.[0]?.horario;
+      
       return (
-        <tr key={event.id} className="border-b hover:bg-gray-50">
-          <td className="px-4 py-3 font-medium text-gray-900">
-            {event.nombre}
-          </td>
-          <td className="px-4 py-3 text-gray-600">{event.local}</td>
-          <td className="px-4 py-3 text-gray-600">{event.tipo}</td>
-          <td className="px-4 py-3 text-gray-600">
-            {formatDate(event.fechaPublicacion)}
-          </td>
-          <td className="px-4 py-3 text-gray-600">
-            {formatDate(event.fechaCompra)}
-          </td>
-          <td className="px-4 py-3 text-gray-600">
-            {horarioDate ? formatDate(horarioDate) : "No disponible"}
-          </td>
-          <td className="px-4 py-3 text-gray-600">
+        <tr key={event.id}>
+          <td>{event.nombre}</td>
+          <td>{event.local}</td>
+          <td>{event.tipo}</td>
+          <td>{formatDate(event.fechaPublicacion)}</td>
+          <td>{formatDate(event.fechaCompra)}</td>
+          <td>{horarioDate ? formatDate(horarioDate) : "No disponible"}</td>
+          <td>
             {`${ocupacionActual ?? 0}/${ocupacionTotal ?? 0}`}
             <br />
-            <span className="text-xs font-semibold">
-              OCUPACIÓN: %{ocupacionPercent}
+            <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>
+              OCUPACIÓN: {ocupacionPercent}%
             </span>
           </td>
-          <td className="px-4 py-3 text-gray-600">
-            {formatCurrency(event.ingresosBrutos)}
-          </td>
-          <td className="px-4 py-3">
+          <td>{formatCurrency(event.ingresosBrutos)}</td>
+          <td>
             <StatusBadge status={event.estado} />
           </td>
-          <td className="px-4 py-3">
-            <div className="flex items-center space-x-[-17px]">
+          <td>
+            <div className="action-icons">
               {/* Lógica condicional: si el estado es 'Creado', muestra todos los botones */}
               {event.estado === "Creado" ? (
                 <>
-                  <ActionButton
-                    variant="icon"
+                  <button 
                     onClick={() => handleAction("edit", event)}
+                    aria-label="Editar evento"
+                    title="Editar evento"
                   >
-                    <img
-                      src="/images/icon/edit-icon.png"
-                      alt="Editar"
-                      className="w-12 h-8"
-                    />
-                  </ActionButton>
-                  <ActionButton
-                    variant="icon"
+                    <FiEdit />
+                  </button>
+                  <button 
                     onClick={() => handleAction("delete", event)}
+                    aria-label="Eliminar evento"
+                    title="Eliminar evento"
                   >
-                    <img
-                      src="/images/icon/delete-icon.png"
-                      alt="Eliminar"
-                      className="w-12 h-8"
-                    />
-                  </ActionButton>
-                  <ActionButton
-                    variant="icon"
+                    <FiSlash />
+                  </button>
+                  <button 
                     onClick={() => handleAction("view", event)}
+                    aria-label="Ver evento"
+                    title="Ver evento"
                   >
-                    <img
-                      src="/images/icon/view-icon.png"
-                      alt="Ver"
-                      className="w-15 h-8"
-                    />
-                  </ActionButton>
+                    <FiEye />
+                  </button>
                 </>
               ) : (
                 /* Para cualquier otro estado, solo muestra el botón de ver */
-                <ActionButton
-                  variant="icon"
+                <button 
                   onClick={() => handleAction("view", event)}
+                  aria-label="Ver evento"
+                  title="Ver evento"
                 >
-                  <img
-                    src="/images/icon/view-icon.png"
-                    alt="Ver"
-                    className="w-5 h-5"
-                  />
-                </ActionButton>
+                  <FiEye />
+                </button>
               )}
             </div>
           </td>
@@ -170,40 +147,20 @@ const EventsTable = ({ events, isLoading, error, onActionClick }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
-      <table className="w-full text-sm text-left text-gray-500">
-        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+    <div className="table-container">
+      <table className="eventos-table">
+        <thead>
           <tr>
-            <th scope="col" className="px-4 py-3">
-              Evento
-            </th>
-            <th scope="col" className="px-4 py-3">
-              Local
-            </th>
-            <th scope="col" className="px-4 py-3">
-              Tipo
-            </th>
-            <th scope="col" className="px-4 py-3">
-              Fecha de Publicación
-            </th>
-            <th scope="col" className="px-4 py-3">
-              Fecha de Compra
-            </th>
-            <th scope="col" className="px-4 py-3">
-              Horario(s)
-            </th>
-            <th scope="col" className="px-4 py-3">
-              Ocupación
-            </th>
-            <th scope="col" className="px-4 py-3">
-              Ingresos brutos
-            </th>
-            <th scope="col" className="px-4 py-3">
-              Estado
-            </th>
-            <th scope="col" className="px-4 py-3">
-              Acciones
-            </th>
+            <th>Evento</th>
+            <th>Local</th>
+            <th>Tipo</th>
+            <th>Fecha de Publicación</th>
+            <th>Fecha de Compra</th>
+            <th>Horario(s)</th>
+            <th>Ocupación</th>
+            <th>Ingresos brutos</th>
+            <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>{renderTableContent()}</tbody>

@@ -6,7 +6,6 @@ import { insertarLocal, listarCiudades } from '@/services/gestionLocal.service'
 import { fetchUserData, getAuthToken } from '@/services/admin-service'
 import LocalValidationModal from '@/components/modals/LocalValidationModal'
 import LocalSuccessModal from '@/components/modals/LocalSuccessModal'
-import '@/css/adminLocales/crearLocal.css'
 
 function CrearLocal() {
     const router = useRouter()
@@ -144,113 +143,137 @@ function CrearLocal() {
     }
 
     return (
-        <div className="crear-local-container">
-            {/* Header */}
-            <header className="crear-local-header">
-                <h1>Crear Local</h1>
-            </header>
-
-            {/* Formulario */}
-            <div className="form-wrapper">
-                <div className="form-card">
-                    <div className="form-header">
-                        <span className="form-icon">🏛️</span>
-                        <h2>Datos del Local</h2>
-                    </div>
-
-                    <form id="crear-local-form" onSubmit={handleSubmit} className="form-content">
-                        {/* Mensaje de error */}
-                        {error && (
-                            <div className="error-message" style={{
-                                padding: '12px',
-                                backgroundColor: '#fee',
-                                border: '1px solid #fcc',
-                                borderRadius: '4px',
-                                color: '#c33',
-                                marginBottom: '16px'
-                            }}>
-                                {error}
-                            </div>
-                        )}
-
-                        {/* Nombre del Local */}
-                        <div className="form-group">
-                            <label htmlFor="nombre">
-                                Nombre del Local <span className="required">*</span>
-                            </label>
-                            <input
-                                id="nombre"
-                                type="text"
-                                name="nombre"
-                                placeholder="Ej: Teatro Municipal"
-                                className="form-input"
-                                required
-                            />
-                        </div>
-
-                        {/* Ciudad */}
-                        <div className="form-group">
-                            <label htmlFor="idCiudad">
-                                Ciudad <span className="required">*</span>
-                            </label>
-                            <select
-                                id="idCiudad"
-                                name="idCiudad"
-                                className="form-select"
-                                required
-                            >
-                                <option value="">Selecciona una ciudad</option>
-                                {ciudades?.map((ciudad) => (
-                                    <option key={ciudad.id} value={ciudad.id}>
-                                        {ciudad.nombre}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Dirección */}
-                        <div className="form-group">
-                            <label htmlFor="direccion">
-                                Dirección <span className="required">*</span>
-                            </label>
-                            <input
-                                id="direccion"
-                                type="text"
-                                name="direccion"
-                                placeholder="Ej: Av. Principal 123"
-                                className="form-input"
-                                required
-                            />
-                            <p className="form-help-text">
-                                La dirección debe ser única y no puede repetirse en el sistema
-                            </p>
-                        </div>
-
-                        {/* Capacidad */}
-                        <div className="form-group">
-                            <label htmlFor="capacidad">
-                                Capacidad <span className="required">*</span>
-                            </label>
-                            <input
-                                id="capacidad"
-                                type="number"
-                                name="capacidad"
-                                placeholder="Ej: 5,000"
-                                className="form-input"
-                                min="1"
-                                required
-                            />
-                        </div>
-
-                        {/* Botón Submit */}
-                        <button
-                            type="submit"
-                            className="btn-submit"
-                            disabled={isLoading}
+        <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
+            <div className="max-w-4xl mx-auto">
+                {/* --- Encabezado de la Página --- */}
+                <header className="flex items-center gap-4 mb-6">
+                    <button
+                        onClick={() => router.back()}
+                        className="text-gray-600 hover:text-black"
+                    >
+                        <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
                         >
-                            {isLoading ? 'Creando...' : '+ Crear Local'}
-                        </button>
-                    </form>
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M15 19l-7-7 7-7"
+                            ></path>
+                        </svg>
+                    </button>
+                    <h1 className="text-2xl font-bold text-gray-800">
+                        Creación de Local
+                    </h1>
+                </header>
+
+                <div className="space-y-6">
+                    {/* --- Formulario del Local --- */}
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <span className="text-3xl">🏛️</span>
+                            <h2 className="text-xl font-semibold text-gray-800">Datos del Local</h2>
+                        </div>
+
+                        <form id="crear-local-form" onSubmit={handleSubmit} className="space-y-6">
+                            {/* Mensaje de error */}
+                            {error && (
+                                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                                    {error}
+                                </div>
+                            )}
+
+                            {/* Nombre del Local */}
+                            <div className="space-y-2">
+                                <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">
+                                    Nombre del Local <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    id="nombre"
+                                    type="text"
+                                    name="nombre"
+                                    placeholder="Ej: Teatro Municipal"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00C49A] focus:border-transparent outline-none transition-all"
+                                    required
+                                />
+                            </div>
+
+                            {/* Ciudad */}
+                            <div className="space-y-2">
+                                <label htmlFor="idCiudad" className="block text-sm font-medium text-gray-700">
+                                    Ciudad <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    id="idCiudad"
+                                    name="idCiudad"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00C49A] focus:border-transparent outline-none transition-all appearance-none bg-white"
+                                    style={{
+                                        backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                                        backgroundPosition: 'right 0.5rem center',
+                                        backgroundRepeat: 'no-repeat',
+                                        backgroundSize: '1.5em 1.5em',
+                                        paddingRight: '2.5rem'
+                                    }}
+                                    required
+                                >
+                                    <option value="">Selecciona una ciudad</option>
+                                    {ciudades?.map((ciudad) => (
+                                        <option key={ciudad.id} value={ciudad.id}>
+                                            {ciudad.nombre}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Dirección */}
+                            <div className="space-y-2">
+                                <label htmlFor="direccion" className="block text-sm font-medium text-gray-700">
+                                    Dirección <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    id="direccion"
+                                    type="text"
+                                    name="direccion"
+                                    placeholder="Ej: Av. Principal 123"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00C49A] focus:border-transparent outline-none transition-all"
+                                    required
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    La dirección debe ser única y no puede repetirse en el sistema
+                                </p>
+                            </div>
+
+                            {/* Capacidad */}
+                            <div className="space-y-2">
+                                <label htmlFor="capacidad" className="block text-sm font-medium text-gray-700">
+                                    Capacidad <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    id="capacidad"
+                                    type="number"
+                                    name="capacidad"
+                                    placeholder="Ej: 5,000"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00C49A] focus:border-transparent outline-none transition-all"
+                                    min="1"
+                                    required
+                                />
+                            </div>
+
+                            {/* Botón Submit */}
+                            <div className="flex justify-end items-center gap-4 pt-4">
+                                <button
+                                    type="submit"
+                                    disabled={isLoading}
+                                    className="bg-[#00C49A] text-white font-bold px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+                                >
+                                    {isLoading ? 'Creando Local...' : 'Crear Local'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
 

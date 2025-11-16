@@ -1,5 +1,5 @@
 import "@/css/user-style.css";
-import Navbar from "@/components/Layouts/navbar/navbar_admin.jsx";
+import AdminLayoutClient from "./AdminLayoutClient";
 
 export const metadata = {
   title: "Eventodromo Admin",
@@ -7,10 +7,5 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  return (
-    <>
-      <Navbar />
-      {children}
-    </>
-  );
+  return <AdminLayoutClient>{children}</AdminLayoutClient>;
 }
