@@ -2,7 +2,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import "@/css/user-style.css";
 import Image from "next/image";
 import Navbar from "@/components/Layouts/navbar/navbar_con_login.jsx";
-import { Footer } from "@/components/Layouts/footer"; // Importamos el nuevo Footer
+import { Footer } from "@/components/Layouts/footer"; 
 
 export const metadata = {
   title: "Eventodromo",
