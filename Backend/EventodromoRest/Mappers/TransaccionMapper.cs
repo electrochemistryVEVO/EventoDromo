@@ -360,9 +360,12 @@ namespace EventodromoRest.Mappers
                 // --- 7. Registrar Puntos Ganados (si hay) ---
                 if (puntosTotalesGanados > 0)
                 {
-                    string queryPuntos = "INSERT INTO Punto (cantidad, fechaHoraRegistro, idCliente, fechaExpiracion) VALUES (@cant, UTC_TIMESTAMP(), @idCli, UTC_TIMESTAMP() + INTERVAL 1 YEAR);";
+                    string queryPuntos = "INSERT INTO Punto (cantidad, cantidadRestante, fechaHoraRegistro, idCliente, fechaExpiracion) " +
+                                         "VALUES (@cant, @cantRestante, UTC_TIMESTAMP(), @idCli, UTC_TIMESTAMP() + INTERVAL 1 YEAR);";
+
                     var pPuntos = new ParameterList();
                     pPuntos.Add("@cant", puntosTotalesGanados);
+                    pPuntos.Add("@cantRestante", puntosTotalesGanados);
                     pPuntos.Add("@idCli", idCliente);
                     DB.ExecuteNonQuery(queryPuntos, pPuntos);
                 }
@@ -405,7 +408,9 @@ namespace EventodromoRest.Mappers
         private Carrito ObtenerCarritoActivoPorCliente(int idCliente)
         {
             // Busca un carrito que no haya expirado
-            string query = "SELECT * FROM Carrito WHERE idCliente = @idCli AND fechaExpiracion > UTC_TIMESTAMP() LIMIT 1";
+            //string query = "SELECT * FROM Carrito WHERE idCliente = @idCli AND fechaExpiracion > UTC_TIMESTAMP() LIMIT 1";
+            string query = "SELECT * FROM Carrito WHERE idCliente = @idCli AND fechaExpiracion > UTC_TIMESTAMP() " +
+                           "ORDER BY fechaCreacion DESC LIMIT 1";
             var p = new ParameterList();
             p.Add("@idCli", idCliente);
             DB.Select(query, p);
@@ -467,7 +472,7 @@ namespace EventodromoRest.Mappers
                 // --- 3. Verificar Puntos (Server-Side) ---
                 decimal montoTotalCalculado = entradasConPrecio.Sum(e => e.Precio);
                 decimal puntosPorSol = ObtenerPuntosPorSol();
-                int puntosRequeridosServidor = (int)Math.Ceiling(montoTotalCalculado * puntosPorSol);
+                int puntosRequeridosServidor = (int)Math.Ceiling(montoTotalCalculado / puntosPorSol);
 
                 // Verificamos que el front no mienta
                 if (request.PuntosAGastar != puntosRequeridosServidor)

@@ -16,7 +16,7 @@ const formatVencimiento = (dateString) => {
   };
 };
 
-export default function MisDromopuntosView({ data, movimientos, loading, error, currentPage, onPageChange }) {
+export default function MisDromopuntosView({ data, movimientos, loading, error, currentPage, onPageChange, puntosPorSol }) {
   // Los hooks deben llamarse siempre en el nivel superior, antes de cualquier retorno condicional.
 
   if (loading) {
@@ -39,7 +39,8 @@ export default function MisDromopuntosView({ data, movimientos, loading, error, 
 
   const hasPoints = data && data.total > 0;
   // Cálculo seguro: solo se ejecuta si 'data' y 'data.total' existen.
-  const puntosEquivalencia = hasPoints ? (data.total / 10).toFixed(2) : "0.00";
+  const valorEquivalente = puntosPorSol > 0 ? puntosPorSol : 10;
+  const puntosEquivalencia = hasPoints ? (data.total * valorEquivalente).toFixed(2) : "0.00";
 
   // Lógica de paginación para el historial
   const ITEMS_PER_PAGE = 7;
@@ -84,11 +85,11 @@ export default function MisDromopuntosView({ data, movimientos, loading, error, 
 
       </div>
 
-      {hasPoints && (
-        <p className="text-orange-600 font-semibold mb-6 -mt-4">
-          ¡Tus DromoPuntos están por vencer!
-        </p>
-      )}
+      {data.porVencer && data.porVencer.length > 0 && (
+        <p className="text-orange-600 font-semibold mb-6 -mt-4">
+          ¡Tus DromoPuntos están por vencer!
+        </p>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Columna Izquierda: Puntos Disponibles y por Vencer */}

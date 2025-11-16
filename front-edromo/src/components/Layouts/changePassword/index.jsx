@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
+import { useUser } from "@/context/UserContext";
 import Link from "next/link";
 import Image from "next/image";
 import "@/css/navbar-style.css"; // Importamos los estilos base que ya tenías
@@ -8,6 +9,7 @@ import "@/css/navbar-logged-in.css"; // Importamos los nuevos estilos para el me
 export function ChangePasswordHeader() {
   // Estado para controlar la visibilidad del menú desplegable
   const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const { isAuthenticated, logout } = useUser();
   const dropdownRef = useRef(null);
   // Función para alternar la visibilidad del menú
   const toggleDropdown = () => {
@@ -30,11 +32,17 @@ export function ChangePasswordHeader() {
     };
   }, [dropdownRef]);
 
+  const handleLogout = () => {
+    logout();
+    setDropdownOpen(false);
+    router.push("/auth/login");
+  };
+
   return (
     <nav className="navbar-container">
       {/* 1. Logo (sin cambios) */}
       <div className="navbar-logo">
-        <Link href="/user-login/web/eventos/lista">
+        <Link href="/user/web/eventos/lista">
           <Image
             src={"/images/logo/eventodromo.png"}
             alt="EventoDromo Logo"
@@ -60,7 +68,7 @@ export function ChangePasswordHeader() {
           {isDropdownOpen && (
             <div className="dropdown-menu">
               <Link
-                href="/user-login/web/perfil?tab=info"
+                href="/user/web/perfil?tab=info"
                 className="dropdown-item"
               >
                 <Image
@@ -71,7 +79,7 @@ export function ChangePasswordHeader() {
                 />
                 Mis datos
               </Link>
-              <Link href="/user-login/web/perfil" className="dropdown-item">
+              <Link href="/user/web/perfil" className="dropdown-item">
                 <Image
                   src="/images/icon/mis-entradas.svg"
                   alt=""
@@ -81,7 +89,7 @@ export function ChangePasswordHeader() {
                 Mis Entradas
               </Link>
               <Link
-                href="/user-login/web/perfil?tab=dromopuntos"
+                href="/user/web/perfil?tab=dromopuntos"
                 className="dropdown-item"
               >
                 <Image
@@ -93,7 +101,7 @@ export function ChangePasswordHeader() {
                 Mis puntos
               </Link>
               <Link
-                href="/user-login/web/cambiar-contrasena"
+                href="/user/cambiarcontrasena/contrasenaActual"
                 className="dropdown-item"
               >
                 <Image
@@ -106,9 +114,7 @@ export function ChangePasswordHeader() {
               </Link>
               <div className="dropdown-divider"></div>
               <button
-                onClick={() => {
-                  /* Lógica para cerrar sesión */
-                }}
+                onClick={handleLogout}
                 className="dropdown-item dropdown-item-logout"
               >
                 <Image

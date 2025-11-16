@@ -3,128 +3,126 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { updatePassword } from "@/services/cambiarContrasena.js";
+import { updatePassword } from "@/services/cambiarContrasena.js"; // Asumo que este servicio está en el archivo correcto
 
-// --- BUENA PRÁCTICA: Función auxiliar reutilizable ---
-// Esta función se encarga de una sola cosa: obtener el token de la sesión.
-// La puedes mover a un archivo de utilidades (ej: src/utils/auth.js) para usarla en todo tu proyecto.
+// --- 1. IMPORTA EL HOOK 'useUser' ---
+import { useUser } from "@/context/UserContext.jsx";
+
+// --- 2. ELIMINA LA FUNCIÓN 'getTokenFromSession' ---
+/*
 const getTokenFromSession = () => {
-  // Verificamos si estamos en el navegador para evitar errores en el servidor
-  if (typeof window === "undefined" || !window.sessionStorage) {
-    return null;
-  }
-
-  const sessionJSON = sessionStorage.getItem("session");
-  if (sessionJSON) {
-    try {
-      const sessionData = JSON.parse(sessionJSON);
-      return sessionData.token || null; // Devuelve el token o null si no existe
-    } catch (e) {
-      console.error("Error al parsear los datos de la sesión:", e);
-      return null;
-    }
-  }
-  return null;
+  // ... (Este código es incorrecto, lee de sessionStorage)
 };
+*/
 
 // Regex para las validaciones (esto está perfecto)
 const REGEX = {
-  upper: /[A-Z]/,
-  lower: /[a-z]/,
-  number: /[0-9]/,
-  special: /[!@#$%^&*(),.?":{}|<>]/,
+  upper: /[A-Z]/,
+  lower: /[a-z]/,
+  number: /[0-9]/,
+  special: /[!@#$%^&*(),.?":{}|<>]/,
 };
 
 export const useChangePasswordStep2Controller = () => {
-  const router = useRouter();
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const router = useRouter();
+  
+  // --- 3. LLAMA AL HOOK 'useUser' ---
+  const { user } = useUser(); // Obtenemos el usuario (que tiene el token)
 
-  const [validations, setValidations] = useState({
-    hasUpper: false,
-    hasLower: false,
-    hasNumber: false,
-    hasSpecial: false,
-  });
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  // Este useEffect sigue estando perfecto.
-  useEffect(() => {
-    setValidations({
-      hasUpper: REGEX.upper.test(newPassword),
-      hasLower: REGEX.lower.test(newPassword),
-      hasNumber: REGEX.number.test(newPassword),
-      hasSpecial: REGEX.special.test(newPassword),
-    });
-  }, [newPassword]);
+  const [validations, setValidations] = useState({
+    hasUpper: false,
+    hasLower: false,
+    hasNumber: false,
+    hasSpecial: false,
+  });
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setError("");
+  // Este useEffect sigue estando perfecto.
+  useEffect(() => {
+    setValidations({
+      hasUpper: REGEX.upper.test(newPassword),
+      hasLower: REGEX.lower.test(newPassword),
+      hasNumber: REGEX.number.test(newPassword),
+      hasSpecial: REGEX.special.test(newPassword),
+    });
+  }, [newPassword]);
 
-    // --> PASO 1: Obtener el token usando nuestra nueva función auxiliar.
-    const userToken = getTokenFromSession();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
 
-    // --> PASO 2: Validar la existencia del token ANTES de hacer cualquier otra cosa (Fail-Fast).
-    if (!userToken) {
-      setError(
-        "Tu sesión ha expirado o no es válida. Por favor, inicia sesión de nuevo."
-      );
-      // Opcionalmente, podrías redirigir al login aquí.
-      // router.push("/user-login");
-      return;
+    // --- 4. OBTÉN EL TOKEN DIRECTAMENTE DEL CONTEXTO ---
+    const userToken = user?.token;
+
+    // Validar la existencia del token ANTES de hacer cualquier otra cosa
+    if (!userToken) {
+      setError(
+        "Tu sesión ha expirado o no es válida. Por favor, inicia sesión de nuevo."
+      );
+      return;
+    }
+
+    // Validaciones del formulario (esto ya estaba bien).
+    if (!newPassword || !confirmPassword) {
+      setError("Ambos campos son obligatorios.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError("Las contraseñas no coinciden.");
+      return;
+    }
+    const allValid = Object.values(validations).every((v) => v);
+    if (!allValid) {
+      setError("La contraseña no cumple con todos los requisitos.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // 5. Llamar al servicio con la nueva contraseña Y el token
+      const response = await updatePassword(newPassword, userToken);
+      
+      // 6. Verificar la respuesta del backend
+      if (response && response.success === true) {
+        setIsSuccess(true); // ¡Éxito!
+      } else {
+        throw new Error(response.message || "El backend reportó un error.");
+      }
+    } catch (err) {
+      setError(err.message || "Ocurrió un error al cambiar la contraseña.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    router.back();
+  };
+
+  const handleFinish = () => {
+    // 7. Limpia el password verificado de la sesión anterior
+    if (typeof window !== "undefined") {
+        sessionStorage.removeItem('verified_password');
     }
+    router.push("/user/web/perfil"); // Redirige al perfil
+  };
 
-    // 3. Validaciones del formulario (esto ya estaba bien).
-    if (!newPassword || !confirmPassword) {
-      setError("Ambos campos son obligatorios.");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError("Las contraseñas no coinciden.");
-      return;
-    }
-    const allValid = Object.values(validations).every((v) => v);
-    if (!allValid) {
-      setError("La contraseña no cumple con todos los requisitos.");
-      return;
-    }
-
-    // 4. Si todo es correcto, llamar al servicio con los datos necesarios.
-    setIsLoading(true);
-    try {
-      // --> PASO 3: Llamar al servicio pasando la nueva contraseña Y el token.
-      await updatePassword(newPassword, userToken);
-
-      setIsSuccess(true); // ¡Éxito!
-    } catch (err) {
-      setError(err.message || "Ocurrió un error al cambiar la contraseña.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCancel = () => {
-    router.back();
-  };
-
-  const handleFinish = () => {
-    router.push("/user/web/eventos/lista");
-  };
-
-  return {
-    newPassword,
-    setNewPassword,
-    confirmPassword,
-    setConfirmPassword,
-    error,
-    isLoading,
-    isSuccess,
-    validations,
-    handleSubmit,
-    handleCancel,
-    handleFinish,
-  };
+  return {
+    newPassword,
+    setNewPassword,
+    confirmPassword,
+    setConfirmPassword,
+    error,
+    isLoading,
+    isSuccess,
+    validations,
+    handleSubmit,
+    handleCancel,
+    handleFinish,
+  };
 };

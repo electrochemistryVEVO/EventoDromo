@@ -35,12 +35,20 @@ namespace EventodromoRest.Mappers
         {
             lock (DB)
             {
-                string query = "INSERT INTO Punto (cantidad, fechaHoraRegistro, idCliente, fechaExpiracion) VALUES (@cantidad, @fechaHoraRegistro, @idCliente, @fechaExpiracion); SELECT LAST_INSERT_ID();";
+                // Añadimos 'cantidadRestante' al INSERT
+                string query = "INSERT INTO Punto (cantidad, cantidadRestante, fechaHoraRegistro, idCliente, fechaExpiracion) " +
+                               "VALUES (@cantidad, @cantidadRestante, @fechaHoraRegistro, @idCliente, @fechaExpiracion); SELECT LAST_INSERT_ID();";
+
                 var parametros = new ParameterList();
                 parametros.Add("@cantidad", punto.cantidad);
+
+                // El saldo inicial es siempre igual a la cantidad ganada
+                parametros.Add("@cantidadRestante", punto.cantidad);
+
                 parametros.Add("@fechaHoraRegistro", punto.fechahoraregistro);
                 parametros.Add("@idCliente", punto.idcliente);
                 parametros.Add("@fechaExpiracion", punto.fechaexpiracion);
+
                 object result = DB.ExecuteScalar(query, parametros);
                 int newId = Convert.ToInt32(result);
                 return newId;
@@ -91,13 +99,21 @@ namespace EventodromoRest.Mappers
         {
             lock (DB)
             {
-                string query = "UPDATE Punto SET cantidad = @cantidad, fechaHoraRegistro = @fechaHoraRegistro, idCliente = @idCliente, fechaExpiracion = @fechaExpiracion WHERE id = @id";
+                // Añadimos 'cantidadRestante' al UPDATE
+                string query = "UPDATE Punto SET cantidad = @cantidad, cantidadRestante = @cantidadRestante, " +
+                               "fechaHoraRegistro = @fechaHoraRegistro, idCliente = @idCliente, fechaExpiracion = @fechaExpiracion WHERE id = @id";
+
                 var parametros = new ParameterList();
                 parametros.Add("@cantidad", punto.cantidad);
+
+                // Asumimos que el objeto 'punto' trae el saldo correcto
+                parametros.Add("@cantidadRestante", punto.cantidadRestante);
+
                 parametros.Add("@fechaHoraRegistro", punto.fechahoraregistro);
                 parametros.Add("@idCliente", punto.idcliente);
                 parametros.Add("@fechaExpiracion", punto.fechaexpiracion);
                 parametros.Add("@id", punto.id);
+
                 int rowsAffected = DB.ExecuteNonQuery(query, parametros);
                 return rowsAffected;
             }
@@ -107,6 +123,34 @@ namespace EventodromoRest.Mappers
         {
             var clienteMapper = new ClienteMapper(globales, DB);
             return clienteMapper.ObtenerClientePorId(id);
+        }
+
+        /// <summary>
+        /// Calcula el total de puntos disponibles y vigentes de un cliente.
+        /// </summary>
+        public int ObtenerPuntosTotales(int idCliente)
+        {
+            // Usamos 'lock' para seguir el patrón de tu clase
+            lock (DB)
+            {
+                // Suma el 'saldo' (cantidadRestante) de todos los lotes que no han expirado
+                string query = "SELECT SUM(cantidadRestante) FROM Punto " +
+                               "WHERE idCliente = @idCliente AND fechaExpiracion > UTC_TIMESTAMP()";
+
+                var parametros = new ParameterList();
+                parametros.Add("@idCliente", idCliente);
+
+                object result = DB.ExecuteScalar(query, parametros);
+
+                // Si el usuario no tiene puntos (o SUM devuelve NULL), retornamos 0
+                if (result == null || result == DBNull.Value)
+                {
+                    return 0;
+                }
+
+                // Devolvemos el total
+                return Convert.ToInt32(result);
+            }
         }
     }
 }
