@@ -138,7 +138,7 @@ function GestionLocales() {
     }, [isDropdownOpen])
 
     return (
-        <>
+        <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
             <div className="page-container">
                 {/* --- Cabecera --- */}
                 <header className="page-header">
@@ -273,9 +273,8 @@ function GestionLocales() {
                     {/* --- Paginación --- */}
                     <Pagination />
                 </div>
-
-
             </div>
+
             {/* --- Modal --- */}
             {createPopup && (
                 <div className="fixed z-[999] inset-0 bg-black/50 grid h-screen w-screen place-items-center shadow-md">
@@ -530,7 +529,7 @@ function GestionLocales() {
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 }
 

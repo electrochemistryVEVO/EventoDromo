@@ -20,13 +20,14 @@ body {
     background-color: var(--color-bg-light);
     color: var(--color-text-dark);
     margin: 0;
-    padding: 2rem;
+    padding: 0;
 }
 
 /* --- Contenedor de Página --- */
 .page-container {
     max-width: 1400px;
     margin: 0 auto;
+    padding: 0;
 }
 
 .page-header {

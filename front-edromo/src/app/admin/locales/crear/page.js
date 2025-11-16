@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiArrowLeft } from 'react-icons/fi'
 import { insertarLocal, listarCiudades } from '@/services/gestionLocal.service'
 import { fetchUserData, getAuthToken } from '@/services/admin-service'
 import LocalValidationModal from '@/components/modals/LocalValidationModal'
@@ -148,13 +147,6 @@ function CrearLocal() {
         <div className="crear-local-container">
             {/* Header */}
             <header className="crear-local-header">
-                <button 
-                    className="btn-back"
-                    onClick={() => router.push('/admin/locales/gestion')}
-                    aria-label="Volver a gestión de locales"
-                >
-                    <FiArrowLeft size={24} />
-                </button>
                 <h1>Crear Local</h1>
             </header>
 

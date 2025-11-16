@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { FiArrowLeft } from 'react-icons/fi'
 import { editarLocal, listarCiudades, obtenerLocalPorId } from '@/services/gestionLocal.service'
 import { fetchUserData, getAuthToken } from '@/services/admin-service'
 import LocalEditValidationModal from '@/components/modals/LocalEditValidationModal'
@@ -171,13 +170,6 @@ function EditarLocal() {
         return (
             <div className="editar-local-container">
                 <header className="editar-local-header">
-                    <button 
-                        className="btn-back"
-                        onClick={() => router.push('/admin/locales/gestion')}
-                        aria-label="Volver a gestión de locales"
-                    >
-                        <FiArrowLeft size={24} />
-                    </button>
                     <h1>Editar Local</h1>
                 </header>
                 <div className="loading-container">
@@ -191,13 +183,6 @@ function EditarLocal() {
         return (
             <div className="editar-local-container">
                 <header className="editar-local-header">
-                    <button 
-                        className="btn-back"
-                        onClick={() => router.push('/admin/locales/gestion')}
-                        aria-label="Volver a gestión de locales"
-                    >
-                        <FiArrowLeft size={24} />
-                    </button>
                     <h1>Editar Local</h1>
                 </header>
                 <div className="error-container">
@@ -211,13 +196,6 @@ function EditarLocal() {
         <div className="editar-local-container">
             {/* Header */}
             <header className="editar-local-header">
-                <button 
-                    className="btn-back"
-                    onClick={() => router.push('/admin/locales/gestion')}
-                    aria-label="Volver a gestión de locales"
-                >
-                    <FiArrowLeft size={24} />
-                </button>
                 <h1>Editar Local</h1>
             </header>
 
