@@ -39,10 +39,6 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   const login = (userData) => {
-    // Verificar si hay un cambio de rol
-    const previousRole = user?.rol;
-    const newRole = userData?.rol;
-    
     setUser(userData);
     try {
       localStorage.setItem("user", JSON.stringify(userData));
@@ -50,59 +46,41 @@ export const UserProvider = ({ children }) => {
       console.warn("Error al guardar usuario en localStorage:", error);
     }
 
-    // --- LÓGICA DE REDIRECCIÓN MOVİDA AQUÍ ---
+    // Obtener URL de redirección si existe
     const redirectUrl = searchParams.get("redirect");
+    
+    // Determinar destino según rol
+    let destination;
     if (redirectUrl) {
-      // Si hay cambio de rol, forzar recarga completa
-      if (previousRole && previousRole !== newRole) {
-        window.location.href = redirectUrl;
-      } else {
-        router.push(redirectUrl);
-      }
-      return; // Salir
+      destination = redirectUrl;
+    } else if (userData.rol === 'A') {
+      destination = "/admin/dashboard";
+    } else if (userData.rol === 'C') {
+      destination = "/user/web/eventos/lista";
+    } else {
+      destination = "/";
     }
 
-    // Redirección basada en rol
-    if (userData.rol === 'A') {
-      // Si cambiamos de cliente a admin, forzar recarga completa
-      if (previousRole === 'C') {
-        window.location.href = "/admin/dashboard";
-      } else {
-        router.push("/admin/dashboard");
-      }
-    } else if (userData.rol === 'C') {
-      // Si cambiamos de admin a cliente, forzar recarga completa
-      if (previousRole === 'A') {
-        window.location.href = "/user/web/eventos/lista";
-      } else {
-        router.push("/user/web/eventos/lista");
-      }
-    } else {
-      // Fallback por si el rol no es válido
-      console.error('Rol de usuario no válido:', userData.rol);
-      router.push("/");
-    }
+    // SIEMPRE usar window.location.href para forzar recarga completa
+    // Esto limpia TODOS los estilos CSS en caché y carga los correctos
+    console.log("Login exitoso, forzando recarga completa para cargar estilos correctos");
+    window.location.href = destination;
   };
 
   const logout = () => {
-    const wasAdmin = user?.rol === 'A';
-    
     setUser(null);
     try {
       localStorage.removeItem("user");
-      // Opcional: Limpia también el carrito de invitado si existe
       localStorage.removeItem("cart");
       localStorage.removeItem("cartExpiration");
     } catch (error) {
       console.warn("Error al borrar usuario de localStorage:", error);
     }
     
-    // Si era admin, forzar recarga completa para limpiar estilos
-    if (wasAdmin) {
-      window.location.href = "/auth/login";
-    } else {
-      router.push("/auth/login");
-    }
+    // Usar window.location.href para forzar recarga completa
+    // Esto limpia todos los estilos CSS en caché
+    console.log("Logout exitoso, forzando recarga completa");
+    window.location.href = "/auth/login";
   };
 
   const isAdmin = () => {

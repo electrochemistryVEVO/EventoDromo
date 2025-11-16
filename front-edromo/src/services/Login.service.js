@@ -6,12 +6,23 @@ export async function autenticarUsuario(correo, password) {
       Correo: correo,
       Password: password
     }
-    //alert("Antes de la llamada al API");
+    
+    console.log("Intentando autenticar usuario...");
     const response = await api.post('/Cliente/AutenticarLoginCliente', requestParams);
-    //alert("Después de la llamada al API");
-    if (response.token) {
+    console.log("Respuesta del servidor:", response);
+    
+    // La respuesta de api.post ya debería ser solo el 'data' si success=true
+    // gracias a la lógica en api.js
+    if (response && response.token) {
+      // Guardamos el token en localStorage
       localStorage.setItem('authToken', response.token);
-      return { rol: response.rol, token: response.token};
+      
+      // Retornamos el objeto completo con rol y token
+      return { 
+        rol: response.rol, 
+        token: response.token,
+        email: correo // Añadimos el email para el contexto
+      };
     } else {
       throw new Error("Token no recibido del servidor.");
     }

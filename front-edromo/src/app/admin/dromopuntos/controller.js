@@ -15,7 +15,7 @@ export const useDromoPuntosManager = () => {
         const token = getAuthToken();
         const apiResponse = await getConfig(token);
 
-        if (apiResponse && apiResponse.success) {
+        if (apiResponse?.success) {
           setConfig(apiResponse.data);
         } else {
           throw new Error(apiResponse.message || "La respuesta del API no fue exitosa.");
@@ -41,16 +41,14 @@ export const useDromoPuntosManager = () => {
     setIsSuccess(false);
     
     try {
-      const configToUpdate = {
-        valorEnSoles: parseFloat(config.valorEnSoles),
-      };
+      const valorEnSoles = parseFloat(config.valorEnSoles);
       
-      if (isNaN(configToUpdate.valorEnSoles) || configToUpdate.valorEnSoles <= 0) {
+      if (isNaN(valorEnSoles) || valorEnSoles <= 0) {
         throw new Error("El valor del DromoPunto debe ser un número mayor a cero.");
       }
       
       const token = getAuthToken();
-      await updateConfig(configToUpdate.valorEnSoles, token);
+      await updateConfig(valorEnSoles, token);
       setIsSuccess(true);
     } catch (err) {
       setError(err.message || "Ocurrió un error al guardar.");

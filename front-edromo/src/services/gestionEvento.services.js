@@ -101,15 +101,10 @@ export const getEvents = async (filters = {}) => {
           tipo: "Concierto",
           fechaPublicacion: "2025-10-15T10:00:00",
           fechaCompra: "2025-10-30T11:00:00",
-          horarios: [
-            {
-              horario: "2025-11-11T20:00:00",
-              ocupacion: {
-                actual: 0,
-                total: 30000,
-              },
-            },
-          ],
+          horarios: [{
+            horario: "2025-11-11T20:00:00",
+            ocupacion: { actual: 0, total: 30000 },
+          }],
           ingresosBrutos: 0.0,
           estado: "Creado",
         },
@@ -121,15 +116,10 @@ export const getEvents = async (filters = {}) => {
           tipo: "Concierto",
           fechaPublicacion: "2025-05-13T10:00:00",
           fechaCompra: "2025-05-30T11:00:00",
-          horarios: [
-            {
-              horario: "2025-10-09T21:00:00",
-              ocupacion: {
-                actual: 0,
-                total: 30000,
-              },
-            },
-          ],
+          horarios: [{
+            horario: "2025-10-09T21:00:00",
+            ocupacion: { actual: 0, total: 30000 },
+          }],
           ingresosBrutos: 0.0,
           estado: "Publicado",
         },
@@ -141,15 +131,10 @@ export const getEvents = async (filters = {}) => {
           tipo: "Concierto",
           fechaPublicacion: "2025-05-10T10:00:00",
           fechaCompra: "2025-05-29T12:00:00",
-          horarios: [
-            {
-              horario: "2025-11-07T19:00:00",
-              ocupacion: {
-                actual: 11000,
-                total: 30000,
-              },
-            },
-          ],
+          horarios: [{
+            horario: "2025-11-07T19:00:00",
+            ocupacion: { actual: 11000, total: 30000 },
+          }],
           ingresosBrutos: 13200.0,
           estado: "En venta",
         },
@@ -161,15 +146,10 @@ export const getEvents = async (filters = {}) => {
           tipo: "Cultural",
           fechaPublicacion: "2025-05-08T10:00:00",
           fechaCompra: "2025-05-08T11:00:00",
-          horarios: [
-            {
-              horario: "Múltiples Fechas",
-              ocupacion: {
-                actual: 11000,
-                total: 30000,
-              },
-            },
-          ],
+          horarios: [{
+            horario: "Múltiples Fechas",
+            ocupacion: { actual: 11000, total: 30000 },
+          }],
           ingresosBrutos: 13200.0,
           estado: "Concluido",
         },
@@ -181,15 +161,10 @@ export const getEvents = async (filters = {}) => {
           tipo: "Deportivo",
           fechaPublicacion: "2025-04-05T10:00:00",
           fechaCompra: "2025-04-20T09:00:00",
-          horarios: [
-            {
-              horario: "2025-06-15T15:00:00",
-              ocupacion: {
-                actual: 0,
-                total: 30000,
-              },
-            },
-          ],
+          horarios: [{
+            horario: "2025-06-15T15:00:00",
+            ocupacion: { actual: 0, total: 30000 },
+          }],
           ingresosBrutos: 0.0,
           estado: "Cancelado",
         },
@@ -221,6 +196,7 @@ export const getEvents = async (filters = {}) => {
       }
 
       // Filtro por rango de fechas (usando fechaPublicacion)
+
       if (filters.startDate) {
         const startDate = new Date(filters.startDate);
         filteredEvents = filteredEvents.filter(event => {

@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-import { editarLocal, listarCiudades, obtenerLocalPorId } from '@/services/gestionLocal.service'
+import { useRouter } from 'next/navigation'
+import { obtenerLocalPorId, editarLocal, listarCiudades } from '@/services/gestionLocal.service'
 import { fetchUserData, getAuthToken } from '@/services/admin-service'
-import LocalEditValidationModal from '@/components/modals/LocalEditValidationModal'
-import LocalEditSuccessModal from '@/components/modals/LocalEditSuccessModal'
+import LocalValidationModal from '@/components/modals/LocalValidationModal'
+import LocalSuccessModal from '@/components/modals/LocalSuccessModal'
 
 function EditarLocal() {
     const router = useRouter()
