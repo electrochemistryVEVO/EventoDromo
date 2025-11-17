@@ -33,4 +33,9 @@
         public List<PuntoPorVencerDTO> PorVencer { get; set; }
         public List<MovimientoDromopuntoDTO> Movimientos { get; set; }
     }
+
+    public class ResponseDromoPuntosObtenerValorActual
+    {
+        public decimal? valorEnSoles { get; set; }
+    }
 }

@@ -163,9 +163,9 @@ const DiscountCard = ({
 export const EventDiscountsForm = ({
   descuentos,
   tiposEntrada, // Necesitamos recibir los tipos de entrada para el select y la validación
-  addDescuento,
-  removeDescuento,
-  handleDescuentoChange,
+  addDescuento = () => {},
+  removeDescuento = () => {},
+  handleDescuentoChange = () => {},
   isReadOnly = false,
 }) => {
   const hayTiposDeEntrada = tiposEntrada && tiposEntrada.length > 0;

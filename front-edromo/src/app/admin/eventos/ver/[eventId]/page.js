@@ -121,7 +121,12 @@ const VerEventoPage = () => {
 
           <EventDatesForm fechas={fechas} isReadOnly={true} />
 
-          <EventTicketsForm tiposEntrada={tiposEntrada} isReadOnly={true} />
+          <EventTicketsForm
+            tiposEntrada={tiposEntrada}
+            isReadOnly={true}
+            aforoRestante={0}
+            descuentosAsociados={descuentos}
+          />
 
           {descuentos && descuentos.length > 0 && (
             <EventDiscountsForm

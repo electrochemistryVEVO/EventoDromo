@@ -127,5 +127,122 @@ namespace EventodromoRest.Negocio
                 };
             }
         }
+
+        public GenericResponse<VerDetalleEntrada> ObtenerDetalleEntrada(int idEntrada)
+        {
+            try
+            {
+                // --- 1. Instanciar los Mappers necesarios ---
+                var lineaTransaccionMapper = new LineaTransaccionMapper(globales, DB);
+                var transaccionMapper = new TransaccionMapper(globales, DB);
+                var tipoDocumentoMapper = new TipoDocumentoMapper(globales, DB);
+                var entradaMapper = new EntradaMapper(globales, DB);
+                var tipoEntradaMapper = new TipoEntradaMapper(globales, DB);
+                var fechaEventoMapper = new FechaEventoMapper(globales, DB);
+                var eventoMapper = new EventoMapper(globales, DB);
+                var TarjetaMapper = new TarjetaMapper(globales, DB);
+                // --- 2. Obtener la línea de transacción por idEntrada ---
+                LineaTransaccion linea = lineaTransaccionMapper.ObtenerLineaTransaccionPorId(idEntrada);
+                if (linea == null)
+                {
+                    return new GenericResponse<VerDetalleEntrada>
+                    {
+                        Success = false,
+                        Message = "No se encontró la línea de transacción para la entrada indicada.",
+                        Data = null
+                    };
+                }
+
+                if (!linea.idTransaccion.HasValue)
+                {
+                    return new GenericResponse<VerDetalleEntrada>
+                    {
+                        Success = false,
+                        Message = "La línea de transacción no tiene asociada una transacción.",
+                        Data = null
+                    };
+                }
+
+                int idTransaccion = linea.idTransaccion.Value;
+
+                // --- 3. Obtener la Transacción principal ---
+                Transaccion transaccion = transaccionMapper.ObtenerTransaccionPorId(idTransaccion);
+                if (transaccion == null)
+                {
+                    return new GenericResponse<VerDetalleEntrada>
+                    {
+                        Success = false,
+                        Message = "No se encontró la transacción principal.",
+                        Data = null
+                    };
+                }
+
+                // --- 4. Crear el DTO y empezar a llenarlo ---
+                var detalle = new VerDetalleEntrada();
+
+                // --- 5. Llenar Datos de Transacción y Cliente ---
+                detalle.NumeroTransaccion = transaccion.numeroTransaccion ?? string.Empty;
+                detalle.FechaCompra = transaccion.fechaHoraCompra.ToString("dd/MM/yyyy");
+                detalle.HoraCompra = transaccion.fechaHoraCompra.ToString("hh:mm tt");
+                detalle.Total = transaccion.montoTotal;
+                detalle.NombreCliente = $"{transaccion.nombresCliente} {transaccion.apellidosCliente}".Trim();
+                detalle.CorreoCliente = transaccion.emailCliente;
+                detalle.NumeroDocumento = transaccion.numeroDocumentoCliente;
+
+                TipoDocumento doc = tipoDocumentoMapper.ObtenerTipoDocumentoPorId(transaccion.idTipoDocumento);
+                detalle.TipoDocumento = doc?.nombre ?? "N/A";
+
+                // --- 6. Llenar Datos del Evento ---
+                Entrada entrada = entradaMapper.ObtenerEntradaPorId(idEntrada);
+                if (entrada != null)
+                {
+                    TipoEntrada tipoEntrada = tipoEntradaMapper.ObtenerTipoEntradaPorId(entrada.idTipoEntrada);
+                    if (tipoEntrada != null)
+                    {
+                        FechaEvento fechaEvento = fechaEventoMapper.ObtenerFechaEventoPorId(tipoEntrada.idFechaEvento);
+                        if (fechaEvento != null)
+                        {
+                            Evento evento = eventoMapper.ObtenerEventoPorId(fechaEvento.idEvento);
+                            if (evento != null)
+                            {
+                                detalle.ImagenEventoURL = evento.imagenURL;
+                                detalle.NombreEvento = evento.nombre;
+                                if (fechaEvento.fechaHora.HasValue)
+                                {
+                                    detalle.FechaEvento = fechaEvento.fechaHora.Value.ToString("dd/MM/yyyy");
+                                    detalle.HoraEvento = fechaEvento.fechaHora.Value.ToString("hh:mm tt");
+                                }
+                                detalle.Ubicacion = evento.Local?.nombre ?? evento.Local?.direccion ?? "Ubicación no disponible";
+                            }
+                        }
+                    }
+                }
+
+                // --- 7. Llenar Datos de la Compra (Agrupados) ---
+                // Usamos el método GROUP BY del mapper de lineas
+                detalle.Entradas = lineaTransaccionMapper.ObtenerDetallesCompraAgrupados(idTransaccion) ?? new List<EntradaDetalle>();
+
+                // --- 8. Llenar Datos del Pago (consulta directa, fallback sencillo) ---
+                TarjetaMapper.ObtenerYAsignarDetallesPago(idTransaccion, detalle);
+
+                // --- 9. Retornar éxito ---
+                return new GenericResponse<VerDetalleEntrada>
+                {
+                    Success = true,
+                    Message = "Detalle de entrada obtenido correctamente.",
+                    Data = detalle
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GenericResponse<VerDetalleEntrada>
+                {
+                    Success = false,
+                    Message = "Error interno al procesar la solicitud de detalle.",
+                    Error = ex.Message,
+                    Data = null
+                };
+            }
+        }
     }
 }

@@ -104,16 +104,17 @@ const TicketTypeCard = ({
 
 export const EventTicketsForm = ({
   tiposEntrada,
-  addTipoEntrada,
-  removeTipoEntrada,
-  handleTipoEntradaChange,
+  addTipoEntrada = () => {},
+  removeTipoEntrada = () => {},
+  handleTipoEntradaChange = () => {},
   aforoRestante,
   descuentosAsociados,
   isReadOnly = false,
 }) => {
-  // Creamos un Set con los IDs de los tipos de entrada que están en uso
+  // Si 'descuentosAsociados' es undefined o null, usamos un array vacío `[]` en su lugar.
+  // Esto asegura que .map siempre se ejecute sobre un array.
   const lockedTicketIds = new Set(
-    descuentosAsociados.map((d) => parseInt(d.tipoEntradaId, 10))
+    (descuentosAsociados || []).map((d) => parseInt(d.tipoEntradaId, 10))
   );
 
   return (

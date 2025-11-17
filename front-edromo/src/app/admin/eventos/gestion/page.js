@@ -1,19 +1,18 @@
-"use client"; // Directiva necesaria en Next.js 13+ para componentes con interactividad
+"use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useEventManager } from "./controller"; // Ajusta la ruta si es necesario
+import { useEventManager } from "./controller";
+import '@/css/adminEventos/gestionEventos.css';
+import { FiPlus, FiUpload } from 'react-icons/fi';
 
-// Importación de componentes
 import EventFilters from "@/components/gestion-evento/EventFilters.jsx";
 import EventsTable from "@/components/gestion-evento/EventsTable.jsx";
 import Pagination from "@/components/gestion-evento/Pagination.jsx";
-import ActionButton from "@/components/gestion-evento/ActionButton.jsx";
 import Modal from "@/components/gestion-evento/Modal.jsx";
 
 const GestionEventosPage = () => {
   const router = useRouter();
-  // 1. Usamos el controlador (custom hook) para obtener toda la lógica y el estado.
   const {
     events,
     locales,
@@ -27,57 +26,33 @@ const GestionEventosPage = () => {
     handlePageChange,
   } = useEventManager();
 
-  // 2. Estado para manejar la visibilidad y el contenido del modal.
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalContent, setModalContent] = useState({ title: "", data: null });
   const [modalState, setModalState] = useState({
     isOpen: false,
     type: null,
     data: null,
   });
 
-  // 3. Cargar los eventos iniciales al montar la página.
-  useEffect(() => {
-    applyFilters();
-  }, []); // El array vacío asegura que se ejecute solo la primera vez.
+  const closeModal = () => setModalState({ isOpen: false, type: null, data: null });
 
-  // 4. Función para abrir el modal con contenido específico.
   const handleAction = (type, event = null) => {
-    switch (type) {
-      case "create":
-        // Redirige a la página de creación
-        router.push("/admin/eventos/crear");
-        break;
-      case "edit":
-        // Redirige a la página de edición con el ID del evento
-        router.push(`/admin/eventos/editar/${event.id}`);
-        break;
-      case "view":
-        // Redirige a la página de detalles con el ID del evento
-        router.push(`/admin/eventos/ver/${event.id}`);
-        break;
-      case "upload":
-        // Abre el modal para Cargar CSV
-        setModalState({ isOpen: true, type: "upload", data: null });
-        break;
-      case "delete":
-        // Abre el modal de confirmación para eliminar
-        setModalState({ isOpen: true, type: "delete", data: event });
-        break;
-      default:
-        console.warn("Tipo de acción desconocida:", type);
-    }
+    const actions = {
+      create: () => router.push("/admin/eventos/crear"),
+      edit: () => router.push(`/admin/eventos/editar/${event.id}`),
+      view: () => router.push(`/admin/eventos/ver/${event.id}`),
+      upload: () => setModalState({ isOpen: true, type: "upload", data: null }),
+      delete: () => setModalState({ isOpen: true, type: "delete", data: event }),
+    };
+
+    actions[type]?.() || console.warn("Tipo de acción desconocida:", type);
   };
 
   const handleDeleteConfirm = () => {
     console.log("Eliminando evento:", modalState.data.id);
     // Aquí iría la llamada al servicio para eliminar el evento
     closeModal();
-    // Opcional: Volver a cargar los eventos después de eliminar
     // applyFilters();
   };
 
-  // Función para renderizar el contenido del modal dinámicamente
   const renderModalContent = () => {
     if (!modalState.isOpen) return null;
 
@@ -112,79 +87,55 @@ const GestionEventosPage = () => {
         </div>
       );
     }
-    return null;
   };
-  // Función para cerrar el modal.
-  const closeModal = () => {
-    setModalState({ isOpen: false, type: null, data: null });
-  };
+
+  const modalTitle = modalState.type === "delete" ? "Confirmar Eliminación" : "Cargar CSV";
+  const showPagination = pagination?.totalPages > 0 && !isLoading;
 
   return (
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
-      <main className="max-w-7xl mx-auto">
-        {/* --- Encabezado de la Página --- */}
-        <header className="flex flex-col md:flex-row justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4 md:mb-0">
-            Gestión de Eventos
-          </h1>
+      <div className="page-container">
+        <header className="page-header">
+          <h1>Gestión de Eventos</h1>
           <div className="flex items-center gap-3">
-            <ActionButton
-              text="Cargar CSV"
-              iconSrc="/images/icon/upload-icon.png"
-              variant="secondary"
-              onClick={() => handleAction("upload")}
-            />
-            <ActionButton
-              text="Crear evento"
-              iconSrc="/images/icon/plus-icon.png"
-              variant="primary"
-              onClick={() => handleAction("create")}
-            />
+            <button className="btn btn-secondary" onClick={() => handleAction("upload")}>
+              <FiUpload /> Cargar CSV
+            </button>
+            <button className="btn btn-create" onClick={() => handleAction("create")}>
+              <FiPlus /> Crear evento
+            </button>
           </div>
         </header>
 
-        {/* --- Componente de Filtros --- */}
-        <EventFilters
-          filters={filters}
-          locales={locales}
-          statuses={eventStatuses}
-          onFilterChange={handleFilterChange}
-          onApplyFilters={applyFilters}
-        />
+        <div className="content-wrapper">
+          <EventFilters
+            filters={filters}
+            locales={locales}
+            statuses={eventStatuses}
+            onFilterChange={handleFilterChange}
+            onApplyFilters={applyFilters}
+          />
 
-        {/* --- Componente de la Tabla de Eventos --- */}
-        <div className="mt-6">
           <EventsTable
             events={events}
             isLoading={isLoading}
             error={error}
             onActionClick={handleAction}
           />
+
+          {showPagination && (
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
         </div>
 
-        {/* --- Componente de Paginación --- */}
-        {pagination && pagination.totalPages > 1 && !isLoading && (
-          <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            onPageChange={handlePageChange}
-          />
-        )}
-
-        {/* --- Componente Modal --- */}
-        <Modal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          title={
-            modalState.type === "delete"
-              ? "Confirmar Eliminación"
-              : "Cargar CSV"
-          }
-        >
-          {/* CAMBIO: Renderiza contenido dinámico */}
+        <Modal isOpen={modalState.isOpen} onClose={closeModal} title={modalTitle}>
           {renderModalContent()}
         </Modal>
-      </main>
+      </div>
     </div>
   );
 };

@@ -57,29 +57,50 @@ export const useEventManager = () => {
   /**
    * Función para obtener los eventos del servicio.
    * Se usa useCallback para evitar que esta función se recree en cada renderizado,
-   * a menos que sus dependencias (filters) cambien.
+   * a menos que sus dependencias (filters, pagination.currentPage) cambien.
    */
-  const fetchEvents = useCallback(async () => {
+  const fetchEvents = useCallback(async (pageToFetch = null, customFilters = null) => {
     setIsLoading(true);
     setError(null);
     try {
+      const currentPage = pageToFetch || pagination?.currentPage || 1;
+      const filtersToUse = customFilters || filters;
       console.log("Enviando filtros al servicio:", {
-        ...filters,
-        page: pagination.currentPage,
+        ...filtersToUse,
+        page: currentPage,
       });
       const response = await getEvents({
-        ...filters,
-        page: pagination.currentPage,
+        ...filtersToUse,
+        page: currentPage,
       });
-      setEvents(response.data);
-      setPagination(response.pagination);
+      console.log("Respuesta RECIBIDA del servicio:", response);
+      // Accede a los datos y la paginación desde el objeto anidado "response.data"
+      if (response && response.data) {
+        
+        setEvents(response.data.data); // Antes era response.data
+        setPagination(response.data.pagination); // Antes era response.pagination
+      } else {
+        // Maneja el caso de una respuesta inesperada para evitar errores
+        setEvents([]);
+        console.error("La respuesta del API no tiene el formato esperado.");
+      }
     } catch (err) {
       console.error("Error fetching events:", err);
       setError("No se pudieron cargar los eventos.");
     } finally {
       setIsLoading(false);
     }
-  }, [filters, pagination.currentPage]);
+  }, []);
+
+  /**
+   * Efecto que se ejecuta cuando los filtros cambian
+   */
+  useEffect(() => {
+    // Solo cargar eventos si los filtros han sido inicializados
+    if (filters.startDate && filters.endDate) {
+      fetchEvents(pagination.currentPage, filters);
+    }
+  }, [filters]);
 
   /**
    * Efecto que se ejecuta una sola vez al montar el componente para cargar los locales.
@@ -140,21 +161,21 @@ export const useEventManager = () => {
    * Función para aplicar los filtros y buscar los eventos.
    * Resetea a la primera página y llama a fetchEvents.
    */
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
-    fetchEvents();
-  };
+    // Llamamos directamente a fetchEvents con página 1 y los filtros actuales
+    fetchEvents(1, filters);
+  }, [filters, fetchEvents]);
 
   /**
    * Manejador para cambiar de página.
    * @param {number} pageNumber - El número de página al que se quiere ir.
    */
-  const handlePageChange = (pageNumber) => {
+  const handlePageChange = useCallback((pageNumber) => {
     setPagination((prev) => ({ ...prev, currentPage: pageNumber }));
-    // Los eventos se recargarán automáticamente si se activa el useEffect de arriba.
-    // O podemos llamarlo explícitamente después de cambiar la página.
-    // Por ahora, lo dejaremos para que se active con applyFilters.
-  };
+    // Llamamos directamente con el número de página y los filtros actuales
+    fetchEvents(pageNumber, filters);
+  }, [filters, fetchEvents]);
 
   // --- VALORES DEVUELTOS ---
   // El hook devuelve los estados y funciones que el componente de la página necesitará.

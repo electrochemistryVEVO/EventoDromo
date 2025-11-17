@@ -34,4 +34,15 @@
         public int idTipoEntrada { get; set; }
         public int cantidad { get; set; }
     }
+
+    public class EntradaYHorarioDTO
+    {
+        public int idEntrada { get; set; }
+        public string nombre { get; set; }
+        public decimal precio { get; set; }
+        public int cantidadEntradas { get; set; }
+        public int limiteCompra { get; set; }
+        public int puntos { get; set; }
+        public HorarioDTO horario { get; set; }
+    }
 }

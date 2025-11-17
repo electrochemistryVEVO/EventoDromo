@@ -66,12 +66,14 @@ namespace EventodromoRest.Mappers
                     {
                         id = DB.GetInt("ID"),
                         idTransaccion = DB.GetInt("IDTRANSACCION"),
-                        transaccion = ObtenerTransaccionPorId(DB.GetInt("IDTRANSACCION")),
+                        //transaccion = ObtenerTransaccionPorId(DB.GetInt("IDTRANSACCION")),
                         idEntrada = DB.GetInt("IDENTRADA"),
-                        entrada = ObtenerEntradaPorId(DB.GetInt("IDENTRADA")),
+                        //entrada = ObtenerEntradaPorId(DB.GetInt("IDENTRADA")),
                         precio = DB.GetDecimal("PRECIO"),
                         puntosGanados = DB.GetInt("PUNTOSGANADOS"),
                     };
+                    lineaTransaccion.transaccion = ObtenerTransaccionPorId(lineaTransaccion.idTransaccion??0);
+                    lineaTransaccion.entrada = ObtenerEntradaPorId(lineaTransaccion.idEntrada??0);
                     return lineaTransaccion;
                 }
                 else
@@ -119,6 +121,51 @@ namespace EventodromoRest.Mappers
         {
             var transaccionMapper = new TransaccionMapper(globales, DB);
             return transaccionMapper.ObtenerTransaccionPorId(v);
+        }
+
+        public List<EntradaDetalle> ObtenerDetallesCompraAgrupados(int idTransaccion)
+        {
+            // Esta es la lista que vamos a devolver
+            var listaDetalle = new List<EntradaDetalle>();
+
+            lock (DB) // Usamos el lock, igual que en tus otros métodos
+            {
+
+                string query =
+                    "SELECT " +
+                    "  te.nombre AS Tipo, " +
+                    "  COUNT(e.id) AS Cantidad, " +
+                    "  SUM(lt.precio) AS PrecioTotal " +
+                    "FROM LineaTransaccion lt " +
+                    "JOIN Entrada e ON lt.idEntrada = e.id " +
+                    "JOIN TipoEntrada te ON e.idTipoEntrada = te.id " +
+                    "WHERE lt.idTransaccion = @ID_TRANSACCION " +
+                    "GROUP BY te.id, te.nombre"; // Agrupamos por tipo de entrada
+
+                // Creamos la lista de parámetros
+                var parametros = new ParameterList();
+                parametros.Add("@ID_TRANSACCION", idTransaccion);
+
+                // Ejecutamos la consulta
+                DB.Select(query, parametros);
+
+                // Leemos los resultados
+                while (DB.Read())
+                {
+                    // Creamos un objeto 'EntradaDetalle' por cada fila que devuelve el GROUP BY
+                    EntradaDetalle detalle = new EntradaDetalle
+                    {
+                        // Mapeamos las columnas del SELECT a las propiedades de la clase
+                        Tipo = DB.GetString("Tipo"),
+                        Cantidad = DB.GetInt("Cantidad"),
+                        Precio = DB.GetDecimal("PrecioTotal")
+                    };
+                    listaDetalle.Add(detalle);
+                }
+            }
+
+            // Devolvemos la lista (estará vacía si no se encontraron resultados)
+            return listaDetalle;
         }
     }
 }

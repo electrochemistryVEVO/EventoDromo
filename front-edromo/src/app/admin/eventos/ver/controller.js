@@ -72,7 +72,20 @@ export const useEventViewer = (eventId) => {
         });
 
         setFechas(eventData.horarios);
-        setTiposEntrada(eventData.entradas);
+        
+        // Transformar las entradas para que coincidan con la estructura esperada por los componentes
+        // Si las entradas vienen con estructura completa del backend, las usamos directamente
+        // Si vienen como "plantillas", también las usamos
+        const entradasTransformadas = eventData.entradas?.map(entrada => ({
+          id: entrada.id || entrada.idEntrada,
+          nombre: entrada.nombre,
+          precio: entrada.precio,
+          cantidad: entrada.cantidad || entrada.cantidadEntradas,
+          limiteCompra: entrada.limiteCompra,
+          puntos: entrada.puntos,
+        })) || [];
+        
+        setTiposEntrada(entradasTransformadas);
         setDescuentos(eventData.descuentos || []);
         setLocales(localesData);
         setEventTypes(eventTypesData);

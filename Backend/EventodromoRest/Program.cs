@@ -93,6 +93,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseRouting();
 // AGREGAR USO DE CORS - Esto también es necesario
 app.UseCors("AllowAll");
 

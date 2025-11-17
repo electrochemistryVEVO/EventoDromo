@@ -5,7 +5,8 @@ import { entradas } from "./entradas";
 export const items = entradas;
 
 export function cantidadEntradas() {
-  return items.length;
+  if(items)return items.length;
+  return 0;
 }
 
 export function importeTotal() {

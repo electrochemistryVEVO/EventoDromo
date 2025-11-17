@@ -29,29 +29,19 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
+    setError("");
 
     try {
+      console.log("Iniciando proceso de login...");
       // Usamos la lógica de tu versión "nueva" (autenticarUsuario con email/password)
       const response = await autenticarUsuario(email, password);
+      console.log("Autenticación exitosa:", response);
+      
+      // El login del UserContext maneja la redirección
       login(response);
-      /*
-      const redirectUrl = searchParams.get("redirect");
-      if (redirectUrl) {
-        router.push(redirectUrl);
-        return;
-      }
-
-      if (response.rol === 'A') {
-        router.push("/admin/dashboard");
-      } else if (response.rol === 'C') {
-        router.push("/user/web/eventos/lista");
-      } else {
-        setError('Rol de usuario no válido');
-      }
-        */
     } catch (error) {
-      setError(error.message);
+      console.error("Error en login:", error);
+      setError(error.message || "Error al intentar iniciar sesión");
     }
   };
   // --- FIN DE LA LÓGICA ---

@@ -1,5 +1,9 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+if (!BASE_URL) {
+    console.error("⚠️ NEXT_PUBLIC_API_BASE_URL no está definida en las variables de entorno");
+}
+
 /**
  * Función centralizada para hacer peticiones HTTP.
  * @param {string} endpoint - El endpoint al que llamar (ej. '/usuarios')
@@ -7,6 +11,9 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
  */
 
 async function apiFetch(endpoint, options = {}) {
+    console.log("API Base URL:", BASE_URL);
+    console.log("Endpoint:", endpoint);
+    
     let token = null;
 
     if (typeof window !== 'undefined') {
@@ -22,7 +29,6 @@ async function apiFetch(endpoint, options = {}) {
         baseHeaders['Authorization'] = `Bearer ${token}`;
     }
 
-
     const config = {
         ...options, // Sobrescribe con las opciones que nos pasen
         headers: baseHeaders,
@@ -31,8 +37,12 @@ async function apiFetch(endpoint, options = {}) {
     if (options.body) {
         config.body = JSON.stringify(options.body);
     }
-
-    const response = await fetch(`${BASE_URL}${endpoint}`, config);
+    
+    const fullUrl = `${BASE_URL}${endpoint}`;
+    console.log("Llamando a:", fullUrl);
+    
+    const response = await fetch(fullUrl, config);
+    console.log("Respuesta HTTP:", response.status, response.statusText);
 
     if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
@@ -43,6 +53,7 @@ async function apiFetch(endpoint, options = {}) {
         let errorMessage = `Error ${response.status}: ${response.statusText}`;
         try {
             const errorData = await response.json();
+            console.error("Datos de error:", errorData);
             errorMessage = errorData.error || errorData.message || errorMessage;
         } catch (e) {
             // No había cuerpo JSON en el error
@@ -55,6 +66,7 @@ async function apiFetch(endpoint, options = {}) {
     }
 
     const genericResponse = await response.json();
+    console.log("Respuesta JSON completa:", genericResponse);
 
     if (genericResponse.success === true) {
         return genericResponse.data;
