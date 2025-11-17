@@ -8,7 +8,7 @@
 // Cambia a 'false' para usar el archivo dromopuntos-config.json local.
 const USE_BACKEND = true;
 
-const BASE_API_URL = "http://localhost:5189/api";
+const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 /**
  * Obtiene la configuración actual de DromoPuntos desde el backend.
