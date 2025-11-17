@@ -1,4 +1,4 @@
-const BASE_API_URL = process.env.API_BASE_URL;
+const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 /**
  * Obtiene el token de autenticación almacenado.
  * @returns {string|null} - El token JWT o null si no existe.

@@ -42,7 +42,7 @@ const Navbar = () => {
   // Hook para obtener la ruta actual y determinar qué enlace está activo
   const currentPath = usePathname();
   // Estado para almacenar el nombre del usuario
-  const [userName, setUserName] = useState("..."); // Mostramos '...' mientras carga
+  const [userName, setUserName] = useState("Cargando..."); // Mostramos '...' mientras carga
   const { user, isAuthenticated, isLoading } = useUser();
   useEffect(() => {
     // --- 1. ACEPTA EL TOKEN AQUÍ ---
@@ -68,14 +68,16 @@ const Navbar = () => {
     }
   }, [user, isAuthenticated, isLoading]);
 
+  /*
   if (isLoading) {
     return (
       <nav className="bg-[#00C49A] flex items-center justify-between px-6 py-2 text-white shadow-md h-[88px]">
         <div className="text-3xl font-bold tracking-wider">Cargando...</div>
       </nav>
     );
+    
   }
-
+  */
   return (
     <nav className="bg-[#00C49A] flex items-center justify-between px-6 py-2 text-white shadow-md">
       {/* Sección Izquierda: Logo y Título */}
