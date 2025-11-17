@@ -46,37 +46,49 @@ export const UserProvider = ({ children }) => {
       console.warn("Error al guardar usuario en localStorage:", error);
     }
 
-    // --- LÓGICA DE REDIRECCIÓN MOVİDA AQUÍ ---
+    // Obtener URL de redirección si existe
     const redirectUrl = searchParams.get("redirect");
+    
+    // Determinar destino según rol
+    let destination;
     if (redirectUrl) {
-      router.push(redirectUrl);
-      return; // Salir
+      destination = redirectUrl;
+    } else if (userData.rol === 'A') {
+      destination = "/admin/dashboard";
+    } else if (userData.rol === 'C') {
+      destination = "/user/web/eventos/lista";
+    } else {
+      destination = "/";
     }
 
-    // Redirección basada en rol
-    if (userData.rol === 'A') {
-      router.push("/admin/dashboard");
-    } else if (userData.rol === 'C') {
-      router.push("/user/web/eventos/lista");
-    } else {
-      // Fallback por si el rol no es válido
-      console.error('Rol de usuario no válido:', userData.rol);
-      router.push("/");
-    }
+    // SIEMPRE usar window.location.href para forzar recarga completa
+    // Esto limpia TODOS los estilos CSS en caché y carga los correctos
+    console.log("Login exitoso, forzando recarga completa para cargar estilos correctos");
+    window.location.href = destination;
   };
 
   const logout = () => {
     setUser(null);
     try {
       localStorage.removeItem("user");
-      // Opcional: Limpia también el carrito de invitado si existe
       localStorage.removeItem("cart");
       localStorage.removeItem("cartExpiration");
     } catch (error) {
       console.warn("Error al borrar usuario de localStorage:", error);
     }
-    // Redirige al login al cerrar sesión
-    router.push("/auth/login");
+    
+    // Usar window.location.href para forzar recarga completa
+    // Esto limpia todos los estilos CSS en caché
+    console.log("Logout exitoso, forzando recarga completa");
+    window.location.href = "/auth/login";
+  };
+
+  const isAdmin = () => {
+    return user?.rol === 'A';
+  };
+
+  const isCliente = () => {
+    return user?.rol === 'C';
   };
 
   return (
@@ -85,6 +97,8 @@ export const UserProvider = ({ children }) => {
         user,
         isLoading: user === null && typeof window !== 'undefined' && !!localStorage.getItem("user"),
         isAuthenticated: !!user,
+        isAdmin,
+        isCliente,
         login,
         logout,
       }}

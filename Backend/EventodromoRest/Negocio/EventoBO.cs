@@ -1,4 +1,5 @@
 ﻿using EventodromoRest.Controllers;
+using EventodromoRest.Globales;
 using EventodromoRest.Mappers;
 using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
@@ -9,6 +10,7 @@ namespace EventodromoRest.Negocio
 {
     public class EventoBO(Globales.Globales globales, DBManager.DBManager DB)
     {
+
         public GenericResponse<IEnumerable<Evento>> ListarEventosPorTipo(int tipoEventoId)
         {
             EventoMapper mapper = new EventoMapper(globales, DB);
@@ -225,6 +227,152 @@ namespace EventodromoRest.Negocio
                 // En caso de un error de SQL o lógica
                 return new GenericResponse<EventoDetalleDTO> { Success = false, Message = "Error interno al obtener el evento.", Error = ex.Message };
             }
+        }
+
+        public ResponseEventoGetEvents? GetEventosFiltrados(
+            string? search,
+            int? localId,
+            string? status,
+            DateTime? startDate,
+            DateTime? endDate,
+            int page,
+            int pageSize)
+        {
+            var mapper = new EventoMapper(globales, DB);
+            var mapperFecha = new FechaEventoMapper(globales, DB);
+            var mapperEntrada = new TipoEntradaMapper(globales, DB);
+
+            List<Evento> listaEventos = mapper.ObtenerEventosFiltrados(
+                search, localId, status, startDate, endDate, page, pageSize, out int totalEventos);
+
+            if (listaEventos.Count == 0)
+                return null;
+
+            int totalPaginas = (int)Math.Ceiling((double)totalEventos / pageSize);
+
+            var idsEvento = listaEventos.Select(e => e.id).ToList();
+
+            var horarios = mapperFecha.ObtenerFechaEventosPorListaEventoIds(idsEvento);
+
+            var idsFecha = horarios.Select(h => h.id ?? 0).ToList();
+
+            var entradas = mapperEntrada.ObtenerPorListaFechaEventoIds(idsFecha);
+
+            var entradasPorFechaEvento = entradas.GroupBy(t => t.idFechaEvento)
+                                                 .ToDictionary(g => g.Key, g => g.ToList());
+
+            var horariosPorEvento = horarios.GroupBy(h => h.idEvento)
+                                            .ToDictionary(g => g.Key, g => g.ToList());
+            DateTime ahora = DateTime.Now;
+
+            var eventosDTO = listaEventos.Select(e =>
+            {
+                var horariosDeEvento = horariosPorEvento.ContainsKey(e.id)
+                    ? horariosPorEvento[e.id]
+                    : new List<FechaEvento>();
+
+                decimal ingresosBrutosEvento = 0;
+
+                var horariosDTO = horariosDeEvento.Select(h =>
+                {
+                    var listaEntradas = entradasPorFechaEvento.ContainsKey(h.id ?? 0)
+                        ? entradasPorFechaEvento[h.id ?? 0]
+                        : new List<TipoEntrada>();
+
+                    int actual = listaEntradas.Sum(t => t.cantidadVendida ?? 0);
+                    int total = listaEntradas.Sum(t => t.cantidadEntradas ?? 0);
+
+                    foreach (var tipo in listaEntradas)
+                    {
+                        int vendidas = tipo.cantidadVendida ?? 0;
+                        decimal precio = tipo.precio;
+                        ingresosBrutosEvento += vendidas * precio;
+                    }
+
+                    return new EventoHorarioDTO
+                    {
+                        Horario = h.fechaHora ?? DateTime.MinValue,
+                        Ocupacion = new OcupacionDTO
+                        {
+                            Actual = actual,
+                            Total = total
+                        }
+                    };
+                }).ToList();
+
+                string estado = "Creado";
+
+                if (e.isDeleted)
+                {
+                    estado = "Cancelado";
+                }
+                else if (horariosDTO.Count > 0 && horariosDTO.All(h => h.Horario < ahora))
+                {
+                    estado = "Concluido";
+                }
+                else if (ahora < e.fechaPublicacion)
+                {
+                    estado = "Creado";
+                }
+                else if (ahora >= e.fechaPublicacion && ahora < e.fechaCompra)
+                {
+                    estado = "Publicado";
+                }
+                else if (ahora >= e.fechaCompra)
+                {
+                    // Si aún hay horarios futuros → "En venta"
+                    bool hayFuturos = horariosDTO.Any(h => h.Horario >= ahora);
+                    estado = hayFuturos ? "En venta" : "Concluido";
+                }
+
+                return new ResponseEventoGetEventsEventos
+                {
+                    Id = e.id,
+                    Nombre = e.nombre,
+                    Local = e.Local?.nombre ?? "",
+                    Tipo = e.TipoEvento?.nombre ?? "",
+                    FechaPublicacion = e.fechaPublicacion,
+                    FechaCompra = e.fechaCompra,
+                    Horarios = horariosDTO,
+                    Estado = estado,
+                    IngresosBrutos = ingresosBrutosEvento
+                };
+
+            }).ToList();
+
+            return new ResponseEventoGetEvents
+            {
+                Data = eventosDTO,
+                Pagination = new Pagination
+                {
+                    CurrentPage = page,
+                    TotalPages = totalPaginas,
+                    TotalEvents = totalEventos
+                }
+            };
+        }
+
+        public List<ResponseEventoGetEventosMasVendidos> EventoGetEventosMasVendidos()
+        {
+            var mapper = new EventoMapper(globales, DB);
+
+            var lista = mapper.ObtenerEventosMasVendidos();
+
+            return lista;
+        }
+
+        public GenericResponse<string> ActualizarEvento(ActualizarEventoRequest request)
+        {
+            var eventoMapper = new EventoMapper(globales, DB);
+            var response = eventoMapper.ActualizarEvento(request);
+
+            return new GenericResponse<string>
+            {
+                Success = true,
+                Message = "Evento actualizado correctamente.",
+                Error = null,
+                Data = response
+            };
         }
 
     }

@@ -87,5 +87,64 @@ namespace EventodromoRest.Mappers
                 return rowsAffected;
             }
         }
+
+        public void ObtenerYAsignarDetallesPago(int idTransaccion, VerDetalleEntrada detalle)
+        {
+            // 1. Asignar valores por defecto primero
+            detalle.MetodoPago = "Desconocido";
+            detalle.NumeroTarjeta = "N/A";
+
+            try
+            {
+                lock (DB)
+                {
+                    var p = new ParameterList();
+                    p.Add("@IDTRANSACCION", idTransaccion);
+
+
+                    string qTarjeta =
+                        "SELECT t.NUMERO " +
+                        "FROM TransaccionTarjeta tt " +
+                        "JOIN Tarjeta t ON tt.IDTARJETA = t.ID " +
+                        "WHERE tt.IDTRANSACCION = @IDTRANSACCION";
+
+                    DB.Select(qTarjeta, p);
+
+                    if (DB.Read())
+                    {
+
+                        string ultimos = DB.GetString("NUMERO");
+
+
+                        detalle.MetodoPago = "Tarjeta Débito/Crédito";
+                        detalle.NumeroTarjeta = $"XXXX XXXX XXXX {ultimos}";
+
+                        DB.CloseReader();
+                    }
+                    else
+                    {
+
+                        DB.CloseReader();
+
+
+                        string qPuntos = "SELECT ID FROM TransaccionPuntos WHERE IDTRANSACCION = @IDTRANSACCION";
+                        DB.Select(qPuntos, p);
+
+                        if (DB.Read())
+                        {
+
+                            detalle.MetodoPago = "Puntos";
+                            detalle.NumeroTarjeta = "N/A";
+                        }
+
+                        DB.CloseReader();
+                    }
+                } // Fin del lock
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
     }
 }

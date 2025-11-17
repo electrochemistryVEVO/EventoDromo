@@ -16,10 +16,10 @@ const FormField = ({ label, children }) => (
 
 export const EventInfoForm = ({
   eventInfo,
-  handleInfoChange,
+  handleInfoChange = () => {},
   locales,
   eventTypes,
-  handleImageChange,
+  handleImageChange = () => {},
   minDateTime,
   isReadOnly = false,
 }) => {

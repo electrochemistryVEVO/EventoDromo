@@ -34,7 +34,7 @@ export const TablaEntradas = ({
       return <div className="p-4 text-center">Cargando entradas...</div>;
     if (error)
       return <div className="p-4 text-center text-red-500">{error}</div>;
-    if (items.length === 0)
+    if ((items?.length ?? 0) === 0)
       return (
         <div className="p-4 text-center">No hay entradas en tu carrito.</div>
       );
@@ -79,7 +79,7 @@ export const TablaEntradas = ({
       <footer className="flex items-center justify-center gap-x-4 rounded-b-lg bg-[#EEECEC] px-4 py-4">
         <button
           onClick={onRemoveSelected}
-          disabled={selectedIds.size === 0}
+          disabled={(selectedIds?.size ?? 0) === 0}
           className="px-8 py-3 text-lg font-bold text-white transition-colors bg-red-600 rounded-md shadow-sm hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:opacity-70"
         >
           Borrar seleccionados

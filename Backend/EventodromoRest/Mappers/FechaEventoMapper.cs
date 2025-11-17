@@ -71,6 +71,7 @@ namespace EventodromoRest.Mappers
                 }
             }
         }
+
         public List<FechaEvento> ListarFechaEventoPorEvento(int idEvento)
         {
             lock (DB)
@@ -182,5 +183,38 @@ namespace EventodromoRest.Mappers
             }
             return lista;
         }
+
+        public List<FechaEvento> ObtenerFechaEventosPorListaEventoIds(List<int> eventoIds)
+        {
+            if (eventoIds == null || eventoIds.Count == 0)
+                return new List<FechaEvento>();
+
+            lock (DB)
+            {
+                string ids = string.Join(",", eventoIds);
+
+                string query = $@"
+            SELECT * FROM FechaEvento
+            WHERE IDEVENTO IN ({ids});
+        ";
+
+                DB.Select(query, null);
+
+                List<FechaEvento> lista = new();
+                while (DB.Read())
+                {
+                    lista.Add(new FechaEvento
+                    {
+                        id = DB.GetInt("ID"),
+                        fechaHora = DB.GetDateTime("FECHAHORA"),
+                        idEvento = DB.GetInt("IDEVENTO")
+                    });
+                }
+
+                DB.CloseReader();
+                return lista;
+            }
+        }
+
     }
 }

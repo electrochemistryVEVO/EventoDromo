@@ -1,9 +1,15 @@
-const BASE_API_URL = process.env.API_BASE_URL;
+const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
 /**
  * Obtiene el token de autenticación almacenado.
  * @returns {string|null} - El token JWT o null si no existe.
  */
 const getAuthToken = () => {
+  // Verificamos que estamos en el cliente antes de acceder a localStorage
+  if (typeof window === 'undefined') {
+    console.warn("getAuthToken llamado en el servidor, retornando null");
+    return null;
+  }
+  
   try {
     // 1. Lee la clave "user" de localStorage (donde UserContext la guarda)
     const userJSON = localStorage.getItem("user");
@@ -30,7 +36,7 @@ export const getLocales = async () => {
   if (!token) {
     throw new Error("No se encontró el token de autenticación.");
   }
-
+  console.log(BASE_API_URL);
   const response = await fetch(`${BASE_API_URL}/Local/GetLocales`, {
     method: "GET",
     headers: {
@@ -85,19 +91,20 @@ export const getEvents = async (filters = {}) => {
   // Por ahora, devolvemos datos hardcodeados para el frontend.
   return new Promise((resolve) => {
     setTimeout(() => {
-      const events = [
+      // Datos base de eventos
+      const allEvents = [
         {
           id: 1,
           nombre: "Overpass Lima",
           local: "Estadio San Marcos",
+          localId: 1,
           tipo: "Concierto",
           fechaPublicacion: "2025-10-15T10:00:00",
           fechaCompra: "2025-10-30T11:00:00",
-          horario: "2025-11-11T20:00:00",
-          ocupacion: {
-            actual: 0,
-            total: 30000,
-          },
+          horarios: [{
+            horario: "2025-11-11T20:00:00",
+            ocupacion: { actual: 0, total: 30000 },
+          }],
           ingresosBrutos: 0.0,
           estado: "Creado",
         },
@@ -105,14 +112,14 @@ export const getEvents = async (filters = {}) => {
           id: 2,
           nombre: "Imagine Dragons",
           local: "Estadio San Marcos",
+          localId: 1,
           tipo: "Concierto",
           fechaPublicacion: "2025-05-13T10:00:00",
           fechaCompra: "2025-05-30T11:00:00",
-          horario: "2025-10-09T21:00:00",
-          ocupacion: {
-            actual: 0,
-            total: 30000,
-          },
+          horarios: [{
+            horario: "2025-10-09T21:00:00",
+            ocupacion: { actual: 0, total: 30000 },
+          }],
           ingresosBrutos: 0.0,
           estado: "Publicado",
         },
@@ -120,14 +127,14 @@ export const getEvents = async (filters = {}) => {
           id: 3,
           nombre: "Linkin Park",
           local: "Estadio San Marcos",
+          localId: 1,
           tipo: "Concierto",
           fechaPublicacion: "2025-05-10T10:00:00",
           fechaCompra: "2025-05-29T12:00:00",
-          horario: "2025-11-07T19:00:00",
-          ocupacion: {
-            actual: 11000,
-            total: 30000,
-          },
+          horarios: [{
+            horario: "2025-11-07T19:00:00",
+            ocupacion: { actual: 11000, total: 30000 },
+          }],
           ingresosBrutos: 13200.0,
           estado: "En venta",
         },
@@ -135,14 +142,14 @@ export const getEvents = async (filters = {}) => {
           id: 4,
           nombre: "Circo Alegría",
           local: "Teatro Municipal",
+          localId: 2,
           tipo: "Cultural",
           fechaPublicacion: "2025-05-08T10:00:00",
           fechaCompra: "2025-05-08T11:00:00",
-          horario: "Múltiples Fechas",
-          ocupacion: {
-            actual: 11000,
-            total: 30000,
-          },
+          horarios: [{
+            horario: "Múltiples Fechas",
+            ocupacion: { actual: 11000, total: 30000 },
+          }],
           ingresosBrutos: 13200.0,
           estado: "Concluido",
         },
@@ -150,25 +157,80 @@ export const getEvents = async (filters = {}) => {
           id: 5,
           nombre: "Universitario vs Alianza",
           local: "Estadio Monumental",
+          localId: 3,
           tipo: "Deportivo",
           fechaPublicacion: "2025-04-05T10:00:00",
           fechaCompra: "2025-04-20T09:00:00",
-          horario: "2025-06-15T15:00:00",
-          ocupacion: {
-            actual: 0,
-            total: 30000,
-          },
+          horarios: [{
+            horario: "2025-06-15T15:00:00",
+            ocupacion: { actual: 0, total: 30000 },
+          }],
           ingresosBrutos: 0.0,
           estado: "Cancelado",
         },
       ];
 
+      // Aplicar filtros
+      let filteredEvents = [...allEvents];
+
+      // Filtro por búsqueda (nombre del evento)
+      if (filters.search && filters.search.trim() !== "") {
+        const searchTerm = filters.search.toLowerCase().trim();
+        filteredEvents = filteredEvents.filter(event =>
+          event.nombre.toLowerCase().includes(searchTerm)
+        );
+      }
+
+      // Filtro por local
+      if (filters.local && filters.local !== 0) {
+        filteredEvents = filteredEvents.filter(event =>
+          event.localId === filters.local
+        );
+      }
+
+      // Filtro por estado
+      if (filters.status && filters.status !== "Todos") {
+        filteredEvents = filteredEvents.filter(event =>
+          event.estado === filters.status
+        );
+      }
+
+      // Filtro por rango de fechas (usando fechaPublicacion)
+
+      if (filters.startDate) {
+        const startDate = new Date(filters.startDate);
+        filteredEvents = filteredEvents.filter(event => {
+          const eventDate = new Date(event.fechaPublicacion);
+          return eventDate >= startDate;
+        });
+      }
+
+      if (filters.endDate) {
+        const endDate = new Date(filters.endDate);
+        endDate.setHours(23, 59, 59, 999); // Incluir todo el día final
+        filteredEvents = filteredEvents.filter(event => {
+          const eventDate = new Date(event.fechaPublicacion);
+          return eventDate <= endDate;
+        });
+      }
+
+      // Paginación
+      const pageSize = 10;
+      const currentPage = filters.page || 1;
+      const totalEvents = filteredEvents.length;
+      const totalPages = Math.ceil(totalEvents / pageSize);
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedEvents = filteredEvents.slice(startIndex, endIndex);
+
       const response = {
-        data: events,
-        pagination: {
-          currentPage: filters.page || 1,
-          totalPages: 10, // Simulación de paginación
-          totalEvents: 98,
+        data: {
+          data: paginatedEvents,
+          pagination: {
+            currentPage: currentPage,
+            totalPages: totalPages,
+            totalEvents: totalEvents,
+          },
         },
       };
       console.log("Events fetched:", response);
@@ -206,7 +268,7 @@ export const getEvents = async (filters = {}) => {
 
   // 2. Construimos la cadena de búsqueda (query string)
   const queryString = new URLSearchParams(queryParams).toString();
-  const url = `${BASE_API_URL}/admin/events?${queryString}`;
+  const url = `${BASE_API_URL}/Evento/EventoGetEvents?${queryString}`;
 
   console.log('Realizando petición a:', url);
 

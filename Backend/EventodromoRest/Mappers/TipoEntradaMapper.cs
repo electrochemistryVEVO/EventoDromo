@@ -218,5 +218,77 @@ namespace EventodromoRest.Mappers
             }
             return lista;
         }
+        public List<TipoEntrada> ObtenerPorFechaEventoId(int idFechaEvento)
+        {
+            List<TipoEntrada> lista = new List<TipoEntrada>();
+
+            lock (DB)
+            {
+                string query = "SELECT * FROM TipoEntrada WHERE IDFECHAEVENTO=@ID";
+                var parametros = new ParameterList();
+                parametros.Add("@ID", idFechaEvento);
+
+                DB.Select(query, parametros);
+                while (DB.Read())
+                {
+                    TipoEntrada tipo = new TipoEntrada
+                    {
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        cantidadEntradas = DB.GetInt("CANTIDADENTRADAS"),
+                        cantidadVendida = DB.GetInt("CANTIDADVENDIDA"),
+                        precio = DB.GetDecimal("PRECIO"),
+                        limiteCompra = DB.GetInt("LIMITECOMPRA"),
+                        puntos = DB.GetInt("PUNTOS"),
+                        idFechaEvento = DB.GetInt("IDFECHAEVENTO")
+                    };
+
+                    lista.Add(tipo);
+                }
+
+                DB.CloseReader();
+            }
+
+            return lista;
+        }
+
+        public List<TipoEntrada> ObtenerPorListaFechaEventoIds(List<int> idsFechaEvento)
+        {
+            if (idsFechaEvento == null || idsFechaEvento.Count == 0)
+                return new List<TipoEntrada>();
+
+            lock (DB)
+            {
+                string ids = string.Join(",", idsFechaEvento);
+
+                string query = $@"
+            SELECT * FROM TipoEntrada
+            WHERE IDFECHAEVENTO IN ({ids});
+        ";
+
+                DB.Select(query, null);
+
+                List<TipoEntrada> lista = new();
+                while (DB.Read())
+                {
+                    lista.Add(new TipoEntrada
+                    {
+                        id = DB.GetInt("ID"),
+                        nombre = DB.GetString("NOMBRE"),
+                        cantidadEntradas = DB.GetInt("CANTIDADENTRADAS"),
+                        cantidadVendida = DB.GetInt("CANTIDADVENDIDA"),
+                        precio = DB.GetDecimal("PRECIO"),
+                        limiteCompra = DB.GetInt("LIMITECOMPRA"),
+                        puntos = DB.GetInt("PUNTOS"),
+                        idFechaEvento = DB.GetInt("IDFECHAEVENTO")
+                    });
+                }
+
+                DB.CloseReader();
+                return lista;
+            }
+        }
+
+
     }
 }

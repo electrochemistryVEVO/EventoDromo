@@ -4,81 +4,116 @@
  */
 
 import React from "react";
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
-const Pagination = ({ currentPage, totalPages, onPageChange }) => {
-  const pageNumbers = [];
-  // Lógica para mostrar un rango de páginas en lugar de todas
-  // Ejemplo: Muestra hasta 5 números de página
-  let startPage = Math.max(1, currentPage - 2);
-  let endPage = Math.min(totalPages, currentPage + 2);
-
-  if (currentPage <= 3) {
-    endPage = Math.min(5, totalPages);
-  }
-  if (currentPage > totalPages - 3) {
-    startPage = Math.max(1, totalPages - 4);
-  }
-
-  for (let i = startPage; i <= endPage; i++) {
-    pageNumbers.push(i);
-  }
-
+const Pagination = ({ currentPage, totalPages, onPageChange, itemsPerPage, totalItems, onItemsPerPageChange }) => {
+  // Generar números de página a mostrar
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      // Si hay pocas páginas, mostrarlas todas
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Lógica para mostrar páginas con elipsis
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
+  };
+  
+  const pageNumbers = getPageNumbers();
+  
   return (
-    <div className="flex justify-center items-center gap-2 mt-6">
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className="px-3 py-1 border rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        &larr;
-      </button>
-
-      {startPage > 1 && (
-        <>
-          <button
-            onClick={() => onPageChange(1)}
-            className="px-3 py-1 border rounded-lg hover:bg-gray-100"
-          >
-            1
-          </button>
-          {startPage > 2 && <span className="px-3 py-1">...</span>}
-        </>
+    <>
+      {/* Selector de items por página y contador - Solo si está habilitado */}
+      {onItemsPerPageChange && itemsPerPage && totalItems !== undefined && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-200">
+          <div className="flex items-center gap-2">
+            <label htmlFor="items-per-page" className="text-sm text-gray-600">
+              Eventos por página:
+            </label>
+            <select
+              id="items-per-page"
+              value={itemsPerPage}
+              onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+              className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <span className="text-sm text-gray-600">
+              Mostrando {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)} - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems}
+            </span>
+          </div>
+        </div>
       )}
-
-      {pageNumbers.map((number) => (
-        <button
-          key={number}
-          onClick={() => onPageChange(number)}
-          className={`px-3 py-1 border rounded-lg ${
-            currentPage === number
-              ? "bg-[#00C49A] text-white"
-              : "hover:bg-gray-100"
-          }`}
+      
+      {/* Controles de paginación */}
+      <nav className="pagination-container">
+        <button 
+          className="pagination-arrow" 
+          aria-label="Página anterior"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          style={{ opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
         >
-          {number}
+          <FiChevronLeft />
         </button>
-      ))}
-
-      {endPage < totalPages && (
-        <>
-          {endPage < totalPages - 1 && <span className="px-3 py-1">...</span>}
-          <button
-            onClick={() => onPageChange(totalPages)}
-            className="px-3 py-1 border rounded-lg hover:bg-gray-100"
-          >
-            {totalPages}
-          </button>
-        </>
-      )}
-
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className="px-3 py-1 border rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        &rarr;
-      </button>
-    </div>
+        
+        {pageNumbers.map((page, index) => {
+          if (page === '...') {
+            return (
+              <span key={`ellipsis-${index}`} className="pagination-ellipsis">
+                ...
+              </span>
+            );
+          }
+          
+          return (
+            <button
+              key={page}
+              className={`pagination-number ${page === currentPage ? 'active' : ''}`}
+              aria-current={page === currentPage ? 'page' : undefined}
+              onClick={() => onPageChange(page)}
+            >
+              {page}
+            </button>
+          );
+        })}
+        
+        <button 
+          className="pagination-arrow" 
+          aria-label="Siguiente página"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          style={{ opacity: currentPage === totalPages ? 0.5 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+        >
+          <FiChevronRight />
+        </button>
+      </nav>
+    </>
   );
 };
 

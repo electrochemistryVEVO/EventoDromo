@@ -271,5 +271,127 @@ namespace EventodromoRest.Mappers
                 return listaLocal;
             }
         }
+        public bool VerificarDireccionUnica(string direccion)
+        {
+            lock (DB)
+            {
+                string query = "SELECT 1 FROM Local WHERE direccion = @DIRECCION LIMIT 1";
+                var parametros = new ParameterList();
+                parametros.Add("@DIRECCION", direccion);
+
+                DB.Select(query, parametros);
+                bool existe = DB.Read();
+                DB.CloseReader();
+                return existe;
+            }
+        }
+
+        public int ModificarLocalAdmin(Local local)
+        {
+            lock (DB)
+            {
+                string query = "UPDATE Local SET NOMBRE = @NOMBRE, IDCIUDAD = @IDCIUDAD, DIRECCION = @DIRECCION, CAPACIDAD = @CAPACIDAD WHERE ID = @ID";
+                var parametros = new ParameterList();
+                parametros.Add("@NOMBRE", local.nombre);
+                parametros.Add("@IDCIUDAD", local.idCiudad);
+                parametros.Add("@DIRECCION", local.direccion);
+                parametros.Add("@CAPACIDAD", local.capacidad);
+                parametros.Add("@ID", local.id);
+                int rowsAffected = DB.ExecuteNonQuery(query, parametros);
+                return rowsAffected;
+            }
+        }
+
+        public int ActualizarEstadoLocal(int idLocal, bool isDeleted)
+        {
+            lock (DB)
+            {
+                string query = "UPDATE Local SET isDeleted = @ISDELETED WHERE ID = @ID";
+
+                var parametros = new ParameterList();
+                parametros.Add("@ISDELETED", isDeleted);
+                parametros.Add("@ID", idLocal);
+
+                // ExecuteNonQuery devuelve el número de filas afectadas
+                int rowsAffected = DB.ExecuteNonQuery(query, parametros);
+                return rowsAffected;
+            }
+        }
+
+        public List<OcuapcionLocalResponse> OcupacionLocales ()
+        {
+            List<OcuapcionLocalResponse> listaOcupacion = new();
+            lock (DB)
+            {
+                string query = @"
+                SELECT
+                  l.id AS idLocal,
+                  l.nombre AS NombreLocal,
+                  DATE(f.fechaHora) AS Dia,
+                  SUM(t.cantidadEntradas) AS TotalEntradas,
+                  SUM(t.cantidadVendida) AS TotalVendidas
+                FROM Local l
+                LEFT JOIN Evento e ON e.idLocal = l.id AND e.isDeleted = 0
+                LEFT JOIN FechaEvento f ON f.idEvento = e.id
+                LEFT JOIN TipoEntrada t ON t.idFechaEvento = f.id
+                WHERE f.fechaHora IS NOT NULL
+                GROUP BY
+                  l.id,
+                  l.nombre,
+                  DATE(f.fechaHora)
+                ORDER BY
+                  l.id, Dia;
+                ";
+                DB.Select(query, null);
+                
+                // Diccionario para agrupar por local
+                var localesDict = new Dictionary<int, (string nombre, HashSet<DateTime> diasUnicos, List<decimal> tasasOcupacionPorDia)>();
+                
+                while (DB.Read())
+                {
+                    int idLocal = DB.GetInt("idLocal");
+                    string nombreLocal = DB.GetString("NombreLocal");
+                    DateTime dia = DB.GetDateTime("Dia");
+                    int totalEntradas = DB.GetInt("TotalEntradas");
+                    int totalVendidas = DB.GetInt("TotalVendidas");
+                    
+                    // Calcular tasa de ocupación del día (evitar división por cero)
+                    decimal tasaDia = totalEntradas > 0 
+                        ? ((decimal)totalVendidas / totalEntradas) * 100 
+                        : 0;
+                    
+                    // Agregar o actualizar local en el diccionario
+                    if (!localesDict.ContainsKey(idLocal))
+                    {
+                        localesDict[idLocal] = (nombreLocal, new HashSet<DateTime>(), new List<decimal>());
+                    }
+                    
+                    localesDict[idLocal].diasUnicos.Add(dia);
+                    localesDict[idLocal].tasasOcupacionPorDia.Add(tasaDia);
+                }
+                
+                DB.CloseReader();
+                
+                // Convertir el diccionario a la lista de respuesta
+                foreach (var kvp in localesDict)
+                {
+                    int idLocal = kvp.Key;
+                    string nombreLocal = kvp.Value.nombre;
+                    int diasOcupados = kvp.Value.diasUnicos.Count;
+                    decimal tasaOcupacionPromedio = kvp.Value.tasasOcupacionPorDia.Any() 
+                        ? kvp.Value.tasasOcupacionPorDia.Average() 
+                        : 0;
+                    
+                    listaOcupacion.Add(new OcuapcionLocalResponse
+                    {
+                        idLocal = idLocal,
+                        nombreLocal = nombreLocal,
+                        diasOcupados = diasOcupados,
+                        tasaOcupacion = Math.Round(tasaOcupacionPromedio, 1)
+                    });
+                }
+            }
+            return listaOcupacion;
+        }
     }
 }
