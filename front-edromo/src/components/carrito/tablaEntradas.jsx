@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useRef, useEffect } from "react";
-import { FilaEntrada } from "@/components/carrito/filaEntrada";
+import { FilaEntrada } from "@/components/carrito/FilaEntrada";
 
 // Renombramos la funciÃ³n de "TablaEntradasView" a "TablaEntradas"
 export const TablaEntradas = ({

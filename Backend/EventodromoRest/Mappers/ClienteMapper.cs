@@ -54,7 +54,7 @@ namespace EventodromoRest.Mappers
                     if (!encontrado)
                     {
                         // Si no está en Cliente, probamos con Administrador
-                        query = "SELECT id, nombres, apellidos, email, passwordHash FROM Administrador WHERE email = @email AND passwordHash = @passwordHash";
+                        query = "SELECT id, nombres, apellidos, email, passwordHash, fechaCreacion FROM Administrador WHERE email = @email AND passwordHash = @passwordHash";
                         DB.Select(query, parametros);
 
                         if (DB.Read())
