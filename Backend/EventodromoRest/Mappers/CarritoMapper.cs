@@ -107,7 +107,7 @@ namespace EventodromoRest.Mappers
                 "select " +
                 "c.id as idCarrito, ev.id as idEvento, ev.nombre as nombreEvento, ev.imagenURL as imagenURL, " +
                 "l.nombre as nombreLocal, cd.nombre as nombreCiudad, f.id as idFuncion, f.fechaHora as fecha, " +
-                "e.id AS idEntrada, t.id as idTipoEntrada, t.nombre as nombreTipoEntrada, t.precio as precioEntrada, t.limiteCompra," +
+                "e.id AS idEntrada, t.id as idTipoEntrada, t.nombre as nombreTipoEntrada, t.precio as precioEntrada, t.limiteCompra as limiteCompra, t.puntos as puntos," +
                 "c.fechaExpiracion " +
                 "from Entrada e " +
                 "join Carrito c on e.idCarrito = c.id " +
@@ -132,7 +132,7 @@ namespace EventodromoRest.Mappers
                         eventoInfo = new EventoCarritoDTO { idEvento = DB.GetInt("idEvento"), nombreEvento = DB.GetString("nombreEvento"), imagenURL = DB.GetString("imagenURL") },
                         localInfo = new LocalDTO { nombre = DB.GetString("nombreLocal"), ciudad = DB.GetString("nombreCiudad") },
                         funcionInfo = new FuncionDTO { id = DB.GetInt("idFuncion"), fechaHora = DB.GetDateTime("fecha") },
-                        entrada = new EntradaDTO { idEntrada = DB.GetInt("idEntrada"), idTipoEntrada = DB.GetInt("idTipoEntrada"), nombreTipoEntrada = DB.GetString("nombreTipoEntrada"), precio = DB.GetDecimal("precioEntrada"), limiteCompra = DB.GetInt("limiteCompra") },
+                        entrada = new EntradaDTO { idEntrada = DB.GetInt("idEntrada"), idTipoEntrada = DB.GetInt("idTipoEntrada"), nombreTipoEntrada = DB.GetString("nombreTipoEntrada"), precio = DB.GetDecimal("precioEntrada"), limiteCompra = DB.GetInt("limiteCompra"), puntos = DB.GetInt("puntos") },
                         fechaExpiracion = DB.GetDateTime("fechaExpiracion")
                     };
                     listaCarrito.Add(registro);

@@ -21,72 +21,65 @@ namespace EventodromoRest.Mappers
 
         public Cliente ObtenerClientePorEmailPassword(string email, string password, out char tipoUsuario, out int idCliente)
         {
+            // Valores por defecto
+            tipoUsuario = ' ';
+            idCliente = 0;
+            Cliente cliente = null;
+
             lock (DB)
             {
-                string query = "SELECT * FROM Cliente WHERE email = @email AND passwordHash = @passwordHash";
-                var parametros = new ParameterList();
-                parametros.Add("@email", email);
-                parametros.Add("@passwordHash", password);
-
-                DB.Select(query, parametros);
-
-                // 👇 DB.Read() devuelve true si hay una fila disponible
-                if (DB.Read())
+                bool encontrado = false;
+                try
                 {
-                    Cliente cliente = new()
-                    {
-                        id = DB.GetInt("id"),
-                        nombres = DB.GetString("nombres"),
-                        //apellidos = DB.GetString("apellidos"),
-                        //email = DB.GetString("email"),
-                        //passwordhash = DB.GetString("passwordHash"),
-                        ////fechanacimiento = DB.GetDateTime("fechaNacimiento"),
-                        //idsexo = DB.GetInt("idSexo"),
-                        //idtipodocumento = DB.GetInt("idTipoDocumento"),
-                        //numerodocumento = DB.GetString("numeroDocumento"),
-                        //telefono = DB.GetString("telefono"),
-                        //idciudad = DB.GetInt("idCiudad"),
-                        //politicadeprivacidad = DB.GetBoolean("politicaDePrivacidad"),
-                        //enviodepublicidad = DB.GetBoolean("envioDePublicidad"),
-                        ////fechacreacion = DB.GetDateTime("fechaCreacion"),
-                        ////fechaultimaedicion = DB.GetDateTime("fechaUltimaEdicion"),
-                        ////fechaultimasession = DB.GetDateTime("fechaUltimaSesion"),
-                        //sexo = ObtenerSexoPorId(DB.GetInt("idSexo")),
-                        //tipodocumento = ObtenerTipoDocumentoPorId(DB.GetInt("idTipoDocumento")),
-                        //ciudad = ObtenerCiudadPorId(DB.GetInt("idCiudad"))
-                    };
-                    idCliente= cliente.id ?? 0;
-                    tipoUsuario = 'C'; // Cliente
-                    return cliente;
-                }
-                else
-                {
-                    // Si no está en Cliente, probamos con Administrador
-                    query = "SELECT * FROM Administrador WHERE email = @email AND passwordHash = @passwordHash";
+                    string query = "SELECT id, nombres FROM Cliente WHERE email = @email AND passwordHash = @passwordHash";
+                    var parametros = new ParameterList();
+                    parametros.Add("@email", email);
+                    parametros.Add("@passwordHash", password);
+
                     DB.Select(query, parametros);
 
+                    // 👇 DB.Read() devuelve true si hay una fila disponible
                     if (DB.Read())
                     {
-                        Cliente admin = new()
+                        cliente = new()
                         {
                             id = DB.GetInt("id"),
                             nombres = DB.GetString("nombres"),
-                            apellidos = DB.GetString("apellidos"),
-                            email = DB.GetString("email"),
-                            passwordhash = DB.GetString("passwordHash"),
-                            fechacreacion = DB.GetDateTime("fechaCreacion")
                         };
-                        idCliente = admin.id ?? 0;
-                        tipoUsuario = 'A'; // Administrador
-                        return admin;
+                        idCliente = cliente.id ?? 0;
+                        tipoUsuario = 'C'; // Cliente
+                        encontrado = true;
                     }
-                    else
+                    DB.CloseReader();
+                    if (!encontrado)
                     {
-                        idCliente = 0;
-                        tipoUsuario = ' '; // Ninguno
-                        return null;
+                        // Si no está en Cliente, probamos con Administrador
+                        query = "SELECT id, nombres, apellidos, email, passwordHash, fechaCreacion FROM Administrador WHERE email = @email AND passwordHash = @passwordHash";
+                        DB.Select(query, parametros);
+
+                        if (DB.Read())
+                        {
+                            cliente = new()
+                            {
+                                id = DB.GetInt("id"),
+                                nombres = DB.GetString("nombres"),
+                                apellidos = DB.GetString("apellidos"),
+                                email = DB.GetString("email"),
+                                passwordhash = DB.GetString("passwordHash"),
+                                fechacreacion = DB.GetDateTime("fechaCreacion")
+                            };
+                            idCliente = cliente.id ?? 0;
+                            tipoUsuario = 'A'; // Administrador
+                            encontrado = true;
+                        }
                     }
                 }
+                finally
+                {
+                    DB.CloseReader();
+                }
+
+                return cliente;
             }
         }
 

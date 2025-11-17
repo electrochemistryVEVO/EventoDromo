@@ -1,41 +1,29 @@
-// src/controllers/controller-changePassword.js
-
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { verifyCurrentPassword } from "@/services/cambiarContrasena.js";
 
+// --- 1. IMPORTA EL HOOK 'useUser' ---
+import { useUser } from "@/context/UserContext.jsx";
+
 // Creamos un hook personalizado para manejar la lógica de esta vista.
 export const useChangePasswordController = () => {
   const router = useRouter();
+  // --- 2. LLAMA AL HOOK 'useUser' ---
+  const { user } = useUser(); // Obtenemos el usuario (que tiene el token)
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Función que se ejecuta cuando el usuario presiona el botón "Siguiente".
   const handleSubmit = async (event) => {
-    event.preventDefault(); // Evita que la página se recargue.
-
-    // Obtienes el token guardado después del login
-    // 1. Obtener el STRING que está guardado bajo la clave "session"
-    const sessionJSON = sessionStorage.getItem("session");
-
-    // Variable para guardar el token final
-    let userToken = null;
-
-    // 2. MUY IMPORTANTE: Verificar que el dato exista antes de continuar
-    if (sessionJSON) {
-      // 3. Convertir (parsear) la cadena JSON a un objeto de JavaScript real
-      const sessionData = JSON.parse(sessionJSON);
-
-      // 4. Ahora sí, acceder a la propiedad "token" del objeto
-      userToken = sessionData.token;
-    }
-
-    // Limpiamos errores previos y activamos el estado de carga.
+    event.preventDefault();
     setError("");
     setIsLoading(true);
+
+    // --- 3. OBTÉN EL TOKEN DIRECTAMENTE DEL CONTEXTO ---
+    const userToken = user?.token;
 
     if (!currentPassword) {
       setError("Por favor, ingresa tu contraseña actual.");
@@ -44,34 +32,36 @@ export const useChangePasswordController = () => {
     }
 
     try {
-      // Llamamos a la función del servicio.
+      // 4. AHORA 'userToken' SÍ TENDRÁ UN VALOR
       if (userToken) {
         const resultado = await verifyCurrentPassword(
           currentPassword,
           userToken
         );
-        if (resultado && resultado.success) {
+        if (resultado && resultado.success === true) { // 5. VERIFICA 'status' (según tu ClienteBO)
           console.log("¡Contraseña verificada con éxito!", resultado);
-          // Si la función anterior no lanzó un error, la contraseña es correcta.
-          // Navegamos al siguiente paso del flujo.
+
+          // 6. Guarda la contraseña verificada para el siguiente paso
+          sessionStorage.setItem('verified_password', currentPassword);
+
           // IMPORTANTE: Ajusta la ruta a la que corresponda.
-          router.push("/user/cambiarcontrasena/cambio");
+          router.push("/user/cambiarcontrasena/cambio"); // Asumo esta es la siguiente página
         } else {
-          setError("La contraseña es incorrecta. Intente de nuevo.");
+          // Si el backend devuelve success=false (status="error")
+          setError(resultado.message || "La contraseña es incorrecta. Intente de nuevo.");
         }
       } else {
-        console.error("No se encontró token de usuario. Debes iniciar sesión.");
+        // 7. MUESTRA EL ERROR EN LA UI
+        setError("No se encontró tu sesión. Por favor, inicia sesión de nuevo.");
       }
     } catch (err) {
-      // Si el servicio lanzó un error, lo mostramos al usuario.
+      // Si el servicio lanzó un error (ej. 401, 500)
       setError(err.message);
     } finally {
-      // Pase lo que pase, desactivamos el estado de carga.
       setIsLoading(false);
     }
   };
 
-  // Exponemos el estado y las funciones que la página (la vista) necesita.
   return {
     currentPassword,
     setCurrentPassword,

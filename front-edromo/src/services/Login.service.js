@@ -16,13 +16,7 @@ export async function autenticarUsuario(correo, password) {
     if (response && response.token) {
       // Guardamos el token en localStorage
       localStorage.setItem('authToken', response.token);
-      
-      // Retornamos el objeto completo con rol y token
-      return { 
-        rol: response.rol, 
-        token: response.token,
-        email: correo // Añadimos el email para el contexto
-      };
+      return response;
     } else {
       throw new Error("Token no recibido del servidor.");
     }

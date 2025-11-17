@@ -35,6 +35,7 @@
         public required char rol { get; set; }
         public string? token { get; set; } // Token JWT
         public int idCliente { get; set; } // ID del cliente autenticado
+        public int totalPuntos { get; set; }
     }
 
     public class RequestSignUpCliente

@@ -29,6 +29,7 @@
     public class ResumenDromopuntosDTO
     {
         public int Total { get; set; }
+        public decimal PuntosPorSol { get; set; }
         public List<PuntoPorVencerDTO> PorVencer { get; set; }
         public List<MovimientoDromopuntoDTO> Movimientos { get; set; }
     }
