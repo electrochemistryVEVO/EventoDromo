@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const categoriasDisponibles = ['Fútbol', 'Concierto', 'Festival', 'Teatro', 'Deporte', 'Niños'];
+const categoriasDisponibles = ['Fútbol', 'Concierto', 'Festival', 'Teatro', 'Deporte', 'Niños', 'Comedia', 'Conferencia', 'Exposición', 'Familiar', 'Gastronómico','Taller'];
 
 const CategoriasModal = ({ onClose, onApply, onClear, buttonRef, initialFilters }) => {
   // Estado inicial desde initialFilters (maneja string con comas)
