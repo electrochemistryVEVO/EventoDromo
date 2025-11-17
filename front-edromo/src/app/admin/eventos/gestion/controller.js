@@ -90,7 +90,7 @@ export const useEventManager = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [filters, pagination?.currentPage]);
 
   /**
    * Efecto que se ejecuta cuando los filtros cambian

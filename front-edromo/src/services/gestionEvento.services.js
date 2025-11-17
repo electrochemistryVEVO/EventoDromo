@@ -74,6 +74,8 @@ export const getLocales = async () => {
  * @param {object} filters - Los filtros a aplicar en la búsqueda.
  * @returns {Promise<object>} Una promesa que resuelve a un objeto con los eventos y la información de paginación.
  */
+
+/*
 export const getEvents = async (filters = {}) => {
   console.log("Fetching events with filters:", filters);
   const token = getAuthToken();
@@ -239,12 +241,14 @@ export const getEvents = async (filters = {}) => {
   });
 };
 
+*/
+
 /**
  * Realiza una llamada a la API para obtener los eventos filtrados y paginados.
  * @param {object} filters - Los filtros a aplicar en la búsqueda.
  * @returns {Promise<object>} Una promesa que resuelve a un objeto con los eventos y la información de paginación.
  */
-/*
+
 export const getEvents = async (filters = {}) => {
   const token = getAuthToken();
   if (!token) {
@@ -275,7 +279,7 @@ export const getEvents = async (filters = {}) => {
   const response = await fetch(url, {
     method: 'GET',
     headers: {
-      'Authorization': token,
+      'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
   });
@@ -287,7 +291,7 @@ export const getEvents = async (filters = {}) => {
 
   return response.json();
 };
-*/
+
 
 /**
  * Envía los datos de un nuevo evento al backend para su creación.
