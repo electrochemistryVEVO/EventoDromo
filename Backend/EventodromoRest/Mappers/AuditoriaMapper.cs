@@ -55,17 +55,12 @@ namespace EventodromoRest.Mappers
                         c.fechaCreacion,
                         c.fechaUltimaEdicion,
                         c.fechaUltimaSesion,
-                        -- Contar compras totales
                         (SELECT COUNT(*) FROM Transaccion t WHERE t.idCliente = c.id) as totalCompras,
-                        -- Sumar gastos totales
                         (SELECT COALESCE(SUM(t.montoTotal), 0) FROM Transaccion t WHERE t.idCliente = c.id) as gastoTotal,
-                        -- Calcular puntos usados: (Total ganado - Restante)
                         (SELECT COALESCE(SUM(p.cantidad - p.cantidadRestante), 0) 
                          FROM Punto p WHERE p.idCliente = c.id) as puntosUsados,
-                        -- Contar transferencias enviadas desde Auditoria
                         (SELECT COUNT(*) FROM Auditoria a 
                          WHERE a.idCliente = c.id AND a.idTipoAuditoria = 2) as transferenciasEnviadas,
-                        -- Transferencias recibidas (por ahora 0, se puede implementar más adelante)
                         0 as transferenciasRecibidas
                     FROM Cliente c
                     {searchCondition}
@@ -79,10 +74,28 @@ namespace EventodromoRest.Mappers
 
                 while (DB.Read())
                 {
-                    // Procesar fechas
-                    DateTime? fechaCreacion = DB.GetDateTime("fechaCreacion");
-                    DateTime? fechaEdicion = DB.GetDateTime("fechaUltimaEdicion");
-                    DateTime? fechaSesion = DB.GetDateTime("fechaUltimaSesion");
+                    // Procesar fechas - verificar NULL antes de intentar obtener DateTime
+                    DateTime? fechaCreacion = null;
+                    DateTime? fechaEdicion = null;
+                    DateTime? fechaSesion = null;
+
+                    try
+                    {
+                        fechaCreacion = DB.GetDateTime("fechaCreacion");
+                    }
+                    catch { }
+
+                    try
+                    {
+                        fechaEdicion = DB.GetDateTime("fechaUltimaEdicion");
+                    }
+                    catch { }
+
+                    try
+                    {
+                        fechaSesion = DB.GetDateTime("fechaUltimaSesion");
+                    }
+                    catch { }
 
                     // Extraer información de la última sesión (manejar NULL)
                     string fechaSesionStr = fechaSesion.HasValue ? fechaSesion.Value.ToString("dd-MM-yyyy") : "N/A";
@@ -155,18 +168,13 @@ namespace EventodromoRest.Mappers
                         td.nombre as tipoDocumento,
                         c.numeroDocumento,
                         c.telefono,
-                        -- Puntos disponibles actuales (suma de cantidadRestante)
                         (SELECT COALESCE(SUM(p.cantidadRestante), 0) 
                          FROM Punto p WHERE p.idCliente = c.id) as puntosActuales,
-                        -- Compras totales
                         (SELECT COUNT(*) FROM Transaccion t WHERE t.idCliente = c.id) as comprasTotales,
-                        -- Gasto total
                         (SELECT COALESCE(SUM(t.montoTotal), 0) 
                          FROM Transaccion t WHERE t.idCliente = c.id) as gastoTotal,
-                        -- Transferencias enviadas
                         (SELECT COUNT(*) FROM Auditoria a 
                          WHERE a.idCliente = c.id AND a.idTipoAuditoria = 2) as transferencias,
-                        -- Puntos usados: Total ganado - Restante
                         (SELECT COALESCE(SUM(p.cantidad - p.cantidadRestante), 0) 
                          FROM Punto p WHERE p.idCliente = c.id) as puntosUsados
                     FROM Cliente c
