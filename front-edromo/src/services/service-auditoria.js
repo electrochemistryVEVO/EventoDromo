@@ -6,7 +6,7 @@
 // --- Interruptor para cambiar entre Backend y Mock Data ---
 // Cambia a 'true' para usar el backend real.
 // Cambia a 'false' para usar datos mock desde auditorias.json.
-const USE_BACKEND = false;
+const USE_BACKEND = true;
 
 const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 

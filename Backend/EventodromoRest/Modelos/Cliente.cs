@@ -142,4 +142,90 @@
         public string Ciudad { get; set; }  // El nombre de la Ciudad, ej: "Callao"
     }
 
+    // ==================== DTOs PARA AUDITORÍAS ====================
+    
+    /// <summary>
+    /// DTO para la lista de clientes en la página de auditoría
+    /// </summary>
+    public class ClienteAuditoriaDTO
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; }
+        public string Email { get; set; }
+        public string Telefono { get; set; }
+        public string FechaCreacion { get; set; }
+        public string UltimaEdicion { get; set; }
+        public UltimaSesionDTO UltimaSesion { get; set; }
+        public ActividadDTO Actividad { get; set; }
+        public TransferenciasDTO Transferencias { get; set; }
+    }
+
+    public class UltimaSesionDTO
+    {
+        public string Fecha { get; set; }
+        public string Hora { get; set; }
+    }
+
+    public class ActividadDTO
+    {
+        public int Compras { get; set; }
+        public string Total { get; set; }
+        public string PuntosUsados { get; set; }
+    }
+
+    public class TransferenciasDTO
+    {
+        public int Enviadas { get; set; }
+        public int Recibidas { get; set; }
+    }
+
+    /// <summary>
+    /// Response para el endpoint ObtenerClientes
+    /// </summary>
+    public class ResponseObtenerClientes
+    {
+        public List<ClienteAuditoriaDTO> Clientes { get; set; }
+        public int TotalPages { get; set; }
+        public int CurrentPage { get; set; }
+        public int TotalClientes { get; set; }
+    }
+
+    /// <summary>
+    /// DTO para el detalle completo de un cliente en auditoría
+    /// </summary>
+    public class ClienteDetalleDTO
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; }
+        public string Apellido { get; set; }
+        public string Email { get; set; }
+        public string TipoDocumento { get; set; }
+        public string NumeroDocumento { get; set; }
+        public string Telefono { get; set; }
+        public int Puntos { get; set; }
+        public ResumenClienteDTO Resumen { get; set; }
+        public List<ActividadHistorialDTO> HistorialActividades { get; set; }
+    }
+
+    public class ResumenClienteDTO
+    {
+        public int ComprasTotales { get; set; }
+        public string GastoTotal { get; set; }
+        public int Transferencias { get; set; }
+        public int PuntosUsados { get; set; }
+    }
+
+    public class ActividadHistorialDTO
+    {
+        public int Id { get; set; }
+        public string Tipo { get; set; }
+        public string Icono { get; set; }
+        public string Etiqueta { get; set; }
+        public string? Monto { get; set; }
+        public string? PuntosUsados { get; set; }
+        public string Descripcion { get; set; }
+        public string Fecha { get; set; }
+        public string Hora { get; set; }
+    }
+
 }
