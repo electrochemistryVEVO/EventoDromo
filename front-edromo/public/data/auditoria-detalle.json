@@ -1,0 +1,89 @@
+{
+  "success": true,
+  "message": "Detalle del cliente obtenido exitosamente",
+  "data": {
+    "id": 1,
+    "nombre": "Juan",
+    "apellido": "Pérez",
+    "email": "jperez@email.com",
+    "tipoDocumento": "DNI",
+    "numeroDocumento": "12345678",
+    "telefono": "993345782",
+    "puntos": 10,
+    "resumen": {
+      "comprasTotales": 8,
+      "gastoTotal": "S/1300",
+      "transferencias": 3,
+      "puntosUsados": 150
+    },
+    "historialActividades": [
+      {
+        "id": 1,
+        "tipo": "compra",
+        "icono": "compra",
+        "etiqueta": "Compra",
+        "monto": "S/ 300",
+        "descripcion": "Compra de 2 entradas para \"Concierto de Rock Nacional\"",
+        "fecha": "2025-03-10",
+        "hora": "14:30:00"
+      },
+      {
+        "id": 2,
+        "tipo": "transferencia_enviada",
+        "icono": "transferencia_enviada",
+        "etiqueta": "Transferencia enviada",
+        "descripcion": "Transferencia de 1 entrada a usuario con ID J1833290203",
+        "fecha": "2025-03-09",
+        "hora": "16:45:00"
+      },
+      {
+        "id": 3,
+        "tipo": "actualizacion_perfil",
+        "icono": "perfil",
+        "etiqueta": "Actualización Perfil",
+        "descripcion": "Actualización de número de teléfono",
+        "fecha": "2025-03-08",
+        "hora": "10:15:00"
+      },
+      {
+        "id": 4,
+        "tipo": "uso_puntos",
+        "icono": "puntos",
+        "etiqueta": "Uso de Puntos",
+        "puntosUsados": "50 DP",
+        "descripcion": "Uso de 50 puntos para descuento en compra de 1 entrada para \"Concierto de Rock Nacional\"",
+        "fecha": "2025-03-07",
+        "hora": "19:20:00"
+      },
+      {
+        "id": 5,
+        "tipo": "uso_puntos",
+        "icono": "puntos",
+        "etiqueta": "Uso de Puntos",
+        "puntosUsados": "50 DP",
+        "descripcion": "Uso de 50 puntos para descuento en compra de 1 entrada para \"Concierto de Rock Nacional\"",
+        "fecha": "2025-03-07",
+        "hora": "19:20:00"
+      },
+      {
+        "id": 6,
+        "tipo": "inicio_sesion",
+        "icono": "sesion",
+        "etiqueta": "Inicio Sesión",
+        "descripcion": "Inicio de sesión exitoso",
+        "fecha": "2025-03-06",
+        "hora": "08:30:00"
+      },
+      {
+        "id": 7,
+        "tipo": "inicio_sesion",
+        "icono": "sesion",
+        "etiqueta": "Inicio Sesión",
+        "descripcion": "Inicio de sesión exitoso",
+        "fecha": "2025-03-06",
+        "hora": "08:30:00"
+      }
+    ]
+  },
+  "error": null
+}

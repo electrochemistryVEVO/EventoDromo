@@ -1,0 +1,138 @@
+{
+  "success": true,
+  "message": "Clientes obtenidos exitosamente",
+  "data": {
+    "clientes": [
+      {
+        "id": 1,
+        "nombre": "Juan Pérez",
+        "email": "jperez@email.com",
+        "telefono": "+51 993345782",
+        "fechaCreacion": "08-07-2025",
+        "ultimaEdicion": "05-10-2025",
+        "ultimaSesion": {
+          "fecha": "09-09-2025",
+          "hora": "10:56 pm"
+        },
+        "actividad": {
+          "compras": 8,
+          "total": "S/1300",
+          "puntosUsados": "150 puntos usados"
+        },
+        "transferencias": {
+          "enviadas": 2,
+          "recibidas": 3
+        }
+      },
+      {
+        "id": 2,
+        "nombre": "Carla Rodrigues",
+        "email": "rodrigues@email.com",
+        "telefono": "+51 993345782",
+        "fechaCreacion": "06-09-2025",
+        "ultimaEdicion": "08-09-2025",
+        "ultimaSesion": {
+          "fecha": "31-10-2025",
+          "hora": "09:56 am"
+        },
+        "actividad": {
+          "compras": 2,
+          "total": "S/800",
+          "puntosUsados": "0 puntos usados"
+        },
+        "transferencias": {
+          "enviadas": 1,
+          "recibidas": 1
+        }
+      },
+      {
+        "id": 3,
+        "nombre": "Jay Park",
+        "email": "jpark@email.com",
+        "telefono": "+51 993345782",
+        "fechaCreacion": "12-02-2025",
+        "ultimaEdicion": "04-06-2025",
+        "ultimaSesion": {
+          "fecha": "08-06-2025",
+          "hora": "05:34 pm"
+        },
+        "actividad": {
+          "compras": 3,
+          "total": "S/1200",
+          "puntosUsados": "120 puntos usados"
+        },
+        "transferencias": {
+          "enviadas": 9,
+          "recibidas": 2
+        }
+      },
+      {
+        "id": 4,
+        "nombre": "Orlado Martinez",
+        "email": "omartinez@email.com",
+        "telefono": "+51 993345782",
+        "fechaCreacion": "21-02-2024",
+        "ultimaEdicion": "05-10-2025",
+        "ultimaSesion": {
+          "fecha": "05-11-2025",
+          "hora": "07:45 am"
+        },
+        "actividad": {
+          "compras": 5,
+          "total": "S/1900",
+          "puntosUsados": "130 puntos usados"
+        },
+        "transferencias": {
+          "enviadas": 6,
+          "recibidas": 1
+        }
+      },
+      {
+        "id": 5,
+        "nombre": "Jake Caceres",
+        "email": "jcaceres@email.com",
+        "telefono": "+51 993345782",
+        "fechaCreacion": "03-07-2023",
+        "ultimaEdicion": "30-03-2025",
+        "ultimaSesion": {
+          "fecha": "30-02-2025",
+          "hora": "8:56 pm"
+        },
+        "actividad": {
+          "compras": 10,
+          "total": "S/2400",
+          "puntosUsados": "250 puntos usados"
+        },
+        "transferencias": {
+          "enviadas": 5,
+          "recibidas": 2
+        }
+      },
+      {
+        "id": 6,
+        "nombre": "Pedro Lopez",
+        "email": "plopez@email.com",
+        "telefono": "+51 993345782",
+        "fechaCreacion": "26-03-2020",
+        "ultimaEdicion": "12-09-2023",
+        "ultimaSesion": {
+          "fecha": "12-09-2023",
+          "hora": "10:55 am"
+        },
+        "actividad": {
+          "compras": 6,
+          "total": "S/3300",
+          "puntosUsados": "500 puntos usados"
+        },
+        "transferencias": {
+          "enviadas": 0,
+          "recibidas": 4
+        }
+      }
+    ],
+    "totalPages": 1,
+    "currentPage": 1,
+    "totalClientes": 6
+  },
+  "error": null
+}
