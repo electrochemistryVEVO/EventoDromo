@@ -17,6 +17,8 @@ function CrearLocal() {
     const [showSuccessModal, setShowSuccessModal] = useState(false)
     const [validationErrors, setValidationErrors] = useState([])
     const [localName, setLocalName] = useState('')
+    const [imagenURL, setImagenURL] = useState('')
+    const [imageError, setImageError] = useState(false)
 
     useEffect(() => {
         const cargarAdminData = async () => {
@@ -116,7 +118,8 @@ function CrearLocal() {
             Nombre: nombre,
             CiudadId: ciudadSeleccionada.id,
             Direccion: direccion,
-            Capacidad: capacidad
+            Capacidad: capacidad,
+            imagenURL: imagenURL || null
         }
 
         try {
@@ -259,6 +262,66 @@ function CrearLocal() {
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00C49A] focus:border-transparent outline-none transition-all"
                                     min="1"
                                     required
+                                />
+                            </div>
+
+                            {/* Vista Previa de Imagen */}
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Vista previa
+                                </label>
+                                <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                                    {imagenURL && !imageError ? (
+                                        <img 
+                                            src={imagenURL} 
+                                            alt="Vista previa del local" 
+                                            className="max-h-full max-w-full object-contain"
+                                            onError={() => setImageError(true)}
+                                            onLoad={() => setImageError(false)}
+                                        />
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center text-gray-400">
+                                            <svg 
+                                                className="w-16 h-16 mb-2" 
+                                                fill="none" 
+                                                stroke="currentColor" 
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path 
+                                                    strokeLinecap="round" 
+                                                    strokeLinejoin="round" 
+                                                    strokeWidth="2" 
+                                                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                                                />
+                                                <path 
+                                                    strokeLinecap="round" 
+                                                    strokeLinejoin="round" 
+                                                    strokeWidth="2" 
+                                                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                                                />
+                                            </svg>
+                                            <span className="text-sm">{imageError ? 'Error al cargar imagen' : 'Sin imagen'}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Imagen URL */}
+                            <div className="space-y-2">
+                                <label htmlFor="imagenUrl" className="block text-sm font-medium text-gray-700">
+                                    Imagen URL
+                                </label>
+                                <input
+                                    id="imagenUrl"
+                                    type="url"
+                                    name="imagenUrl"
+                                    value={imagenURL}
+                                    onChange={(e) => {
+                                        setImagenURL(e.target.value)
+                                        setImageError(false)
+                                    }}
+                                    placeholder="https://ejemplo.com/imagen.jpg"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00C49A] focus:border-transparent outline-none transition-all"
                                 />
                             </div>
 

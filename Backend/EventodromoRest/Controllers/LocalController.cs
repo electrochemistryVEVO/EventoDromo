@@ -297,7 +297,8 @@ namespace EventodromoRest.Controllers
                     nombre = request.Nombre,
                     idCiudad = request.CiudadId,
                     direccion = request.Direccion,
-                    capacidad = request.Capacidad
+                    capacidad = request.Capacidad,
+                    imagenURL = request.imagenURL
 
                 };
 

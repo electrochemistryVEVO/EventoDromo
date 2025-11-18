@@ -31,7 +31,7 @@ const LocalSuccessModal = ({ isOpen, onClose, count = 1 }) => {
           </div>
 
           <h2 className="text-2xl font-bold text-gray-800 text-center">
-            {count} nuevo {count === 1 ? 'evento' : 'eventos'} han sido creado.
+            {count} nuevo {count === 1 ? 'local' : 'locales'} han sido creado.
           </h2>
         </div>
       </div>

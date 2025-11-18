@@ -37,7 +37,7 @@ export const getLocales = async () => {
     throw new Error("No se encontró el token de autenticación.");
   }
   console.log(BASE_API_URL);
-  const response = await fetch(`${BASE_API_URL}/Local/GetLocales`, {
+  const response = await fetch(`${BASE_API_URL}/Local/ListarLocalesAdmin`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
