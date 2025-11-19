@@ -68,8 +68,10 @@ namespace EventodromoRest.Negocio
         /// Obtiene el detalle completo de un cliente para auditoría
         /// </summary>
         /// <param name="clienteId">ID del cliente</param>
+        /// <param name="pageHistorial">Página del historial de actividades</param>
+        /// <param name="pageSizeHistorial">Tamaño de página del historial</param>
         /// <returns>GenericResponse con el detalle del cliente</returns>
-        public GenericResponse<ClienteDetalleDTO> ObtenerDetalleCliente(int clienteId)
+        public GenericResponse<ClienteDetalleDTO> ObtenerDetalleCliente(int clienteId, int pageHistorial = 1, int pageSizeHistorial = 5)
         {
             try
             {
@@ -85,9 +87,15 @@ namespace EventodromoRest.Negocio
                     };
                 }
 
-                // Llamar al mapper
+                // Validar página
+                if (pageHistorial < 1)
+                {
+                    pageHistorial = 1;
+                }
+
+                // Llamar al mapper con paginación
                 var mapper = new AuditoriaMapper(globales, BD);
-                var detalle = mapper.ObtenerDetalleClientePorId(clienteId);
+                var detalle = mapper.ObtenerDetalleClientePorId(clienteId, pageHistorial, pageSizeHistorial);
 
                 if (detalle == null)
                 {

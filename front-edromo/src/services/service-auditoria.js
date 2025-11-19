@@ -165,9 +165,11 @@ export const obtenerClientesAuditoria = async (page = 1, searchTerm = "") => {
 /**
  * Obtiene los detalles de un cliente específico para auditoría.
  * @param {number|string} clienteId - ID del cliente.
+ * @param {number} pageHistorial - Página del historial de actividades (por defecto 1).
+ * @param {number} pageSizeHistorial - Tamaño de página del historial (por defecto 5).
  * @returns {Promise<{success: boolean, message: string, data: object, error: string}>}
  */
-export const obtenerDetalleCliente = async (clienteId) => {
+export const obtenerDetalleCliente = async (clienteId, pageHistorial = 1, pageSizeHistorial = 5) => {
   const token = getAuthToken();
 
   if (!token && USE_BACKEND) {
@@ -184,11 +186,16 @@ export const obtenerDetalleCliente = async (clienteId) => {
     // --- Lógica para conectar con el Backend Real ---
     try {
       console.log(
-        `SERVICE: Obteniendo detalle del cliente ${clienteId} desde el BACKEND...`
+        `SERVICE: Obteniendo detalle del cliente ${clienteId} desde el BACKEND (página historial: ${pageHistorial})...`
       );
 
+      const queryParams = new URLSearchParams({
+        pageHistorial: pageHistorial.toString(),
+        pageSizeHistorial: pageSizeHistorial.toString()
+      });
+
       const response = await fetch(
-        `${BASE_API_URL}/Auditoria/ObtenerDetalleCliente/${clienteId}`,
+        `${BASE_API_URL}/Auditoria/ObtenerDetalleCliente/${clienteId}?${queryParams}`,
         {
           method: "GET",
           headers: {

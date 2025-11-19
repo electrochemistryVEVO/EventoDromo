@@ -62,19 +62,24 @@ namespace EventodromoRest.Controllers
         /// Obtiene el detalle completo de un cliente específico para auditoría
         /// </summary>
         /// <param name="clienteId">ID del cliente</param>
+        /// <param name="pageHistorial">Página del historial (por defecto 1)</param>
+        /// <param name="pageSizeHistorial">Tamaño de página del historial (por defecto 5)</param>
         /// <returns>Detalle del cliente con historial de actividades</returns>
         [HttpGet]
         [Route("[action]/{clienteId}")]
-        public GenericResponse<ClienteDetalleDTO> ObtenerDetalleCliente(int clienteId)
+        public GenericResponse<ClienteDetalleDTO> ObtenerDetalleCliente(
+            int clienteId,
+            [FromQuery] int pageHistorial = 1,
+            [FromQuery] int pageSizeHistorial = 5)
         {
             try
             {
                 // Opcional: Validar que el usuario sea administrador
                 // int idUsuario = _ObtenerIdUsuarioDesdeToken();
 
-                // Llamar a la capa de negocio
+                // Llamar a la capa de negocio con paginación
                 var response = new AuditoriaBO(globales, BD)
-                    .ObtenerDetalleCliente(clienteId);
+                    .ObtenerDetalleCliente(clienteId, pageHistorial, pageSizeHistorial);
 
                 return response;
             }
@@ -88,7 +93,7 @@ namespace EventodromoRest.Controllers
                     Data = null
                 };
                 
-                var requestLog = JsonSerializer.Serialize(new { clienteId });
+                var requestLog = JsonSerializer.Serialize(new { clienteId, pageHistorial, pageSizeHistorial });
                 AgregarEntradaBitacora(e, requestLog, JsonSerializer.Serialize(response));
                 
                 return response;
