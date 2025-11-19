@@ -259,7 +259,14 @@ namespace EventodromoRest.Mappers
                     int? idTipoAuditoriaNullable = DB.GetInt("idTipoAuditoria");
                     int idTipoAuditoria = idTipoAuditoriaNullable ?? 0;
                     decimal? monto = DB.GetDecimal("monto");
-                    DateTime? fechaHora = DB.GetDateTime("fechaHora");
+                    
+                    // Manejar fechaHora que puede ser NULL
+                    DateTime? fechaHora = null;
+                    try
+                    {
+                        fechaHora = DB.GetDateTime("fechaHora");
+                    }
+                    catch { }
 
                     // Mapear el tipo de auditoría al tipo esperado por el frontend
                     string tipo = MapearTipoAuditoria(idTipoAuditoria);
@@ -273,8 +280,8 @@ namespace EventodromoRest.Mappers
                         Icono = tipo, // El frontend usa el tipo como referencia del icono
                         Etiqueta = DB.GetString("etiqueta") ?? "",
                         Descripcion = DB.GetString("descripcion") ?? "",
-                        Fecha = fechaHora?.ToString("yyyy-MM-dd") ?? "",
-                        Hora = fechaHora?.ToString("HH:mm:ss") ?? ""
+                        Fecha = fechaHora?.ToString("yyyy-MM-dd") ?? "N/A",
+                        Hora = fechaHora?.ToString("HH:mm:ss") ?? "N/A"
                     };
 
                     // Agregar monto si aplica (tipo 1: Compra)
