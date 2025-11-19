@@ -1,3 +1,5 @@
+// src/services/gestionLocal.service.js
+
 import { getAuthToken } from "@/services/admin-service";
 import { getApiUrl } from "@/lib/utils";
 
