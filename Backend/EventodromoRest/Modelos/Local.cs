@@ -66,6 +66,9 @@
 
 
         public int Capacidad { get; set; }
+
+
+        public string? imagenURL { get; set; }
     }
 
     public class LocalModificarLocalRequest
@@ -75,6 +78,7 @@
         public int CiudadId { get; set; }
         public string Direccion { get; set; }
         public int Capacidad { get; set; }
+        public string? imagenURL { get; set; }
     }
 
     public class ResponseLocalModificarLocal

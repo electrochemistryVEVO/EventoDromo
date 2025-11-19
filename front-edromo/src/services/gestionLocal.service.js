@@ -59,7 +59,7 @@ export async function listarCiudades() {
     
     try {
         const url = await getApiUrl();
-        const response = await fetch(`${url}/Ciudad/ListarCiudades`, {
+        const response = await fetch(`${url}/Ciudad/CiudadListarCiudades`, {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -102,7 +102,7 @@ export async function insertarLocal(local) {
     
     try {
         const url = await getApiUrl();
-        const response = await fetch(`${url}/Local/CrearLocales`, {
+        const response = await fetch(`${url}/Local/LocalCrearLocales`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -249,6 +249,8 @@ export async function editarLocal(modalData) {
     
     try {
         const url = await getApiUrl();
+        console.log('[editarLocal] Enviando datos:', modalData);
+        
         const response = await fetch(`${url}/Local/LocalModificarLocal`, {
             method: "POST",
             headers: {
@@ -258,7 +260,46 @@ export async function editarLocal(modalData) {
             body: JSON.stringify(modalData)
         });
         
-        return await response.json();
+        console.log('[editarLocal] Response status:', response.status);
+        console.log('[editarLocal] Response ok:', response.ok);
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                return { success: false, message: "No autorizado. Por favor, inicie sesión nuevamente." };
+            }
+            const errorText = await response.text();
+            console.error('[editarLocal] Error response:', errorText);
+            
+            let errorData = null;
+            try {
+                errorData = JSON.parse(errorText);
+            } catch (e) {
+                // Error no es JSON válido
+            }
+            
+            return { 
+                success: false, 
+                message: errorData?.message || errorData?.error || errorText || `Error HTTP: ${response.status}` 
+            };
+        }
+        
+        const resultText = await response.text();
+        console.log('[editarLocal] Response text:', resultText);
+        
+        // Si la respuesta está vacía, consideramos que fue exitoso
+        if (!resultText || resultText.trim() === '') {
+            console.log('[editarLocal] Respuesta vacía, considerando éxito');
+            return { success: true, message: "Local actualizado exitosamente" };
+        }
+        
+        try {
+            const result = JSON.parse(resultText);
+            console.log('[editarLocal] Parsed result:', result);
+            return result;
+        } catch (e) {
+            console.log('[editarLocal] Error al parsear, considerando éxito');
+            return { success: true, message: "Local actualizado exitosamente" };
+        }
     } catch (err) {
         console.error("Error en editarLocal:", err.message);
         return { success: false, message: err.message || "Error desconocido" };

@@ -115,12 +115,13 @@ namespace EventodromoRest.Mappers
         {
             lock (DB)
             {
-                string query = "INSERT INTO Local (NOMBRE, IDCIUDAD, DIRECCION, CAPACIDAD, ISDELETED, CREADOPOR) VALUES (@NOMBRE, @IDCIUDAD, @DIRECCION, @CAPACIDAD, @ISDELETED, @CREADOPOR); SELECT LAST_INSERT_ID();";
+                string query = "INSERT INTO Local (NOMBRE, IDCIUDAD, DIRECCION, CAPACIDAD, IMAGENURL, ISDELETED, CREADOPOR) VALUES (@NOMBRE, @IDCIUDAD, @DIRECCION, @CAPACIDAD, @IMAGENURL, @ISDELETED, @CREADOPOR); SELECT LAST_INSERT_ID();";
                 var parametros = new ParameterList();
                 parametros.Add("@NOMBRE", local.nombre);
                 parametros.Add("@IDCIUDAD", local.idCiudad);
                 parametros.Add("@DIRECCION", local.direccion);
                 parametros.Add("@CAPACIDAD", local.capacidad);
+                parametros.Add("@IMAGENURL", local.imagenURL);
                 parametros.Add("@ISDELETED", local.isDeleted);
                 parametros.Add("@CREADOPOR", local.idAdministrador);
                 object result = DB.ExecuteScalar(query, parametros);
@@ -147,6 +148,7 @@ namespace EventodromoRest.Mappers
                     local.capacidad = DB.GetInt("CAPACIDAD");
                     local.isDeleted = DB.GetBoolean("ISDELETED");
                     local.idAdministrador = DB.GetInt("CREADOPOR");
+                    local.imagenURL = DB.GetString("IMAGENURL");
                     local.ciudad = ObtenerCiudadPorId(local.idCiudad);
                     local.administrador = ObtenerAdministradorPorId(local.idAdministrador);
                     return local;
@@ -290,12 +292,13 @@ namespace EventodromoRest.Mappers
         {
             lock (DB)
             {
-                string query = "UPDATE Local SET NOMBRE = @NOMBRE, IDCIUDAD = @IDCIUDAD, DIRECCION = @DIRECCION, CAPACIDAD = @CAPACIDAD WHERE ID = @ID";
+                string query = "UPDATE Local SET NOMBRE = @NOMBRE, IDCIUDAD = @IDCIUDAD, DIRECCION = @DIRECCION, CAPACIDAD = @CAPACIDAD, IMAGENURL = @IMAGENURL WHERE ID = @ID";
                 var parametros = new ParameterList();
                 parametros.Add("@NOMBRE", local.nombre);
                 parametros.Add("@IDCIUDAD", local.idCiudad);
                 parametros.Add("@DIRECCION", local.direccion);
                 parametros.Add("@CAPACIDAD", local.capacidad);
+                parametros.Add("@IMAGENURL", local.imagenURL);
                 parametros.Add("@ID", local.id);
                 int rowsAffected = DB.ExecuteNonQuery(query, parametros);
                 return rowsAffected;
