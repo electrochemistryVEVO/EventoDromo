@@ -153,7 +153,7 @@ const AuditoriaPage = () => {
                             {cliente.actividad.total}
                           </span>
                           <span className="text-sm text-green-600 font-medium">
-                            {cliente.actividad.puntosUsados} puntos usados
+                            {cliente.actividad.puntosUsados}
                           </span>
                         </div>
                       </td>

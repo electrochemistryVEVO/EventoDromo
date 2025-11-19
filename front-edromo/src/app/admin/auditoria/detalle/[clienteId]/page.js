@@ -15,7 +15,15 @@ import {
 const DetalleClientePage = ({ params }) => {
   const router = useRouter();
   const { clienteId } = use(params); // Unwrap params usando React.use()
-  const { cliente, isLoading, error } = useDetalleClienteController(clienteId);
+  const { 
+    cliente, 
+    isLoading,
+    isLoadingHistorial,
+    error, 
+    pageHistorial, 
+    totalPaginasHistorial, 
+    handlePageChange 
+  } = useDetalleClienteController(clienteId);
 
   // Mapeo de iconos según el tipo de actividad
   const getIconoActividad = (tipo) => {
@@ -235,77 +243,148 @@ const DetalleClientePage = ({ params }) => {
               </div>
 
               {/* Lista de actividades */}
-              <div className="space-y-4">
-                {cliente.historialActividades.map((actividad) => (
-                  <div
-                    key={actividad.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3 flex-1">
-                        {/* Icono */}
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${getColorActividad(
-                            actividad.tipo
-                          )}`}
-                        >
-                          {getIconoActividad(actividad.tipo)}
-                        </div>
-
-                        {/* Contenido */}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="inline-block px-3 py-1 bg-yellow-400 text-gray-900 text-xs font-medium rounded">
-                              {actividad.etiqueta}
-                            </span>
-                            {actividad.monto && (
-                              <span className="text-sm font-semibold text-gray-900">
-                                {actividad.monto}
-                              </span>
-                            )}
-                            {actividad.puntosUsados && (
-                              <span className="text-sm font-semibold text-purple-600">
-                                {actividad.puntosUsados}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-700">
-                            {actividad.descripcion}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Fecha y hora */}
-                      <div className="text-right text-sm text-gray-500 ml-4">
-                        {formatearFechaHora(actividad.fecha, actividad.hora)}
-                      </div>
+              <div className="space-y-4 min-h-[300px] relative">
+                {isLoadingHistorial ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                      <p className="text-gray-600 text-sm">Cargando actividades...</p>
                     </div>
                   </div>
-                ))}
+                ) : null}
+                
+                {cliente.historialActividades && cliente.historialActividades.length > 0 ? (
+                  cliente.historialActividades.map((actividad) => (
+                    <div
+                      key={actividad.id}
+                      className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3 flex-1">
+                          {/* Icono */}
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${getColorActividad(
+                              actividad.tipo
+                            )}`}
+                          >
+                            {getIconoActividad(actividad.tipo)}
+                          </div>
+
+                          {/* Contenido */}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="inline-block px-3 py-1 bg-yellow-400 text-gray-900 text-xs font-medium rounded">
+                                {actividad.etiqueta}
+                              </span>
+                              {actividad.monto && (
+                                <span className="text-sm font-semibold text-gray-900">
+                                  {actividad.monto}
+                                </span>
+                              )}
+                              {actividad.puntosUsados && (
+                                <span className="text-sm font-semibold text-purple-600">
+                                  {actividad.puntosUsados}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-700">
+                              {actividad.descripcion}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Fecha y hora */}
+                        <div className="text-right text-sm text-gray-500 ml-4">
+                          {formatearFechaHora(actividad.fecha, actividad.hora)}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-4xl text-gray-400">⟲</span>
+                    </div>
+                    <p className="text-gray-500 text-lg font-medium mb-2">
+                      No hay actividades registradas
+                    </p>
+                    <p className="text-gray-400 text-sm">
+                      Este cliente aún no tiene historial de actividades
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* Paginación (placeholder por ahora) */}
-              <div className="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-gray-200">
-                <button className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">
-                  ←
-                </button>
-                <button className="px-3 py-1 rounded border bg-teal-500 text-white border-teal-500">
-                  1
-                </button>
-                <button className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">
-                  2
-                </button>
-                <span className="px-2">...</span>
-                <button className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">
-                  9
-                </button>
-                <button className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">
-                  10
-                </button>
-                <button className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">
-                  →
-                </button>
-              </div>
+              {/* Paginación funcional */}
+              {totalPaginasHistorial > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-gray-200">
+                  {/* Botón anterior */}
+                  <button
+                    onClick={() => handlePageChange(pageHistorial - 1)}
+                    disabled={pageHistorial === 1}
+                    className={`px-3 py-1 rounded border ${
+                      pageHistorial === 1
+                        ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                        : "border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    ←
+                  </button>
+
+                  {/* Números de página */}
+                  {Array.from({ length: Math.min(totalPaginasHistorial, 5) }, (_, i) => {
+                    let pageNumber;
+                    if (totalPaginasHistorial <= 5) {
+                      pageNumber = i + 1;
+                    } else if (pageHistorial <= 3) {
+                      pageNumber = i + 1;
+                    } else if (pageHistorial >= totalPaginasHistorial - 2) {
+                      pageNumber = totalPaginasHistorial - 4 + i;
+                    } else {
+                      pageNumber = pageHistorial - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => handlePageChange(pageNumber)}
+                        className={`px-3 py-1 rounded border ${
+                          pageHistorial === pageNumber
+                            ? "bg-teal-500 text-white border-teal-500"
+                            : "border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  })}
+
+                  {totalPaginasHistorial > 5 && pageHistorial < totalPaginasHistorial - 2 && (
+                    <>
+                      <span className="px-2">...</span>
+                      <button
+                        onClick={() => handlePageChange(totalPaginasHistorial)}
+                        className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
+                      >
+                        {totalPaginasHistorial}
+                      </button>
+                    </>
+                  )}
+
+                  {/* Botón siguiente */}
+                  <button
+                    onClick={() => handlePageChange(pageHistorial + 1)}
+                    disabled={pageHistorial === totalPaginasHistorial}
+                    className={`px-3 py-1 rounded border ${
+                      pageHistorial === totalPaginasHistorial
+                        ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                        : "border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    →
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

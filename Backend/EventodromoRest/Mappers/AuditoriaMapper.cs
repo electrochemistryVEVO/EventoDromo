@@ -57,8 +57,9 @@ namespace EventodromoRest.Mappers
                         c.fechaUltimaSesion,
                         (SELECT COUNT(*) FROM Transaccion t WHERE t.idCliente = c.id) as totalCompras,
                         (SELECT COALESCE(SUM(t.montoTotal), 0) FROM Transaccion t WHERE t.idCliente = c.id) as gastoTotal,
-                        (SELECT COALESCE(SUM(p.cantidad - p.cantidadRestante), 0) 
-                         FROM Punto p WHERE p.idCliente = c.id) as puntosUsados,
+                        (SELECT COALESCE(SUM(CAST(a.monto AS DECIMAL(10,2))), 0) 
+                         FROM Auditoria a 
+                         WHERE a.idCliente = c.id AND a.idTipoAuditoria = 4) as puntosUsados,
                         (SELECT COUNT(*) FROM Auditoria a 
                          WHERE a.idCliente = c.id AND a.idTipoAuditoria = 2) as transferenciasEnviadas,
                         0 as transferenciasRecibidas
@@ -155,7 +156,7 @@ namespace EventodromoRest.Mappers
         /// <summary>
         /// Obtiene el detalle completo de un cliente para auditoría
         /// </summary>
-        public ClienteDetalleDTO? ObtenerDetalleClientePorId(int clienteId)
+        public ClienteDetalleDTO? ObtenerDetalleClientePorId(int clienteId, int pageHistorial = 1, int pageSizeHistorial = 5)
         {
             lock (DB)
             {
@@ -175,8 +176,9 @@ namespace EventodromoRest.Mappers
                          FROM Transaccion t WHERE t.idCliente = c.id) as gastoTotal,
                         (SELECT COUNT(*) FROM Auditoria a 
                          WHERE a.idCliente = c.id AND a.idTipoAuditoria = 2) as transferencias,
-                        (SELECT COALESCE(SUM(p.cantidad - p.cantidadRestante), 0) 
-                         FROM Punto p WHERE p.idCliente = c.id) as puntosUsados
+                        (SELECT COALESCE(SUM(CAST(a.monto AS DECIMAL(10,2))), 0) 
+                         FROM Auditoria a 
+                         WHERE a.idCliente = c.id AND a.idTipoAuditoria = 4) as puntosUsados
                     FROM Cliente c
                     LEFT JOIN TipoDocumento td ON c.idTipoDocumento = td.id
                     WHERE c.id = @clienteId";
@@ -199,108 +201,177 @@ namespace EventodromoRest.Mappers
                 int? transferenciasNullable = DB.GetInt("transferencias");
                 int? puntosUsadosDetalleNullable = DB.GetInt("puntosUsados");
                 
+                // Guardar los datos del cliente en variables locales
+                int idCliente = idDetalleNullable ?? 0;
+                string nombre = DB.GetString("nombres") ?? "";
+                string apellido = DB.GetString("apellidos") ?? "";
+                string email = DB.GetString("email") ?? "";
+                string tipoDocumento = DB.GetString("tipoDocumento") ?? "";
+                string numeroDocumento = DB.GetString("numeroDocumento") ?? "";
+                string telefono = DB.GetString("telefono") ?? "";
+                int puntos = puntosActualesNullable ?? 0;
+                int comprasTotales = comprasTotalesNullable ?? 0;
+                decimal gastoTotal = gastoTotalDetalleNullable ?? 0;
+                int transferencias = transferenciasNullable ?? 0;
+                int puntosUsados = puntosUsadosDetalleNullable ?? 0;
+
+                // IMPORTANTE: Cerrar el cursor del primer query antes de hacer otra consulta
+                DB.CloseReader();
+
+                // Obtener el historial de actividades paginado (sin lock porque ya estamos dentro de uno)
+                var (actividades, totalActividades) = ObtenerHistorialActividadesPaginadoInterno(clienteId, pageHistorial, pageSizeHistorial);
+
+                // Construir el DTO con los datos guardados
                 ClienteDetalleDTO detalle = new ClienteDetalleDTO
                 {
-                    Id = idDetalleNullable ?? 0,
-                    Nombre = DB.GetString("nombres") ?? "",
-                    Apellido = DB.GetString("apellidos") ?? "",
-                    Email = DB.GetString("email") ?? "",
-                    TipoDocumento = DB.GetString("tipoDocumento") ?? "",
-                    NumeroDocumento = DB.GetString("numeroDocumento") ?? "",
-                    Telefono = DB.GetString("telefono") ?? "",
-                    Puntos = puntosActualesNullable ?? 0,
+                    Id = idCliente,
+                    Nombre = nombre,
+                    Apellido = apellido,
+                    Email = email,
+                    TipoDocumento = tipoDocumento,
+                    NumeroDocumento = numeroDocumento,
+                    Telefono = telefono,
+                    Puntos = puntos,
                     Resumen = new ResumenClienteDTO
                     {
-                        ComprasTotales = comprasTotalesNullable ?? 0,
-                        GastoTotal = $"S/{gastoTotalDetalleNullable ?? 0:0}",
-                        Transferencias = transferenciasNullable ?? 0,
-                        PuntosUsados = puntosUsadosDetalleNullable ?? 0
+                        ComprasTotales = comprasTotales,
+                        GastoTotal = $"S/{gastoTotal:0}",
+                        Transferencias = transferencias,
+                        PuntosUsados = puntosUsados
                     },
                     HistorialActividades = new List<ActividadHistorialDTO>()
                 };
 
-                // Obtener el historial de actividades
-                detalle.HistorialActividades = ObtenerHistorialActividades(clienteId);
+                detalle.HistorialActividades = actividades;
+                
+                // Calcular total de páginas para el historial
+                detalle.TotalPaginasHistorial = totalActividades > 0 ? (int)Math.Ceiling((double)totalActividades / pageSizeHistorial) : 1;
+                detalle.PaginaActualHistorial = pageHistorial;
+                detalle.TotalActividades = totalActividades;
 
                 return detalle;
             }
         }
 
         /// <summary>
-        /// Obtiene el historial de actividades de un cliente desde la tabla Auditoria
+        /// Obtiene el historial de actividades de un cliente desde la tabla Auditoria (sin paginación - mantener por compatibilidad)
         /// </summary>
         public List<ActividadHistorialDTO> ObtenerHistorialActividades(int clienteId)
         {
-            List<ActividadHistorialDTO> historial = new List<ActividadHistorialDTO>();
-
             lock (DB)
             {
-                string query = @"
-                    SELECT 
-                        a.id,
-                        a.idTipoAuditoria,
-                        ta.nombre as etiqueta,
-                        ta.iconoURL as icono,
-                        a.descripcion,
-                        a.fechaHora,
-                        a.monto
-                    FROM Auditoria a
-                    INNER JOIN TipoAuditoria ta ON a.idTipoAuditoria = ta.id
-                    WHERE a.idCliente = @clienteId
-                    ORDER BY a.fechaHora DESC";
+                var (actividades, _) = ObtenerHistorialActividadesPaginadoInterno(clienteId, 1, int.MaxValue);
+                return actividades;
+            }
+        }
 
-                var parametros = new ParameterList();
-                parametros.Add("@clienteId", clienteId);
+        /// <summary>
+        /// Obtiene el historial de actividades de un cliente con paginación (público con lock)
+        /// </summary>
+        public (List<ActividadHistorialDTO>, int totalActividades) ObtenerHistorialActividadesPaginado(int clienteId, int page, int pageSize)
+        {
+            lock (DB)
+            {
+                return ObtenerHistorialActividadesPaginadoInterno(clienteId, page, pageSize);
+            }
+        }
 
-                DB.Select(query, parametros);
+        /// <summary>
+        /// Método interno sin lock para obtener el historial de actividades con paginación
+        /// IMPORTANTE: Este método debe ser llamado solo desde dentro de un bloque lock(DB)
+        /// </summary>
+        private (List<ActividadHistorialDTO>, int totalActividades) ObtenerHistorialActividadesPaginadoInterno(int clienteId, int page, int pageSize)
+        {
+            List<ActividadHistorialDTO> historial = new List<ActividadHistorialDTO>();
+            int totalActividades = 0;
 
-                while (DB.Read())
+            // NO usar lock aquí - el método que llama ya debe tener el lock
+            // Primero obtener el total de actividades
+            string queryCount = @"SELECT COUNT(*) FROM Auditoria WHERE idCliente = @clienteId";
+            var parametrosCount = new ParameterList();
+            parametrosCount.Add("@clienteId", clienteId);
+            object resultCount = DB.ExecuteScalar(queryCount, parametrosCount);
+            totalActividades = Convert.ToInt32(resultCount);
+
+            // Calcular offset
+            int offset = (page - 1) * pageSize;
+
+            // Query con paginación
+            string query = @"
+                SELECT 
+                    a.id,
+                    a.idTipoAuditoria,
+                    ta.nombre as etiqueta,
+                    ta.iconoURL as icono,
+                    a.descripcion,
+                    a.fechaHora,
+                    a.monto
+                FROM Auditoria a
+                INNER JOIN TipoAuditoria ta ON a.idTipoAuditoria = ta.id
+                WHERE a.idCliente = @clienteId
+                ORDER BY a.fechaHora DESC
+                LIMIT @pageSize OFFSET @offset";
+
+            var parametros = new ParameterList();
+            parametros.Add("@clienteId", clienteId);
+            parametros.Add("@pageSize", pageSize);
+            parametros.Add("@offset", offset);
+
+            DB.Select(query, parametros);
+
+            while (DB.Read())
+            {
+                int? idTipoAuditoriaNullable = DB.GetInt("idTipoAuditoria");
+                int idTipoAuditoria = idTipoAuditoriaNullable ?? 0;
+                
+                // Manejar monto que puede ser NULL
+                decimal? monto = null;
+                try
                 {
-                    int? idTipoAuditoriaNullable = DB.GetInt("idTipoAuditoria");
-                    int idTipoAuditoria = idTipoAuditoriaNullable ?? 0;
-                    decimal? monto = DB.GetDecimal("monto");
-                    
-                    // Manejar fechaHora que puede ser NULL
-                    DateTime? fechaHora = null;
-                    try
-                    {
-                        fechaHora = DB.GetDateTime("fechaHora");
-                    }
-                    catch { }
+                    monto = DB.GetDecimal("monto");
+                }
+                catch { }
+                
+                // Manejar fechaHora que puede ser NULL
+                DateTime? fechaHora = null;
+                try
+                {
+                    fechaHora = DB.GetDateTime("fechaHora");
+                }
+                catch { }
 
-                    // Mapear el tipo de auditoría al tipo esperado por el frontend
-                    string tipo = MapearTipoAuditoria(idTipoAuditoria);
+                // Mapear el tipo de auditoría al tipo esperado por el frontend
+                string tipo = MapearTipoAuditoria(idTipoAuditoria);
 
-                    int? idActividadNullable = DB.GetInt("id");
-                    
-                    ActividadHistorialDTO actividad = new ActividadHistorialDTO
-                    {
-                        Id = idActividadNullable ?? 0,
-                        Tipo = tipo,
-                        Icono = tipo, // El frontend usa el tipo como referencia del icono
-                        Etiqueta = DB.GetString("etiqueta") ?? "",
-                        Descripcion = DB.GetString("descripcion") ?? "",
-                        Fecha = fechaHora?.ToString("yyyy-MM-dd") ?? "N/A",
-                        Hora = fechaHora?.ToString("HH:mm:ss") ?? "N/A"
-                    };
+                int? idActividadNullable = DB.GetInt("id");
+                
+                ActividadHistorialDTO actividad = new ActividadHistorialDTO
+                {
+                    Id = idActividadNullable ?? 0,
+                    Tipo = tipo,
+                    Icono = tipo, // El frontend usa el tipo como referencia del icono
+                    Etiqueta = DB.GetString("etiqueta") ?? "",
+                    Descripcion = DB.GetString("descripcion") ?? "",
+                    Fecha = fechaHora?.ToString("yyyy-MM-dd") ?? "N/A",
+                    Hora = fechaHora?.ToString("HH:mm:ss") ?? "N/A"
+                };
 
-                    // Agregar monto si aplica (tipo 1: Compra)
-                    if (idTipoAuditoria == 1 && monto.HasValue)
-                    {
-                        actividad.Monto = $"S/ {monto.Value:0}";
-                    }
-
-                    // Agregar puntos usados si aplica (tipo 4: Uso de Puntos)
-                    if (idTipoAuditoria == 4 && monto.HasValue)
-                    {
-                        actividad.PuntosUsados = $"{monto.Value:0} DP";
-                    }
-
-                    historial.Add(actividad);
+                // Agregar monto si aplica (tipo 1: Compra)
+                if (idTipoAuditoria == 1 && monto.HasValue)
+                {
+                    actividad.Monto = $"S/ {monto.Value:0}";
                 }
 
-                return historial;
+                // Agregar puntos usados si aplica (tipo 4: Uso de Puntos)
+                if (idTipoAuditoria == 4 && monto.HasValue)
+                {
+                    actividad.PuntosUsados = $"{monto.Value:0} DP";
+                }
+
+                historial.Add(actividad);
             }
+
+            return (historial, totalActividades);
         }
 
         /// <summary>

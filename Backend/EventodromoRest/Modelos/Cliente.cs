@@ -205,6 +205,11 @@
         public int Puntos { get; set; }
         public ResumenClienteDTO Resumen { get; set; }
         public List<ActividadHistorialDTO> HistorialActividades { get; set; }
+        
+        // Propiedades para paginación del historial
+        public int TotalPaginasHistorial { get; set; }
+        public int PaginaActualHistorial { get; set; }
+        public int TotalActividades { get; set; }
     }
 
     public class ResumenClienteDTO
