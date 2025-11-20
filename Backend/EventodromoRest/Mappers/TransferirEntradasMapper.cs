@@ -10,6 +10,7 @@ namespace EventodromoRest.Mappers
         /// <summary>
         /// Obtiene los tipos de entrada disponibles para una transacción, evento y fecha específicos.
         /// Consulta optimizada con JOIN y GROUP BY para máxima velocidad.
+        /// ACTUALIZADO: Solo cuenta entradas que no han sido transferidas (vecesTransferida = 0).
         /// </summary>
         public List<TipoEntradaDisponibleDTO> ObtenerTiposEntradaDisponibles(
             string numeroTransaccion, 
@@ -34,6 +35,7 @@ namespace EventodromoRest.Mappers
                   AND EV.nombre = @tituloEvento
                   AND DATE(FE.fechaHora) = @fechaEvento
                   AND COALESCE(E.estadoTransferencia, 'disponible') = 'disponible'
+                  AND E.vecesTransferida = 0
                 GROUP BY TE.id, TE.nombre
                 ORDER BY TE.nombre;
             ";
@@ -66,6 +68,7 @@ namespace EventodromoRest.Mappers
         /// <summary>
         /// Valida que las entradas existan y estén disponibles para transferir.
         /// Retorna true si todas las validaciones pasan.
+        /// ACTUALIZADO: Solo cuenta entradas que nunca han sido transferidas (vecesTransferida = 0).
         /// </summary>
         public bool ValidarEntradasDisponibles(List<EntradaATransferirDTO> entradas)
         {
@@ -78,7 +81,7 @@ namespace EventodromoRest.Mappers
                     INNER JOIN Entrada E ON LT.idEntrada = E.id
                     WHERE T.numeroTransaccion = @numeroTransaccion
                       AND E.idTipoEntrada = @idTipoEntrada
-                      AND E.estadoTransferencia = 'disponible'
+                      AND COALESCE(E.estadoTransferencia, 'disponible') = 'disponible'
                       AND E.vecesTransferida = 0
                     LIMIT @cantidad;
                 ";
@@ -162,8 +165,9 @@ namespace EventodromoRest.Mappers
 
         /// <summary>
         /// Confirma la transferencia (cuando el destinatario acepta).
-        /// Actualiza estadoTransferencia a 'disponible' (para el nuevo dueño), 
+        /// Marca las entradas como 'transferida' (no se pueden volver a transferir),
         /// incrementa vecesTransferida y cambia idClienteActual al nuevo dueño.
+        /// Las entradas ahora aparecen en una transacción nueva del destinatario.
         /// </summary>
         public bool ConfirmarTransferencia(List<int> idsEntradas, int? idClienteNuevo = null)
         {
@@ -179,7 +183,7 @@ namespace EventodromoRest.Mappers
             
             string sql = $@"
                 UPDATE Entrada 
-                SET estadoTransferencia = 'disponible',
+                SET estadoTransferencia = 'transferida',
                     vecesTransferida = vecesTransferida + 1
                     {updateClienteActual}
                 WHERE id IN ({idsString})
@@ -492,6 +496,146 @@ namespace EventodromoRest.Mappers
             {
                 var nombre = DB.ExecuteScalar(sql, parametros);
                 return nombre?.ToString() ?? $"Tipo {idTipoEntrada}";
+            }
+        }
+
+        /// <summary>
+        /// Crea una nueva transacción para las entradas transferidas y aceptadas.
+        /// Esto permite que el destinatario vea solo SUS entradas en una transacción separada.
+        /// </summary>
+        public int? CrearTransaccionParaTransferencia(
+            int idClienteDestinatario,
+            TransferenciaPendiente transferencia,
+            List<int> idsEntradas)
+        {
+            try
+            {
+                lock (DB)
+                {
+                    // 1. Crear un carrito para el destinatario
+                    string sqlCarrito = @"
+                        INSERT INTO Carrito (idCliente, fechaCreacion)
+                        VALUES (@idCliente, NOW());
+                    ";
+
+                    var parametrosCarrito = new ParameterList();
+                    parametrosCarrito.Add("@idCliente", idClienteDestinatario);
+
+                    DB.ExecuteNonQuery(sqlCarrito, parametrosCarrito);
+                    
+                    // Obtener el ID del carrito recién creado
+                    string sqlGetCarrito = "SELECT LAST_INSERT_ID();";
+                    int idCarrito = Convert.ToInt32(DB.ExecuteScalar(sqlGetCarrito, new ParameterList()));
+
+                    // 2. Obtener datos del destinatario para la transacción
+                    string sqlCliente = @"
+                        SELECT c.nombres, c.apellidos, c.email, c.numeroDocumento, c.idTipoDocumento
+                        FROM Cliente c
+                        WHERE c.id = @idCliente;
+                    ";
+
+                    var parametrosCliente = new ParameterList();
+                    parametrosCliente.Add("@idCliente", idClienteDestinatario);
+
+                    string nombresCliente = "";
+                    string apellidosCliente = "";
+                    string emailCliente = "";
+                    string numeroDocumento = "";
+                    int idTipoDocumento = 1;
+
+                    DB.Select(sqlCliente, parametrosCliente);
+                    if (DB.Read())
+                    {
+                        nombresCliente = DB.GetString("nombres") ?? "";
+                        apellidosCliente = DB.GetString("apellidos") ?? "";
+                        emailCliente = DB.GetString("email") ?? "";
+                        numeroDocumento = DB.GetString("numeroDocumento") ?? "";
+                        idTipoDocumento = DB.GetInt("idTipoDocumento");
+                    }
+                    DB.CloseReader();
+
+                    // 3. Crear la transacción
+                    string numeroTransaccion = $"TRF{DateTime.Now:yyyyMMddHHmmss}{idClienteDestinatario}";
+
+                    string sqlTransaccion = @"
+                        INSERT INTO Transaccion 
+                        (idCarrito, fechaHoraCompra, numeroTransaccion, nombresCliente, apellidosCliente, 
+                         emailCliente, numeroDocumentoCliente, idTipoDocumento, montoTotal)
+                        VALUES 
+                        (@idCarrito, NOW(), @numeroTransaccion, @nombresCliente, @apellidosCliente,
+                         @emailCliente, @numeroDocumento, @idTipoDocumento, 0);
+                    ";
+
+                    var parametrosTransaccion = new ParameterList();
+                    parametrosTransaccion.Add("@idCarrito", idCarrito);
+                    parametrosTransaccion.Add("@numeroTransaccion", numeroTransaccion);
+                    parametrosTransaccion.Add("@nombresCliente", nombresCliente);
+                    parametrosTransaccion.Add("@apellidosCliente", apellidosCliente);
+                    parametrosTransaccion.Add("@emailCliente", emailCliente);
+                    parametrosTransaccion.Add("@numeroDocumento", numeroDocumento);
+                    parametrosTransaccion.Add("@idTipoDocumento", idTipoDocumento);
+
+                    DB.ExecuteNonQuery(sqlTransaccion, parametrosTransaccion);
+                    
+                    // Obtener el ID de la transacción recién creada
+                    string sqlGetTransaccion = "SELECT LAST_INSERT_ID();";
+                    int idTransaccion = Convert.ToInt32(DB.ExecuteScalar(sqlGetTransaccion, new ParameterList()));
+
+                    // 4. Crear líneas de transacción para las entradas transferidas
+                    foreach (int idEntrada in idsEntradas)
+                    {
+                        // Obtener el precio de la entrada original
+                        string sqlPrecio = @"
+                            SELECT LT.precio
+                            FROM LineaTransaccion LT
+                            WHERE LT.idEntrada = @idEntrada
+                            LIMIT 1;
+                        ";
+
+                        var parametrosPrecio = new ParameterList();
+                        parametrosPrecio.Add("@idEntrada", idEntrada);
+
+                        decimal precio = 0;
+                        var result = DB.ExecuteScalar(sqlPrecio, parametrosPrecio);
+                        if (result != null)
+                        {
+                            precio = Convert.ToDecimal(result);
+                        }
+
+                        // Crear línea de transacción
+                        string sqlLinea = @"
+                            INSERT INTO LineaTransaccion (idTransaccion, idEntrada, precio)
+                            VALUES (@idTransaccion, @idEntrada, @precio);
+                        ";
+
+                        var parametrosLinea = new ParameterList();
+                        parametrosLinea.Add("@idTransaccion", idTransaccion);
+                        parametrosLinea.Add("@idEntrada", idEntrada);
+                        parametrosLinea.Add("@precio", precio);
+
+                        DB.ExecuteNonQuery(sqlLinea, parametrosLinea);
+                    }
+
+                    // 5. Vincular la transacción con la transferencia
+                    string sqlVinculo = @"
+                        INSERT INTO TransaccionTransferencia (idTransaccion, idTransferenciaPendiente)
+                        VALUES (@idTransaccion, @idTransferencia);
+                    ";
+
+                    var parametrosVinculo = new ParameterList();
+                    parametrosVinculo.Add("@idTransaccion", idTransaccion);
+                    parametrosVinculo.Add("@idTransferencia", transferencia.Id);
+
+                    DB.ExecuteNonQuery(sqlVinculo, parametrosVinculo);
+
+                    return idTransaccion;
+                } // Fin del lock
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creando transacción para transferencia: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                return null;
             }
         }
     }

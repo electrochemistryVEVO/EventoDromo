@@ -29,9 +29,9 @@ namespace EventodromoRest.Mappers
             ";
 
             // --- 2. WHERE DINÁMICO ---
-            // ACTUALIZADO: Considerar tanto el cliente original como las entradas transferidas
-            string sqlWhere = @" WHERE (CA.idCliente = @idCliente OR E.idClienteActual = @idCliente) 
-                                 AND COALESCE(E.estadoTransferencia, 'disponible') != 'pendiente' ";
+            // Filtramos solo por el cliente del carrito
+            // Las entradas transferidas se muestran en una transacción separada creada para el destinatario
+            string sqlWhere = " WHERE CA.idCliente = @idCliente ";
 
             if (!string.IsNullOrEmpty(filtros.fechaInicio))
             {

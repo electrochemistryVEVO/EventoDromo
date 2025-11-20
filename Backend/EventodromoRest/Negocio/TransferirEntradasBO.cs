@@ -343,6 +343,35 @@ namespace EventodromoRest.Negocio
                     // Obtener el ID del cliente destinatario por email
                     int? idClienteDestinatario = mapper.ObtenerIdClientePorEmail(transferencia.EmailDestino);
                     
+                    if (!idClienteDestinatario.HasValue)
+                    {
+                        return new GenericResponse<string>
+                        {
+                            Success = false,
+                            Message = "Destinatario no encontrado",
+                            Data = null,
+                            Error = "No se pudo encontrar el cliente destinatario"
+                        };
+                    }
+                    
+                    // Crear nueva transacción para el destinatario
+                    int? idNuevaTransaccion = mapper.CrearTransaccionParaTransferencia(
+                        idClienteDestinatario.Value,
+                        transferencia,
+                        idsEntradasAfectadas
+                    );
+                    
+                    if (!idNuevaTransaccion.HasValue)
+                    {
+                        return new GenericResponse<string>
+                        {
+                            Success = false,
+                            Message = "Error al crear transacción",
+                            Data = null,
+                            Error = "No se pudo crear la transacción para las entradas transferidas"
+                        };
+                    }
+                    
                     // Confirmar la transferencia y cambiar dueño
                     bool confirmado = mapper.ConfirmarTransferencia(idsEntradasAfectadas, idClienteDestinatario);
                     
