@@ -79,6 +79,7 @@ namespace EventodromoRest.Mappers
                     WHERE T.numeroTransaccion = @numeroTransaccion
                       AND E.idTipoEntrada = @idTipoEntrada
                       AND E.estadoTransferencia = 'disponible'
+                      AND E.vecesTransferida = 0
                     LIMIT @cantidad;
                 ";
 
@@ -102,55 +103,326 @@ namespace EventodromoRest.Mappers
         }
 
         /// <summary>
-        /// Marca las entradas como transferidas (cambia su estado).
-        /// Actualiza el estado en la BD y retorna el total de entradas transferidas.
+        /// Marca las entradas como pendientes y retorna los IDs de las entradas afectadas.
         /// </summary>
-        public int MarcarEntradasComoTransferidas(List<EntradaATransferirDTO> entradas, string emailDestino)
+        public List<int> MarcarEntradasComoPendientes(List<EntradaATransferirDTO> entradas, string emailDestino)
         {
-            // TODO en Fase 2: Sistema de notificaciones por correo
-            // Operaciones pendientes:
-            // 1. Crear registro en tabla de historial de transferencias
-            // 2. Enviar correo electrónico al destinatario
-            // 3. Enviar correo de confirmación al remitente
-            
-            int totalTransferidas = 0;
+            List<int> idsEntradasAfectadas = new List<int>();
             
             foreach (var entrada in entradas)
             {
-                // Actualizar estado de las entradas en la tabla Entrada
-                // Usamos subquery para evitar el error "Incorrect usage of UPDATE and LIMIT"
-                string sql = @"
-                    UPDATE Entrada 
-                    SET estadoTransferencia = 'transferida'
-                    WHERE id IN (
-                        SELECT E.id
-                        FROM (
-                            SELECT E2.id
-                            FROM Entrada E2
-                            INNER JOIN LineaTransaccion LT ON E2.id = LT.idEntrada
-                            INNER JOIN Transaccion T ON LT.idTransaccion = T.id
-                            WHERE T.numeroTransaccion = @numeroTransaccion
-                              AND E2.idTipoEntrada = @idTipoEntrada
-                              AND COALESCE(E2.estadoTransferencia, 'disponible') = 'disponible'
-                            LIMIT @cantidad
-                        ) AS E
-                    );
+                // Obtener los IDs de las entradas que vamos a marcar como pendientes
+                string sqlSelect = @"
+                    SELECT E2.id
+                    FROM Entrada E2
+                    INNER JOIN LineaTransaccion LT ON E2.id = LT.idEntrada
+                    INNER JOIN Transaccion T ON LT.idTransaccion = T.id
+                    WHERE T.numeroTransaccion = @numeroTransaccion
+                      AND E2.idTipoEntrada = @idTipoEntrada
+                      AND COALESCE(E2.estadoTransferencia, 'disponible') = 'disponible'
+                      AND E2.vecesTransferida = 0
+                    LIMIT @cantidad;
                 ";
 
-                var parametros = new ParameterList();
-                parametros.Add("@numeroTransaccion", entrada.numeroTransaccion);
-                parametros.Add("@idTipoEntrada", entrada.idTipoEntrada);
-                parametros.Add("@cantidad", entrada.cantidad);
+                var parametrosSelect = new ParameterList();
+                parametrosSelect.Add("@numeroTransaccion", entrada.numeroTransaccion);
+                parametrosSelect.Add("@idTipoEntrada", entrada.idTipoEntrada);
+                parametrosSelect.Add("@cantidad", entrada.cantidad);
 
                 lock (DB)
                 {
-                    DB.ExecuteNonQuery(sql, parametros);
+                    DB.Select(sqlSelect, parametrosSelect);
+                    
+                    List<int> idsTemp = new List<int>();
+                    while (DB.Read())
+                    {
+                        int idEntrada = DB.GetInt("id");
+                        idsTemp.Add(idEntrada);
+                        idsEntradasAfectadas.Add(idEntrada);
+                    }
+                    DB.CloseReader();
+
+                    // Ahora actualizar esas entradas específicas
+                    if (idsTemp.Count > 0)
+                    {
+                        string idsString = string.Join(",", idsTemp);
+                        string sqlUpdate = $@"
+                            UPDATE Entrada 
+                            SET estadoTransferencia = 'pendiente'
+                            WHERE id IN ({idsString});
+                        ";
+                        
+                        DB.ExecuteNonQuery(sqlUpdate, new ParameterList());
+                    }
                 }
-                
-                totalTransferidas += entrada.cantidad;
             }
 
-            return totalTransferidas;
+            return idsEntradasAfectadas;
+        }
+
+        /// <summary>
+        /// Confirma la transferencia (cuando el destinatario acepta).
+        /// Actualiza estadoTransferencia a 'disponible' (para el nuevo dueño), 
+        /// incrementa vecesTransferida y cambia idClienteActual al nuevo dueño.
+        /// </summary>
+        public bool ConfirmarTransferencia(List<int> idsEntradas, int? idClienteNuevo = null)
+        {
+            if (idsEntradas == null || idsEntradas.Count == 0)
+                return false;
+
+            string idsString = string.Join(",", idsEntradas);
+            
+            // Si se proporciona idClienteNuevo, actualizarlo también
+            string updateClienteActual = idClienteNuevo.HasValue 
+                ? $", idClienteActual = {idClienteNuevo.Value}" 
+                : "";
+            
+            string sql = $@"
+                UPDATE Entrada 
+                SET estadoTransferencia = 'disponible',
+                    vecesTransferida = vecesTransferida + 1
+                    {updateClienteActual}
+                WHERE id IN ({idsString})
+                  AND estadoTransferencia = 'pendiente';
+            ";
+
+            lock (DB)
+            {
+                int rowsAffected = DB.ExecuteNonQuery(sql, new ParameterList());
+                return rowsAffected > 0;
+            }
+        }
+
+        /// <summary>
+        /// Cancela la transferencia (cuando el destinatario rechaza o expira).
+        /// Regresa las entradas al estado 'disponible'.
+        /// </summary>
+        public bool CancelarTransferencia(List<int> idsEntradas)
+        {
+            if (idsEntradas == null || idsEntradas.Count == 0)
+                return false;
+
+            string idsString = string.Join(",", idsEntradas);
+            string sql = $@"
+                UPDATE Entrada 
+                SET estadoTransferencia = 'disponible'
+                WHERE id IN ({idsString})
+                  AND estadoTransferencia = 'pendiente';
+            ";
+
+            lock (DB)
+            {
+                int rowsAffected = DB.ExecuteNonQuery(sql, new ParameterList());
+                return rowsAffected > 0;
+            }
+        }
+
+        /// <summary>
+        /// Registra una nueva transferencia pendiente en la base de datos.
+        /// </summary>
+        public bool RegistrarTransferenciaPendiente(TransferenciaPendiente transferencia)
+        {
+            string sql = @"
+                INSERT INTO TransferenciaPendiente 
+                (token, numeroTransaccion, emailRemitente, emailDestino, cantidadEntradas, detalleEntradas, estado, fechaCreacion, fechaExpiracion)
+                VALUES 
+                (@token, @numeroTransaccion, @emailRemitente, @emailDestino, @cantidadEntradas, @detalleEntradas, @estado, @fechaCreacion, @fechaExpiracion);
+            ";
+
+            var parametros = new ParameterList();
+            parametros.Add("@token", transferencia.Token);
+            parametros.Add("@numeroTransaccion", transferencia.NumeroTransaccion);
+            parametros.Add("@emailRemitente", transferencia.EmailRemitente);
+            parametros.Add("@emailDestino", transferencia.EmailDestino);
+            parametros.Add("@cantidadEntradas", transferencia.CantidadEntradas);
+            parametros.Add("@detalleEntradas", transferencia.DetalleEntradas);
+            parametros.Add("@estado", transferencia.Estado);
+            parametros.Add("@fechaCreacion", transferencia.FechaCreacion);
+            parametros.Add("@fechaExpiracion", transferencia.FechaExpiracion);
+
+            lock (DB)
+            {
+                try
+                {
+                    int rowsAffected = DB.ExecuteNonQuery(sql, parametros);
+                    return rowsAffected > 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Obtiene una transferencia pendiente por su token.
+        /// </summary>
+        public TransferenciaPendiente? ObtenerTransferenciaPorToken(string token)
+        {
+            string sql = @"
+                SELECT id, token, numeroTransaccion, emailRemitente, emailDestino, 
+                       cantidadEntradas, detalleEntradas, estado, fechaCreacion, fechaExpiracion, fechaRespuesta
+                FROM TransferenciaPendiente
+                WHERE token = @token;
+            ";
+
+            var parametros = new ParameterList();
+            parametros.Add("@token", token);
+
+            lock (DB)
+            {
+                DB.Select(sql, parametros);
+
+                if (DB.Read())
+                {
+                    var transferencia = new TransferenciaPendiente
+                    {
+                        Id = DB.GetInt("id"),
+                        Token = DB.GetString("token"),
+                        NumeroTransaccion = DB.GetString("numeroTransaccion"),
+                        EmailRemitente = DB.GetString("emailRemitente"),
+                        EmailDestino = DB.GetString("emailDestino"),
+                        CantidadEntradas = DB.GetInt("cantidadEntradas"),
+                        DetalleEntradas = DB.GetString("detalleEntradas"),
+                        Estado = DB.GetString("estado"),
+                        FechaCreacion = DB.GetDateTime("fechaCreacion"),
+                        FechaExpiracion = DB.GetDateTime("fechaExpiracion"),
+                        FechaRespuesta = DB.GetNullableDateTime("fechaRespuesta")
+                    };
+
+                    DB.CloseReader();
+                    return transferencia;
+                }
+
+                DB.CloseReader();
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Actualiza el estado de una transferencia pendiente.
+        /// </summary>
+        public bool ActualizarEstadoTransferencia(string token, string nuevoEstado)
+        {
+            string sql = @"
+                UPDATE TransferenciaPendiente
+                SET estado = @estado, fechaRespuesta = @fechaRespuesta
+                WHERE token = @token;
+            ";
+
+            var parametros = new ParameterList();
+            parametros.Add("@token", token);
+            parametros.Add("@estado", nuevoEstado);
+            parametros.Add("@fechaRespuesta", DateTime.Now);
+
+            lock (DB)
+            {
+                int rowsAffected = DB.ExecuteNonQuery(sql, parametros);
+                return rowsAffected > 0;
+            }
+        }
+
+        /// <summary>
+        /// Obtiene el ID del cliente remitente a partir del número de transacción.
+        /// </summary>
+        public int? ObtenerIdClientePorTransaccion(string? numeroTransaccion)
+        {
+            if (string.IsNullOrWhiteSpace(numeroTransaccion))
+                return null;
+
+            string sql = @"
+                SELECT idCliente
+                FROM Transaccion
+                WHERE numeroTransaccion = @numeroTransaccion;
+            ";
+
+            var parametros = new ParameterList();
+            parametros.Add("@numeroTransaccion", numeroTransaccion);
+
+            lock (DB)
+            {
+                DB.Select(sql, parametros);
+
+                if (DB.Read())
+                {
+                    int? idCliente = DB.GetInt("idCliente");
+                    DB.CloseReader();
+                    return idCliente;
+                }
+
+                DB.CloseReader();
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Obtiene el nombre del evento asociado a una transacción.
+        /// </summary>
+        public string ObtenerNombreEventoPorTransaccion(string numeroTransaccion)
+        {
+            string sql = @"
+                SELECT EV.nombre
+                FROM Transaccion T
+                INNER JOIN LineaTransaccion LT ON T.id = LT.idTransaccion
+                INNER JOIN Entrada E ON LT.idEntrada = E.id
+                INNER JOIN TipoEntrada TE ON E.idTipoEntrada = TE.id
+                INNER JOIN FechaEvento FE ON TE.idFechaEvento = FE.id
+                INNER JOIN Evento EV ON FE.idEvento = EV.id
+                WHERE T.numeroTransaccion = @numeroTransaccion
+                LIMIT 1;
+            ";
+
+            var parametros = new ParameterList();
+            parametros.Add("@numeroTransaccion", numeroTransaccion);
+
+            lock (DB)
+            {
+                DB.Select(sql, parametros);
+
+                if (DB.Read())
+                {
+                    string? nombre = DB.GetString("nombre");
+                    DB.CloseReader();
+                    return nombre ?? "evento";
+                }
+
+                DB.CloseReader();
+                return "evento";
+            }
+        }
+
+        /// <summary>
+        /// Obtiene el ID del cliente destinatario a partir de su email.
+        /// </summary>
+        public int? ObtenerIdClientePorEmail(string? email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return null;
+
+            string sql = @"
+                SELECT id
+                FROM Cliente
+                WHERE email = @email
+                LIMIT 1;
+            ";
+
+            var parametros = new ParameterList();
+            parametros.Add("@email", email);
+
+            lock (DB)
+            {
+                DB.Select(sql, parametros);
+
+                if (DB.Read())
+                {
+                    int? idCliente = DB.GetInt("id");
+                    DB.CloseReader();
+                    return idCliente;
+                }
+
+                DB.CloseReader();
+                return null;
+            }
         }
 
         /// <summary>
@@ -200,6 +472,27 @@ namespace EventodromoRest.Mappers
             }
 
             return resultado;
+        }
+
+        /// <summary>
+        /// Obtiene el nombre de un tipo de entrada por su ID.
+        /// </summary>
+        public string ObtenerNombreTipoEntrada(int idTipoEntrada)
+        {
+            string sql = @"
+                SELECT nombre 
+                FROM TipoEntrada 
+                WHERE id = @idTipoEntrada;
+            ";
+
+            var parametros = new ParameterList();
+            parametros.Add("@idTipoEntrada", idTipoEntrada);
+
+            lock (DB)
+            {
+                var nombre = DB.ExecuteScalar(sql, parametros);
+                return nombre?.ToString() ?? $"Tipo {idTipoEntrada}";
+            }
         }
     }
 }

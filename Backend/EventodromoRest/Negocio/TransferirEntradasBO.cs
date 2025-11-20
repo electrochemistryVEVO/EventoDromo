@@ -1,13 +1,17 @@
 using EventodromoRest.Mappers;
 using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
+using EventodromoRest.Servicios;
+using Microsoft.Extensions.Configuration;
+using System.Text.Json;
 
 namespace EventodromoRest.Negocio
 {
-    public class TransferirEntradasBO(Globales.Globales globales, DBManager.DBManager DB)
+    public class TransferirEntradasBO(Globales.Globales globales, DBManager.DBManager DB, IConfiguration configuration)
     {
         private readonly DBManager.DBManager DB = DB;
         private readonly Globales.Globales globales = globales;
+        private readonly IConfiguration _configuration = configuration;
 
         /// <summary>
         /// Obtiene los tipos de entrada disponibles para transferir de una transacción específica.
@@ -114,23 +118,99 @@ namespace EventodromoRest.Negocio
                     };
                 }
 
-                // FASE 1: Marcar entradas como transferidas en BD
-                // En Fase 2 se implementará:
-                // - Envío de correos electrónicos
-                // - Registro en historial de transferencias con más detalle
+                // Marcar entradas como pendientes y obtener los IDs afectados
+                List<int> idsEntradasTransferidas = mapper.MarcarEntradasComoPendientes(request.entradas, request.emailDestino);
                 
-                int totalTransferidas = mapper.MarcarEntradasComoTransferidas(request.entradas, request.emailDestino);
+                if (idsEntradasTransferidas.Count == 0)
+                {
+                    return new GenericResponse<TransferirEntradasResponse>
+                    {
+                        Success = false,
+                        Message = "No se pudieron marcar las entradas",
+                        Data = null,
+                        Error = "No se encontraron entradas para transferir"
+                    };
+                }
+
+                // Generar token único para esta transferencia (no usar TokenService, solo Guid)
+                string tokenTransferencia = Guid.NewGuid().ToString("N"); // Token simple para la transferencia
+                
+                // Registrar la transferencia pendiente en la tabla
+                var transferenciaPendiente = new TransferenciaPendiente
+                {
+                    Token = tokenTransferencia,
+                    NumeroTransaccion = request.entradas[0].numeroTransaccion,
+                    EmailRemitente = request.emailRemitente ?? "",
+                    EmailDestino = request.emailDestino,
+                    CantidadEntradas = idsEntradasTransferidas.Count,
+                    DetalleEntradas = JsonSerializer.Serialize(idsEntradasTransferidas),
+                    Estado = "pendiente",
+                    FechaCreacion = DateTime.Now,
+                    FechaExpiracion = DateTime.Now.AddHours(24)
+                };
+
+                bool registroExitoso = mapper.RegistrarTransferenciaPendiente(transferenciaPendiente);
+                
+                if (!registroExitoso)
+                {
+                    // Si falla el registro, revertir el estado de las entradas
+                    mapper.CancelarTransferencia(idsEntradasTransferidas);
+                    
+                    return new GenericResponse<TransferirEntradasResponse>
+                    {
+                        Success = false,
+                        Message = "Error al registrar transferencia",
+                        Data = null,
+                        Error = "No se pudo completar el registro de la transferencia"
+                    };
+                }
+
+                // Obtener información del evento para el email
+                string nombreEvento = ObtenerNombreEventoPorTransaccion(request.entradas[0].numeroTransaccion);
+                
+                // Enviar emails - Obtener nombres de tipos de entrada en vez de IDs
+                var emailService = new EmailService();
+                var tiposEntradaTexto = request.entradas.Select(e => 
+                {
+                    string nombreTipo = mapper.ObtenerNombreTipoEntrada(e.idTipoEntrada);
+                    return $"{e.cantidad}x {nombreTipo}";
+                }).ToList();
+                
+                // Email al destinatario con botones de aceptar/rechazar
+                string urlBase = _configuration["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
+                emailService.EnviarEmailDestinatarioTransferencia(
+                    request.emailDestino,
+                    request.nombreRemitente ?? "Un usuario",
+                    nombreEvento,
+                    idsEntradasTransferidas.Count,
+                    tiposEntradaTexto,
+                    tokenTransferencia,
+                    urlBase
+                );
+
+                // Email al remitente confirmando el envío
+                if (!string.IsNullOrWhiteSpace(request.emailRemitente))
+                {
+                    emailService.EnviarEmailRemitenteTransferencia(
+                        request.emailRemitente,
+                        request.nombreRemitente ?? "Usuario",
+                        nombreEvento,
+                        request.emailDestino,
+                        idsEntradasTransferidas.Count,
+                        tiposEntradaTexto
+                    );
+                }
 
                 var response = new TransferirEntradasResponse
                 {
                     emailDestino = request.emailDestino,
-                    totalEntradas = totalTransferidas
+                    totalEntradas = idsEntradasTransferidas.Count
                 };
 
                 return new GenericResponse<TransferirEntradasResponse>
                 {
                     Success = true,
-                    Message = "Transferencia realizada exitosamente",
+                    Message = "Transferencia enviada exitosamente. El destinatario tiene 24 horas para aceptarla.",
                     Data = response,
                     Error = null
                 };
@@ -141,6 +221,194 @@ namespace EventodromoRest.Negocio
                 {
                     Success = false,
                     Message = "Error al transferir entradas",
+                    Data = null,
+                    Error = ex.Message
+                };
+            }
+        }
+
+        /// <summary>
+        /// Obtiene el nombre del evento asociado a una transacción.
+        /// </summary>
+        private string ObtenerNombreEventoPorTransaccion(string? numeroTransaccion)
+        {
+            if (string.IsNullOrWhiteSpace(numeroTransaccion))
+                return "evento";
+
+            try
+            {
+                var mapper = new TransferirEntradasMapper(globales, DB);
+                return mapper.ObtenerNombreEventoPorTransaccion(numeroTransaccion);
+            }
+            catch
+            {
+                return "evento";
+            }
+        }
+
+        /// <summary>
+        /// Procesa la respuesta del destinatario (aceptar o rechazar transferencia).
+        /// </summary>
+        public GenericResponse<string> ResponderTransferencia(ResponderTransferenciaRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.Token))
+                {
+                    return new GenericResponse<string>
+                    {
+                        Success = false,
+                        Message = "Token inválido",
+                        Data = null,
+                        Error = "Debe proporcionar un token válido"
+                    };
+                }
+
+                var mapper = new TransferirEntradasMapper(globales, DB);
+                
+                // Buscar la transferencia pendiente
+                var transferencia = mapper.ObtenerTransferenciaPorToken(request.Token);
+                
+                if (transferencia == null)
+                {
+                    return new GenericResponse<string>
+                    {
+                        Success = false,
+                        Message = "Transferencia no encontrada",
+                        Data = null,
+                        Error = "El token proporcionado no existe o ya fue procesado"
+                    };
+                }
+
+                if (transferencia.Estado != "pendiente")
+                {
+                    return new GenericResponse<string>
+                    {
+                        Success = false,
+                        Message = $"Transferencia ya {transferencia.Estado}",
+                        Data = null,
+                        Error = $"Esta transferencia ya fue {transferencia.Estado}"
+                    };
+                }
+
+                if (DateTime.Now > transferencia.FechaExpiracion)
+                {
+                    // Marcar como expirada y devolver entradas
+                    mapper.ActualizarEstadoTransferencia(request.Token, "expirada");
+                    
+                    if (!string.IsNullOrWhiteSpace(transferencia.DetalleEntradas))
+                    {
+                        List<int>? idsEntradas = JsonSerializer.Deserialize<List<int>>(transferencia.DetalleEntradas);
+                        if (idsEntradas != null && idsEntradas.Count > 0)
+                        {
+                            mapper.CancelarTransferencia(idsEntradas);
+                        }
+                    }
+                    
+                    return new GenericResponse<string>
+                    {
+                        Success = false,
+                        Message = "Transferencia expirada",
+                        Data = null,
+                        Error = "Esta transferencia ha expirado (más de 24 horas)"
+                    };
+                }
+
+                if (string.IsNullOrWhiteSpace(transferencia.DetalleEntradas))
+                {
+                    return new GenericResponse<string>
+                    {
+                        Success = false,
+                        Message = "Datos de transferencia incompletos",
+                        Data = null,
+                        Error = "La transferencia no tiene detalles válidos"
+                    };
+                }
+
+                List<int>? idsEntradasAfectadas = JsonSerializer.Deserialize<List<int>>(transferencia.DetalleEntradas);
+                
+                if (idsEntradasAfectadas == null || idsEntradasAfectadas.Count == 0)
+                {
+                    return new GenericResponse<string>
+                    {
+                        Success = false,
+                        Message = "No se pudieron procesar las entradas",
+                        Data = null,
+                        Error = "Los datos de las entradas no son válidos"
+                    };
+                }
+
+                if (request.Accion?.ToLower() == "aceptar")
+                {
+                    // Obtener el ID del cliente destinatario por email
+                    int? idClienteDestinatario = mapper.ObtenerIdClientePorEmail(transferencia.EmailDestino);
+                    
+                    // Confirmar la transferencia y cambiar dueño
+                    bool confirmado = mapper.ConfirmarTransferencia(idsEntradasAfectadas, idClienteDestinatario);
+                    
+                    if (confirmado)
+                    {
+                        mapper.ActualizarEstadoTransferencia(request.Token, "aceptada");
+                        
+                        // Registrar en auditoría (tipo 2 = Transferencia Enviada)
+                        int? idClienteRemitente = mapper.ObtenerIdClientePorTransaccion(transferencia.NumeroTransaccion);
+                        
+                        if (idClienteRemitente.HasValue)
+                        {
+                            var auditoriaMapper = new AuditoriaMapper(globales, DB);
+                            var auditoria = new Auditoria
+                            {
+                                idcliente = idClienteRemitente.Value,
+                                idtipoauditoria = 2, // Tipo: Transferencia Enviada
+                                descripcion = $"Transferencia de {transferencia.CantidadEntradas} entrada(s) a {transferencia.EmailDestino}",
+                                fechahora = DateTime.Now,
+                                monto = 0
+                            };
+                            auditoriaMapper.InsertarAuditoria(auditoria);
+                        }
+                        
+                        return new GenericResponse<string>
+                        {
+                            Success = true,
+                            Message = "¡Entradas aceptadas exitosamente!",
+                            Data = "aceptada",
+                            Error = null
+                        };
+                    }
+                }
+                else if (request.Accion?.ToLower() == "rechazar")
+                {
+                    // Rechazar y devolver entradas al remitente
+                    bool cancelado = mapper.CancelarTransferencia(idsEntradasAfectadas);
+                    
+                    if (cancelado)
+                    {
+                        mapper.ActualizarEstadoTransferencia(request.Token, "rechazada");
+                        
+                        return new GenericResponse<string>
+                        {
+                            Success = true,
+                            Message = "Transferencia rechazada. Las entradas fueron devueltas al remitente.",
+                            Data = "rechazada",
+                            Error = null
+                        };
+                    }
+                }
+
+                return new GenericResponse<string>
+                {
+                    Success = false,
+                    Message = "Acción inválida",
+                    Data = null,
+                    Error = "La acción debe ser 'aceptar' o 'rechazar'"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GenericResponse<string>
+                {
+                    Success = false,
+                    Message = "Error al procesar respuesta",
                     Data = null,
                     Error = ex.Message
                 };

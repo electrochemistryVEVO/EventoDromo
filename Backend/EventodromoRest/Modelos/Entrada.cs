@@ -57,6 +57,8 @@
     public class TransferirEntradasRequest
     {
         public string? emailDestino { get; set; }
+        public string? emailRemitente { get; set; }
+        public string? nombreRemitente { get; set; }
         public List<EntradaATransferirDTO>? entradas { get; set; }
     }
 
@@ -79,5 +81,29 @@
         public int Disponibles { get; set; }
         public int Transferidas { get; set; }
         public int Pendientes { get; set; }
+    }
+
+    // Modelo para transferencia pendiente
+    public class TransferenciaPendiente
+    {
+        public int Id { get; set; }
+        public string? Token { get; set; }
+        public string? NumeroTransaccion { get; set; }
+        public string? EmailRemitente { get; set; }
+        public string? EmailDestino { get; set; }
+        public int CantidadEntradas { get; set; }
+        public string? DetalleEntradas { get; set; } // JSON con IDs de entradas
+        public string? Estado { get; set; } // pendiente, aceptada, rechazada, expirada
+        public DateTime FechaCreacion { get; set; }
+        public DateTime FechaExpiracion { get; set; }
+        public DateTime? FechaRespuesta { get; set; }
+    }
+
+    // Request para aceptar/rechazar transferencia
+    public class ResponderTransferenciaRequest
+    {
+        public string? Token { get; set; }
+        public string? Accion { get; set; } // "aceptar" o "rechazar"
+        public int? IdCliente { get; set; } // ID del cliente que acepta (opcional si no está logueado)
     }
 }

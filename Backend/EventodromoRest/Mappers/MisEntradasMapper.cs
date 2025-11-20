@@ -28,8 +28,10 @@ namespace EventodromoRest.Mappers
                 JOIN Pais P ON CI.idPais = P.ID
             ";
 
-            // --- 2. WHERE DINÁMICO (Sin cambios) ---
-            string sqlWhere = " WHERE CA.idCliente = @idCliente ";
+            // --- 2. WHERE DINÁMICO ---
+            // ACTUALIZADO: Considerar tanto el cliente original como las entradas transferidas
+            string sqlWhere = @" WHERE (CA.idCliente = @idCliente OR E.idClienteActual = @idCliente) 
+                                 AND COALESCE(E.estadoTransferencia, 'disponible') != 'pendiente' ";
 
             if (!string.IsNullOrEmpty(filtros.fechaInicio))
             {

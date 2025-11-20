@@ -185,6 +185,16 @@ namespace EventodromoRest.DBManager
             return DateTime.SpecifyKind(dbValue, DateTimeKind.Utc);
         }
 
+        public DateTime? GetNullableDateTime(string column)
+        {
+            if (reader is null) throw new InvalidOperationException("DataReader no inicializado.");
+            int i = reader.GetOrdinal(column);
+            if (reader.IsDBNull(i))
+                return null;
+            var dbValue = reader.GetDateTime(i);
+            return DateTime.SpecifyKind(dbValue, DateTimeKind.Utc);
+        }
+
         public decimal GetDecimal(string column)
         {
             if (reader is null) throw new InvalidOperationException("DataReader no inicializado.");

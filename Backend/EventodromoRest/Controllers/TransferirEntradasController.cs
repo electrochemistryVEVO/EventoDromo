@@ -2,14 +2,16 @@ using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 
 namespace EventodromoRest.Controllers
 {
-    public class TransferirEntradasController(Globales.Globales globales, DBManager.DBManager BD) : BaseController
+    public class TransferirEntradasController(Globales.Globales globales, DBManager.DBManager BD, IConfiguration configuration) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
         private readonly Globales.Globales globales = globales;
+        private readonly IConfiguration _configuration = configuration;
 
         /// <summary>
         /// Obtiene los tipos de entrada disponibles para transferir de una transacción específica.
@@ -24,7 +26,7 @@ namespace EventodromoRest.Controllers
         {
             try
             {
-                var bo = new TransferirEntradasBO(globales, BD);
+                var bo = new TransferirEntradasBO(globales, BD, _configuration);
                 return bo.ObtenerTiposEntradaDisponibles(numeroTransaccion, tituloEvento, fechaEvento);
             }
             catch (Exception e)
@@ -54,7 +56,7 @@ namespace EventodromoRest.Controllers
         {
             try
             {
-                var bo = new TransferirEntradasBO(globales, BD);
+                var bo = new TransferirEntradasBO(globales, BD, _configuration);
                 return bo.ObtenerEstadoEntradas(numeroTransaccion);
             }
             catch (Exception e)
@@ -85,7 +87,7 @@ namespace EventodromoRest.Controllers
         {
             try
             {
-                var bo = new TransferirEntradasBO(globales, BD);
+                var bo = new TransferirEntradasBO(globales, BD, _configuration);
                 return bo.TransferirEntradas(request);
             }
             catch (Exception e)
@@ -99,6 +101,42 @@ namespace EventodromoRest.Controllers
                 };
                 
                 AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                
+                return response;
+            }
+        }
+
+        /// <summary>
+        /// Acepta o rechaza una transferencia de entradas pendiente.
+        /// GET /api/TransferirEntradas/ResponderTransferencia?token={token}&accion=aceptar
+        /// </summary>
+        [HttpGet]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<string> ResponderTransferencia([FromQuery] string token, [FromQuery] string accion)
+        {
+            try
+            {
+                var request = new ResponderTransferenciaRequest
+                {
+                    Token = token,
+                    Accion = accion
+                };
+
+                var bo = new TransferirEntradasBO(globales, BD, _configuration);
+                return bo.ResponderTransferencia(request);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<string>
+                {
+                    Success = false,
+                    Message = null,
+                    Data = null,
+                    Error = e.Message
+                };
+                
+                var requestLog = new { token, accion };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(requestLog), JsonSerializer.Serialize(response));
                 
                 return response;
             }
