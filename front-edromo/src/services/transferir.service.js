@@ -108,4 +108,153 @@ export const servicePerfil = {
       throw new Error(error.message || 'Error de conexión al obtener cliente por email.');
     }
   },
+
+  /**
+   * Transfiere entradas a otro cliente por email
+   * @param {object} transferData - { emailDestino, entradas: [{ numeroTransaccion, idTipoEntrada, cantidad }] }
+   */
+  transferirEntradas: async (transferData) => {
+    console.log('Enviando transferencia:', transferData);
+
+    // --- CÓDIGO REAL DEL BACKEND (FASE 1: Solo validación) ---
+    const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/TransferirEntradas/Transferir`;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // TODO: Agregar token cuando esté disponible
+          // 'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(transferData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        if (errorData && errorData.error) {
+          throw new Error(errorData.error);
+        }
+        throw new Error(`Error del servidor: ${response.status}`);
+      }
+
+      const json = await response.json();
+      
+      if (json.success === false) {
+        throw new Error(json.error || json.message || "Error al transferir");
+      }
+      
+      return json;
+    } catch (error) {
+      console.error('Error en servicePerfil.transferirEntradas:', error);
+      throw new Error(error.message || 'Error de conexión al transferir entradas.');
+    }
+  },
+
+  /**
+   * Obtiene los tipos de entrada disponibles para una transacción + evento + fecha específicos.
+   * @param {string} numeroTransaccion - Número de transacción (ej: "TXN20250911001")
+   * @param {string} tituloEvento - Título del evento
+   * @param {string} fechaEvento - Fecha del evento en formato YYYY-MM-DD
+   */
+  obtenerTiposEntradaPorTransaccion: async (numeroTransaccion, tituloEvento, fechaEvento) => {
+    try {
+      // --- CÓDIGO REAL DEL BACKEND ---
+      const params = new URLSearchParams({
+        numeroTransaccion,
+        tituloEvento,
+        fechaEvento
+      });
+      
+      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/TransferirEntradas/ObtenerTiposEntrada?${params.toString()}`;
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // TODO: Agregar token cuando esté disponible
+          // 'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) {
+        throw new Error('Error al obtener tipos de entrada (status ' + res.status + ')');
+      }
+
+      const json = await res.json();
+
+      if (!json || json.success === false) {
+        throw new Error(json.error || json.message || 'Error al obtener tipos de entrada');
+      }
+
+      return json.data || [];
+    } catch (error) {
+      console.error('Error al obtener tipos de entrada:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Obtiene el estado de las entradas de una transacción (disponibles/transferidas/pendientes).
+   * @param {string} numeroTransaccion - Número de transacción
+   */
+  obtenerEstadoEntradas: async (numeroTransaccion) => {
+    try {
+      const params = new URLSearchParams({ numeroTransaccion });
+      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/TransferirEntradas/ObtenerEstadoEntradas?${params.toString()}`;
+      
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!res.ok) {
+        throw new Error('Error al obtener estado de entradas (status ' + res.status + ')');
+      }
+
+      const json = await res.json();
+
+      if (!json || json.success === false) {
+        throw new Error(json.error || json.message || 'Error al obtener estado');
+      }
+
+      return json.data || { total: 0, disponibles: 0, transferidas: 0, pendientes: 0 };
+    } catch (error) {
+      console.error('Error al obtener estado de entradas:', error);
+      return { total: 0, disponibles: 0, transferidas: 0, pendientes: 0 };
+    }
+  },
+
+  /**
+   * Transfiere entradas a otro usuario.
+   * @param {object} transferData - Datos de la transferencia
+   */
+  transferirEntradas: async (transferData) => {
+    try {
+      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/TransferirEntradas/Transferir`;
+      
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(transferData)
+      });
+
+      if (!res.ok) {
+        throw new Error('Error al transferir entradas (status ' + res.status + ')');
+      }
+
+      const json = await res.json();
+
+      if (!json || json.success === false) {
+        throw new Error(json.error || json.message || 'Error al transferir entradas');
+      }
+
+      return json;
+    } catch (error) {
+      console.error('Error al transferir entradas:', error);
+      throw error;
+    }
+  },
 };

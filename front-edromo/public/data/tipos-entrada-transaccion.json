@@ -1,0 +1,63 @@
+{
+  "success": true,
+  "mensaje": "Tipos de entrada por transacción y evento cargados correctamente",
+  "data": {
+    "f374893119d949299fbe9156c293dab7_Imagine Dragons_2025-12-21": [
+      {
+        "idTipoEntrada": 1,
+        "nombreTipo": "General",
+        "cantidadDisponible": 2
+      },
+      {
+        "idTipoEntrada": 2,
+        "nombreTipo": "VIP",
+        "cantidadDisponible": 1
+      }
+    ],
+    "c27cccd1085947b09550cba82e7588a3_Linkin Park_2025-12-19": [
+      {
+        "idTipoEntrada": 3,
+        "nombreTipo": "General",
+        "cantidadDisponible": 1
+      },
+      {
+        "idTipoEntrada": 4,
+        "nombreTipo": "Preferencial",
+        "cantidadDisponible": 2
+      }
+    ],
+    "37d47c52c2704b7e8bc98b9e7972d260_Carmen Ópera de Georges Bizet_2025-12-04": [
+      {
+        "idTipoEntrada": 5,
+        "nombreTipo": "Platea",
+        "cantidadDisponible": 1
+      }
+    ],
+    "TXN0008_Carrera 10 Kilómetros_2025-11-30": [
+      {
+        "idTipoEntrada": 6,
+        "nombreTipo": "Inscripción Individual",
+        "cantidadDisponible": 1
+      }
+    ],
+    "TXN0008_Noches de Folklore_2025-11-28": [
+      {
+        "idTipoEntrada": 7,
+        "nombreTipo": "General",
+        "cantidadDisponible": 3
+      }
+    ],
+    "d3266d08e9de463990700b4f36540653_Noches de Folklore_2025-11-28": [
+      {
+        "idTipoEntrada": 8,
+        "nombreTipo": "General",
+        "cantidadDisponible": 2
+      },
+      {
+        "idTipoEntrada": 9,
+        "nombreTipo": "VIP",
+        "cantidadDisponible": 1
+      }
+    ]
+  }
+}

@@ -87,7 +87,7 @@ export default function PerfilLayout({ children }) {
 
       {/* Main container: centered */}
       <div className="perfil-container">
-        <aside className="perfil-sidebar" aria-label="Navegación de perfil">
+        <aside className="perfil-sidebar" aria-label="Navegación de perfil" style={{ zIndex: 10 }}>
           <nav>
             <ul className="perfil-sidebar-list">
               <li>
