@@ -10,6 +10,7 @@ import { useUser } from "@/context/UserContext";
 import styles from "@/css/compraPagoConLogin.module.css";
 import { CostoDetalleEntradasController } from "@/components/carrito/CostoDetalleEntradas.controller";
 import CartTimer from "@/components/carrito/CartTimer";
+import { obtenerConfiguracion } from "@/services/config.service";
 
 import { procesarPagoConTarjeta, procesarPagoConPuntos } from "@/services/Transaccion.service";
 // --- COMPONENTES INTERNOS DE LA PÁGINA ---
@@ -274,7 +275,22 @@ function CompraPagoConLoginPage() {
     const isLoading = isCartLoading || isUserLoading;
 
     const userPuntos = user?.totalPuntos ?? 0;
-    const [puntosPorSol, setPuntosPorSol] = useState(10); // hardcodeo
+    const [puntosPorSol, setPuntosPorSol] = useState(10);
+
+    // Cargar configuración al iniciar
+    useEffect(() => {
+        const loadConfig = async () => {
+            try {
+                const response = await obtenerConfiguracion();
+                if (response.success && response.data) {
+                    setPuntosPorSol(response.data.puntosPorSol || 10);
+                }
+            } catch (error) {
+                console.warn("[CompraPago] No se pudo cargar configuración:", error);
+            }
+        };
+        loadConfig();
+    }, []);
 
     // Efecto de protección (sin cambios)
     useEffect(() => {

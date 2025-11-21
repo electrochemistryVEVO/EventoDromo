@@ -83,5 +83,80 @@ namespace EventodromoRest.Negocio
             };
         }
 
+        /// <summary>
+        /// Obtiene todas las configuraciones del sistema.
+        /// </summary>
+        public GenericResponse<ConfiguracionDTO> ObtenerConfiguracion()
+        {
+            try
+            {
+                var dromopuntosMapper = new DromopuntosMapper(_globales, _DB);
+                var config = dromopuntosMapper.ObtenerConfiguracionCompleta();
+
+                return new GenericResponse<ConfiguracionDTO>
+                {
+                    Success = true,
+                    Message = "Configuración obtenida correctamente.",
+                    Data = config,
+                    Error = null
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GenericResponse<ConfiguracionDTO>
+                {
+                    Success = false,
+                    Message = "Error al obtener la configuración.",
+                    Data = null,
+                    Error = ex.Message
+                };
+            }
+        }
+
+        /// <summary>
+        /// Actualiza las configuraciones del sistema.
+        /// </summary>
+        public GenericResponse<ConfiguracionDTO> ActualizarConfiguracion(ActualizarConfiguracionDTO configuracion)
+        {
+            try
+            {
+                var dromopuntosMapper = new DromopuntosMapper(_globales, _DB);
+                int filasAfectadas = dromopuntosMapper.ActualizarConfiguracion(configuracion);
+
+                if (filasAfectadas > 0)
+                {
+                    // Retornar la configuración actualizada
+                    var configActualizada = dromopuntosMapper.ObtenerConfiguracionCompleta();
+                    return new GenericResponse<ConfiguracionDTO>
+                    {
+                        Success = true,
+                        Message = "Configuración actualizada exitosamente.",
+                        Data = configActualizada,
+                        Error = null
+                    };
+                }
+                else
+                {
+                    return new GenericResponse<ConfiguracionDTO>
+                    {
+                        Success = false,
+                        Message = "No se pudo actualizar la configuración.",
+                        Data = null,
+                        Error = "No se realizaron cambios."
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new GenericResponse<ConfiguracionDTO>
+                {
+                    Success = false,
+                    Message = "Error al actualizar la configuración.",
+                    Data = null,
+                    Error = ex.Message
+                };
+            }
+        }
+
     }
 }

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { getResumenDromopuntos } from "@/services/mis-dromopuntos.service";
+import { obtenerConfiguracion } from "@/services/config.service";
 import MisDromopuntosView from "./mis-dromopuntos";
 // --- 1. IMPORTA useUser ---
 import { useUser } from "@/context/UserContext.jsx";
@@ -17,6 +18,21 @@ export default function MisDromopuntosController() {
   const [error, setError] = useState(null);
 
   const [puntosPorSol, setPuntosPorSol] = useState(10);
+
+  // Cargar configuración al iniciar
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const response = await obtenerConfiguracion();
+        if (response.success && response.data) {
+          setPuntosPorSol(response.data.puntosPorSol || 10);
+        }
+      } catch (error) {
+        console.warn("[MisDromopuntos] No se pudo cargar configuración:", error);
+      }
+    };
+    loadConfig();
+  }, []);
 
   // --- 3. useEffect AHORA DEPENDE DE [user] ---
   useEffect(() => {

@@ -360,8 +360,12 @@ namespace EventodromoRest.Mappers
                 // --- 7. Registrar Puntos Ganados (si hay) ---
                 if (puntosTotalesGanados > 0)
                 {
+                    // Obtener meses de vigencia desde configuración
+                    var dromopuntosMapper = new DromopuntosMapper(globales, DB);
+                    int mesesVigencia = dromopuntosMapper.ObtenerMesesVigenciaPuntos();
+
                     string queryPuntos = "INSERT INTO Punto (cantidad, cantidadRestante, fechaHoraRegistro, idCliente, fechaExpiracion) " +
-                                         "VALUES (@cant, @cantRestante, UTC_TIMESTAMP(), @idCli, UTC_TIMESTAMP() + INTERVAL 1 YEAR);";
+                                         $"VALUES (@cant, @cantRestante, UTC_TIMESTAMP(), @idCli, UTC_TIMESTAMP() + INTERVAL {mesesVigencia} MONTH);";
 
                     var pPuntos = new ParameterList();
                     pPuntos.Add("@cant", puntosTotalesGanados);
@@ -503,10 +507,11 @@ namespace EventodromoRest.Mappers
                 int idTransaccion = Convert.ToInt32(DB.ExecuteScalar(queryTrans, pTrans));
 
                 // --- 6. Vincular Puntos y Transacción ---
-                string queryLinkPuntos = "INSERT INTO TransaccionPuntos (idTransaccion, idCliente) VALUES (@idTrans, @idCli);";
+                string queryLinkPuntos = "INSERT INTO TransaccionPuntos (idTransaccion, idCliente, puntosGastados) VALUES (@idTrans, @idCli, @puntosGastados);";
                 var pLinkPuntos = new ParameterList();
                 pLinkPuntos.Add("@idTrans", idTransaccion);
                 pLinkPuntos.Add("@idCli", idCliente);
+                pLinkPuntos.Add("@puntosGastados", puntosRequeridosServidor);
                 DB.ExecuteNonQuery(queryLinkPuntos, pLinkPuntos);
 
                 // --- 7. Vincular cada Entrada (LineaTransaccion) ---
