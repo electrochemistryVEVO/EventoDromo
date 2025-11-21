@@ -22,7 +22,8 @@ namespace EventodromoRest.Controllers
         /// <param name="archivo">Archivo de imagen (IFormFile)</param>
         /// <param name="carpeta">Carpeta dentro del bucket (opcional, default: "uploads")</param>
         [HttpPost("subir")]
-        public async Task<IActionResult> SubirImagen([FromForm] IFormFile archivo, [FromForm] string carpeta = "uploads")
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> SubirImagen(IFormFile archivo, string carpeta = "uploads")
         {
             try
             {

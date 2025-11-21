@@ -322,7 +322,7 @@ namespace EventodromoRest.Mappers
                 int idTarjeta = Convert.ToInt32(DB.ExecuteScalar(queryTarjeta, pTarjeta));
 
                 // --- 4. Insertar Transacción Principal ---
-                string numeroDeTransaccion = Guid.NewGuid().ToString("N");
+                string numeroDeTransaccion = "TXN-" + Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper();
                 string queryTrans = "INSERT INTO Transaccion (idCarrito, fechaHoraCompra, numeroTransaccion, nombresCliente, apellidosCliente, emailCliente, numeroDocumentoCliente, idTipoDocumento, montoTotal, idCliente) " +
                                     "VALUES (@idCarrito, UTC_TIMESTAMP(), @numTrans, @nombres, @apellidos, @email, @numDoc, @idTipoDoc, @monto, @idCliente); SELECT LAST_INSERT_ID();";
                 var pTrans = new ParameterList();
@@ -395,7 +395,9 @@ namespace EventodromoRest.Mappers
                     IdTransaccion = idTransaccion,
                     NumeroTransaccion = numeroDeTransaccion,
                     FechaCompra = DateTime.UtcNow,
-                    MontoTotal = montoTotalCalculado
+                    MontoTotal = montoTotalCalculado,
+                    PuntosGanados = puntosTotalesGanados,
+                    Ultimos4DigitosTarjeta = ultimos4Digitos
                 };
             }
             catch (Exception)
@@ -485,7 +487,7 @@ namespace EventodromoRest.Mappers
                 ConsumirPuntos(idCliente, puntosRequeridosServidor);
 
                 // --- 5. Insertar Transacción Principal (Monto 0.00) ---
-                string numeroDeTransaccion = Guid.NewGuid().ToString("N");
+                string numeroDeTransaccion = "TRP-" + Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper();
                 string queryTrans = "INSERT INTO Transaccion (idCarrito, fechaHoraCompra, numeroTransaccion, nombresCliente, apellidosCliente, emailCliente, numeroDocumentoCliente, idTipoDocumento, montoTotal, idCliente) " +
                                     "VALUES (@idCarrito, UTC_TIMESTAMP(), @numTrans, @nombres, @apellidos, @email, @numDoc, @idTipoDoc, 0.00, @idCliente); SELECT LAST_INSERT_ID();"; // <-- Monto 0
                 var pTrans = new ParameterList();
@@ -541,7 +543,8 @@ namespace EventodromoRest.Mappers
                     IdTransaccion = idTransaccion,
                     NumeroTransaccion = numeroDeTransaccion,
                     FechaCompra = DateTime.UtcNow,
-                    MontoTotal = 0.00m // Pago fue con puntos
+                    MontoTotal = 0.00m, // Pago fue con puntos
+                    PuntosGastados = puntosRequeridosServidor
                 };
             }
             catch (Exception)
@@ -630,6 +633,56 @@ namespace EventodromoRest.Mappers
             if (puntosRestantesPorGastar > 0)
             {
                 throw new Exception("Error al consumir puntos, saldo inconsistente.");
+            }
+        }
+
+        /// <summary>
+        /// Obtiene los detalles de las entradas de una transacción para enviar por email.
+        /// </summary>
+        public List<Modelos.Utiles.DetalleEntradaEmail> ObtenerDetallesEntradasParaEmail(int idTransaccion)
+        {
+            lock (DB)
+            {
+                string query = @"
+                    SELECT 
+                        ev.nombre AS NombreEvento,
+                        te.nombre AS TipoEntrada,
+                        lt.precio AS PrecioUnitario,
+                        COUNT(*) AS Cantidad
+                    FROM LineaTransaccion lt
+                    INNER JOIN Entrada e ON lt.idEntrada = e.id
+                    INNER JOIN TipoEntrada te ON e.idTipoEntrada = te.id
+                    INNER JOIN FechaEvento fe ON te.idFechaEvento = fe.id
+                    INNER JOIN Evento ev ON fe.idEvento = ev.id
+                    WHERE lt.idTransaccion = @idTrans
+                    GROUP BY ev.nombre, te.nombre, lt.precio
+                    ORDER BY ev.nombre, te.nombre";
+
+                var parametros = new ParameterList();
+                parametros.Add("@idTrans", idTransaccion);
+
+                var detalles = new List<Modelos.Utiles.DetalleEntradaEmail>();
+
+                DB.Select(query, parametros);
+                try
+                {
+                    while (DB.Read())
+                    {
+                        detalles.Add(new Modelos.Utiles.DetalleEntradaEmail
+                        {
+                            NombreEvento = DB.GetString("NombreEvento"),
+                            TipoEntrada = DB.GetString("TipoEntrada"),
+                            Cantidad = DB.GetInt("Cantidad"),
+                            PrecioUnitario = DB.GetDecimal("PrecioUnitario")
+                        });
+                    }
+                }
+                finally
+                {
+                    DB.CloseReader();
+                }
+
+                return detalles;
             }
         }
     }
