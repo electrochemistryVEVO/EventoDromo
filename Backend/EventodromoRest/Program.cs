@@ -73,6 +73,9 @@ builder.Services.AddSingleton<TokenService>(
     new TokenService("ClaveSuperSecretaDeEventodromoConLaQueSeFirmanTokens123!")
 );
 
+// Registrar S3Service
+builder.Services.AddSingleton<IS3Service, S3Service>();
+
 var app = builder.Build();
 
 
