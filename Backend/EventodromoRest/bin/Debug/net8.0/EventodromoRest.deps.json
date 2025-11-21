@@ -8,6 +8,7 @@
     ".NETCoreApp,Version=v8.0": {
       "EventodromoRest/1.0.0": {
         "dependencies": {
+          "AWSSDK.S3": "4.0.13",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.2",
           "Microsoft.Data.SqlClient": "6.1.1",
           "Microsoft.EntityFrameworkCore": "9.0.9",
@@ -20,6 +21,25 @@
         },
         "runtime": {
           "EventodromoRest.dll": {}
+        }
+      },
+      "AWSSDK.Core/4.0.3.2": {
+        "runtime": {
+          "lib/net8.0/AWSSDK.Core.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.3.2"
+          }
+        }
+      },
+      "AWSSDK.S3/4.0.13": {
+        "dependencies": {
+          "AWSSDK.Core": "4.0.3.2"
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.S3.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.13.0"
+          }
         }
       },
       "Azure.Core/1.47.1": {
@@ -1056,6 +1076,20 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "AWSSDK.Core/4.0.3.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-YPkzGg3iNxjqaRUa+aY4/1M0zUH+V2nj1KZSIORL1/qAu9UTNPCnXak+cfBIhF+fOJ/SsD4zOUIXF5kVOKEZbw==",
+      "path": "awssdk.core/4.0.3.2",
+      "hashPath": "awssdk.core.4.0.3.2.nupkg.sha512"
+    },
+    "AWSSDK.S3/4.0.13": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-yoC6rxInWRYkDIetJDgR7Q2Q/CKwngxuobGnmOihYx/mPJ9yZdD2ikPR2ZqOPunpY26PUF3rvM9/HjDhd/k8wA==",
+      "path": "awssdk.s3/4.0.13",
+      "hashPath": "awssdk.s3.4.0.13.nupkg.sha512"
     },
     "Azure.Core/1.47.1": {
       "type": "package",

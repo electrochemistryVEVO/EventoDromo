@@ -51,7 +51,38 @@ builder.Services.AddCors(options =>
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    // Ignorar tipos de AWS SDK que causan problemas con Swagger
+    options.IgnoreObsoleteActions();
+    options.IgnoreObsoleteProperties();
+    
+    // Configurar el generador de esquemas para evitar conflictos
+    options.CustomSchemaIds(type => 
+    {
+        try 
+        {
+            return type.FullName?.Replace("+", ".") ?? type.Name;
+        }
+        catch 
+        {
+            return type.Name;
+        }
+    });
+    
+    // Soporte para IFormFile y file uploads
+    options.MapType<IFormFile>(() => new Microsoft.OpenApi.Models.OpenApiSchema
+    {
+        Type = "string",
+        Format = "binary"
+    });
+    
+    // Filtrar tipos de AWS SDK
+    options.SchemaFilter<SwaggerExcludeFilter>();
+    
+    // Agregar un filtro para documentos que capture excepciones
+    options.DocumentFilter<SwaggerErrorDocumentFilter>();
+});
 
 // Inyectar servicios propios
 builder.Services.AddDbContext<DBManager>(options =>
@@ -92,6 +123,25 @@ using (var scope = app.Services.CreateScope())
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    // Agregar middleware para capturar errores de Swagger
+    app.Use(async (context, next) =>
+    {
+        try
+        {
+            await next();
+        }
+        catch (Exception ex)
+        {
+            if (context.Request.Path.StartsWithSegments("/swagger"))
+            {
+                Console.WriteLine($"[SWAGGER ERROR] {ex.GetType().Name}: {ex.Message}");
+                Console.WriteLine($"[SWAGGER ERROR] Inner: {ex.InnerException?.Message}");
+                Console.WriteLine($"[SWAGGER ERROR] Stack: {ex.StackTrace}");
+            }
+            throw;
+        }
+    });
+    
     app.UseSwagger();
     app.UseSwaggerUI();
 }

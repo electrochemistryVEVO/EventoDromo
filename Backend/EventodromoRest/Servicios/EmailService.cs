@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Mail;
 using System.Text;
+using EventodromoRest.Modelos.Utiles;
 
 namespace EventodromoRest.Servicios
 {
@@ -11,7 +12,7 @@ namespace EventodromoRest.Servicios
         private readonly string _fromEmail = "divadibu132@gmail.com";
         private readonly string _fromPassword = "tqsm mgmi djbv fntn";
         private readonly string _fromName = "Eventodromo";
-        private readonly string _logoUrl = "https://37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev/images/Logo-Eventodromo.png";
+        private readonly string _logoUrl = "https://eventodromo-s3.s3.us-east-1.amazonaws.com/Logo-Eventodromo.png";
 
         /// <summary>
         /// Envía un email de confirmación al remitente después de transferir entradas.
@@ -100,6 +101,146 @@ namespace EventodromoRest.Servicios
             catch (Exception ex)
             {
                 Console.WriteLine($"Error enviando email al destinatario: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Envía un email de confirmación de compra con tarjeta.
+        /// </summary>
+        public bool EnviarEmailConfirmacionCompraTarjeta(
+            string emailCliente,
+            string nombreCliente,
+            string numeroTransaccion,
+            DateTime fechaCompra,
+            decimal montoTotal,
+            int puntosGanados,
+            string ultimos4DigitosTarjeta,
+            List<DetalleEntradaEmail> entradas)
+        {
+            try
+            {
+                // Agrupar entradas por evento
+                var entradasPorEvento = entradas
+                    .GroupBy(e => e.NombreEvento)
+                    .Select(g => new
+                    {
+                        NombreEvento = g.Key,
+                        Entradas = g.ToList()
+                    })
+                    .ToList();
+
+                // Construir lista de items para mostrar
+                var detalleItems = new List<string>();
+                
+                foreach (var grupo in entradasPorEvento)
+                {
+                    detalleItems.Add($"<strong>🎫 {grupo.NombreEvento}</strong>");
+                    foreach (var entrada in grupo.Entradas)
+                    {
+                        detalleItems.Add($"&nbsp;&nbsp;&nbsp;&nbsp;• {entrada.Cantidad}x {entrada.TipoEntrada} - S/ {entrada.PrecioUnitario:F2}");
+                    }
+                }
+
+                var templateData = new EmailTemplateData
+                {
+                    Titulo = "¡Compra Confirmada!",
+                    Emoji = "🎉",
+                    MensajePrincipal = "Tu compra se ha procesado exitosamente. A continuación encontrarás los detalles de tu transacción:",
+                    DetalleTitulo = "Resumen de Compra",
+                    DetalleItems = detalleItems,
+                    DetalleFooter = $@"
+                        <strong>💳 Método de pago:</strong> Tarjeta terminada en {ultimos4DigitosTarjeta}<br>
+                        <strong>💰 Total pagado:</strong> S/ {montoTotal:F2}<br>
+                        <strong>⭐ Puntos ganados:</strong> {puntosGanados} puntos<br>
+                        <strong>📅 Fecha:</strong> {fechaCompra:dd/MM/yyyy HH:mm}<br>
+                        <strong>🔖 N° Transacción:</strong> {numeroTransaccion}",
+                    AlertaTipo = "success",
+                    AlertaIcono = "✅",
+                    AlertaMensaje = "<strong>¡Listo para el evento!</strong><br>Tus entradas ya están disponibles en la sección <strong>\"Mis Entradas\"</strong> de tu cuenta. Podrás mostrarlas en el evento desde tu celular.",
+                    NotaPie = "Recuerda que puedes revisar tus entradas en cualquier momento desde tu perfil. ¡Disfruta el evento!"
+                };
+
+                string htmlBody = GenerarHtmlEmail(nombreCliente, templateData);
+
+                return EnviarEmail(
+                    emailCliente,
+                    $"🎉 Compra Confirmada - {numeroTransaccion} - Eventodromo",
+                    htmlBody
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error enviando email de confirmación de compra con tarjeta: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Envía un email de confirmación de compra con puntos.
+        /// </summary>
+        public bool EnviarEmailConfirmacionCompraPuntos(
+            string emailCliente,
+            string nombreCliente,
+            string numeroTransaccion,
+            DateTime fechaCompra,
+            int puntosGastados,
+            List<DetalleEntradaEmail> entradas)
+        {
+            try
+            {
+                // Agrupar entradas por evento
+                var entradasPorEvento = entradas
+                    .GroupBy(e => e.NombreEvento)
+                    .Select(g => new
+                    {
+                        NombreEvento = g.Key,
+                        Entradas = g.ToList()
+                    })
+                    .ToList();
+
+                // Construir lista de items para mostrar
+                var detalleItems = new List<string>();
+                
+                foreach (var grupo in entradasPorEvento)
+                {
+                    detalleItems.Add($"<strong>🎫 {grupo.NombreEvento}</strong>");
+                    foreach (var entrada in grupo.Entradas)
+                    {
+                        detalleItems.Add($"&nbsp;&nbsp;&nbsp;&nbsp;• {entrada.Cantidad}x {entrada.TipoEntrada} - S/ {entrada.PrecioUnitario:F2}");
+                    }
+                }
+
+                var templateData = new EmailTemplateData
+                {
+                    Titulo = "¡Canje Exitoso!",
+                    Emoji = "⭐",
+                    MensajePrincipal = "Has canjeado tus puntos exitosamente. A continuación encontrarás los detalles de tu transacción:",
+                    DetalleTitulo = "Resumen de Canje",
+                    DetalleItems = detalleItems,
+                    DetalleFooter = $@"
+                        <strong>⭐ Método de pago:</strong> Puntos Eventodromo<br>
+                        <strong>💎 Puntos gastados:</strong> {puntosGastados} puntos<br>
+                        <strong>💰 Total:</strong> S/ 0.00 (Pagado con puntos)<br>
+                        <strong>📅 Fecha:</strong> {fechaCompra:dd/MM/yyyy HH:mm}<br>
+                        <strong>🔖 N° Transacción:</strong> {numeroTransaccion}",
+                    AlertaTipo = "success",
+                    AlertaIcono = "✅",
+                    AlertaMensaje = "<strong>¡Listo para el evento!</strong><br>Tus entradas ya están disponibles en la sección <strong>\"Mis Entradas\"</strong> de tu cuenta. Podrás mostrarlas en el evento desde tu celular.",
+                    NotaPie = "Has aprovechado tus puntos de forma inteligente. ¡Disfruta el evento!"
+                };
+
+                string htmlBody = GenerarHtmlEmail(nombreCliente, templateData);
+
+                return EnviarEmail(
+                    emailCliente,
+                    $"⭐ Canje Confirmado - {numeroTransaccion} - Eventodromo",
+                    htmlBody
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error enviando email de confirmación de compra con puntos: {ex.Message}");
                 return false;
             }
         }

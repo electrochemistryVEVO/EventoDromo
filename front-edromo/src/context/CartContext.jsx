@@ -9,8 +9,8 @@ import {
   clearDbCart,
   removeEntireTierFromCart,
 } from "@/services/Cart.service";
+import { obtenerConfiguracion } from "@/services/config.service";
 
-const CART_EXPIRATION_MINUTES = 10;
 const CartContext = createContext();
 
 const computeEntradasTotal = (entradas = []) =>
@@ -31,6 +31,23 @@ export const CartProvider = ({ children }) => {
   const [expirationTime, setExpirationTime] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [syncingItemIds, setSyncingItemIds] = useState(new Set());
+  const [cartExpirationMinutes, setCartExpirationMinutes] = useState(30); // Default 30 minutos
+
+  // Cargar configuración del sistema al iniciar
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const response = await obtenerConfiguracion();
+        if (response.success && response.data) {
+          setCartExpirationMinutes(response.data.minutosVigenciaCarrito || 30);
+          console.log(`[CartContext] Configuración cargada: ${response.data.minutosVigenciaCarrito} minutos de vigencia del carrito`);
+        }
+      } catch (error) {
+        console.warn("[CartContext] No se pudo cargar la configuración, usando valores por defecto:", error);
+      }
+    };
+    loadConfig();
+  }, []);
 
   const normalizeToken = (rawToken) => {
     if (typeof rawToken !== "string") return null;
@@ -174,7 +191,7 @@ export const CartProvider = ({ children }) => {
     if (!isAuthenticated) {
       if (cartItems.length > 0 && !expirationTime) {
         // CASO 1: Hay items en el carrito, pero no hay timer. ¡Inícialo!
-        setExpirationTime(Date.now() + CART_EXPIRATION_MINUTES * 60 * 1000);
+        setExpirationTime(Date.now() + cartExpirationMinutes * 60 * 1000);
       } else if (cartItems.length === 0 && expirationTime) {
         // CASO 2: No hay items, pero el timer sigue activo. ¡Bórralo!
         setExpirationTime(null);
@@ -230,7 +247,7 @@ export const CartProvider = ({ children }) => {
         return;
       }
       // Se calcula la expiración aquí porque el backend la necesita.
-      const newExpiration = expirationTime || Date.now() + CART_EXPIRATION_MINUTES * 60 * 1000;
+      const newExpiration = expirationTime || Date.now() + cartExpirationMinutes * 60 * 1000;
       const response = await addItemToDbCart(entrada, newExpiration, token);
       if (response.success) {
         setCartItems(response.data.items);
@@ -353,7 +370,7 @@ export const CartProvider = ({ children }) => {
         const tipoEntradaNumeric = Number(tipoEntradaId);
         if (!Number.isFinite(tipoEntradaNumeric) || tipoEntradaNumeric <= 0) throw new Error("Tipo de entrada inválido.");
 
-        const expirationTarget = expirationTime || Date.now() + CART_EXPIRATION_MINUTES * 60 * 1000;
+        const expirationTarget = expirationTime || Date.now() + cartExpirationMinutes * 60 * 1000;
         const payloadItem = { entradas: [{ tipoEntradaId: tipoEntradaNumeric, cantidad: 1 }] };
         const response = await addItemToDbCart(payloadItem, expirationTarget, token);
 
@@ -562,7 +579,7 @@ export const CartProvider = ({ children }) => {
         const token = resolveAuthToken();
         if (!token) throw new Error("No se pudo obtener el token.");
 
-        const expirationTarget = expirationTime || Date.now() + CART_EXPIRATION_MINUTES * 60 * 1000;
+        const expirationTarget = expirationTime || Date.now() + cartExpirationMinutes * 60 * 1000;
 
         // ✅ SOLUCIÓN: Esperar DIRECTAMENTE al backend SIN actualización optimista
         const response = await addItemToDbCart(ticketsInfo, expirationTarget, token);

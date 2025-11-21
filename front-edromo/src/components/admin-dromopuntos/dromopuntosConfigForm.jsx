@@ -30,7 +30,7 @@ export const DromoPuntosConfigForm = ({
       className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
     >
       <h2 className="text-xl font-bold text-gray-800 mb-4">
-        Parámetros de Conversión
+        Configuración del Sistema
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -40,12 +40,45 @@ export const DromoPuntosConfigForm = ({
         >
           <input
             type="number"
-            name="valorEnSoles"
-            placeholder="Ej: 0.50"
-            value={config.valorEnSoles}
+            name="puntosPorSol"
+            placeholder="Ej: 10.00"
+            value={config.puntosPorSol}
             onChange={handleConfigChange}
             className="w-full p-2 border border-gray-300 rounded-md"
-            step="0.01" // Permite decimales
+            step="0.01"
+            min="0.01"
+          />
+        </FormField>
+
+        <FormField
+          label="Vigencia de Puntos (en meses)"
+          description="Tiempo en meses antes de que los puntos expiren."
+        >
+          <input
+            type="number"
+            name="mesesVigenciaPuntos"
+            placeholder="Ej: 6"
+            value={config.mesesVigenciaPuntos}
+            onChange={handleConfigChange}
+            className="w-full p-2 border border-gray-300 rounded-md"
+            step="1"
+            min="1"
+          />
+        </FormField>
+
+        <FormField
+          label="Vigencia del Carrito (en minutos)"
+          description="Tiempo en minutos antes de que el carrito expire para usuarios invitados."
+        >
+          <input
+            type="number"
+            name="minutosVigenciaCarrito"
+            placeholder="Ej: 30"
+            value={config.minutosVigenciaCarrito}
+            onChange={handleConfigChange}
+            className="w-full p-2 border border-gray-300 rounded-md"
+            step="1"
+            min="1"
           />
         </FormField>
       </div>

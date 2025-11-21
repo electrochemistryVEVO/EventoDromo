@@ -47,9 +47,12 @@
     public class ResponseProcesarPago
     {
         public int IdTransaccion { get; set; }
-        public string NumeroTransaccion { get; set; }
+        public string NumeroTransaccion { get; set; } = "";
         public DateTime FechaCompra { get; set; }
         public decimal MontoTotal { get; set; }
+        public int PuntosGanados { get; set; } = 0;
+        public int PuntosGastados { get; set; } = 0;
+        public string? Ultimos4DigitosTarjeta { get; set; }
     }
 
     public class PrecioEntradaDTO

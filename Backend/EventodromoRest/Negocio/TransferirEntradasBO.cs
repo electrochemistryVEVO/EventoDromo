@@ -379,7 +379,7 @@ namespace EventodromoRest.Negocio
                     {
                         mapper.ActualizarEstadoTransferencia(request.Token, "aceptada");
                         
-                        // Registrar en auditoría (tipo 2 = Transferencia Enviada)
+                        // Registrar en auditoría (tipo 2 = Transferencia Enviada para remitente)
                         int? idClienteRemitente = mapper.ObtenerIdClientePorTransaccion(transferencia.NumeroTransaccion);
                         
                         if (idClienteRemitente.HasValue)
@@ -395,6 +395,19 @@ namespace EventodromoRest.Negocio
                             };
                             auditoriaMapper.InsertarAuditoria(auditoria);
                         }
+                        
+                        // Registrar en auditoría (tipo 6 = Transferencia Recibida para destinatario)
+                        // Reutilizamos idClienteDestinatario que ya fue obtenido anteriormente
+                        var auditoriaMapperRecibida = new AuditoriaMapper(globales, DB);
+                        var auditoriaRecibida = new Auditoria
+                        {
+                            idcliente = idClienteDestinatario.Value,
+                            idtipoauditoria = 6, // Tipo: Transferencia Recibida
+                            descripcion = $"Recibió transferencia de {transferencia.CantidadEntradas} entrada(s) de {transferencia.EmailRemitente ?? "usuario"}",
+                            fechahora = DateTime.Now,
+                            monto = 0
+                        };
+                        auditoriaMapperRecibida.InsertarAuditoria(auditoriaRecibida);
                         
                         return new GenericResponse<string>
                         {

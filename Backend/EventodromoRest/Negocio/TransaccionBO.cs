@@ -2,6 +2,7 @@
 using EventodromoRest.Mappers;
 using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
+using EventodromoRest.Servicios;
 
 namespace EventodromoRest.Negocio
 {
@@ -75,14 +76,31 @@ namespace EventodromoRest.Negocio
             // Aquí irían otras validaciones, como la fecha de expiración.
 
             // --- 2. Lógica de Base de Datos ---
-            // Llamamos al Mapper, que crearemos en el siguiente paso.
-            // El Mapper se encargará de la transacción de BD completa.
             var transaccionMapper = new TransaccionMapper(globales, DB);
             var response = transaccionMapper.CrearTransaccionTarjeta(idCliente, request);
 
-            // --- 3. (Opcional) Enviar email de confirmación, etc. ---
-            // Aquí podrías agregar una lógica para enviar un correo
-            // al 'request.DatosFacturacion.Email' con los detalles de la compra.
+            // --- 3. Enviar email de confirmación ---
+            try
+            {
+                var detallesEntradas = transaccionMapper.ObtenerDetallesEntradasParaEmail(response.IdTransaccion);
+                var emailService = new EmailService();
+                
+                emailService.EnviarEmailConfirmacionCompraTarjeta(
+                    request.DatosFacturacion.Email,
+                    request.DatosFacturacion.Nombres + " " + request.DatosFacturacion.Apellidos,
+                    response.NumeroTransaccion,
+                    response.FechaCompra,
+                    response.MontoTotal,
+                    response.PuntosGanados,
+                    response.Ultimos4DigitosTarjeta ?? "****",
+                    detallesEntradas
+                );
+            }
+            catch (Exception ex)
+            {
+                // No fallar la transacción si el email falla, solo loguearlo
+                Console.WriteLine($"⚠️ No se pudo enviar email de confirmación: {ex.Message}");
+            }
 
             // --- 4. Devolver respuesta exitosa ---
             return new GenericResponse<ResponseProcesarPago>
@@ -96,18 +114,31 @@ namespace EventodromoRest.Negocio
         public GenericResponse<ResponseProcesarPago> ProcesarPagoPuntos(int idCliente, RequestProcesarPagoPuntos request)
         {
             // --- 1. Lógica de Base de Datos ---
-            // Llamamos al Mapper, que crearemos en el siguiente paso.
-            // El Mapper se encargará de la transacción de BD completa,
-            // incluyendo la validación de fondos de puntos (lógica FIFO).
             var transaccionMapper = new TransaccionMapper(globales, DB);
             var response = transaccionMapper.CrearTransaccionPuntos(idCliente, request);
 
-            // --- 2. (Opcional) Enviar email de confirmación, etc. ---
-            // ...
+            // --- 2. Enviar email de confirmación ---
+            try
+            {
+                var detallesEntradas = transaccionMapper.ObtenerDetallesEntradasParaEmail(response.IdTransaccion);
+                var emailService = new EmailService();
+                
+                emailService.EnviarEmailConfirmacionCompraPuntos(
+                    request.DatosFacturacion.Email,
+                    request.DatosFacturacion.Nombres + " " + request.DatosFacturacion.Apellidos,
+                    response.NumeroTransaccion,
+                    response.FechaCompra,
+                    response.PuntosGastados,
+                    detallesEntradas
+                );
+            }
+            catch (Exception ex)
+            {
+                // No fallar la transacción si el email falla, solo loguearlo
+                Console.WriteLine($"⚠️ No se pudo enviar email de confirmación: {ex.Message}");
+            }
 
             // --- 3. Devolver respuesta exitosa ---
-            // Reutilizamos el 'ResponseProcesarPago' para que el modal
-            // de "Éxito" del frontend funcione para ambos tipos de pago.
             return new GenericResponse<ResponseProcesarPago>
             {
                 Success = true,

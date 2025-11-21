@@ -139,7 +139,7 @@ const DetalleClientePage = ({ params }) => {
                 </div>
                 <div className="text-center">
                   <p className="text-3xl font-bold text-purple-600">
-                    {cliente.resumen.puntosUsados}
+                    {-1*cliente.resumen.puntosUsados}
                   </p>
                   <p className="text-sm text-gray-600">Puntos Usados</p>
                 </div>

@@ -163,5 +163,67 @@ namespace EventodromoRest.Controllers
             }
         }
 
+        /// <summary>
+        /// Obtiene todas las configuraciones del sistema (puntos_por_sol, vigencia_puntos, vigencia_carrito).
+        /// Este endpoint es público porque el carrito necesita la vigencia para usuarios invitados.
+        /// </summary>
+        [HttpGet]
+        [Route("/api/[controller]/[action]")]
+        [AllowAnonymous]
+        public GenericResponse<ConfiguracionDTO> ObtenerConfiguracion()
+        {
+            try
+            {
+                // Validar que el usuario sea administrador (opcional)
+                // var userIdString = User.FindFirst("idCliente")?.Value;
+                // if (string.IsNullOrEmpty(userIdString)) throw new Exception("Usuario no autenticado.");
+
+                return new DromopuntosBO(globales, BD).ObtenerConfiguracion();
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<ConfiguracionDTO>
+                {
+                    Success = false,
+                    Message = "Error al obtener la configuración.",
+                    Data = null,
+                    Error = e.Message
+                };
+                AgregarEntradaBitacora(e, "ObtenerConfiguracion GET", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+        /// <summary>
+        /// Actualiza las configuraciones del sistema (solo los campos enviados).
+        /// </summary>
+        [HttpPut]
+        [Route("/api/[controller]/[action]")]
+        [Authorize]
+        public GenericResponse<ConfiguracionDTO> ActualizarConfiguracion([FromBody] ActualizarConfiguracionDTO request)
+        {
+            try
+            {
+                // Validar que el usuario sea administrador (opcional)
+                // var userIdString = User.FindFirst("idCliente")?.Value;
+                // if (string.IsNullOrEmpty(userIdString)) throw new Exception("Usuario no autenticado.");
+
+                ValidarBody(request);
+                return new DromopuntosBO(globales, BD).ActualizarConfiguracion(request);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<ConfiguracionDTO>
+                {
+                    Success = false,
+                    Message = "Error al actualizar la configuración.",
+                    Data = null,
+                    Error = e.Message
+                };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
     }
 }

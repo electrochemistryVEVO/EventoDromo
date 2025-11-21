@@ -13,7 +13,7 @@ const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 /**
  * Obtiene la configuración actual de DromoPuntos desde el backend.
  * @param {string} token - El token JWT del administrador autenticado.
- * @returns {Promise<{valorEnSoles: number}>} Una promesa que resuelve con la configuración actual.
+ * @returns {Promise<{puntosPorSol: number, mesesVigenciaPuntos: number, minutosVigenciaCarrito: number}>} Una promesa que resuelve con la configuración actual.
  */
 export const getConfig = async (token) => {
   if (!token) {
@@ -25,8 +25,8 @@ export const getConfig = async (token) => {
   if (USE_BACKEND) {
     // --- Lógica para conectar con el Backend Real ---
     try {
-      console.log("SERVICE: Obteniendo valor actual de DromoPuntos desde el BACKEND...");
-      response = await fetch(`${BASE_API_URL}/Dromopuntos/DromoPuntosObtenerValorActual`, {
+      console.log("SERVICE: Obteniendo configuración completa de DromoPuntos desde el BACKEND...");
+      response = await fetch(`${BASE_API_URL}/Dromopuntos/ObtenerConfiguracion`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -57,29 +57,30 @@ export const getConfig = async (token) => {
 
 /**
  * Envía la nueva configuración de DromoPuntos al backend.
- * @param {number} nuevoValor - El nuevo valor numérico para los dromopuntos.
+ * @param {object} configData - Objeto con los valores a actualizar {puntosPorSol, mesesVigenciaPuntos, minutosVigenciaCarrito}
  * @param {string} token - El token JWT del administrador autenticado.
  * @returns {Promise<object>} Una promesa que resuelve con la respuesta del backend.
  */
-export const updateConfig = async (nuevoValor, token) => {
+export const updateConfig = async (configData, token) => {
   if (!token) {
     throw new Error("Token de autenticación no proporcionado al servicio.");
   }
 
-  if (typeof nuevoValor !== 'number' || nuevoValor <= 0) {
-    throw new Error("El nuevo valor debe ser un número mayor a cero.");
+  if (!configData || typeof configData !== 'object') {
+    throw new Error("Los datos de configuración deben ser un objeto.");
   }
 
   if (USE_BACKEND) {
     // --- Lógica para conectar con el Backend Real ---
     try {
-      console.log("SERVICE: Enviando nuevo valor al BACKEND:", nuevoValor);
-      const response = await fetch(`${BASE_API_URL}/Dromopuntos/ActualizarValorDromoPuntos/${nuevoValor.toString().replace(',', '.')}`, {
+      console.log("SERVICE: Enviando nueva configuración al BACKEND:", configData);
+      const response = await fetch(`${BASE_API_URL}/Dromopuntos/ActualizarConfiguracion`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        body: JSON.stringify(configData),
       });
 
       if (!response.ok) {
@@ -93,7 +94,7 @@ export const updateConfig = async (nuevoValor, token) => {
     }
   } else {
     // --- Lógica para simular el envío y verificar el JSON ---
-    console.log("SERVICE: Valor que se enviaría al backend (MOCK):", nuevoValor);
+    console.log("SERVICE: Configuración que se enviaría al backend (MOCK):", configData);
     await new Promise(resolve => setTimeout(resolve, 1000)); // Simular delay de red
 
     // Devolvemos una respuesta de éxito simulada

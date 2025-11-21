@@ -58,7 +58,7 @@ namespace EventodromoRest.Mappers
                 SELECT 
                     'movimiento' AS tipoResultado,
                     TP.id,
-                    -T.montoTotal AS cantidad, 
+                    -TP.puntosGastados AS cantidad,
                     NULL AS fechaExpiracion,
                     'salida' AS tipoMovimiento,
                     E.nombre AS nombreEventoAsociado,
@@ -71,20 +71,20 @@ namespace EventodromoRest.Mappers
                 JOIN FechaEvento FE ON TE.idFechaEvento = FE.id
                 JOIN Evento E ON FE.idEvento = E.id
                 WHERE T.idCliente = @idCliente
-                GROUP BY T.id 
+                GROUP BY TP.id 
 
                 UNION ALL
 
                 SELECT 
                     'movimiento' AS tipoResultado,
                     P.id,
-                    -P.cantidad AS cantidad,
+                    -P.cantidadRestante AS cantidad,
                     NULL AS fechaExpiracion,
                     'expiracion' AS tipoMovimiento,
                     'Puntos expirados' AS nombreEventoAsociado,
                     P.fechaExpiracion AS fechaMovimiento
                 FROM Punto P
-                WHERE P.idCliente = @idCliente AND P.cantidad > 0 AND P.fechaExpiracion <= NOW();
+                WHERE P.idCliente = @idCliente AND P.cantidadRestante > 0 AND P.fechaExpiracion <= NOW();
                 ";
                 // NOTA: No agregamos ORDER BY aquí para optimizar, el BO lo hará en memoria.
 
@@ -166,6 +166,117 @@ namespace EventodromoRest.Mappers
                     return Convert.ToDecimal(result);
                 }
                 return 10.0m; // Fallback
+            }
+        }
+
+        /// <summary>
+        /// Obtiene los meses de vigencia de los puntos desde la configuración.
+        /// </summary>
+        public int ObtenerMesesVigenciaPuntos()
+        {
+            lock (DB)
+            {
+                string query = "SELECT meses_vigencia_puntos FROM configuracion WHERE id = 1";
+                object result = DB.ExecuteScalar(query, new ParameterList());
+
+                if (result != null && result != DBNull.Value)
+                {
+                    return Convert.ToInt32(result);
+                }
+                return 6; // Fallback: 6 meses
+            }
+        }
+
+        /// <summary>
+        /// Obtiene los minutos de vigencia del carrito desde la configuración.
+        /// </summary>
+        public int ObtenerMinutosVigenciaCarrito()
+        {
+            lock (DB)
+            {
+                string query = "SELECT minutos_vigencia_carrito FROM configuracion WHERE id = 1";
+                object result = DB.ExecuteScalar(query, new ParameterList());
+
+                if (result != null && result != DBNull.Value)
+                {
+                    return Convert.ToInt32(result);
+                }
+                return 30; // Fallback: 30 minutos
+            }
+        }
+
+        /// <summary>
+        /// Obtiene todas las configuraciones del sistema.
+        /// </summary>
+        public Modelos.Utiles.ConfiguracionDTO ObtenerConfiguracionCompleta()
+        {
+            lock (DB)
+            {
+                string query = "SELECT puntos_por_sol, meses_vigencia_puntos, minutos_vigencia_carrito FROM configuracion WHERE id = 1";
+                DB.Select(query, new ParameterList());
+                
+                try
+                {
+                    if (DB.Read())
+                    {
+                        return new Modelos.Utiles.ConfiguracionDTO
+                        {
+                            PuntosPorSol = DB.GetDecimal("puntos_por_sol"),
+                            MesesVigenciaPuntos = DB.GetInt("meses_vigencia_puntos"),
+                            MinutosVigenciaCarrito = DB.GetInt("minutos_vigencia_carrito")
+                        };
+                    }
+                }
+                finally
+                {
+                    DB.CloseReader();
+                }
+
+                // Fallback si no existe configuración
+                return new Modelos.Utiles.ConfiguracionDTO
+                {
+                    PuntosPorSol = 10.0m,
+                    MesesVigenciaPuntos = 6,
+                    MinutosVigenciaCarrito = 30
+                };
+            }
+        }
+
+        /// <summary>
+        /// Actualiza las configuraciones del sistema (solo los campos que no sean null).
+        /// </summary>
+        public int ActualizarConfiguracion(Modelos.Utiles.ActualizarConfiguracionDTO configuracion)
+        {
+            lock (DB)
+            {
+                var updates = new List<string>();
+                var parametros = new ParameterList();
+
+                if (configuracion.PuntosPorSol.HasValue)
+                {
+                    updates.Add("puntos_por_sol = @puntosPorSol");
+                    parametros.Add("@puntosPorSol", configuracion.PuntosPorSol.Value);
+                }
+
+                if (configuracion.MesesVigenciaPuntos.HasValue)
+                {
+                    updates.Add("meses_vigencia_puntos = @mesesVigencia");
+                    parametros.Add("@mesesVigencia", configuracion.MesesVigenciaPuntos.Value);
+                }
+
+                if (configuracion.MinutosVigenciaCarrito.HasValue)
+                {
+                    updates.Add("minutos_vigencia_carrito = @minutosCarrito");
+                    parametros.Add("@minutosCarrito", configuracion.MinutosVigenciaCarrito.Value);
+                }
+
+                if (updates.Count == 0)
+                {
+                    return 0; // No hay nada que actualizar
+                }
+
+                string query = $"UPDATE configuracion SET {string.Join(", ", updates)} WHERE id = 1";
+                return DB.ExecuteNonQuery(query, parametros);
             }
         }
     }

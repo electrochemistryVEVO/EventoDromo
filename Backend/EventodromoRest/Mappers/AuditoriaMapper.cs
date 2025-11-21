@@ -62,7 +62,8 @@ namespace EventodromoRest.Mappers
                          WHERE a.idCliente = c.id AND a.idTipoAuditoria = 4) as puntosUsados,
                         (SELECT COUNT(*) FROM Auditoria a 
                          WHERE a.idCliente = c.id AND a.idTipoAuditoria = 2) as transferenciasEnviadas,
-                        0 as transferenciasRecibidas
+                        (SELECT COUNT(*) FROM Auditoria a 
+                         WHERE a.idCliente = c.id AND a.idTipoAuditoria = 6) as transferenciasRecibidas
                     FROM Cliente c
                     {searchCondition}
                     ORDER BY c.fechaUltimaEdicion DESC
@@ -137,7 +138,7 @@ namespace EventodromoRest.Mappers
                         {
                             Compras = totalCompras,
                             Total = $"S/{gastoTotal:0}",
-                            PuntosUsados = $"{puntosUsados} puntos usados"
+                            PuntosUsados = $"{Math.Abs(puntosUsados)} puntos usados"
                         },
                         Transferencias = new TransferenciasDTO
                         {
@@ -386,6 +387,7 @@ namespace EventodromoRest.Mappers
                 3 => "actualizacion_perfil",
                 4 => "uso_puntos",
                 5 => "inicio_sesion",
+                6 => "transferencia_recibida",
                 _ => "desconocido"
             };
         }
