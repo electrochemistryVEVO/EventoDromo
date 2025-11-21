@@ -6,6 +6,7 @@ USER app
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
+ENV AppSettings__FrontendUrl="http://localhost:3000"
 
 
 # Esta fase se usa para compilar el proyecto de servicio
@@ -27,4 +28,5 @@ RUN dotnet publish "./EventodromoRest.csproj" -c $BUILD_CONFIGURATION -o /app/pu
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+ENV AppSettings__FrontendUrl="http://localhost:3000"
 ENTRYPOINT ["dotnet", "EventodromoRest.dll"]
