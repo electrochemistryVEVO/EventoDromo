@@ -47,7 +47,9 @@ export const useEventCreator = () => {
         setEventTypes(eventTypesData);
       } catch (err) {
         console.error("Error fetching initial data:", err);
-        setError("No se pudieron cargar los datos necesarios para el formulario.");
+        setError(
+          "No se pudieron cargar los datos necesarios para el formulario."
+        );
       }
     };
     fetchDropdownData();
@@ -97,7 +99,7 @@ export const useEventCreator = () => {
       }
       return newState;
     });
-    
+
     if (name === "fechaCompra" && value) {
       setFechas((currentFechas) =>
         currentFechas.filter((f) => {
@@ -129,7 +131,7 @@ export const useEventCreator = () => {
         puntos: "",
       },
     ]);
-    
+
   const removeTipoEntrada = (id) => {
     const estaEnUso = descuentos.some(
       (d) => parseInt(d.tipoEntradaId, 10) === id
@@ -145,7 +147,7 @@ export const useEventCreator = () => {
       prev.filter((d) => parseInt(d.tipoEntradaId, 10) !== id)
     );
   };
-  
+
   const handleTipoEntradaChange = (id, field, value) =>
     setTiposEntrada((prev) =>
       prev.map((t) => (t.id === id ? { ...t, [field]: value } : t))
@@ -272,7 +274,7 @@ export const useEventCreator = () => {
     try {
       // --- PASO A: "Subir" la imagen para obtener la URL ---
       // Llamamos a nuestra función simulada pasándole el archivo del estado.
-      console.log("Paso 1: Convirtiendo imagen a URL (simulado)...");
+      console.log("Paso 1: Convirtiendo imagen a URL...");
       const imageUrl = await uploadImageAndGetUrl(eventInfo.imagenFile);
 
       // --- PASO B: Ensamblar el payload final con la URL obtenida ---

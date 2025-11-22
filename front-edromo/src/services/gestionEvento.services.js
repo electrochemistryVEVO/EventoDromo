@@ -1,15 +1,16 @@
-const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+const BASE_API_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
 /**
  * Obtiene el token de autenticación almacenado.
  * @returns {string|null} - El token JWT o null si no existe.
  */
 const getAuthToken = () => {
   // Verificamos que estamos en el cliente antes de acceder a localStorage
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     console.warn("getAuthToken llamado en el servidor, retornando null");
     return null;
   }
-  
+
   try {
     // 1. Lee la clave "user" de localStorage (donde UserContext la guarda)
     const userJSON = localStorage.getItem("user");
@@ -69,181 +70,6 @@ export const getLocales = async () => {
 };
 
 /**
- * Simula una llamada a la API para obtener los eventos filtrados.
- * En una aplicación real, los filtros se enviarían como parámetros en la petición fetch.
- * @param {object} filters - Los filtros a aplicar en la búsqueda.
- * @returns {Promise<object>} Una promesa que resuelve a un objeto con los eventos y la información de paginación.
- */
-
-/*
-export const getEvents = async (filters = {}) => {
-  console.log("Fetching events with filters:", filters);
-  const token = getAuthToken();
-  // Simulación de una llamada al backend con el token de autorización
-  const headers = {
-    Authorization: token,
-    "Content-Type": "application/json",
-  };
-
-  // Aquí iría la lógica de la llamada fetch al backend:
-  // const response = await fetch(`https://api.example.com/events?page=${filters.page || 1}`, { headers });
-  // const data = await response.json();
-  // return data;
-
-  // Por ahora, devolvemos datos hardcodeados para el frontend.
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Datos base de eventos
-      const allEvents = [
-        {
-          id: 1,
-          nombre: "Overpass Lima",
-          local: "Estadio San Marcos",
-          localId: 1,
-          tipo: "Concierto",
-          fechaPublicacion: "2025-10-15T10:00:00",
-          fechaCompra: "2025-10-30T11:00:00",
-          horarios: [{
-            horario: "2025-11-11T20:00:00",
-            ocupacion: { actual: 0, total: 30000 },
-          }],
-          ingresosBrutos: 0.0,
-          estado: "Creado",
-        },
-        {
-          id: 2,
-          nombre: "Imagine Dragons",
-          local: "Estadio San Marcos",
-          localId: 1,
-          tipo: "Concierto",
-          fechaPublicacion: "2025-05-13T10:00:00",
-          fechaCompra: "2025-05-30T11:00:00",
-          horarios: [{
-            horario: "2025-10-09T21:00:00",
-            ocupacion: { actual: 0, total: 30000 },
-          }],
-          ingresosBrutos: 0.0,
-          estado: "Publicado",
-        },
-        {
-          id: 3,
-          nombre: "Linkin Park",
-          local: "Estadio San Marcos",
-          localId: 1,
-          tipo: "Concierto",
-          fechaPublicacion: "2025-05-10T10:00:00",
-          fechaCompra: "2025-05-29T12:00:00",
-          horarios: [{
-            horario: "2025-11-07T19:00:00",
-            ocupacion: { actual: 11000, total: 30000 },
-          }],
-          ingresosBrutos: 13200.0,
-          estado: "En venta",
-        },
-        {
-          id: 4,
-          nombre: "Circo Alegría",
-          local: "Teatro Municipal",
-          localId: 2,
-          tipo: "Cultural",
-          fechaPublicacion: "2025-05-08T10:00:00",
-          fechaCompra: "2025-05-08T11:00:00",
-          horarios: [{
-            horario: "Múltiples Fechas",
-            ocupacion: { actual: 11000, total: 30000 },
-          }],
-          ingresosBrutos: 13200.0,
-          estado: "Concluido",
-        },
-        {
-          id: 5,
-          nombre: "Universitario vs Alianza",
-          local: "Estadio Monumental",
-          localId: 3,
-          tipo: "Deportivo",
-          fechaPublicacion: "2025-04-05T10:00:00",
-          fechaCompra: "2025-04-20T09:00:00",
-          horarios: [{
-            horario: "2025-06-15T15:00:00",
-            ocupacion: { actual: 0, total: 30000 },
-          }],
-          ingresosBrutos: 0.0,
-          estado: "Cancelado",
-        },
-      ];
-
-      // Aplicar filtros
-      let filteredEvents = [...allEvents];
-
-      // Filtro por búsqueda (nombre del evento)
-      if (filters.search && filters.search.trim() !== "") {
-        const searchTerm = filters.search.toLowerCase().trim();
-        filteredEvents = filteredEvents.filter(event =>
-          event.nombre.toLowerCase().includes(searchTerm)
-        );
-      }
-
-      // Filtro por local
-      if (filters.local && filters.local !== 0) {
-        filteredEvents = filteredEvents.filter(event =>
-          event.localId === filters.local
-        );
-      }
-
-      // Filtro por estado
-      if (filters.status && filters.status !== "Todos") {
-        filteredEvents = filteredEvents.filter(event =>
-          event.estado === filters.status
-        );
-      }
-
-      // Filtro por rango de fechas (usando fechaPublicacion)
-
-      if (filters.startDate) {
-        const startDate = new Date(filters.startDate);
-        filteredEvents = filteredEvents.filter(event => {
-          const eventDate = new Date(event.fechaPublicacion);
-          return eventDate >= startDate;
-        });
-      }
-
-      if (filters.endDate) {
-        const endDate = new Date(filters.endDate);
-        endDate.setHours(23, 59, 59, 999); // Incluir todo el día final
-        filteredEvents = filteredEvents.filter(event => {
-          const eventDate = new Date(event.fechaPublicacion);
-          return eventDate <= endDate;
-        });
-      }
-
-      // Paginación
-      const pageSize = 10;
-      const currentPage = filters.page || 1;
-      const totalEvents = filteredEvents.length;
-      const totalPages = Math.ceil(totalEvents / pageSize);
-      const startIndex = (currentPage - 1) * pageSize;
-      const endIndex = startIndex + pageSize;
-      const paginatedEvents = filteredEvents.slice(startIndex, endIndex);
-
-      const response = {
-        data: {
-          data: paginatedEvents,
-          pagination: {
-            currentPage: currentPage,
-            totalPages: totalPages,
-            totalEvents: totalEvents,
-          },
-        },
-      };
-      console.log("Events fetched:", response);
-      resolve(response);
-    }, 1000); // Simular un retardo de red
-  });
-};
-
-*/
-
-/**
  * Realiza una llamada a la API para obtener los eventos filtrados y paginados.
  * @param {object} filters - Los filtros a aplicar en la búsqueda.
  * @returns {Promise<object>} Una promesa que resuelve a un objeto con los eventos y la información de paginación.
@@ -252,7 +78,7 @@ export const getEvents = async (filters = {}) => {
 export const getEvents = async (filters = {}) => {
   const token = getAuthToken();
   if (!token) {
-    throw new Error('No se encontró el token de autenticación.');
+    throw new Error("No se encontró el token de autenticación.");
   }
 
   // 1. Preparamos los parámetros para la URL, omitiendo los que no se deben enviar.
@@ -260,38 +86,38 @@ export const getEvents = async (filters = {}) => {
   if (queryParams.local === 0) {
     delete queryParams.local; // El backend no espera localId=0
   }
-  if (queryParams.status === 'Todos') {
+  if (queryParams.status === "Todos") {
     delete queryParams.status;
   }
   // Renombramos 'local' a 'localId' para que coincida con la especificación del backend.
   if (queryParams.local) {
-      queryParams.localId = queryParams.local;
-      delete queryParams.local;
+    queryParams.localId = queryParams.local;
+    delete queryParams.local;
   }
-
 
   // 2. Construimos la cadena de búsqueda (query string)
   const queryString = new URLSearchParams(queryParams).toString();
   const url = `${BASE_API_URL}/Evento/EventoGetEvents?${queryString}`;
 
-  console.log('Realizando petición a:', url);
+  console.log("Realizando petición a:", url);
 
   const response = await fetch(url, {
-    method: 'GET',
+    method: "GET",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: response.statusText }));
-    throw new Error(errorData.message || 'Error al obtener los eventos');
+    const errorData = await response
+      .json()
+      .catch(() => ({ message: response.statusText }));
+    throw new Error(errorData.message || "Error al obtener los eventos");
   }
 
   return response.json();
 };
-
 
 /**
  * Envía los datos de un nuevo evento al backend para su creación.
@@ -442,32 +268,105 @@ export const getEventTypes = async () => {
 };
 
 /**
- * Sube un archivo de imagen y devuelve su URL pública.
+ * Sube un archivo de imagen al backend AWS S3 y devuelve su URL pública.
  *
- * --- ¡VERSIÓN SIMULADA (MOCK)! ---
- * Por ahora, esta función NO sube el archivo. Simplemente simula un
- * retraso de red y devuelve una URL de imagen hardcodeada para desarrollo.
- *
- * @param {File} imageFile - El archivo de imagen seleccionado por el usuario (actualmente no se utiliza).
- * @returns {Promise<string>} Una promesa que resuelve a la URL de la imagen.
+ * @param {File} imageFile - El archivo de imagen seleccionado por el usuario.
+ * @returns {Promise<string>} La URL pública de la imagen en S3.
  */
 export const uploadImageAndGetUrl = async (imageFile) => {
-  console.log("ADVERTENCIA: Usando el servicio de subida de imagen SIMULADO.");
-
-  // Validamos que se recibió un archivo para mantener la consistencia con la futura función real.
   if (!imageFile) {
-    throw new Error("No se proporcionó ningún archivo de imagen.");
+    throw new Error("No se proporcionó ningún archivo de imagen para subir.");
   }
 
-  // Simula un pequeño retraso de red (ej: 500 milisegundos)
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  const token = getAuthToken(); // Asumo que subir imágenes requiere estar logueado
+  if (!token) {
+    throw new Error("Token de autenticación no encontrado.");
+  }
 
-  const HARDCODED_IMAGE_URL =
-    "https://via.placeholder.com/1024x768.png?text=Mi+Evento";
+  // 1. Crear el objeto FormData
+  const formData = new FormData();
+  // "archivo" debe coincidir EXACTAMENTE con el nombre del parámetro en tu Controller C#: public async Task<IActionResult> SubirImagen(IFormFile archivo, ...)
+  formData.append("archivo", imageFile);
+  // Opcional: Si quieres organizar las imágenes en una carpeta específica en S3
+  //formData.append("carpeta", "imagenes-eventos");
 
-  console.log("Subida simulada exitosa. URL devuelta:", HARDCODED_IMAGE_URL);
+  console.log("Subiendo imagen al servidor...");
 
-  // En el futuro, aquí iría la llamada fetch real y devolveríamos la URL de la respuesta.
-  // Por ahora, simplemente devolvemos la URL fija.
-  return HARDCODED_IMAGE_URL;
+  try {
+    const response = await fetch(`${BASE_API_URL}/Imagen/subir`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      // Intentamos parsear el JSON de error que envía el backend
+      const errorData = await response.json().catch(() => null);
+
+      // Tu backend envía: { mensaje: "...", detalle: "..." }
+      const mensajeError =
+        errorData?.mensaje || "Error desconocido del servidor";
+      const detalleTecnico = errorData?.detalle || "";
+
+      console.error("❌ Error reportado por el backend:", mensajeError);
+      if (detalleTecnico) {
+        console.error("🕵️ Detalle técnico (Excepción C#):", detalleTecnico);
+      }
+
+      // Lanzamos el error incluyendo el detalle para verlo en la alerta si es necesario
+      throw new Error(
+        `${mensajeError}${detalleTecnico ? `: ${detalleTecnico}` : ""}`
+      );
+    }
+
+    const data = await response.json();
+
+    // Tu backend devuelve: { mensaje, ruta, url }
+    if (!data.url) {
+      throw new Error("El servidor no devolvió la URL de la imagen.");
+    }
+
+    console.log("Imagen subida con éxito:", data.url);
+    return data.url;
+  } catch (error) {
+    console.error("Error en uploadImageAndGetUrl:", error);
+    throw error;
+  }
+};
+
+/**
+ * Elimina un evento por su ID.
+ * @param {number} eventId - El ID del evento a eliminar.
+ * @returns {Promise<boolean>} True si se eliminó correctamente.
+ */
+export const deleteEvent = async (eventId) => {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Token de autenticación no encontrado.");
+  }
+
+  try {
+    const response = await fetch(
+      `${BASE_API_URL}/Evento/EliminarEvento?id=${eventId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Error al eliminar el evento.");
+    }
+
+    return true; // Éxito
+  } catch (error) {
+    console.error("Error en deleteEvent:", error);
+    throw error;
+  }
 };

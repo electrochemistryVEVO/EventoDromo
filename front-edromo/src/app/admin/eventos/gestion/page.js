@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useEventManager } from "./controller";
-import '@/css/adminEventos/gestionEventos.css';
-import { FiPlus, FiUpload } from 'react-icons/fi';
+import "@/css/adminEventos/gestionEventos.css";
+import { FiPlus, FiUpload } from "react-icons/fi";
 
 import EventFilters from "@/components/gestion-evento/EventFilters.jsx";
 import EventsTable from "@/components/gestion-evento/EventsTable.jsx";
@@ -21,6 +21,7 @@ const GestionEventosPage = () => {
     isLoading,
     error,
     filters,
+    removeEvent,
     handleFilterChange,
     applyFilters,
     handlePageChange,
@@ -32,7 +33,8 @@ const GestionEventosPage = () => {
     data: null,
   });
 
-  const closeModal = () => setModalState({ isOpen: false, type: null, data: null });
+  const closeModal = () =>
+    setModalState({ isOpen: false, type: null, data: null });
 
   const handleAction = (type, event = null) => {
     const actions = {
@@ -40,17 +42,27 @@ const GestionEventosPage = () => {
       edit: () => router.push(`/admin/eventos/editar/${event.id}`),
       view: () => router.push(`/admin/eventos/ver/${event.id}`),
       upload: () => setModalState({ isOpen: true, type: "upload", data: null }),
-      delete: () => setModalState({ isOpen: true, type: "delete", data: event }),
+      delete: () =>
+        setModalState({ isOpen: true, type: "delete", data: event }),
     };
 
     actions[type]?.() || console.warn("Tipo de acción desconocida:", type);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
+    if (!modalState.data?.id) return;
+
     console.log("Eliminando evento:", modalState.data.id);
-    // Aquí iría la llamada al servicio para eliminar el evento
-    closeModal();
-    // applyFilters();
+
+    // Llamamos a la función del controller
+    const result = await removeEvent(modalState.data.id);
+
+    if (result.success) {
+      alert("Evento eliminado correctamente");
+      closeModal();
+    } else {
+      alert("Error al eliminar: " + result.message);
+    }
   };
 
   const renderModalContent = () => {
@@ -89,7 +101,8 @@ const GestionEventosPage = () => {
     }
   };
 
-  const modalTitle = modalState.type === "delete" ? "Confirmar Eliminación" : "Cargar CSV";
+  const modalTitle =
+    modalState.type === "delete" ? "Confirmar Eliminación" : "Cargar CSV";
   const showPagination = pagination?.totalPages > 0 && !isLoading;
 
   return (
@@ -98,10 +111,16 @@ const GestionEventosPage = () => {
         <header className="page-header">
           <h1>Gestión de Eventos</h1>
           <div className="flex items-center gap-3">
-            <button className="btn btn-secondary" onClick={() => handleAction("upload")}>
+            <button
+              className="btn btn-secondary"
+              onClick={() => handleAction("upload")}
+            >
               <FiUpload /> Cargar CSV
             </button>
-            <button className="btn btn-create" onClick={() => handleAction("create")}>
+            <button
+              className="btn btn-create"
+              onClick={() => handleAction("create")}
+            >
               <FiPlus /> Crear evento
             </button>
           </div>
@@ -132,7 +151,11 @@ const GestionEventosPage = () => {
           )}
         </div>
 
-        <Modal isOpen={modalState.isOpen} onClose={closeModal} title={modalTitle}>
+        <Modal
+          isOpen={modalState.isOpen}
+          onClose={closeModal}
+          title={modalTitle}
+        >
           {renderModalContent()}
         </Modal>
       </div>
