@@ -101,9 +101,9 @@ namespace EventodromoRest.Servicios
                     BucketName = _bucketName,
                     Key = rutaEnS3,
                     InputStream = stream,
-                    ContentType = contentType,
-                    // Hacer el objeto público para lectura (opcional, depende de tu bucket policy)
-                    CannedACL = S3CannedACL.PublicRead
+                    ContentType = contentType
+                    // No usar CannedACL porque el bucket tiene ACLs deshabilitadas
+                    // La accesibilidad pública se maneja mediante Bucket Policy
                 };
 
                 var response = await _s3Client.PutObjectAsync(putRequest);
