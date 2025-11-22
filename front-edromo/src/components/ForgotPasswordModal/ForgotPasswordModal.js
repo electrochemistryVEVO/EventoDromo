@@ -23,6 +23,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage("");
+    setMessageType("");
 
     try {
       await enviarCorreoRecuperacion(email);
@@ -30,11 +31,10 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
       setMessage(
         "Se ha enviado un enlace a tu correo electrónico para restablecer tu contraseña."
       );
+      setEmail(""); // Limpiamos el campo de email tras el envío exitoso
     } catch (err) {
       setMessageType("error");
-      setMessage(
-        "El correo electrónico no está registrado. Por favor, verifica e intenta de nuevo."
-      );
+      setMessage(err.message || "Ocurrió un error al procesar la solicitud.");
       console.error("Error capturado en el modal:", err.message);
     } finally {
       setIsLoading(false);
