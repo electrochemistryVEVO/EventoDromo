@@ -209,6 +209,33 @@ namespace EventodromoRest.DBManager
             return reader.GetBoolean(i);
         }
 
+        public string? GetStringOrNull(string column)
+        {
+            if (reader is null) throw new InvalidOperationException("DataReader no inicializado.");
+            int i = reader.GetOrdinal(column);
+            if (reader.IsDBNull(i))
+                return null;
+            return reader.GetString(i);
+        }
+
+        public int? GetIntOrNull(string column)
+        {
+            if (reader is null) throw new InvalidOperationException("DataReader no inicializado.");
+            int i = reader.GetOrdinal(column);
+            if (reader.IsDBNull(i))
+                return null;
+            return reader.GetInt32(i);
+        }
+
+        public bool? GetBoolOrNull(string column)
+        {
+            if (reader is null) throw new InvalidOperationException("DataReader no inicializado.");
+            int i = reader.GetOrdinal(column);
+            if (reader.IsDBNull(i))
+                return null;
+            return reader.GetBoolean(i);
+        }
+
         public void CloseReader()
         {
             try

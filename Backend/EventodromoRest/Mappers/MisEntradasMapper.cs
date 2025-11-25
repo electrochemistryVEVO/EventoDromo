@@ -92,6 +92,7 @@ namespace EventodromoRest.Mappers
                 string sqlSelect = $@"
                     SELECT 
                         T.numeroTransaccion AS transaccion,
+                        EV.id AS idEvento,
                         EV.nombre AS titulo,
                         FE.fechaHora,
                         L.direccion,
@@ -118,7 +119,7 @@ namespace EventodromoRest.Mappers
 
                     response.items.Add(new EntradaEventoAuxiliar
                     {
-                        // 'id' ya no es relevante, usamos 'transaccion'
+                        id = DB.GetInt("idEvento"),
                         transaccion = DB.GetString("transaccion"),
                         titulo = DB.GetString("titulo"),
                         fecha = fechaHora.ToString("yyyy-MM-dd"),

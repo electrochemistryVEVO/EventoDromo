@@ -100,7 +100,7 @@ export default function MisEntradaItem({ entrada, index, onTransferComplete }) {
                 src={entrada.imagen}
                 alt={entrada.titulo}
                 onError={(e) => {
-                  e.currentTarget.src = "/images/cards-04.png";
+                  e.currentTarget.src = "/images/evento-placeholder.jpg";
                 }}
               />
             ) : (
@@ -200,7 +200,7 @@ export default function MisEntradaItem({ entrada, index, onTransferComplete }) {
               onTransferComplete={handleTransferComplete}
               disabled={estadoEntradas.disponibles === 0 && estadoEntradas.total > 0}
             />
-            <VerDetalleButton />
+            <VerDetalleButton numeroTransaccion={entrada.transaccion} idEvento={entrada.id} />
           </div>
         </div>
       </div>

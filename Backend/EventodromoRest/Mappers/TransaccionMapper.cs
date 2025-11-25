@@ -690,5 +690,258 @@ namespace EventodromoRest.Mappers
                 return detalles;
             }
         }
+
+        /// <summary>
+        /// Obtiene el detalle completo de una transacción filtrado por evento específico:
+        /// - Información del evento (título, imagen, ubicación, fecha)
+        /// - Datos de la transacción (número, fecha, estado)
+        /// - Datos del cliente (nombre, email, tipo y número de documento)
+        /// - Lista de entradas del evento específico (tipo, cantidad, precio)
+        /// - Método de pago (tarjeta/puntos/transferencia)
+        /// 
+        /// Verifica que la transacción pertenezca al cliente autenticado
+        /// </summary>
+        public DetalleTransaccionCompleto? ObtenerDetalleCompleto(string numeroTransaccion, int idEvento, int idCliente)
+        {
+            lock (DB)
+            {
+                // Query principal que obtiene toda la información necesaria
+                string query = @"
+                    SELECT 
+                        -- Datos del evento (directo desde el idEvento)
+                        ev.nombre AS EventoTitulo,
+                        ev.imagenURL AS EventoImagen,
+                        CONCAT(l.nombre, ', ', c.nombre, ', ', p.nombre) AS EventoUbicacion,
+                        fe.fechaHora AS EventoFecha,
+                        
+                        -- Datos de la transacción
+                        t.numeroTransaccion AS TransaccionNumero,
+                        t.fechaHoraCompra AS TransaccionFecha,
+                        t.montoTotal AS TransaccionTotal,
+                        
+                        -- Datos del cliente (de la transacción)
+                        CONCAT(t.nombresCliente, ' ', t.apellidosCliente) AS ClienteNombre,
+                        t.emailCliente AS ClienteEmail,
+                        td.nombre AS ClienteTipoDocumento,
+                        t.numeroDocumentoCliente AS ClienteNumeroDocumento,
+                        
+                        -- Verificar el carrito para obtener el idCliente
+                        ca.idCliente AS CarritoIdCliente,
+                        
+                        -- Verificar si existe tarjeta (obtener últimos 4 dígitos de la tabla Tarjeta)
+                        CASE 
+                            WHEN tar.numero IS NOT NULL THEN RIGHT(tar.numero, 4)
+                            ELSE NULL
+                        END AS TarjetaUltimos4,
+                        
+                        -- Verificar si existe pago con puntos
+                        tp.puntosGastados AS PuntosPagados,
+                        
+                        -- Verificar si es transferencia (origen)
+                        CASE 
+                            WHEN ttr.idTransaccion IS NOT NULL THEN 1
+                            ELSE 0
+                        END AS EsTransferencia,
+                        trp.emailDestino AS TransferenciaEmailDestino,
+                        trp.estado AS TransferenciaEstado
+                        
+                    FROM Transaccion t
+                    INNER JOIN Carrito ca ON t.idCarrito = ca.id
+                    INNER JOIN TipoDocumento td ON t.idTipoDocumento = td.id
+                    LEFT JOIN TransaccionTarjeta tt ON tt.idTransaccion = t.id
+                    LEFT JOIN Tarjeta tar ON tt.idTarjeta = tar.id
+                    LEFT JOIN TransaccionPuntos tp ON tp.idTransaccion = t.id
+                    LEFT JOIN TransaccionTransferencia ttr ON ttr.idTransaccion = t.id
+                    LEFT JOIN TransferenciaPendiente trp ON ttr.idTransferenciaPendiente = trp.id
+                    -- Obtener datos del evento directamente usando el idEvento
+                    LEFT JOIN Evento ev ON ev.id = @idEvento
+                    LEFT JOIN Local l ON ev.idLocal = l.id
+                    LEFT JOIN Ciudad c ON l.idCiudad = c.id
+                    LEFT JOIN Pais p ON c.idPais = p.id
+                    LEFT JOIN (
+                        SELECT MIN(fechaHora) as fechaHora
+                        FROM FechaEvento
+                        WHERE idEvento = @idEvento
+                    ) fe ON 1=1
+                    WHERE t.numeroTransaccion = @numeroTransaccion
+                    LIMIT 1";
+
+                var parametros = new ParameterList();
+                parametros.Add("@numeroTransaccion", numeroTransaccion);
+                parametros.Add("@idEvento", idEvento);
+
+                DB.Select(query, parametros);
+                
+                if (!DB.Read())
+                {
+                    DB.CloseReader();
+                    return null; // Transacción no encontrada
+                }
+
+                // Verificar que la transacción pertenece al cliente
+                int carritoIdCliente = DB.GetInt("CarritoIdCliente");
+                if (carritoIdCliente != idCliente)
+                {
+                    DB.CloseReader();
+                    throw new Exception("No tiene permisos para ver esta transacción.");
+                }
+
+                // Construir el objeto de respuesta
+                var detalle = new DetalleTransaccionCompleto
+                {
+                    Evento = new EventoTransaccionDTO
+                    {
+                        Titulo = DB.GetStringOrNull("EventoTitulo") ?? "Evento no disponible",
+                        Imagen = DB.GetStringOrNull("EventoImagen") ?? "",
+                        Ubicacion = DB.GetStringOrNull("EventoUbicacion") ?? "",
+                        Fecha = DB.GetNullableDateTime("EventoFecha") ?? DateTime.Now
+                    },
+                    Transaccion = new TransaccionDetalleDTO
+                    {
+                        NumeroTransaccion = DB.GetString("TransaccionNumero"),
+                        Fecha = DB.GetDateTime("TransaccionFecha"),
+                        Estado = "Completada"
+                    },
+                    Cliente = new ClienteTransaccionDTO
+                    {
+                        Nombre = DB.GetString("ClienteNombre"),
+                        Email = DB.GetString("ClienteEmail"),
+                        Telefono = "", // No está disponible en la transacción
+                        TipoDocumento = DB.GetStringOrNull("ClienteTipoDocumento") ?? "DNI",
+                        NumeroDocumento = DB.GetStringOrNull("ClienteNumeroDocumento") ?? ""
+                    },
+                    Total = DB.GetDecimal("TransaccionTotal")
+                };
+
+                // Determinar el método de pago
+                string? tarjetaUltimos4 = DB.GetStringOrNull("TarjetaUltimos4");
+                int? puntosPagados = DB.GetIntOrNull("PuntosPagados");
+                bool esTransferencia = DB.GetInt("EsTransferencia") == 1;
+                string? transferenciaEmail = DB.GetStringOrNull("TransferenciaEmailDestino");
+                string? transferenciaEstado = DB.GetStringOrNull("TransferenciaEstado");
+
+                if (esTransferencia)
+                {
+                    // Es una transferencia
+                    if (transferenciaEstado == "pendiente")
+                    {
+                        // Pendiente de aceptación
+                        detalle.MetodoPago = new MetodoPagoDTO
+                        {
+                            Tipo = "transferencia_pendiente",
+                            Detalles = new DetallesPagoDTO
+                            {
+                                EmailDestino = transferenciaEmail
+                            }
+                        };
+                        detalle.Transaccion.Estado = "Pendiente";
+                    }
+                    else
+                    {
+                        // Transferencia completada (recibida)
+                        detalle.MetodoPago = new MetodoPagoDTO
+                        {
+                            Tipo = "transferencia",
+                            Detalles = new DetallesPagoDTO()
+                        };
+                    }
+                }
+                else if (!string.IsNullOrEmpty(tarjetaUltimos4))
+                {
+                    // Pago con tarjeta
+                    detalle.MetodoPago = new MetodoPagoDTO
+                    {
+                        Tipo = "tarjeta",
+                        Detalles = new DetallesPagoDTO
+                        {
+                            Ultimos4Digitos = tarjetaUltimos4
+                        }
+                    };
+                }
+                else if (puntosPagados.HasValue && puntosPagados > 0)
+                {
+                    // Pago con puntos
+                    detalle.MetodoPago = new MetodoPagoDTO
+                    {
+                        Tipo = "puntos",
+                        Detalles = new DetallesPagoDTO
+                        {
+                            PuntosUtilizados = puntosPagados.Value
+                        }
+                    };
+                }
+                else
+                {
+                    // Caso por defecto (no debería ocurrir)
+                    detalle.MetodoPago = new MetodoPagoDTO
+                    {
+                        Tipo = "tarjeta",
+                        Detalles = new DetallesPagoDTO()
+                    };
+                }
+
+                DB.CloseReader();
+
+                // Obtener las entradas de la transacción filtradas por evento
+                detalle.Entradas = ObtenerEntradasDeTransaccion(numeroTransaccion, idEvento);
+
+                return detalle;
+            }
+        }
+
+        /// <summary>
+        /// Obtiene la lista de entradas agrupadas por tipo para una transacción y evento específico
+        /// </summary>
+        private List<EntradaTransaccionDTO> ObtenerEntradasDeTransaccion(string numeroTransaccion, int idEvento)
+        {
+            lock (DB)
+            {
+                string query = @"
+                    SELECT 
+                        te.nombre AS TipoEntrada,
+                        COUNT(*) AS Cantidad,
+                        lt.precio AS PrecioUnitario,
+                        (COUNT(*) * lt.precio) AS Subtotal,
+                        COALESCE(e.estadoTransferencia, 'disponible') AS Estado
+                    FROM Transaccion t
+                    INNER JOIN LineaTransaccion lt ON lt.idTransaccion = t.id
+                    INNER JOIN Entrada e ON lt.idEntrada = e.id
+                    INNER JOIN TipoEntrada te ON e.idTipoEntrada = te.id
+                    INNER JOIN FechaEvento fe ON te.idFechaEvento = fe.id
+                    INNER JOIN Evento ev ON fe.idEvento = ev.id
+                    WHERE t.numeroTransaccion = @numeroTransaccion
+                      AND ev.id = @idEvento
+                    GROUP BY te.nombre, lt.precio, COALESCE(e.estadoTransferencia, 'disponible')
+                    ORDER BY te.nombre, COALESCE(e.estadoTransferencia, 'disponible')";
+
+                var parametros = new ParameterList();
+                parametros.Add("@numeroTransaccion", numeroTransaccion);
+                parametros.Add("@idEvento", idEvento);
+
+                var entradas = new List<EntradaTransaccionDTO>();
+
+                DB.Select(query, parametros);
+                try
+                {
+                    while (DB.Read())
+                    {
+                        entradas.Add(new EntradaTransaccionDTO
+                        {
+                            TipoEntrada = DB.GetString("TipoEntrada"),
+                            Cantidad = DB.GetInt("Cantidad"),
+                            PrecioUnitario = DB.GetDecimal("PrecioUnitario"),
+                            Subtotal = DB.GetDecimal("Subtotal"),
+                            Estado = DB.GetString("Estado")
+                        });
+                    }
+                }
+                finally
+                {
+                    DB.CloseReader();
+                }
+
+                return entradas;
+            }
+        }
     }
 }
