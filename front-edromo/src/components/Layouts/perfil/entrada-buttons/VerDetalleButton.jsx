@@ -3,13 +3,13 @@ import DetalleTransaccionModal from "./DetalleTransaccionModal";
 import { useDetalleTransaccion } from "./DetalleTransaccionModal.controller";
 import { useUser } from "@/context/UserContext";
 
-export default function VerDetalleButton({ numeroTransaccion }) {
+export default function VerDetalleButton({ numeroTransaccion, idEvento }) {
   const { user } = useUser();
   const { isOpen, detalle, loading, error, abrirDetalle, cerrarDetalle } = useDetalleTransaccion();
 
   const handleClick = () => {
-    if (numeroTransaccion && user?.token) {
-      abrirDetalle(numeroTransaccion, user.token);
+    if (numeroTransaccion && idEvento && user?.token) {
+      abrirDetalle(numeroTransaccion, idEvento, user.token);
     }
   };
 

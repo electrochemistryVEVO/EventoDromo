@@ -12,16 +12,17 @@ export function useDetalleTransaccion() {
   /**
    * Abre el modal y carga los detalles de la transacción
    * @param {string} numeroTransaccion - Número de transacción a consultar
+   * @param {number} idEvento - ID del evento para filtrar las entradas
    * @param {string} token - Token JWT del usuario
    */
-  const abrirDetalle = async (numeroTransaccion, token) => {
+  const abrirDetalle = async (numeroTransaccion, idEvento, token) => {
     setIsOpen(true);
     setLoading(true);
     setError(null);
     setDetalle(null);
 
     try {
-      const data = await obtenerDetalleTransaccion(numeroTransaccion, token);
+      const data = await obtenerDetalleTransaccion(numeroTransaccion, idEvento, token);
       setDetalle(data);
     } catch (err) {
       console.error("Error al cargar detalle:", err);

@@ -692,16 +692,16 @@ namespace EventodromoRest.Mappers
         }
 
         /// <summary>
-        /// Obtiene el detalle completo de una transacción incluyendo:
+        /// Obtiene el detalle completo de una transacción filtrado por evento específico:
         /// - Información del evento (título, imagen, ubicación, fecha)
         /// - Datos de la transacción (número, fecha, estado)
-        /// - Datos del cliente (nombre, email, teléfono)
-        /// - Lista de entradas (tipo, cantidad, precio)
+        /// - Datos del cliente (nombre, email, tipo y número de documento)
+        /// - Lista de entradas del evento específico (tipo, cantidad, precio)
         /// - Método de pago (tarjeta/puntos/transferencia)
         /// 
         /// Verifica que la transacción pertenezca al cliente autenticado
         /// </summary>
-        public DetalleTransaccionCompleto? ObtenerDetalleCompleto(string numeroTransaccion, int idCliente)
+        public DetalleTransaccionCompleto? ObtenerDetalleCompleto(string numeroTransaccion, int idEvento, int idCliente)
         {
             lock (DB)
             {
@@ -712,53 +712,66 @@ namespace EventodromoRest.Mappers
                         ev.nombre AS EventoTitulo,
                         ev.imagenURL AS EventoImagen,
                         CONCAT(l.nombre, ', ', c.nombre, ', ', p.nombre) AS EventoUbicacion,
-                        fe.fecha AS EventoFecha,
+                        fe.fechaHora AS EventoFecha,
                         
                         -- Datos de la transacción
                         t.numeroTransaccion AS TransaccionNumero,
                         t.fechaHoraCompra AS TransaccionFecha,
                         t.montoTotal AS TransaccionTotal,
                         
-                        -- Datos del cliente
+                        -- Datos del cliente (de la transacción)
                         CONCAT(t.nombresCliente, ' ', t.apellidosCliente) AS ClienteNombre,
                         t.emailCliente AS ClienteEmail,
-                        cl.telefono AS ClienteTelefono,
+                        td.nombre AS ClienteTipoDocumento,
+                        t.numeroDocumentoCliente AS ClienteNumeroDocumento,
                         
                         -- Verificar el carrito para obtener el idCliente
                         ca.idCliente AS CarritoIdCliente,
                         
-                        -- Verificar si existe tarjeta
-                        tt.ultimos4Digitos AS TarjetaUltimos4,
+                        -- Verificar si existe tarjeta (obtener últimos 4 dígitos de la tabla Tarjeta)
+                        CASE 
+                            WHEN tar.numero IS NOT NULL THEN RIGHT(tar.numero, 4)
+                            ELSE NULL
+                        END AS TarjetaUltimos4,
                         
                         -- Verificar si existe pago con puntos
-                        tp.puntosUtilizados AS PuntosPagados,
+                        tp.puntosGastados AS PuntosPagados,
                         
                         -- Verificar si es transferencia (origen)
                         CASE 
                             WHEN ttr.idTransaccion IS NOT NULL THEN 1
                             ELSE 0
                         END AS EsTransferencia,
-                        ttr.emailDestino AS TransferenciaEmailDestino,
-                        ttr.estaAceptada AS TransferenciaAceptada
+                        trp.emailDestino AS TransferenciaEmailDestino,
+                        trp.estado AS TransferenciaEstado
                         
                     FROM Transaccion t
                     INNER JOIN Carrito ca ON t.idCarrito = ca.id
-                    INNER JOIN Entrada e ON e.idCarrito = ca.id
-                    INNER JOIN TipoEntrada te ON e.idTipoEntrada = te.id
-                    INNER JOIN FechaEvento fe ON te.idFechaEvento = fe.id
-                    INNER JOIN Evento ev ON fe.idEvento = ev.id
-                    INNER JOIN Local l ON ev.idLocal = l.id
-                    INNER JOIN Ciudad c ON l.idCiudad = c.id
-                    INNER JOIN Pais p ON c.idPais = p.id
-                    INNER JOIN Cliente cl ON ca.idCliente = cl.id
+                    INNER JOIN TipoDocumento td ON t.idTipoDocumento = td.id
                     LEFT JOIN TransaccionTarjeta tt ON tt.idTransaccion = t.id
+                    LEFT JOIN Tarjeta tar ON tt.idTarjeta = tar.id
                     LEFT JOIN TransaccionPuntos tp ON tp.idTransaccion = t.id
                     LEFT JOIN TransaccionTransferencia ttr ON ttr.idTransaccion = t.id
+                    LEFT JOIN TransferenciaPendiente trp ON ttr.idTransferenciaPendiente = trp.id
+                    LEFT JOIN (
+                        SELECT e.idCarrito, MIN(te.idFechaEvento) as idFechaEvento
+                        FROM Entrada e
+                        INNER JOIN TipoEntrada te ON e.idTipoEntrada = te.id
+                        INNER JOIN FechaEvento fe ON te.idFechaEvento = fe.id
+                        WHERE fe.idEvento = @idEvento
+                        GROUP BY e.idCarrito
+                    ) entrada_info ON entrada_info.idCarrito = ca.id
+                    LEFT JOIN FechaEvento fe ON entrada_info.idFechaEvento = fe.id
+                    LEFT JOIN Evento ev ON fe.idEvento = ev.id
+                    LEFT JOIN Local l ON ev.idLocal = l.id
+                    LEFT JOIN Ciudad c ON l.idCiudad = c.id
+                    LEFT JOIN Pais p ON c.idPais = p.id
                     WHERE t.numeroTransaccion = @numeroTransaccion
                     LIMIT 1";
 
                 var parametros = new ParameterList();
                 parametros.Add("@numeroTransaccion", numeroTransaccion);
+                parametros.Add("@idEvento", idEvento);
 
                 DB.Select(query, parametros);
                 
@@ -781,10 +794,10 @@ namespace EventodromoRest.Mappers
                 {
                     Evento = new EventoTransaccionDTO
                     {
-                        Titulo = DB.GetString("EventoTitulo"),
-                        Imagen = DB.GetString("EventoImagen"),
-                        Ubicacion = DB.GetString("EventoUbicacion"),
-                        Fecha = DB.GetDateTime("EventoFecha")
+                        Titulo = DB.GetStringOrNull("EventoTitulo") ?? "Evento no disponible",
+                        Imagen = DB.GetStringOrNull("EventoImagen") ?? "",
+                        Ubicacion = DB.GetStringOrNull("EventoUbicacion") ?? "",
+                        Fecha = DB.GetNullableDateTime("EventoFecha") ?? DateTime.Now
                     },
                     Transaccion = new TransaccionDetalleDTO
                     {
@@ -796,7 +809,9 @@ namespace EventodromoRest.Mappers
                     {
                         Nombre = DB.GetString("ClienteNombre"),
                         Email = DB.GetString("ClienteEmail"),
-                        Telefono = DB.GetString("ClienteTelefono")
+                        Telefono = "", // No está disponible en la transacción
+                        TipoDocumento = DB.GetStringOrNull("ClienteTipoDocumento") ?? "DNI",
+                        NumeroDocumento = DB.GetStringOrNull("ClienteNumeroDocumento") ?? ""
                     },
                     Total = DB.GetDecimal("TransaccionTotal")
                 };
@@ -806,12 +821,12 @@ namespace EventodromoRest.Mappers
                 int? puntosPagados = DB.GetIntOrNull("PuntosPagados");
                 bool esTransferencia = DB.GetInt("EsTransferencia") == 1;
                 string? transferenciaEmail = DB.GetStringOrNull("TransferenciaEmailDestino");
-                bool? transferenciaAceptada = DB.GetBoolOrNull("TransferenciaAceptada");
+                string? transferenciaEstado = DB.GetStringOrNull("TransferenciaEstado");
 
                 if (esTransferencia)
                 {
                     // Es una transferencia
-                    if (transferenciaAceptada == false)
+                    if (transferenciaEstado == "pendiente")
                     {
                         // Pendiente de aceptación
                         detalle.MetodoPago = new MetodoPagoDTO
@@ -870,17 +885,17 @@ namespace EventodromoRest.Mappers
 
                 DB.CloseReader();
 
-                // Obtener las entradas de la transacción
-                detalle.Entradas = ObtenerEntradasDeTransaccion(numeroTransaccion);
+                // Obtener las entradas de la transacción filtradas por evento
+                detalle.Entradas = ObtenerEntradasDeTransaccion(numeroTransaccion, idEvento);
 
                 return detalle;
             }
         }
 
         /// <summary>
-        /// Obtiene la lista de entradas agrupadas por tipo para una transacción
+        /// Obtiene la lista de entradas agrupadas por tipo para una transacción y evento específico
         /// </summary>
-        private List<EntradaTransaccionDTO> ObtenerEntradasDeTransaccion(string numeroTransaccion)
+        private List<EntradaTransaccionDTO> ObtenerEntradasDeTransaccion(string numeroTransaccion, int idEvento)
         {
             lock (DB)
             {
@@ -894,12 +909,16 @@ namespace EventodromoRest.Mappers
                     INNER JOIN LineaTransaccion lt ON lt.idTransaccion = t.id
                     INNER JOIN Entrada e ON lt.idEntrada = e.id
                     INNER JOIN TipoEntrada te ON e.idTipoEntrada = te.id
+                    INNER JOIN FechaEvento fe ON te.idFechaEvento = fe.id
+                    INNER JOIN Evento ev ON fe.idEvento = ev.id
                     WHERE t.numeroTransaccion = @numeroTransaccion
+                      AND ev.id = @idEvento
                     GROUP BY te.nombre, lt.precio
                     ORDER BY te.nombre";
 
                 var parametros = new ParameterList();
                 parametros.Add("@numeroTransaccion", numeroTransaccion);
+                parametros.Add("@idEvento", idEvento);
 
                 var entradas = new List<EntradaTransaccionDTO>();
 

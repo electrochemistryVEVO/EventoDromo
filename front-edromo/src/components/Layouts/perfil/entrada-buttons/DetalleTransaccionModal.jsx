@@ -36,9 +36,9 @@ export default function DetalleTransaccionModal({
     );
   }
 
-  if (!detalle || !detalle.data) return null;
+  if (!detalle) return null;
 
-  const { evento, transaccion, cliente, entradas, metodoPago, total } = detalle.data;
+  const { evento, transaccion, cliente, entradas, metodoPago, total } = detalle;
 
   // Determinar el tipo de pago
   const esTransferencia = metodoPago?.tipo === "transferencia";
@@ -48,36 +48,35 @@ export default function DetalleTransaccionModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-3xl" onClick={onClose}>×</button>
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
+        <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-3xl z-10" onClick={onClose}>×</button>
 
         {/* Header con imagen del evento */}
-        <div className="bg-linear-to-r from-purple-600 to-blue-600 text-white p-6 rounded-t-lg">
-          <div className="flex gap-6 items-start">
-            <div className="shrink-0">
-              <Image
-                src={evento.imagen}
-                alt={evento.titulo}
-                width={200}
-                height={200}
-                className="rounded-lg shadow-lg object-cover"
-              />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold mb-4">{evento.titulo}</h2>
-              <div className="space-y-2 text-sm">
-                <p className="font-semibold">Fecha y hora del evento</p>
-                <p>{new Date(evento.fecha).toLocaleDateString('es-PE', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}</p>
-                <p className="font-semibold mt-3">Ubicación</p>
-                <p>{evento.ubicacion}</p>
-              </div>
+        <div className="relative">
+          {evento.imagen ? (
+            <Image
+              src={evento.imagen}
+              alt={evento.titulo}
+              width={600}
+              height={300}
+              className="w-full h-48 object-cover rounded-t-lg"
+            />
+          ) : (
+            <div className="w-full h-48 bg-linear-to-r from-purple-600 to-blue-600 rounded-t-lg"></div>
+          )}
+          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/70 to-transparent text-white p-6">
+            <h2 className="text-2xl font-bold mb-2">{evento.titulo}</h2>
+            <div className="text-sm space-y-1">
+              <p><span className="font-semibold">Fecha y hora del evento</span></p>
+              <p>{new Date(evento.fecha).toLocaleDateString('es-PE', { 
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}</p>
+              <p><span className="font-semibold">Ubicación</span></p>
+              <p>{evento.ubicacion}</p>
             </div>
           </div>
         </div>
@@ -113,9 +112,13 @@ export default function DetalleTransaccionModal({
               <span className="text-sm text-gray-600">Correo</span>
               <p className="font-medium">{cliente.email}</p>
             </div>
-            <div className="col-span-2">
-              <span className="text-sm text-gray-600">Teléfono</span>
-              <p className="font-medium">{cliente.telefono}</p>
+            <div>
+              <span className="text-sm text-gray-600">Tipo de documento</span>
+              <p className="font-medium">{cliente.tipoDocumento || 'DNI'}</p>
+            </div>
+            <div>
+              <span className="text-sm text-gray-600">N° de documento</span>
+              <p className="font-medium">{cliente.numeroDocumento || 'N/A'}</p>
             </div>
           </div>
         </div>

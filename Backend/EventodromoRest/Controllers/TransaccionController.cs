@@ -126,7 +126,7 @@ namespace EventodromoRest.Controllers
         [HttpGet]
         [Route("/api/[controller]/ObtenerDetalleCompleto/{numeroTransaccion}")]
         [Authorize]
-        public GenericResponse<DetalleTransaccionCompleto> ObtenerDetalleCompleto(string numeroTransaccion)
+        public GenericResponse<DetalleTransaccionCompleto> ObtenerDetalleCompleto(string numeroTransaccion, [FromQuery] int idEvento)
         {
             try
             {
@@ -135,8 +135,13 @@ namespace EventodromoRest.Controllers
                     throw new Exception("Número de transacción requerido.");
                 }
 
+                if (idEvento <= 0)
+                {
+                    throw new Exception("ID de evento requerido.");
+                }
+
                 var idCliente = GetIdClienteFromToken();
-                return new TransaccionBO(globales, BD).ObtenerDetalleCompleto(numeroTransaccion, idCliente);
+                return new TransaccionBO(globales, BD).ObtenerDetalleCompleto(numeroTransaccion, idEvento, idCliente);
             }
             catch (Exception e)
             {

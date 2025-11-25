@@ -176,30 +176,41 @@ namespace EventodromoRest.Negocio
                     return $"{e.cantidad}x {nombreTipo}";
                 }).ToList();
                 
-                // Email al destinatario con botones de aceptar/rechazar
+                // Enviar emails de forma asíncrona sin bloquear la respuesta
                 string urlBase = _configuration["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
-                emailService.EnviarEmailDestinatarioTransferencia(
-                    request.emailDestino,
-                    request.nombreRemitente ?? "Un usuario",
-                    nombreEvento,
-                    idsEntradasTransferidas.Count,
-                    tiposEntradaTexto,
-                    tokenTransferencia,
-                    urlBase
-                );
-
-                // Email al remitente confirmando el envío
-                if (!string.IsNullOrWhiteSpace(request.emailRemitente))
+                _ = Task.Run(async () =>
                 {
-                    emailService.EnviarEmailRemitenteTransferencia(
-                        request.emailRemitente,
-                        request.nombreRemitente ?? "Usuario",
-                        nombreEvento,
-                        request.emailDestino,
-                        idsEntradasTransferidas.Count,
-                        tiposEntradaTexto
-                    );
-                }
+                    try
+                    {
+                        // Email al destinatario con botones de aceptar/rechazar
+                        await emailService.EnviarEmailDestinatarioTransferenciaAsync(
+                            request.emailDestino,
+                            request.nombreRemitente ?? "Un usuario",
+                            nombreEvento,
+                            idsEntradasTransferidas.Count,
+                            tiposEntradaTexto,
+                            tokenTransferencia,
+                            urlBase
+                        );
+
+                        // Email al remitente confirmando el envío
+                        if (!string.IsNullOrWhiteSpace(request.emailRemitente))
+                        {
+                            await emailService.EnviarEmailRemitenteTransferenciaAsync(
+                                request.emailRemitente,
+                                request.nombreRemitente ?? "Usuario",
+                                nombreEvento,
+                                request.emailDestino,
+                                idsEntradasTransferidas.Count,
+                                tiposEntradaTexto
+                            );
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ No se pudo enviar emails de transferencia: {ex.Message}");
+                    }
+                });
 
                 var response = new TransferirEntradasResponse
                 {
