@@ -1,11 +1,18 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { insertarLocal, listarCiudades } from '@/services/gestionLocal.service'
 import { fetchUserData, getAuthToken } from '@/services/admin-service'
 import LocalValidationModal from '@/components/modals/LocalValidationModal'
 import LocalSuccessModal from '@/components/modals/LocalSuccessModal'
+
+// Importar MapLocationPicker dinámicamente para evitar problemas con SSR
+const MapLocationPicker = dynamic(
+    () => import('@/components/admin-locales/MapLocationPicker'),
+    { ssr: false, loading: () => <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">Cargando mapa...</div> }
+)
 
 function CrearLocal() {
     const router = useRouter()
@@ -19,6 +26,10 @@ function CrearLocal() {
     const [localName, setLocalName] = useState('')
     const [imagenURL, setImagenURL] = useState('')
     const [imageError, setImageError] = useState(false)
+    const [locationData, setLocationData] = useState(null)
+    const [selectedImage, setSelectedImage] = useState(null)
+    const [imagePreview, setImagePreview] = useState(null)
+    const [isUploadingImage, setIsUploadingImage] = useState(false)
 
     useEffect(() => {
         const cargarAdminData = async () => {
@@ -96,6 +107,11 @@ function CrearLocal() {
             errors.push('Debe seleccionar una ciudad que sea valida')
         }
         
+        // Validar que se haya seleccionado ubicación en el mapa
+        if (!locationData || !locationData.lat || !locationData.lng) {
+            errors.push('Debe seleccionar la ubicacion del local en el mapa')
+        }
+        
         // Validar dirección (más de 6 caracteres)
         if (!direccion || direccion.trim().length <= 6) {
             errors.push('La direccion debe tener mas de 6 caracteres')
@@ -114,15 +130,45 @@ function CrearLocal() {
             return
         }
 
-        const local = {
-            Nombre: nombre,
-            CiudadId: ciudadSeleccionada.id,
-            Direccion: direccion,
-            Capacidad: capacidad,
-            imagenURL: imagenURL || null
-        }
-
         try {
+            // 1. Subir imagen a S3 si hay una seleccionada
+            let imagenUrlSubida = null
+            if (selectedImage) {
+                setIsUploadingImage(true)
+                const imageFormData = new FormData()
+                imageFormData.append('imagen', selectedImage)
+                
+                const token = getAuthToken()
+                const url = await getApiUrl()
+                const uploadResponse = await fetch(`${url}/Local/SubirImagenLocal`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: imageFormData
+                })
+                
+                if (uploadResponse.ok) {
+                    const uploadResult = await uploadResponse.json()
+                    if (uploadResult.success) {
+                        imagenUrlSubida = uploadResult.data
+                    }
+                }
+                setIsUploadingImage(false)
+            }
+
+            // 2. Crear el local
+            const local = {
+                Nombre: nombre,
+                CiudadId: ciudadSeleccionada.id,
+                Direccion: direccion,
+                Capacidad: capacidad,
+                imagenURL: imagenUrlSubida || null,
+                Latitud: locationData?.lat || null,
+                Longitud: locationData?.lng || null,
+                GoogleMapsUrl: locationData?.googleMapsUrl || null
+            }
+
             const result = await insertarLocal(local)
             
             if (result?.success) {
@@ -142,6 +188,37 @@ function CrearLocal() {
             alert('Error al crear local: ' + errorMsg)
         } finally {
             setIsLoading(false)
+            setIsUploadingImage(false)
+        }
+    }
+
+    const handleImageChange = (e) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            // Validar tipo de archivo
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+            if (!allowedTypes.includes(file.type)) {
+                alert('Solo se permiten imágenes (JPG, PNG, GIF, WEBP)')
+                e.target.value = ''
+                return
+            }
+            
+            // Validar tamaño (máximo 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('La imagen no debe exceder 5MB')
+                e.target.value = ''
+                return
+            }
+            
+            setSelectedImage(file)
+            
+            // Crear preview
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setImagePreview(reader.result)
+                setImageError(false)
+            }
+            reader.readAsDataURL(file)
         }
     }
 
@@ -231,6 +308,32 @@ function CrearLocal() {
                                 </select>
                             </div>
 
+                            {/* Selección de Ubicación en Mapa */}
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Ubicación del Local <span className="text-red-500">*</span>
+                                </label>
+                                <MapLocationPicker 
+                                    onLocationSelect={(data) => {
+                                        setLocationData(data)
+                                        // Actualizar el campo direccion automáticamente
+                                        const direccionInput = document.getElementById('direccion')
+                                        if (direccionInput && data.address) {
+                                            direccionInput.value = data.address
+                                        }
+                                    }}
+                                />
+                                {locationData && (
+                                    <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg text-sm">
+                                        <p className="font-medium text-green-800">Ubicación seleccionada:</p>
+                                        <p className="text-green-700">📍 {locationData.address}</p>
+                                        <p className="text-green-600 text-xs mt-1">
+                                            Coordenadas: {locationData.lat.toFixed(6)}, {locationData.lng.toFixed(6)}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+
                             {/* Dirección */}
                             <div className="space-y-2">
                                 <label htmlFor="direccion" className="block text-sm font-medium text-gray-700">
@@ -240,12 +343,14 @@ function CrearLocal() {
                                     id="direccion"
                                     type="text"
                                     name="direccion"
-                                    placeholder="Ej: Av. Principal 123"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00C49A] focus:border-transparent outline-none transition-all"
+                                    placeholder="Seleccione la ubicación en el mapa"
+                                    value={locationData?.address || ''}
+                                    readOnly
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
                                     required
                                 />
                                 <p className="text-xs text-gray-500 mt-1">
-                                    La dirección debe ser única y no puede repetirse en el sistema
+                                    La dirección se completa automáticamente al seleccionar una ubicación en el mapa
                                 </p>
                             </div>
 
@@ -268,16 +373,15 @@ function CrearLocal() {
                             {/* Vista Previa de Imagen */}
                             <div className="space-y-2">
                                 <label className="block text-sm font-medium text-gray-700">
-                                    Vista previa
+                                    Imagen del Local
                                 </label>
                                 <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
-                                    {imagenURL && !imageError ? (
+                                    {imagePreview && !imageError ? (
                                         <img 
-                                            src={imagenURL} 
+                                            src={imagePreview} 
                                             alt="Vista previa del local" 
                                             className="max-h-full max-w-full object-contain"
                                             onError={() => setImageError(true)}
-                                            onLoad={() => setImageError(false)}
                                         />
                                     ) : (
                                         <div className="flex flex-col items-center justify-center text-gray-400">
@@ -306,33 +410,31 @@ function CrearLocal() {
                                 </div>
                             </div>
 
-                            {/* Imagen URL */}
+                            {/* Subir Imagen */}
                             <div className="space-y-2">
-                                <label htmlFor="imagenUrl" className="block text-sm font-medium text-gray-700">
-                                    Imagen URL
+                                <label htmlFor="imagenFile" className="block text-sm font-medium text-gray-700">
+                                    Subir Imagen
                                 </label>
                                 <input
-                                    id="imagenUrl"
-                                    type="url"
-                                    name="imagenUrl"
-                                    value={imagenURL}
-                                    onChange={(e) => {
-                                        setImagenURL(e.target.value)
-                                        setImageError(false)
-                                    }}
-                                    placeholder="https://ejemplo.com/imagen.jpg"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00C49A] focus:border-transparent outline-none transition-all"
+                                    id="imagenFile"
+                                    type="file"
+                                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                                    onChange={handleImageChange}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00C49A] focus:border-transparent outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#00C49A] file:text-white hover:file:bg-green-700"
                                 />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Formatos permitidos: JPG, PNG, GIF, WEBP. Tamaño máximo: 5MB
+                                </p>
                             </div>
 
                             {/* Botón Submit */}
                             <div className="flex justify-end items-center gap-4 pt-4">
                                 <button
                                     type="submit"
-                                    disabled={isLoading}
+                                    disabled={isLoading || isUploadingImage}
                                     className="bg-[#00C49A] text-white font-bold px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
                                 >
-                                    {isLoading ? 'Creando Local...' : 'Crear Local'}
+                                    {isUploadingImage ? 'Subiendo imagen...' : isLoading ? 'Creando Local...' : 'Crear Local'}
                                 </button>
                             </div>
                         </form>

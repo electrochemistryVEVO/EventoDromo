@@ -202,6 +202,15 @@ namespace EventodromoRest.DBManager
             return reader.GetDecimal(i);
         }
 
+        public decimal? GetNullableDecimal(string column)
+        {
+            if (reader is null) throw new InvalidOperationException("DataReader no inicializado.");
+            int i = reader.GetOrdinal(column);
+            if (reader.IsDBNull(i))
+                return null;
+            return reader.GetDecimal(i);
+        }
+
         public bool GetBoolean(string column)
         {
             if (reader is null) throw new InvalidOperationException("DataReader no inicializado.");
