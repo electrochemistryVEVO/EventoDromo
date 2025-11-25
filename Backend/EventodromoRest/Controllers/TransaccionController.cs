@@ -118,5 +118,38 @@ namespace EventodromoRest.Controllers
             }
             return idCliente;
         }
+
+        /// <summary>
+        /// Obtiene el detalle completo de una transacción
+        /// Incluye información del evento, cliente, entradas y método de pago
+        /// </summary>
+        [HttpGet]
+        [Route("/api/[controller]/ObtenerDetalleCompleto/{numeroTransaccion}")]
+        [Authorize]
+        public GenericResponse<DetalleTransaccionCompleto> ObtenerDetalleCompleto(string numeroTransaccion)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(numeroTransaccion))
+                {
+                    throw new Exception("Número de transacción requerido.");
+                }
+
+                var idCliente = GetIdClienteFromToken();
+                return new TransaccionBO(globales, BD).ObtenerDetalleCompleto(numeroTransaccion, idCliente);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<DetalleTransaccionCompleto>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, $"NumeroTransaccion: {numeroTransaccion}", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
     }
 }

@@ -200,7 +200,7 @@ export default function MisEntradaItem({ entrada, index, onTransferComplete }) {
               onTransferComplete={handleTransferComplete}
               disabled={estadoEntradas.disponibles === 0 && estadoEntradas.total > 0}
             />
-            <VerDetalleButton />
+            <VerDetalleButton numeroTransaccion={entrada.transaccion} />
           </div>
         </div>
       </div>

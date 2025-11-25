@@ -690,5 +690,240 @@ namespace EventodromoRest.Mappers
                 return detalles;
             }
         }
+
+        /// <summary>
+        /// Obtiene el detalle completo de una transacción incluyendo:
+        /// - Información del evento (título, imagen, ubicación, fecha)
+        /// - Datos de la transacción (número, fecha, estado)
+        /// - Datos del cliente (nombre, email, teléfono)
+        /// - Lista de entradas (tipo, cantidad, precio)
+        /// - Método de pago (tarjeta/puntos/transferencia)
+        /// 
+        /// Verifica que la transacción pertenezca al cliente autenticado
+        /// </summary>
+        public DetalleTransaccionCompleto? ObtenerDetalleCompleto(string numeroTransaccion, int idCliente)
+        {
+            lock (DB)
+            {
+                // Query principal que obtiene toda la información necesaria
+                string query = @"
+                    SELECT 
+                        -- Datos del evento
+                        ev.nombre AS EventoTitulo,
+                        ev.imagenURL AS EventoImagen,
+                        CONCAT(l.nombre, ', ', c.nombre, ', ', p.nombre) AS EventoUbicacion,
+                        fe.fecha AS EventoFecha,
+                        
+                        -- Datos de la transacción
+                        t.numeroTransaccion AS TransaccionNumero,
+                        t.fechaHoraCompra AS TransaccionFecha,
+                        t.montoTotal AS TransaccionTotal,
+                        
+                        -- Datos del cliente
+                        CONCAT(t.nombresCliente, ' ', t.apellidosCliente) AS ClienteNombre,
+                        t.emailCliente AS ClienteEmail,
+                        cl.telefono AS ClienteTelefono,
+                        
+                        -- Verificar el carrito para obtener el idCliente
+                        ca.idCliente AS CarritoIdCliente,
+                        
+                        -- Verificar si existe tarjeta
+                        tt.ultimos4Digitos AS TarjetaUltimos4,
+                        
+                        -- Verificar si existe pago con puntos
+                        tp.puntosUtilizados AS PuntosPagados,
+                        
+                        -- Verificar si es transferencia (origen)
+                        CASE 
+                            WHEN ttr.idTransaccion IS NOT NULL THEN 1
+                            ELSE 0
+                        END AS EsTransferencia,
+                        ttr.emailDestino AS TransferenciaEmailDestino,
+                        ttr.estaAceptada AS TransferenciaAceptada
+                        
+                    FROM Transaccion t
+                    INNER JOIN Carrito ca ON t.idCarrito = ca.id
+                    INNER JOIN Entrada e ON e.idCarrito = ca.id
+                    INNER JOIN TipoEntrada te ON e.idTipoEntrada = te.id
+                    INNER JOIN FechaEvento fe ON te.idFechaEvento = fe.id
+                    INNER JOIN Evento ev ON fe.idEvento = ev.id
+                    INNER JOIN Local l ON ev.idLocal = l.id
+                    INNER JOIN Ciudad c ON l.idCiudad = c.id
+                    INNER JOIN Pais p ON c.idPais = p.id
+                    INNER JOIN Cliente cl ON ca.idCliente = cl.id
+                    LEFT JOIN TransaccionTarjeta tt ON tt.idTransaccion = t.id
+                    LEFT JOIN TransaccionPuntos tp ON tp.idTransaccion = t.id
+                    LEFT JOIN TransaccionTransferencia ttr ON ttr.idTransaccion = t.id
+                    WHERE t.numeroTransaccion = @numeroTransaccion
+                    LIMIT 1";
+
+                var parametros = new ParameterList();
+                parametros.Add("@numeroTransaccion", numeroTransaccion);
+
+                DB.Select(query, parametros);
+                
+                if (!DB.Read())
+                {
+                    DB.CloseReader();
+                    return null; // Transacción no encontrada
+                }
+
+                // Verificar que la transacción pertenece al cliente
+                int carritoIdCliente = DB.GetInt("CarritoIdCliente");
+                if (carritoIdCliente != idCliente)
+                {
+                    DB.CloseReader();
+                    throw new Exception("No tiene permisos para ver esta transacción.");
+                }
+
+                // Construir el objeto de respuesta
+                var detalle = new DetalleTransaccionCompleto
+                {
+                    Evento = new EventoTransaccionDTO
+                    {
+                        Titulo = DB.GetString("EventoTitulo"),
+                        Imagen = DB.GetString("EventoImagen"),
+                        Ubicacion = DB.GetString("EventoUbicacion"),
+                        Fecha = DB.GetDateTime("EventoFecha")
+                    },
+                    Transaccion = new TransaccionDetalleDTO
+                    {
+                        NumeroTransaccion = DB.GetString("TransaccionNumero"),
+                        Fecha = DB.GetDateTime("TransaccionFecha"),
+                        Estado = "Completada"
+                    },
+                    Cliente = new ClienteTransaccionDTO
+                    {
+                        Nombre = DB.GetString("ClienteNombre"),
+                        Email = DB.GetString("ClienteEmail"),
+                        Telefono = DB.GetString("ClienteTelefono")
+                    },
+                    Total = DB.GetDecimal("TransaccionTotal")
+                };
+
+                // Determinar el método de pago
+                string? tarjetaUltimos4 = DB.GetStringOrNull("TarjetaUltimos4");
+                int? puntosPagados = DB.GetIntOrNull("PuntosPagados");
+                bool esTransferencia = DB.GetInt("EsTransferencia") == 1;
+                string? transferenciaEmail = DB.GetStringOrNull("TransferenciaEmailDestino");
+                bool? transferenciaAceptada = DB.GetBoolOrNull("TransferenciaAceptada");
+
+                if (esTransferencia)
+                {
+                    // Es una transferencia
+                    if (transferenciaAceptada == false)
+                    {
+                        // Pendiente de aceptación
+                        detalle.MetodoPago = new MetodoPagoDTO
+                        {
+                            Tipo = "transferencia_pendiente",
+                            Detalles = new DetallesPagoDTO
+                            {
+                                EmailDestino = transferenciaEmail
+                            }
+                        };
+                        detalle.Transaccion.Estado = "Pendiente";
+                    }
+                    else
+                    {
+                        // Transferencia completada (recibida)
+                        detalle.MetodoPago = new MetodoPagoDTO
+                        {
+                            Tipo = "transferencia",
+                            Detalles = new DetallesPagoDTO()
+                        };
+                    }
+                }
+                else if (!string.IsNullOrEmpty(tarjetaUltimos4))
+                {
+                    // Pago con tarjeta
+                    detalle.MetodoPago = new MetodoPagoDTO
+                    {
+                        Tipo = "tarjeta",
+                        Detalles = new DetallesPagoDTO
+                        {
+                            Ultimos4Digitos = tarjetaUltimos4
+                        }
+                    };
+                }
+                else if (puntosPagados.HasValue && puntosPagados > 0)
+                {
+                    // Pago con puntos
+                    detalle.MetodoPago = new MetodoPagoDTO
+                    {
+                        Tipo = "puntos",
+                        Detalles = new DetallesPagoDTO
+                        {
+                            PuntosUtilizados = puntosPagados.Value
+                        }
+                    };
+                }
+                else
+                {
+                    // Caso por defecto (no debería ocurrir)
+                    detalle.MetodoPago = new MetodoPagoDTO
+                    {
+                        Tipo = "tarjeta",
+                        Detalles = new DetallesPagoDTO()
+                    };
+                }
+
+                DB.CloseReader();
+
+                // Obtener las entradas de la transacción
+                detalle.Entradas = ObtenerEntradasDeTransaccion(numeroTransaccion);
+
+                return detalle;
+            }
+        }
+
+        /// <summary>
+        /// Obtiene la lista de entradas agrupadas por tipo para una transacción
+        /// </summary>
+        private List<EntradaTransaccionDTO> ObtenerEntradasDeTransaccion(string numeroTransaccion)
+        {
+            lock (DB)
+            {
+                string query = @"
+                    SELECT 
+                        te.nombre AS TipoEntrada,
+                        COUNT(*) AS Cantidad,
+                        lt.precio AS PrecioUnitario,
+                        (COUNT(*) * lt.precio) AS Subtotal
+                    FROM Transaccion t
+                    INNER JOIN LineaTransaccion lt ON lt.idTransaccion = t.id
+                    INNER JOIN Entrada e ON lt.idEntrada = e.id
+                    INNER JOIN TipoEntrada te ON e.idTipoEntrada = te.id
+                    WHERE t.numeroTransaccion = @numeroTransaccion
+                    GROUP BY te.nombre, lt.precio
+                    ORDER BY te.nombre";
+
+                var parametros = new ParameterList();
+                parametros.Add("@numeroTransaccion", numeroTransaccion);
+
+                var entradas = new List<EntradaTransaccionDTO>();
+
+                DB.Select(query, parametros);
+                try
+                {
+                    while (DB.Read())
+                    {
+                        entradas.Add(new EntradaTransaccionDTO
+                        {
+                            TipoEntrada = DB.GetString("TipoEntrada"),
+                            Cantidad = DB.GetInt("Cantidad"),
+                            PrecioUnitario = DB.GetDecimal("PrecioUnitario"),
+                            Subtotal = DB.GetDecimal("Subtotal")
+                        });
+                    }
+                }
+                finally
+                {
+                    DB.CloseReader();
+                }
+
+                return entradas;
+            }
+        }
     }
 }

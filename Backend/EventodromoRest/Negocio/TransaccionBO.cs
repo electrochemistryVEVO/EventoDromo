@@ -146,6 +146,29 @@ namespace EventodromoRest.Negocio
                 Data = response
             };
         }
+
+        /// <summary>
+        /// Obtiene el detalle completo de una transacción por su número
+        /// Verifica que la transacción pertenezca al cliente autenticado
+        /// </summary>
+        public GenericResponse<DetalleTransaccionCompleto> ObtenerDetalleCompleto(string numeroTransaccion, int idCliente)
+        {
+            var transaccionMapper = new TransaccionMapper(globales, DB);
+            var detalle = transaccionMapper.ObtenerDetalleCompleto(numeroTransaccion, idCliente);
+
+            if (detalle == null)
+            {
+                throw new Exception("Transacción no encontrada o no tiene permisos para ver esta transacción.");
+            }
+
+            return new GenericResponse<DetalleTransaccionCompleto>
+            {
+                Success = true,
+                Message = "Detalle de transacción obtenido correctamente.",
+                Data = detalle,
+                Error = null
+            };
+        }
     }
 
 }
