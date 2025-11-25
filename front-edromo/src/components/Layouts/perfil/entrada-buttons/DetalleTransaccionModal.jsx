@@ -8,7 +8,9 @@ export default function DetalleTransaccionModal({
   loading,
   error 
 }) {
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   if (loading) {
     return (
@@ -40,6 +42,11 @@ export default function DetalleTransaccionModal({
 
   const { evento, transaccion, cliente, entradas, metodoPago, total } = detalle;
 
+  // Verificar si el evento ya pasó
+  const eventoFecha = new Date(evento.fecha);
+  const ahora = new Date();
+  const eventoVencido = eventoFecha < ahora;
+
   // Determinar el tipo de pago
   const esTransferencia = metodoPago?.tipo === "transferencia";
   const esPendienteTransferencia = metodoPago?.tipo === "transferencia_pendiente";
@@ -59,14 +66,14 @@ export default function DetalleTransaccionModal({
               alt={evento.titulo}
               width={600}
               height={300}
-              className="w-full h-48 object-cover rounded-t-lg"
+              className="w-full h-64 object-cover rounded-t-lg"
             />
           ) : (
-            <div className="w-full h-48 bg-linear-to-r from-purple-600 to-blue-600 rounded-t-lg"></div>
+            <div className="w-full h-64 bg-linear-to-r from-purple-600 to-blue-600 rounded-t-lg"></div>
           )}
-          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/70 to-transparent text-white p-6">
-            <h2 className="text-2xl font-bold mb-2">{evento.titulo}</h2>
-            <div className="text-sm space-y-1">
+          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent rounded-t-lg flex flex-col justify-end p-6">
+            <h2 className="text-2xl font-bold mb-3 text-white drop-shadow-lg">{evento.titulo}</h2>
+            <div className="text-sm space-y-1 text-white drop-shadow">
               <p><span className="font-semibold">Fecha y hora del evento</span></p>
               <p>{new Date(evento.fecha).toLocaleDateString('es-PE', { 
                 day: 'numeric',
@@ -128,13 +135,36 @@ export default function DetalleTransaccionModal({
           <h3 className="text-lg font-semibold mb-4">Datos de la compra</h3>
           <p className="text-sm text-gray-600 mb-3">Entradas</p>
           <div className="space-y-2">
-            {entradas.map((entrada, index) => (
-              <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                <span className="font-semibold text-purple-600">x{entrada.cantidad}</span>
-                <span className="flex-1 mx-4">{entrada.tipoEntrada}</span>
-                <span className="font-medium">S/{entrada.precioUnitario.toFixed(2)}</span>
-              </div>
-            ))}
+            {entradas.map((entrada, index) => {
+              // Determinar badge de estado
+              let estadoBadge;
+              
+              // Prioridad 1: Si el evento ya pasó, mostrar "Vencido"
+              if (eventoVencido) {
+                estadoBadge = { color: 'bg-gray-100 text-gray-800', icon: '⏱️', label: 'Vencido' };
+              } else {
+                // Prioridad 2: Estado de transferencia
+                estadoBadge = {
+                  disponible: { color: 'bg-green-100 text-green-800', icon: '✅', label: 'Disponible' },
+                  transferida: { color: 'bg-orange-100 text-orange-800', icon: '🔄', label: 'Transferida' },
+                  pendiente: { color: 'bg-blue-100 text-blue-800', icon: '⏳', label: 'Pendiente' }
+                }[entrada.estado || 'disponible'];
+              }
+
+              return (
+                <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <div className="flex items-center gap-3 flex-1">
+                    <span className="font-semibold text-purple-600">x{entrada.cantidad}</span>
+                    <span className="flex-1">{entrada.tipoEntrada}</span>
+                    <span className={`text-xs px-2 py-1 rounded-full ${estadoBadge.color} flex items-center gap-1`}>
+                      <span>{estadoBadge.icon}</span>
+                      <span>{estadoBadge.label}</span>
+                    </span>
+                  </div>
+                  <span className="font-medium ml-4">S/{entrada.precioUnitario.toFixed(2)}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -148,7 +178,7 @@ export default function DetalleTransaccionModal({
               <div className="text-3xl">📨</div>
               <div>
                 <strong className="text-blue-800 block mb-1">Entradas recibidas por transferencia</strong>
-                <p className="text-sm text-blue-700">Estas entradas fueron transferidas a tu cuenta por otro usuario.</p>
+                <p className="text-sm text-blue-700">Estas entradas fueron transferidas a tu cuenta por otro usuario y ya están disponibles para su uso.</p>
               </div>
             </div>
           )}

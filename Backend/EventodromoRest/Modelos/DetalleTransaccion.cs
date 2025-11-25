@@ -44,6 +44,7 @@ namespace EventodromoRest.Modelos
         public int Cantidad { get; set; }
         public decimal PrecioUnitario { get; set; }
         public decimal Subtotal { get; set; }
+        public string Estado { get; set; } // "disponible", "transferida", "pendiente"
     }
 
     public class MetodoPagoDTO

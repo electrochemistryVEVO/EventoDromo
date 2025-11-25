@@ -708,7 +708,7 @@ namespace EventodromoRest.Mappers
                 // Query principal que obtiene toda la información necesaria
                 string query = @"
                     SELECT 
-                        -- Datos del evento
+                        -- Datos del evento (directo desde el idEvento)
                         ev.nombre AS EventoTitulo,
                         ev.imagenURL AS EventoImagen,
                         CONCAT(l.nombre, ', ', c.nombre, ', ', p.nombre) AS EventoUbicacion,
@@ -753,19 +753,16 @@ namespace EventodromoRest.Mappers
                     LEFT JOIN TransaccionPuntos tp ON tp.idTransaccion = t.id
                     LEFT JOIN TransaccionTransferencia ttr ON ttr.idTransaccion = t.id
                     LEFT JOIN TransferenciaPendiente trp ON ttr.idTransferenciaPendiente = trp.id
-                    LEFT JOIN (
-                        SELECT e.idCarrito, MIN(te.idFechaEvento) as idFechaEvento
-                        FROM Entrada e
-                        INNER JOIN TipoEntrada te ON e.idTipoEntrada = te.id
-                        INNER JOIN FechaEvento fe ON te.idFechaEvento = fe.id
-                        WHERE fe.idEvento = @idEvento
-                        GROUP BY e.idCarrito
-                    ) entrada_info ON entrada_info.idCarrito = ca.id
-                    LEFT JOIN FechaEvento fe ON entrada_info.idFechaEvento = fe.id
-                    LEFT JOIN Evento ev ON fe.idEvento = ev.id
+                    -- Obtener datos del evento directamente usando el idEvento
+                    LEFT JOIN Evento ev ON ev.id = @idEvento
                     LEFT JOIN Local l ON ev.idLocal = l.id
                     LEFT JOIN Ciudad c ON l.idCiudad = c.id
                     LEFT JOIN Pais p ON c.idPais = p.id
+                    LEFT JOIN (
+                        SELECT MIN(fechaHora) as fechaHora
+                        FROM FechaEvento
+                        WHERE idEvento = @idEvento
+                    ) fe ON 1=1
                     WHERE t.numeroTransaccion = @numeroTransaccion
                     LIMIT 1";
 
@@ -904,7 +901,8 @@ namespace EventodromoRest.Mappers
                         te.nombre AS TipoEntrada,
                         COUNT(*) AS Cantidad,
                         lt.precio AS PrecioUnitario,
-                        (COUNT(*) * lt.precio) AS Subtotal
+                        (COUNT(*) * lt.precio) AS Subtotal,
+                        COALESCE(e.estadoTransferencia, 'disponible') AS Estado
                     FROM Transaccion t
                     INNER JOIN LineaTransaccion lt ON lt.idTransaccion = t.id
                     INNER JOIN Entrada e ON lt.idEntrada = e.id
@@ -913,8 +911,8 @@ namespace EventodromoRest.Mappers
                     INNER JOIN Evento ev ON fe.idEvento = ev.id
                     WHERE t.numeroTransaccion = @numeroTransaccion
                       AND ev.id = @idEvento
-                    GROUP BY te.nombre, lt.precio
-                    ORDER BY te.nombre";
+                    GROUP BY te.nombre, lt.precio, COALESCE(e.estadoTransferencia, 'disponible')
+                    ORDER BY te.nombre, COALESCE(e.estadoTransferencia, 'disponible')";
 
                 var parametros = new ParameterList();
                 parametros.Add("@numeroTransaccion", numeroTransaccion);
@@ -932,7 +930,8 @@ namespace EventodromoRest.Mappers
                             TipoEntrada = DB.GetString("TipoEntrada"),
                             Cantidad = DB.GetInt("Cantidad"),
                             PrecioUnitario = DB.GetDecimal("PrecioUnitario"),
-                            Subtotal = DB.GetDecimal("Subtotal")
+                            Subtotal = DB.GetDecimal("Subtotal"),
+                            Estado = DB.GetString("Estado")
                         });
                     }
                 }

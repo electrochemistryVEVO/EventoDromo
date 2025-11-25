@@ -135,6 +135,10 @@ namespace EventodromoRest.Negocio
                 // Generar token único para esta transferencia (no usar TokenService, solo Guid)
                 string tokenTransferencia = Guid.NewGuid().ToString("N"); // Token simple para la transferencia
                 
+                // Obtener horas de expiraci\u00f3n desde configuraci\u00f3n
+                var dromopuntosMapper = new DromopuntosMapper(globales, DB);
+                int horasExpiracion = dromopuntosMapper.ObtenerHorasExpiracionTransferencia();
+
                 // Registrar la transferencia pendiente en la tabla
                 var transferenciaPendiente = new TransferenciaPendiente
                 {
@@ -146,7 +150,7 @@ namespace EventodromoRest.Negocio
                     DetalleEntradas = JsonSerializer.Serialize(idsEntradasTransferidas),
                     Estado = "pendiente",
                     FechaCreacion = DateTime.Now,
-                    FechaExpiracion = DateTime.Now.AddHours(24)
+                    FechaExpiracion = DateTime.Now.AddHours(horasExpiracion)
                 };
 
                 bool registroExitoso = mapper.RegistrarTransferenciaPendiente(transferenciaPendiente);
@@ -190,7 +194,8 @@ namespace EventodromoRest.Negocio
                             idsEntradasTransferidas.Count,
                             tiposEntradaTexto,
                             tokenTransferencia,
-                            urlBase
+                            urlBase,
+                            horasExpiracion
                         );
 
                         // Email al remitente confirmando el envío
@@ -202,7 +207,8 @@ namespace EventodromoRest.Negocio
                                 nombreEvento,
                                 request.emailDestino,
                                 idsEntradasTransferidas.Count,
-                                tiposEntradaTexto
+                                tiposEntradaTexto,
+                                horasExpiracion
                             );
                         }
                     }
@@ -221,7 +227,7 @@ namespace EventodromoRest.Negocio
                 return new GenericResponse<TransferirEntradasResponse>
                 {
                     Success = true,
-                    Message = "Transferencia enviada exitosamente. El destinatario tiene 24 horas para aceptarla.",
+                    Message = $"Transferencia enviada exitosamente. El destinatario tiene {horasExpiracion} horas para aceptarla.",
                     Data = response,
                     Error = null
                 };

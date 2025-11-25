@@ -23,7 +23,8 @@ namespace EventodromoRest.Servicios
             string nombreEvento,
             string emailDestino,
             int cantidadEntradas,
-            List<string> tiposEntrada)
+            List<string> tiposEntrada,
+            int horasExpiracion)
         {
             try
             {
@@ -36,7 +37,7 @@ namespace EventodromoRest.Servicios
                     DetalleItems = tiposEntrada,
                     AlertaTipo = "warning",
                     AlertaIcono = "⏳",
-                    AlertaMensaje = "<strong>Estado:</strong> Pendiente de aceptación<br>El destinatario tiene <strong>24 horas</strong> para aceptar o rechazar las entradas."
+                    AlertaMensaje = $"<strong>Estado:</strong> Pendiente de aceptación<br>El destinatario tiene <strong>{horasExpiracion} horas</strong> para aceptar o rechazar las entradas."
                 };
 
                 string htmlBody = GenerarHtmlEmail(nombreRemitente, templateData);
@@ -64,7 +65,8 @@ namespace EventodromoRest.Servicios
             int cantidadEntradas,
             List<string> tiposEntrada,
             string tokenTransferencia,
-            string urlBase)
+            string urlBase,
+            int horasExpiracion)
         {
             try
             {
@@ -81,7 +83,7 @@ namespace EventodromoRest.Servicios
                     DetalleFooter = $"<strong>Total:</strong> {cantidadEntradas} entrada(s)",
                     AlertaTipo = "info",
                     AlertaIcono = "⏰",
-                    AlertaMensaje = "<strong>Tiempo límite para aceptar:</strong><br>Tienes <strong>24 horas</strong> para aceptar o rechazar estas entradas. Después de este tiempo, la transferencia expirará automáticamente.",
+                    AlertaMensaje = $"<strong>Tiempo límite para aceptar:</strong><br>Tienes <strong>{horasExpiracion} horas</strong> para aceptar o rechazar estas entradas. Después de este tiempo, la transferencia expirará automáticamente.",
                     Botones = new List<EmailButton>
                     {
                         new EmailButton { Texto = "✅ Aceptar mis Entradas", Url = urlAceptar, Primario = true },
