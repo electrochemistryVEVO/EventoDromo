@@ -188,5 +188,11 @@ namespace EventodromoRest.Negocio
                 Data = ocupacionLocales
             };
         }
+
+        public List<Feat_MetricDashB_ObtenerOcupacionLocales> ObtenerOcupacionLocalesUltimos30Dias()
+        {
+            LocalMapper mapper = new LocalMapper(globales, DB);
+            return mapper.ObtenerOcupacionLocalesUltimos30Dias();
+        }
     }
 }
