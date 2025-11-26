@@ -74,9 +74,10 @@ const TicketItem = ({ ticket }) => (
     </div>
     <button
       className="flex items-center justify-center"
-      onClick={() => {
+      onClick={async () => {
         const entradaData = {
           nombreEvento: ticket.eventInfo,
+            idEvento: ticket.idEvento || 67,
           lugar: ticket.lugar || "Estadio San Marcos",
           fechaHora: ticket.fechaHora || "30 de octubre de 2025 - 07:00 P.M",
           nombreCliente: ticket.nombreCliente || "Usuario Registrado",
@@ -84,7 +85,20 @@ const TicketItem = ({ ticket }) => (
           tipoEntrada: ticket.type,
           precio: ticket.precio || 500.00
         };
-        generateEntradaPDF(entradaData);
+        let blob = await generateEntradaPDF(entradaData);
+        let url = URL.createObjectURL(blob)
+        // Crear elemento anchor temporal
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `entrada-${entradaData.nombreEvento.toLowerCase().replace(/\s+/g, '-')}.pdf`;
+
+        // Simular click para descargar
+        document.body.appendChild(link);
+        link.click();
+
+        // Limpiar
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
       }}
       title="Descargar entrada"
       style={{
@@ -155,7 +169,7 @@ const DownloadTicketsModal = ({ isOpen, onClose, tickets }) => {
         </header>
 
         <div className="overflow-y-auto flex-1 p-2.5">
-          {tickets.length > 0 ? (
+          {(tickets?.length ?? 0) > 0 ? (
             <div className="space-y-2.5">
               {tickets.map((ticket) => (
                 <TicketItem key={ticket.id} ticket={ticket} />

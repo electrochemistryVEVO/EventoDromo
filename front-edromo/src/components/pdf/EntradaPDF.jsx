@@ -1,9 +1,23 @@
-import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import {Document, Page, Text, View, StyleSheet, Image, Font, Svg, Line} from '@react-pdf/renderer';
 import { QRCodeSVG } from 'qrcode.react';
+
+Font.register({
+  family: 'Nunito',
+  fonts:[
+    {src: "https://fonts.gstatic.com/s/nunito/v32/XRXI3I6Li01BKofiOc5wtlZ2di8HDLshRTM9jo7eTWk.ttf" },
+    {src:"https://fonts.gstatic.com/s/nunito/v32/XRXI3I6Li01BKofiOc5wtlZ2di8HDGUmRTM9jo7eTWk.ttf",
+    fontWeight:"bold"}
+//GET
+// 	https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofINeaB.woff2
+  ]
+})
 
 const styles = StyleSheet.create({
   page: {
+    fontFamily:"Nunito",
     padding: 30,
+   // width: 1236,
+   // height: 612,
     backgroundColor: '#ffffff'
   },
   header: {
@@ -21,79 +35,88 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   section: {
+    fontFamily:"Nunito",
     margin: 10,
     padding: 10,
-    flexGrow: 1
+    flexGrow: 1,
   },
   row: {
-    flexDirection: 'row',
+    display: "flex",
+    flexDirection: "row",
+    //width:1200,
+    justifyContent:"space-between",
     marginVertical: 5
   },
   label: {
     width: 120,
     fontWeight: 'bold'
   },
-  value: {
-    flex: 1
+  value: {fontFamily:"Nunito"
   },
   qrCode: {
     width: 100,
     height: 100,
     alignSelf: 'center',
     marginTop: 20
+  },
+  sideText: {
+
   }
 });
 
+const Headline = () => (
+    <Svg height="10" width="495">
+      <Line x1="0" y1="5" x2="280" y2="5" strokeWidth={2} stroke="rgb(0,0,0)" />
+    </Svg>
+)
+
 const EntradaPDF = ({ entrada }) => (
   <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.header}>
-        <Image
-          src="/public/images/logo/eventodromo-logo.png"
-          style={styles.logo}
-        />
-      </View>
-
+    <Page size={{width:1236,height:612}} style={styles.page}>
       <View style={styles.section}>
-        <Text style={styles.title}>{entrada.nombreEvento}</Text>
-
         <View style={styles.row}>
           <Text style={styles.label}>Lugar:</Text>
           <Text style={styles.value}>{entrada.lugar}</Text>
         </View>
-
+        <Headline/>
         <View style={styles.row}>
-          <Text style={styles.label}>Fecha y Hora:</Text>
-          <Text style={styles.value}>{entrada.fechaHora}</Text>
-        </View>
+          <View>
+            <Image
+                src="/images/logo/logo_eventodromo.png"
+                style={styles.logo}
+            />
+            <Image
+                src="/images/otros/qr-code-example.png"
+                style={styles.qrCode}
+            />
+            <Text style={styles.title}>{entrada.nombreEvento}</Text>
+            <Text style={styles.value}>{entrada.lugar}</Text>
+            <Text style={styles.label}>{entrada.fechaHora}</Text>
+            <Text style={styles.label}>Tipo de Entrada</Text>
+            <Text style={styles.value}>{entrada.tipoEntrada}</Text>
+          </View>
+          <View style={styles.row}>
+            <View>
+              <Text style={styles.value}>{entrada.nombreCliente}</Text>
+              <Text style={styles.label}>DNI: </Text>
+              <Text style={styles.value}>{entrada.dniCliente}</Text>
+            </View>
+            <View>
+              <Text style={styles.value}>{entrada.tipoEntrada}</Text>
+              <Headline/>
+              <Text style={styles.value}>{entrada.fechaHora}</Text>
+              <Headline/>
+              <Text style={styles.value}>S/ {entrada.precio.toFixed(2)}</Text>
+            </View>
+          </View>
+          <View style={styles.row}>
 
-        <View style={styles.row}>
-          <Text style={styles.label}>Cliente:</Text>
-          <Text style={styles.value}>{entrada.nombreCliente}</Text>
+          </View>
         </View>
-
-        <View style={styles.row}>
-          <Text style={styles.label}>DNI:</Text>
-          <Text style={styles.value}>{entrada.dniCliente}</Text>
-        </View>
-
-        <View style={styles.row}>
-          <Text style={styles.label}>Tipo de Entrada:</Text>
-          <Text style={styles.value}>{entrada.tipoEntrada}</Text>
-        </View>
-
-        <View style={styles.row}>
-          <Text style={styles.label}>Precio:</Text>
-          <Text style={styles.value}>S/ {entrada.precio.toFixed(2)}</Text>
-        </View>
-
-        <Image
-          src="/public/images/otros/qr-code-example.png"
-          style={styles.qrCode}
-        />
       </View>
     </Page>
   </Document>
 );
+
 
 export default EntradaPDF;

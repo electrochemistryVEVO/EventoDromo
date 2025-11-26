@@ -132,5 +132,37 @@ namespace EventodromoRest.Mappers
                 return listaEntrada;
             }
         }
+        public List<TicketInfo> ObtenerTipoEntradasPorTransaccion(int idCliente,string numeroTransaccion)
+        {
+            List<TicketInfo> listaEntrada = new List<TicketInfo>();
+            lock (DB)
+            {
+                string query = "SELECT TE.nombre,TE.precio,T.nombresCliente,T.apellidosCliente,C.numeroDocumento FROM Transaccion T " +
+                "JOIN Cliente C ON C.id=T.idCliente " +
+                "JOIN Entrada E ON E.idCarrito=T.idCarrito " +
+                "JOIN TipoEntrada TE ON TE.id=E.idTipoEntrada " +
+                "WHERE T.idCliente=@idCliente AND T.numeroTransaccion=@numeroTransaccion;";
+                var parametros = new ParameterList();
+                parametros.Add("@numeroTransaccion", numeroTransaccion);
+                parametros.Add("@idCliente", idCliente);
+                DB.Select(query, parametros);
+                while (DB.Read())
+                {
+                    TicketInfo entrada = new();
+                    entrada.nombre = DB.GetString("nombre");
+                    entrada.precio = (double)DB.GetDecimal("precio");
+                    entrada.dniCliente = DB.GetString("numeroDocumento");
+                    entrada.nombreCliente = DB.GetString("nombresCliente");
+                    if (entrada.nombreCliente != null)
+                    {
+                        entrada.nombreCliente = entrada.nombreCliente + " ";
+                        entrada.nombreCliente = entrada.nombreCliente + DB.GetString("apellidosCliente");
+                    }
+                    
+                    listaEntrada.Add(entrada);
+                }
+                return listaEntrada;
+            }
+        }
     }
 }
