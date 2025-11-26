@@ -414,28 +414,37 @@ namespace EventodromoRest.Controllers
         {
             try
             {
-                // --- LÓGICA DE TOKEN COMENTADA ---
-                /*
+                // 1️⃣ Validar token JWT
                 var authHeader = Request.Headers["Authorization"].ToString();
                 if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
-                    return new GenericResponse<CrearEventoResponseDTO> { Success = false, Message = "Acceso no autorizado...", Error = "401 Unauthorized" };
+                    return new GenericResponse<CrearEventoResponseDTO>
+                    {
+                        Success = false,
+                        Message = "Acceso no autorizado. Se requiere un token válido.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
                 }
-                // ... validación de token ...
-                */
-                // --- FIN LÓGICA DE TOKEN ---
 
-
-                // --- ID FIJO PARA PRUEBAS ---
-                // Asegúrate de que el usuario con ID 1 exista en tu tabla Administrador (o Cliente, según tu lógica)
-                int idAdminFijo = 1;
-                // ---------------------------
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<CrearEventoResponseDTO>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
 
                 // 2. Llamar al Negocio (BO) con el ID fijo
                 var bo = new EventoBO(globales, BD);
 
                 // El método CrearEventoCompleto espera (CrearEventoDTOFinal, int)
-                return bo.CrearEventoCompleto(dto, idAdminFijo);
+                return bo.CrearEventoCompleto(dto, idAdmin??0);
             }
             catch (Exception e)
             {
