@@ -123,7 +123,7 @@ export const useEventCreator = () => {
     setTiposEntrada((prev) => [
       ...prev,
       {
-        id: Date.now(),
+        id: Math.floor(Math.random() * 100000000),
         nombre: "",
         precio: "",
         cantidad: "",
@@ -157,7 +157,7 @@ export const useEventCreator = () => {
     setDescuentos((prev) => [
       ...prev,
       {
-        id: Date.now(),
+        id: Math.floor(Math.random() * 100000000),
         nombre: "",
         codigo: "",
         tipo: "Porcentaje",
@@ -282,7 +282,10 @@ export const useEventCreator = () => {
       const finalEventData = {
         ...eventInfo,
         fechas,
-        tiposEntrada,
+        tiposEntrada: tiposEntrada.map((t) => ({
+          ...t,
+          idTemporal: t.id, // Pasamos el ID interno de React como idTemporal para el backend
+        })),
         descuentos, // <-- Incluimos los descuentos en el payload final
         imagenURL: imageUrl, // <-- ¡Aquí usamos la URL que nos devolvió la función!
       };
