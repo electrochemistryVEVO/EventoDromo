@@ -1,6 +1,8 @@
 ﻿using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
+using System.Data;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
@@ -459,6 +461,42 @@ namespace EventodromoRest.Mappers
                 }
             }
             return listaOcupacion;
+        }
+
+        public List<Feat_MetricDashB_ObtenerOcupacionLocales> ObtenerOcupacionLocalesUltimos30Dias()
+        {
+            List<Feat_MetricDashB_ObtenerOcupacionLocales> lista = new List<Feat_MetricDashB_ObtenerOcupacionLocales>();
+
+            string query = @"
+            SELECT 
+                L.id AS idLocal,
+                L.nombre AS nombreLocal,
+                COUNT(DISTINCT DATE(FE.fechaHora)) AS diasOcupados,
+                (COUNT(DISTINCT DATE(FE.fechaHora)) * 100.0) / 30 AS tasaOcupacion
+            FROM Local L
+            LEFT JOIN Evento E 
+                ON E.idLocal = L.id
+            LEFT JOIN FechaEvento FE
+                ON FE.idEvento = E.id
+               AND FE.fechaHora >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            GROUP BY L.id, L.nombre;
+        ";
+            DB.Select(query, null);
+
+            while (DB.Read())
+            {
+                Feat_MetricDashB_ObtenerOcupacionLocales local = new()
+                {
+                    id =DB.GetInt("idLocal"),
+                    nombre = DB.GetString("nombreLocal"),
+                    diasOcupados = DB.GetInt("diasOcupados"),
+                    tasaOcupacion = DB.GetDecimal("tasaOcupacion")
+                };
+                lista.Add(local);
+            }
+            DB.CloseReader();
+
+            return lista;
         }
     }
 }

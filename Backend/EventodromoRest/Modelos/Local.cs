@@ -120,4 +120,12 @@
         public int diasOcupados { get; set; }
         public decimal tasaOcupacion { get; set; }
     }
+
+    public class Feat_MetricDashB_ObtenerOcupacionLocales
+    {
+        public int id { get; set; }
+        public string nombre { get; set; }
+        public int diasOcupados { get; set; }
+        public decimal tasaOcupacion { get; set; }
+    }
 }
