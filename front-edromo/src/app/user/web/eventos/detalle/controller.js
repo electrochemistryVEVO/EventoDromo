@@ -195,6 +195,7 @@ const EventPageController = () => {
         <div className="sidebar-column">
           <BookingPanel
             eventName={evento.nombre}
+            eventId={evento.id}
             functions={funciones || []}
             onAddToCart={handleAddToCart}
           />

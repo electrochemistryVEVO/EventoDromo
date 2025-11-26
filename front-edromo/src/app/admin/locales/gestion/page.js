@@ -366,7 +366,11 @@ function GestionLocales() {
                                         <tr key={local.id}>
                                             <td>{local.nombre}</td>
                                             <td>{local.nombreCiudad}</td>
-                                            <td>{local.direccion}</td>
+                                            <td>
+                                                <div style={{ maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={local.direccion}>
+                                                    {local.direccion}
+                                                </div>
+                                            </td>
                                             <td>{local.capacidad.toLocaleString('es-ES')}</td>
                                             <td>
                                                 {local.eventos} {local.eventos === 1 ? 'Evento' : 'Eventos'}

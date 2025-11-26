@@ -14,11 +14,56 @@ namespace EventodromoRest.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    public class LocalController(Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService) : BaseController
+    public class LocalController(Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService, IS3Service s3Service) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
         private readonly Globales.Globales globales = globales;
         private readonly TokenService tokenService = tokenService;
+        private readonly IS3Service _s3Service = s3Service;
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        [Authorize]
+        public async Task<GenericResponse<string>> SubirImagenLocal(IFormFile imagen)
+        {
+            try
+            {
+                if (imagen == null || imagen.Length == 0)
+                {
+                    return new GenericResponse<string>
+                    {
+                        Success = false,
+                        Message = "No se proporcionó ninguna imagen",
+                        Error = null,
+                        Data = null
+                    };
+                }
+
+                // Subir a S3 en la carpeta "locales"
+                var rutaArchivo = await _s3Service.SubirImagenAsync(imagen, "locales");
+                var urlPublica = _s3Service.ObtenerUrlPublica(rutaArchivo);
+
+                return new GenericResponse<string>
+                {
+                    Success = true,
+                    Message = "Imagen subida correctamente",
+                    Error = null,
+                    Data = urlPublica
+                };
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<string>
+                {
+                    Success = false,
+                    Message = "Error al subir la imagen",
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, "SubirImagenLocal", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
 
         [HttpGet]
         [Route("/api/[controller]/[action]")]
@@ -298,7 +343,10 @@ namespace EventodromoRest.Controllers
                     idCiudad = request.CiudadId,
                     direccion = request.Direccion,
                     capacidad = request.Capacidad,
-                    imagenURL = request.imagenURL
+                    imagenURL = request.imagenURL,
+                    Latitud = request.Latitud,
+                    Longitud = request.Longitud,
+                    GoogleMapsUrl = request.GoogleMapsUrl
 
                 };
 
