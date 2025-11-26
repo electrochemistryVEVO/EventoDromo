@@ -309,4 +309,61 @@
         public int id { get; set; }
         public string nombre { get; set; }
     }
+
+    public class ActualizarEventoDTO
+    {
+        public int idEvento { get; set; } // Obligatorio para actualizar
+        public string nombre { get; set; }
+        public string descripcion { get; set; }
+        public string imagenURL { get; set; }
+        public int localId { get; set; }
+        public int tipoEventoId { get; set; }
+        public int capacidad { get; set; }
+        public string fechaPublicacion { get; set; } // ISO String
+        public string fechaCompra { get; set; }      // ISO String
+
+        // Listas anidadas con lógica de ID (0 = nuevo, >0 = existente)
+        public List<HorarioUpdateDTO> horarios { get; set; }
+        public List<EntradaUpdateDTO> entradas { get; set; }
+        public List<DescuentoUpdateDTO> descuentos { get; set; }
+    }
+
+    public class HorarioUpdateDTO
+    {
+        public int id { get; set; } // 0 = Nuevo, >0 = Actualizar
+        public string fecha { get; set; } // "YYYY-MM-DD"
+        public string hora { get; set; }  // "HH:mm"
+    }
+
+    public class EntradaUpdateDTO
+    {
+        public int idEntrada { get; set; } // 0 = Nuevo, >0 = Actualizar
+        public string nombre { get; set; }
+        public decimal precio { get; set; }
+        public int cantidadEntradas { get; set; }
+        public int limiteCompra { get; set; }
+        public int puntos { get; set; }
+
+        // Objeto anidado para vincular con el horario
+        public HorarioUpdateDTO horario { get; set; }
+    }
+
+    public class DescuentoUpdateDTO
+    {
+        public int id { get; set; } // 0 = Nuevo, >0 = Actualizar
+        public string nombre { get; set; }
+        public string codigo { get; set; }
+        public string tipo { get; set; }
+        public decimal valor { get; set; }
+        public string fechaInicio { get; set; }
+        public string fechaFin { get; set; }
+        public int usosMaximos { get; set; }
+        public int tipoEntradaId { get; set; } // FK hacia la entrada
+    }
+
+    public class ActualizarEventoResponseDTO
+    {
+        public int idEvento { get; set; }
+        public string nombre { get; set; }
+    }
 }

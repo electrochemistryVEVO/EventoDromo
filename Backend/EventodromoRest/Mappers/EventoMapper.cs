@@ -1151,7 +1151,31 @@ WHERE  E.id = @idEvento;
                 return evento;
             }
         }
+        public int ActualizarEventoExistente(Evento evento)
+        {
+            lock (DB)
+            {
+                try { DB.CloseReader(); } catch { /* Ignorar si ya estaba cerrado */ }
 
+                // Query para actualizar los datos base del evento
+                string query = "UPDATE Evento SET nombre=@NOM, descripcion=@DESC, idLocal=@LOC, idTipoEvento=@TIPO, " +
+                               "fechaPublicacion=@PUB, fechaCompra=@COMP, imagenURL=@IMG " +
+                               "WHERE id=@ID";
+
+                var p = new ParameterList();
+                p.Add("@NOM", evento.nombre);
+                p.Add("@DESC", evento.descripcion);
+                p.Add("@LOC", evento.idLocal);
+                p.Add("@TIPO", evento.idTipoEvento);
+                p.Add("@PUB", evento.fechaPublicacion);
+                p.Add("@COMP", evento.fechaCompra);
+                p.Add("@IMG", evento.imagenURL);
+                p.Add("@ID", evento.id);
+
+                // Ahora sí, ejecutamos el comando
+                return DB.ExecuteNonQuery(query, p);
+            }
+        }
         public int InsertarDescuento(Descuento descuento)
         {
             lock (DB)
@@ -1188,5 +1212,27 @@ WHERE  E.id = @idEvento;
                 return idPromocion;
             }
         }
+        public int ActualizarPromocion(Descuento d)
+        {
+            lock (DB)
+            {
+                string query = "UPDATE Promocion SET nombre=@NOM, codigo=@COD, tipo=@TIPO, valor=@VAL, " +
+                               "fechaInicio=@INI, fechaFin=@FIN, cantidadMaxima=@MAX " +
+                               "WHERE id=@ID";
+
+                var p = new ParameterList();
+                p.Add("@NOM", d.nombre);
+                p.Add("@COD", d.codigo);
+                p.Add("@TIPO", d.tipo);
+                p.Add("@VAL", d.valor);
+                p.Add("@INI", d.fechaInicio);
+                p.Add("@FIN", d.fechaFin);
+                p.Add("@MAX", d.usosMaximos);
+                p.Add("@ID", d.id); // ID obligatorio para el WHERE
+
+                return DB.ExecuteNonQuery(query, p);
+            }
+        }
+
     }
 }

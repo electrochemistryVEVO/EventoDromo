@@ -462,6 +462,61 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<ActualizarEventoResponseDTO> ActualizarEvento([FromBody] ActualizarEventoDTO dto)
+        {
+            try
+            {
+                // 1️⃣ Validar token JWT
+                /*var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<ActualizarEventoResponseDTO>
+                    {
+                        Success = false,
+                        Message = "Acceso no autorizado. Se requiere un token válido.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<ActualizarEventoResponseDTO>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }*/
+                int? idAdmin = 1;
+                // 3. Llamar al Negocio (BO)
+                var bo = new EventoBO(globales, BD);
+
+                // Llamamos al método de actualización del BO
+                return bo.ActualizarEventoCompleto(dto, idAdmin??0);
+            }
+            catch (Exception e)
+            {
+                // 4. Manejo de Errores Global
+                var response = new GenericResponse<ActualizarEventoResponseDTO>
+                {
+                    Success = false,
+                    Message = "Error fatal en el controlador al actualizar el evento.",
+                    Error = e.Message
+                };
+
+                // Registrar en bitácora
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(dto), JsonSerializer.Serialize(response));
+
+                return response;
+            }
+        }
     }
 
 

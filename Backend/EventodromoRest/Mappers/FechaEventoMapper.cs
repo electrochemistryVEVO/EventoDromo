@@ -232,5 +232,21 @@ namespace EventodromoRest.Mappers
             }
         }
 
+        public int ActualizarFechaEvento(int id, DateTime nuevaFecha)
+        {
+            lock (DB)
+            {
+                // Query para actualizar la fecha y hora de un horario específico
+                string query = "UPDATE FechaEvento SET fechaHora=@FECHA WHERE id=@ID";
+
+                var p = new ParameterList();
+                p.Add("@FECHA", nuevaFecha);
+                p.Add("@ID", id); // ID obligatorio para el WHERE
+
+                // ExecuteNonQuery devuelve el número de filas afectadas
+                return DB.ExecuteNonQuery(query, p);
+            }
+        }
+
     }
 }
