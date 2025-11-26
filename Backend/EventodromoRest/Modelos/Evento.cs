@@ -244,5 +244,69 @@
         public int entradasVendidas { get; set; }
     }
 
+    // --- PEGA ESTO AL FINAL DE TU ARCHIVO Evento.cs (dentro del namespace) ---
 
+    public class CrearEventoDTO
+    {
+        public string Nombre { get; set; }
+        public string Descripcion { get; set; }
+        public int LocalId { get; set; }
+        public int TipoEventoId { get; set; }
+        public int Capacidad { get; set; }
+        public string FechaPublicacion { get; set; }
+        public string FechaCompra { get; set; }
+        public string ImagenURL { get; set; }
+        public List<string> Horarios { get; set; }
+        public List<EntradaCreacionDTO> Entradas { get; set; }
+        public List<DescuentoCreacionDTO> Descuentos { get; set; }
+    }
+
+    public class CrearEventoDTOFinal
+    {
+        public string nombre { get; set; }
+        public string descripcion { get; set; }
+        public int localId { get; set; }
+        public int tipoEventoId { get; set; }
+        public int capacidad { get; set; }
+        public string fechaPublicacion { get; set; } // ISO String
+        public string fechaCompra { get; set; }      // ISO String
+        public string imagenURL { get; set; }
+
+        public List<string> horarios { get; set; }   // Lista de ISO Strings
+        public List<EntradaCreacionDTO> entradas { get; set; }
+        public List<DescuentoCreacionDTO> descuentos { get; set; }
+    }
+
+    public class EntradaCreacionDTO
+    {
+        // NO es el ID de la base de datos. (Campo opcional para lógica de descuentos en memoria)
+        // Si el JSON del frontend NO lo envía, este será 0.
+        public int idTemporal { get; set; }
+
+        public string nombre { get; set; }
+        public decimal precio { get; set; }
+        public int cantidad { get; set; }
+        public int limiteCompra { get; set; }
+        public int puntos { get; set; }
+    }
+
+    public class DescuentoCreacionDTO
+    {
+        public string nombre { get; set; }
+        public string codigo { get; set; }
+        public string tipo { get; set; } // "Porcentaje" o "Fijo"
+        public decimal valor { get; set; }
+        public string fechaInicio { get; set; }
+        public string fechaFin { get; set; }
+        public int usosMaximos { get; set; }
+
+        // Referencia al idTemporal de una entrada si se usa esa lógica
+        public int tipoEntradaId { get; set; }
+    }
+
+    public class CrearEventoResponseDTO
+    {
+        public int id { get; set; }
+        public string nombre { get; set; }
+    }
 }

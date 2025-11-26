@@ -216,5 +216,21 @@ namespace EventodromoRest.Mappers
             }
         }
 
+        public int InsertarFechaEvento(DateTime fechaHora, int idEvento)
+        {
+            lock (DB)
+            {
+                // Insertamos y obtenemos el ID generado automáticamente
+                string query = "INSERT INTO FechaEvento (fechaHora, idEvento) VALUES (@FECHA, @IDEVENTO); SELECT LAST_INSERT_ID();";
+
+                var p = new ParameterList();
+                p.Add("@FECHA", fechaHora);
+                p.Add("@IDEVENTO", idEvento);
+
+                // Ejecutamos y convertimos el resultado a int
+                return Convert.ToInt32(DB.ExecuteScalar(query, p));
+            }
+        }
+
     }
 }

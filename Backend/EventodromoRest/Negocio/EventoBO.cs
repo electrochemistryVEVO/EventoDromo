@@ -193,7 +193,7 @@ namespace EventodromoRest.Negocio
                     ImagenURL = evento.imagenURL,
                     LocalId = evento.idLocal,
                     TipoEventoId = evento.idTipoEvento,
-                    Capacidad = evento.Local?.capacidad ?? 0, 
+                    Capacidad = evento.Local?.capacidad ?? 0,
 
                     // Formato ISO 8601 "YYYY-MM-DDTHH:mm" (la 's' es "sortable")
                     FechaPublicacion = evento.fechaPublicacion.ToString("s"),
@@ -202,7 +202,7 @@ namespace EventodromoRest.Negocio
                     // Mapear la lista de horarios
                     Horarios = horariosDB.Select(h => new EventoDatosHorarioDTO
                     {
-                        Id = h.id??0,
+                        Id = h.id ?? 0,
                         Fecha = h.fechaHora.HasValue ? h.fechaHora.Value.ToString("yyyy-MM-dd") : "", // Formato YYYY-MM-DD
                         Hora = h.fechaHora.HasValue ? h.fechaHora.Value.ToString("HH:mm") : ""      // Formato HH:mm
                     }).ToList(),
@@ -213,7 +213,7 @@ namespace EventodromoRest.Negocio
                         Id = e.id,
                         Nombre = e.nombre,
                         Precio = e.precio,
-                        Cantidad = e.cantidadEntradas??0, // Renombrado
+                        Cantidad = e.cantidadEntradas ?? 0, // Renombrado
                         LimiteCompra = e.limiteCompra ?? 0,
                         Puntos = e.puntos ?? 0
                     }).ToList()
@@ -439,6 +439,105 @@ namespace EventodromoRest.Negocio
                     Message = "Error interno al eliminar el evento.",
                     Error = ex.Message,
                     Data = false
+                };
+            }
+        }
+
+        public GenericResponse<CrearEventoResponseDTO> CrearEventoCompleto(CrearEventoDTOFinal dto, int creadorId)
+        {
+            try
+            {
+                // 1. Instanciar Mappers
+                var eventoMapper = new EventoMapper(globales, DB);
+                var fechaMapper = new FechaEventoMapper(globales, DB);
+                var entradaMapper = new TipoEntradaMapper(globales, DB);
+                // No necesitamos DescuentoMapper, usaremos eventoMapper
+
+                // 2. Crear el Evento Padre
+                var evento = new Evento
+                {
+                    nombre = dto.nombre,
+                    descripcion = dto.descripcion,
+                    idLocal = dto.localId,
+                    idTipoEvento = dto.tipoEventoId,
+                    creadoPor = creadorId,
+                    fechaPublicacion = DateTime.Parse(dto.fechaPublicacion),
+                    fechaCompra = DateTime.Parse(dto.fechaCompra),
+                    imagenURL = dto.imagenURL,
+                    isDeleted = false
+                };
+
+                int idEvento = eventoMapper.InsertarEvento(evento);
+
+                // 3. Iterar sobre los Horarios
+                if (dto.horarios != null)
+                {
+                    foreach (var horarioStr in dto.horarios)
+                    {
+                        DateTime fechaHora = DateTime.Parse(horarioStr);
+                        int idFecha = fechaMapper.InsertarFechaEvento(fechaHora, idEvento);
+
+                        // 4. Por cada horario, crear sus Tipos de Entrada
+                        if (dto.entradas != null)
+                        {
+                            foreach (var entDTO in dto.entradas)
+                            {
+                                var entrada = new TipoEntrada
+                                {
+                                    nombre = entDTO.nombre,
+                                    precio = entDTO.precio,
+                                    cantidadEntradas = entDTO.cantidad,
+                                    limiteCompra = entDTO.limiteCompra,
+                                    cantidadVendida=0,
+                                    puntos = entDTO.puntos,
+                                    idFechaEvento = idFecha
+                                };
+
+                                int idRealEntrada = entradaMapper.InsertarTipoEntrada(entrada);
+
+                                // 5. Insertar Descuentos (Usando EventoMapper como medida provisional)
+                                if (dto.descuentos != null)
+                                {
+                                    var descuentosParaEstaEntrada = dto.descuentos
+                                        .Where(d => d.tipoEntradaId == entDTO.idTemporal).ToList();
+
+                                    foreach (var descDTO in descuentosParaEstaEntrada)
+                                    {
+                                        var descuento = new Descuento
+                                        {
+                                            nombre = descDTO.nombre,
+                                            codigo = descDTO.codigo,
+                                            tipo = descDTO.tipo,
+                                            valor = descDTO.valor,
+                                            fechaInicio = DateTime.Parse(descDTO.fechaInicio),
+                                            fechaFin = DateTime.Parse(descDTO.fechaFin),
+                                            usosMaximos = descDTO.usosMaximos,
+                                            usosActuales = 0,
+                                            idTipoEntrada = idRealEntrada
+                                        };
+                                        // CAMBIO: Llamamos al método en EventoMapper
+                                        eventoMapper.InsertarDescuento(descuento);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return new GenericResponse<CrearEventoResponseDTO>
+                {
+                    Success = true,
+                    Message = "Evento creado exitosamente.",
+                    Data = new CrearEventoResponseDTO { id = idEvento, nombre = evento.nombre }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GenericResponse<CrearEventoResponseDTO>
+                {
+                    Success = false,
+                    Message = "Error creando el evento.",
+                    Error = ex.Message
                 };
             }
         }

@@ -1151,5 +1151,42 @@ WHERE  E.id = @idEvento;
                 return evento;
             }
         }
+
+        public int InsertarDescuento(Descuento descuento)
+        {
+            lock (DB)
+            {
+                // 1. Insertar en la tabla [Promocion]
+                // CORREGIDO: Usamos 'tipo' en lugar de 'esPorcentaje'
+                string queryPromo = "INSERT INTO Promocion (nombre, codigo, tipo, valor, fechaInicio, fechaFin,usosMaximos,usosActuales) " +
+                                    "VALUES (@NOM, @COD, @TIPO, @VAL, @INI, @FIN, @MAX, 0); SELECT LAST_INSERT_ID();";
+
+                var pPromo = new ParameterList();
+                pPromo.Add("@NOM", descuento.nombre);
+                pPromo.Add("@COD", descuento.codigo);
+
+                // Guardamos el string directamente (ej. "Porcentaje" o "Fijo")
+                pPromo.Add("@TIPO", descuento.tipo);
+
+                pPromo.Add("@VAL", descuento.valor);
+                pPromo.Add("@INI", descuento.fechaInicio);
+                pPromo.Add("@FIN", descuento.fechaFin);
+                pPromo.Add("@MAX", descuento.usosMaximos);
+
+                // Ejecutar y obtener el ID de la promoción
+                int idPromocion = Convert.ToInt32(DB.ExecuteScalar(queryPromo, pPromo));
+
+                // 2. Insertar en la tabla [Promocion_Aplicable] usando el ID recién creado
+                string queryAplicable = "INSERT INTO Promocion_Aplicable (idPromocion, idTipoEntrada) VALUES (@IDPROM, @IDENT)";
+
+                var pAplicable = new ParameterList();
+                pAplicable.Add("@IDPROM", idPromocion);
+                pAplicable.Add("@IDENT", descuento.idTipoEntrada); // El objeto descuento ya trae el ID de la entrada
+
+                DB.ExecuteNonQuery(queryAplicable, pAplicable);
+
+                return idPromocion;
+            }
+        }
     }
 }

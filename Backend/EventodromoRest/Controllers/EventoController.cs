@@ -5,6 +5,7 @@ using EventodromoRest.Servicios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Security.Claims;
 using System.Text.Json;
 
 
@@ -403,6 +404,52 @@ namespace EventodromoRest.Controllers
                 };
 
                 AgregarEntradaBitacora(ex, $"id: {id}", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<CrearEventoResponseDTO> CrearEventoFinal([FromBody] CrearEventoDTOFinal dto)
+        {
+            try
+            {
+                // --- LÓGICA DE TOKEN COMENTADA ---
+                /*
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<CrearEventoResponseDTO> { Success = false, Message = "Acceso no autorizado...", Error = "401 Unauthorized" };
+                }
+                // ... validación de token ...
+                */
+                // --- FIN LÓGICA DE TOKEN ---
+
+
+                // --- ID FIJO PARA PRUEBAS ---
+                // Asegúrate de que el usuario con ID 1 exista en tu tabla Administrador (o Cliente, según tu lógica)
+                int idAdminFijo = 1;
+                // ---------------------------
+
+                // 2. Llamar al Negocio (BO) con el ID fijo
+                var bo = new EventoBO(globales, BD);
+
+                // El método CrearEventoCompleto espera (CrearEventoDTOFinal, int)
+                return bo.CrearEventoCompleto(dto, idAdminFijo);
+            }
+            catch (Exception e)
+            {
+                // 3. Manejo de Errores Global
+                var response = new GenericResponse<CrearEventoResponseDTO>
+                {
+                    Success = false,
+                    Message = "Error fatal en el controlador al crear el evento.",
+                    Error = e.Message
+                };
+
+                // Registrar en bitácora
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(dto), JsonSerializer.Serialize(response));
+
                 return response;
             }
         }
