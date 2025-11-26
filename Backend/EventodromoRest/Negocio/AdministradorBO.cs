@@ -27,6 +27,20 @@ namespace EventodromoRest.Negocio
                     name = null
                 };
             }
+        }
+
+        public GenericResponse<MetricasDashboardDTO> ObtenerIndicadoresDashboard(int idAdmin)
+        {
+            var mapper = new AdministradorMapper(globales, DB);
+            var metricas = mapper.ObtenerMetricasDashboard();
+
+            return new GenericResponse<MetricasDashboardDTO>
+            {
+                Success = true,
+                Message = "Indicadores obtenidos correctamente.",
+                Error = null,
+                Data = metricas
+            };
 
         }
     }
