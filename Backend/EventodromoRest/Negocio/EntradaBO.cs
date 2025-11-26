@@ -34,7 +34,33 @@ namespace EventodromoRest.Negocio
             }
         }
 
-
+        public GenericResponse<IEnumerable<TicketInfo>> ListarTipoEntradasPorTransaccion(int idCliente,string numeroTransaccion)
+        {
+            try
+            {
+                // 1. Llama al nuevo mapper optimizado
+                var mapper = new EntradaMapper(globales, DB);
+                //PaginacionResponse<EntradaEventoAuxiliar> paginacion = mapper.ListarMisEntradasPaginado(idCliente, filtros);
+                List<TicketInfo> lista = mapper.ObtenerTipoEntradasPorTransaccion(idCliente,numeroTransaccion);
+                return new GenericResponse<IEnumerable<TicketInfo>>
+                {
+                    Success = true,
+                    Message = $"Se listaron {lista.Count} entradas.",
+                    Data = lista,
+                    Error = null
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GenericResponse<IEnumerable<TicketInfo>>
+                {
+                    Success = false,
+                    Message = "Error al obtener las entradas.",
+                    Data = null,
+                    Error = ex.Message
+                };
+            }
+        }
         // --- 2. ESTE MÉTODO ES EL ANTIGUO (LENTO) ---
         // Lo dejamos aquí por si lo usas en otro lado, pero ya no lo usaremos para "Mis Entradas"
         public GenericResponse<List<EntradaEventoAuxiliar>> ListarTodasLasEntradasEventoAuxiliar()

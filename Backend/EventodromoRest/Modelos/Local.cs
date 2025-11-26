@@ -14,6 +14,9 @@
         public Administrador administrador { get; set; }
         public string? nombreCiudad { get; set; }
         public int? eventos { get; set; }
+        public decimal? Latitud { get; set; }
+        public decimal? Longitud { get; set; }
+        public string? GoogleMapsUrl { get; set; }
     }
     
 
@@ -39,6 +42,8 @@
         public string direccion { get; set; }
         public Ciudad ciudad { get; set; }
         public string googleMapsEmbed { get; set; }
+        public decimal? Latitud { get; set; }
+        public decimal? Longitud { get; set; }
     }
 
     public class getLocalesResponse
@@ -69,6 +74,15 @@
 
 
         public string? imagenURL { get; set; }
+
+
+        public decimal? Latitud { get; set; }
+
+
+        public decimal? Longitud { get; set; }
+
+
+        public string? GoogleMapsUrl { get; set; }
     }
 
     public class LocalModificarLocalRequest
@@ -79,6 +93,9 @@
         public string Direccion { get; set; }
         public int Capacidad { get; set; }
         public string? imagenURL { get; set; }
+        public decimal? Latitud { get; set; }
+        public decimal? Longitud { get; set; }
+        public string? GoogleMapsUrl { get; set; }
     }
 
     public class ResponseLocalModificarLocal

@@ -17,13 +17,14 @@ namespace EventodromoRest.Servicios
         /// <summary>
         /// Envía un email de confirmación al remitente después de transferir entradas.
         /// </summary>
-        public bool EnviarEmailRemitenteTransferencia(
+        public async Task<bool> EnviarEmailRemitenteTransferenciaAsync(
             string emailRemitente, 
             string nombreRemitente,
             string nombreEvento,
             string emailDestino,
             int cantidadEntradas,
-            List<string> tiposEntrada)
+            List<string> tiposEntrada,
+            int horasExpiracion)
         {
             try
             {
@@ -36,12 +37,12 @@ namespace EventodromoRest.Servicios
                     DetalleItems = tiposEntrada,
                     AlertaTipo = "warning",
                     AlertaIcono = "⏳",
-                    AlertaMensaje = "<strong>Estado:</strong> Pendiente de aceptación<br>El destinatario tiene <strong>24 horas</strong> para aceptar o rechazar las entradas."
+                    AlertaMensaje = $"<strong>Estado:</strong> Pendiente de aceptación<br>El destinatario tiene <strong>{horasExpiracion} horas</strong> para aceptar o rechazar las entradas."
                 };
 
                 string htmlBody = GenerarHtmlEmail(nombreRemitente, templateData);
 
-                return EnviarEmail(
+                return await EnviarEmailAsync(
                     emailRemitente,
                     "✅ Transferencia de Entradas Enviada - Eventodromo",
                     htmlBody
@@ -57,14 +58,15 @@ namespace EventodromoRest.Servicios
         /// <summary>
         /// Envía un email al destinatario con botones para aceptar o rechazar la transferencia.
         /// </summary>
-        public bool EnviarEmailDestinatarioTransferencia(
+        public async Task<bool> EnviarEmailDestinatarioTransferenciaAsync(
             string emailDestino,
             string nombreRemitente,
             string nombreEvento,
             int cantidadEntradas,
             List<string> tiposEntrada,
             string tokenTransferencia,
-            string urlBase)
+            string urlBase,
+            int horasExpiracion)
         {
             try
             {
@@ -81,7 +83,7 @@ namespace EventodromoRest.Servicios
                     DetalleFooter = $"<strong>Total:</strong> {cantidadEntradas} entrada(s)",
                     AlertaTipo = "info",
                     AlertaIcono = "⏰",
-                    AlertaMensaje = "<strong>Tiempo límite para aceptar:</strong><br>Tienes <strong>24 horas</strong> para aceptar o rechazar estas entradas. Después de este tiempo, la transferencia expirará automáticamente.",
+                    AlertaMensaje = $"<strong>Tiempo límite para aceptar:</strong><br>Tienes <strong>{horasExpiracion} horas</strong> para aceptar o rechazar estas entradas. Después de este tiempo, la transferencia expirará automáticamente.",
                     Botones = new List<EmailButton>
                     {
                         new EmailButton { Texto = "✅ Aceptar mis Entradas", Url = urlAceptar, Primario = true },
@@ -92,7 +94,7 @@ namespace EventodromoRest.Servicios
 
                 string htmlBody = GenerarHtmlEmail("", templateData);
 
-                return EnviarEmail(
+                return await EnviarEmailAsync(
                     emailDestino,
                     "🎟️ ¡Has recibido entradas! - Eventodromo",
                     htmlBody
@@ -108,7 +110,7 @@ namespace EventodromoRest.Servicios
         /// <summary>
         /// Envía un email de confirmación de compra con tarjeta.
         /// </summary>
-        public bool EnviarEmailConfirmacionCompraTarjeta(
+        public async Task<bool> EnviarEmailConfirmacionCompraTarjetaAsync(
             string emailCliente,
             string nombreCliente,
             string numeroTransaccion,
@@ -163,7 +165,7 @@ namespace EventodromoRest.Servicios
 
                 string htmlBody = GenerarHtmlEmail(nombreCliente, templateData);
 
-                return EnviarEmail(
+                return await EnviarEmailAsync(
                     emailCliente,
                     $"🎉 Compra Confirmada - {numeroTransaccion} - Eventodromo",
                     htmlBody
@@ -179,7 +181,7 @@ namespace EventodromoRest.Servicios
         /// <summary>
         /// Envía un email de confirmación de compra con puntos.
         /// </summary>
-        public bool EnviarEmailConfirmacionCompraPuntos(
+        public async Task<bool> EnviarEmailConfirmacionCompraPuntosAsync(
             string emailCliente,
             string nombreCliente,
             string numeroTransaccion,
@@ -232,7 +234,7 @@ namespace EventodromoRest.Servicios
 
                 string htmlBody = GenerarHtmlEmail(nombreCliente, templateData);
 
-                return EnviarEmail(
+                return await EnviarEmailAsync(
                     emailCliente,
                     $"⭐ Canje Confirmado - {numeroTransaccion} - Eventodromo",
                     htmlBody
@@ -248,7 +250,7 @@ namespace EventodromoRest.Servicios
         /// <summary>
         /// Método genérico para enviar emails con diferentes propósitos.
         /// </summary>
-        public bool EnviarEmailGenerico(
+        public async Task<bool> EnviarEmailGenericoAsync(
             string destinatario,
             string asunto,
             string nombreDestinatario,
@@ -257,7 +259,7 @@ namespace EventodromoRest.Servicios
             try
             {
                 string htmlBody = GenerarHtmlEmail(nombreDestinatario, templateData);
-                return EnviarEmail(destinatario, asunto, htmlBody);
+                return await EnviarEmailAsync(destinatario, asunto, htmlBody);
             }
             catch (Exception ex)
             {
@@ -269,7 +271,7 @@ namespace EventodromoRest.Servicios
         /// <summary>
         /// Método base para enviar emails usando SMTP.
         /// </summary>
-        private bool EnviarEmail(string destinatario, string asunto, string cuerpoHtml)
+        private async Task<bool> EnviarEmailAsync(string destinatario, string asunto, string cuerpoHtml)
         {
             try
             {
@@ -288,7 +290,7 @@ namespace EventodromoRest.Servicios
                 client.UseDefaultCredentials = false;
                 client.Credentials = new NetworkCredential(_fromEmail, _fromPassword);
 
-                client.Send(message);
+                await client.SendMailAsync(message);
                 Console.WriteLine($"✅ Email enviado exitosamente a {destinatario}");
                 return true;
             }

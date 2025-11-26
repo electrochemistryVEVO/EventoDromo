@@ -1,0 +1,38 @@
+{
+  "success": true,
+  "mensaje": "Detalle de transacción obtenido correctamente.",
+  "data": {
+    "evento": {
+      "titulo": "Concierto Sinfónico Navideño",
+      "imagen": "/images/eventos/sinfonica-navidad.jpg",
+      "ubicacion": "Gran Teatro Nacional, LIMA, PE",
+      "fecha": "2025-12-24T20:30:00Z"
+    },
+    "transaccion": {
+      "numeroTransaccion": "TRF-2025-004321",
+      "fecha": "2025-11-23T08:20:00Z",
+      "estado": "Pendiente"
+    },
+    "cliente": {
+      "nombre": "Ana Martínez Silva",
+      "email": "ana.martinez@example.com",
+      "telefono": "+51 956 123 789"
+    },
+    "entradas": [
+      {
+        "tipoEntrada": "VIP - Palco Lateral",
+        "cantidad": 2,
+        "precioUnitario": 180.00,
+        "subtotal": 360.00
+      }
+    ],
+    "metodoPago": {
+      "tipo": "transferencia_pendiente",
+      "detalles": {
+        "emailDestino": "destinatario@example.com"
+      }
+    },
+    "total": 360.00
+  },
+  "error": null
+}

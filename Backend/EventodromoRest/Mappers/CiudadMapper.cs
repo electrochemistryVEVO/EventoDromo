@@ -13,8 +13,8 @@ namespace EventodromoRest.Mappers
 
             lock (DB)
             {
-                // 1) Obtener ciudades
-                string query = "SELECT * FROM Ciudad";
+                // 1) Obtener ciudades de Perú (idPais = 1)
+                string query = "SELECT * FROM Ciudad WHERE IDPAIS = 1";
                 DB.Select(query, null);
 
                 while (DB.Read())

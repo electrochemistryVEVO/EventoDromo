@@ -1,0 +1,38 @@
+{
+  "success": true,
+  "mensaje": "Detalle de transacción obtenido correctamente.",
+  "data": {
+    "evento": {
+      "titulo": "Festival de Jazz Internacional",
+      "imagen": "/images/eventos/jazz-festival.jpg",
+      "ubicacion": "Centro de Convenciones, LIMA, PE",
+      "fecha": "2025-11-30T19:00:00Z"
+    },
+    "transaccion": {
+      "numeroTransaccion": "TRP-2025-005678",
+      "fecha": "2025-11-18T16:45:00Z",
+      "estado": "Completada"
+    },
+    "cliente": {
+      "nombre": "María González López",
+      "email": "maria.gonzalez@example.com",
+      "telefono": "+51 912 345 678"
+    },
+    "entradas": [
+      {
+        "tipoEntrada": "Preferencial - Zona Frontal",
+        "cantidad": 2,
+        "precioUnitario": 120.00,
+        "subtotal": 240.00
+      }
+    ],
+    "metodoPago": {
+      "tipo": "puntos",
+      "detalles": {
+        "puntosUtilizados": 24
+      }
+    },
+    "total": 240.00
+  },
+  "error": null
+}
