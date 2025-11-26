@@ -11,18 +11,22 @@ const DescargarButton = ({entrada}) => {
       try {
           console.log(localStorage.getItem("user"))
         const data = await api.get(`/Entrada/ListarMisEntradas?numeroTransaccion=${entrada.transaccion}`)
-            .then((res)=>res.map((tipoEvento)=>({
-            id: entrada.transaccion,
-            image: entrada.imagen,
-            lugar: entrada.localNombre,
-            fechaHora: `${entrada.fecha} - ${entrada.hora}`,
-            //eventInfo: "Overpass Lima - 8:00 PM - LIMA,PE",
-            eventInfo: `${entrada.titulo} - ${entrada.hora} - ${entrada.ciudadNombre},${entrada.paisNombre}`,
-            type: tipoEvento.nombre,
-            nombreCliente: tipoEvento.nombreCliente,
-            dniCliente: tipoEvento.dniCliente,
-            precio: tipoEvento.precio
-        })))
+            .then((res)=>{
+                let i=0;
+                res.map((tipoEvento)=>({
+                    id: entrada.transaccion,
+                    key: `${entrada.transaccion}-${i++}`,
+                    image: entrada.imagen,
+                    lugar: entrada.localNombre,
+                    fechaHora: `${entrada.fecha} - ${entrada.hora}`,
+                    //eventInfo: "Overpass Lima - 8:00 PM - LIMA,PE",
+                    eventInfo: `${entrada.titulo} - ${entrada.hora} - ${entrada.ciudadNombre},${entrada.paisNombre}`,
+                    type: tipoEvento.nombre,
+                    nombreCliente: tipoEvento.nombreCliente,
+                    dniCliente: tipoEvento.dniCliente,
+                    precio: tipoEvento.precio
+                }))
+            })
         setTickets(data);
       } catch (error) {
         console.error('Error al cargar los tickets:', error);

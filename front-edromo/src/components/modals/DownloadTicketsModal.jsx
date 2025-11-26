@@ -172,7 +172,7 @@ const DownloadTicketsModal = ({ isOpen, onClose, tickets }) => {
           {(tickets?.length ?? 0) > 0 ? (
             <div className="space-y-2.5">
               {tickets.map((ticket) => (
-                <TicketItem key={ticket.id} ticket={ticket} />
+                <TicketItem key={ticket.key} ticket={ticket} />
               ))}
             </div>
           ) : (
