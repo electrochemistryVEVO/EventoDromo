@@ -160,6 +160,7 @@ export const createEvent = async (eventData) => {
     imagenURL: eventData.imagenURL,
     horarios: eventData.fechas.map((f) => `${f.fecha}T${f.hora}`),
     entradas: eventData.tiposEntrada.map((t) => ({
+      idTemporal: t.idTemporal || 0,
       nombre: t.nombre,
       precio: parseFloat(t.precio),
       cantidad: parseInt(t.cantidad, 10),
@@ -181,7 +182,7 @@ export const createEvent = async (eventData) => {
   console.log("Payload a enviar a la API:", JSON.stringify(payload, null, 2));
 
   try {
-    const response = await fetch(`${BASE_API_URL}/Evento/CrearEvento`, {
+    const response = await fetch(`${BASE_API_URL}/Evento/CrearEventoFinal`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
