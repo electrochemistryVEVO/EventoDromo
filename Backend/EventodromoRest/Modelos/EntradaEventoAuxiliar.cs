@@ -10,6 +10,9 @@ namespace EventodromoRest.Modelos
         public string? hora { get; set; }
         public string? direccion { get; set; }
         public int? cantidad { get; set; }
+        public string? ciudadNombre { get; set; }
+        public string? paisNombre { get; set; }
+        public string? localNombre { get; set; }
         public decimal? precio { get; set; }
         public string? imagen { get; set; }
         public string? estado { get; set; }

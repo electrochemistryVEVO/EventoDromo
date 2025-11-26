@@ -26,4 +26,12 @@
         public bool agotado { get; set; }
         public int limiteCompra { get; set; } // lo acabo de añadir
     }
+
+    public class TicketInfo
+    {
+        public string nombre { get; set; }
+        public double precio { get; set; }
+        public string dniCliente {get; set; }
+        public string nombreCliente {get; set; }
+    }
 }

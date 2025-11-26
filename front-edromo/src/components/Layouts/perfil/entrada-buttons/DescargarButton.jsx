@@ -1,16 +1,29 @@
 import { useState, useEffect } from 'react';
 import DownloadTicketsModal from '../../../modals/DownloadTicketsModal';
+import {api} from '@/lib/api.js';
 
-const DescargarButton = () => {
+const DescargarButton = ({entrada}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tickets, setTickets] = useState([]);
 
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        const response = await fetch('/data/mockTickets.json');
-        const data = await response.json();
-        setTickets(data.tickets);
+          console.log(localStorage.getItem("user"))
+        const data = await api.get(`/Entrada/ListarMisEntradas?numeroTransaccion=${entrada.transaccion}`)
+            .then((res)=>res.map((tipoEvento)=>({
+            id: entrada.transaccion,
+            image: entrada.imagen,
+            lugar: entrada.localNombre,
+            fechaHora: `${entrada.fecha} - ${entrada.hora}`,
+            //eventInfo: "Overpass Lima - 8:00 PM - LIMA,PE",
+            eventInfo: `${entrada.titulo} - ${entrada.hora} - ${entrada.ciudadNombre},${entrada.paisNombre}`,
+            type: tipoEvento.nombre,
+            nombreCliente: tipoEvento.nombreCliente,
+            dniCliente: tipoEvento.dniCliente,
+            precio: tipoEvento.precio
+        })))
+        setTickets(data);
       } catch (error) {
         console.error('Error al cargar los tickets:', error);
         setTickets([]);
