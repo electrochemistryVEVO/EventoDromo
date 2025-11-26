@@ -39,7 +39,9 @@ export const generateEntradaPDF = async (entradaData) => {
         // Crear el blob del PDF
         let html = Handlebars.compile(readFileSync(`src/assets/hbsTemplates/ticket.hbs`,"utf-8"))(entradaData)
         //console.log(html)
-        return puppeteer.launch().then((browser)=>browser.newPage().then(
+        return puppeteer.launch({executablePath:"/usr/bin/chromium",
+		args: ['--no-sandbox'],
+   		 timeout: 10000}).then((browser)=>browser.newPage().then(
             (page)=>page.setContent(html,{ waitUntil: "networkidle0" })
                 .then(()=>page.setViewport({width:1236,height:612,deviceScaleFactor:1}))
                 .then(()=>page.pdf({
