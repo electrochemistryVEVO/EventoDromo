@@ -13,7 +13,7 @@ const DescargarButton = ({entrada}) => {
         const data = await api.get(`/Entrada/ListarMisEntradas?numeroTransaccion=${entrada.transaccion}`)
             .then((res)=>{
                 let i=0;
-                res.map((tipoEvento)=>({
+                return res.map((tipoEvento)=>({
                     id: entrada.transaccion,
                     key: `${entrada.transaccion}-${i++}`,
                     image: entrada.imagen,
