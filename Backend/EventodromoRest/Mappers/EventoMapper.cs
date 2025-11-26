@@ -1099,5 +1099,57 @@ WHERE  E.id = @idEvento;
             }
         }
 
+        public Evento ObtenerEventoPorIdSimple(int id)
+        {
+            lock (DB)
+            {
+                string query = @"
+            SELECT 
+                ID, 
+                NOMBRE, 
+                DESCRIPCION, 
+                IDTIPOEVENTO, 
+                IDLOCAL, 
+                CREADOPOR, 
+                FECHAPUBLICACION, 
+                FECHACOMPRA, 
+                ISDELETED, 
+                IMAGENURL
+            FROM Evento 
+            WHERE ID = @ID";
+        
+                var parametros = new ParameterList();
+                parametros.Add("@ID", id);
+        
+                Evento evento = null;
+        
+                DB.Select(query, parametros);
+                try
+                {
+                    if (DB.Read())
+                    {
+                        evento = new Evento
+                        {
+                            id = DB.GetInt("ID"),
+                            nombre = DB.GetString("NOMBRE"),
+                            descripcion = DB.GetString("DESCRIPCION"),
+                            idTipoEvento = DB.GetInt("IDTIPOEVENTO"),
+                            idLocal = DB.GetInt("IDLOCAL"),
+                            creadoPor = DB.GetInt("CREADOPOR"),
+                            fechaPublicacion = DB.GetDateTime("FECHAPUBLICACION"),
+                            fechaCompra = DB.GetDateTime("FECHACOMPRA"),
+                            isDeleted = DB.GetBoolean("ISDELETED"),
+                            imagenURL = DB.GetString("IMAGENURL")
+                        };
+                    }
+                }
+                finally
+                {
+                    DB.CloseReader();
+                }
+        
+                return evento;
+            }
+        }
     }
 }

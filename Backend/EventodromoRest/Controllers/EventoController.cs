@@ -2,6 +2,7 @@
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
 using EventodromoRest.Servicios;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Text.Json;
@@ -344,6 +345,67 @@ namespace EventodromoRest.Controllers
             }
         }
 
+        [HttpDelete]
+        [Authorize]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<bool> EliminarEvento([FromQuery] int id)
+        {
+            try
+            {
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<bool>
+                    {
+                        Success = false,
+                        Message = "Acceso no autorizado. Se requiere un token válido.",
+                        Error = "401 Unauthorized",
+                        Data = false
+                    };
+                }
+
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<bool>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = false
+                    };
+                }
+
+                if (id <= 0)
+                {
+                    return new GenericResponse<bool>
+                    {
+                        Success = false,
+                        Message = "ID de evento inválido.",
+                        Error = "El ID debe ser mayor que cero.",
+                        Data = false
+                    };
+                }
+
+                var eventoBO = new EventoBO(globales, BD);
+                var resultado = eventoBO.EliminarEvento(id, idAdmin.Value);
+                return resultado;
+            }
+            catch (Exception ex)
+            {
+                var response = new GenericResponse<bool>
+                {
+                    Success = false,
+                    Message = "Error al eliminar el evento.",
+                    Error = ex.Message,
+                    Data = false
+                };
+
+                AgregarEntradaBitacora(ex, $"id: {id}", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
     }
 
 

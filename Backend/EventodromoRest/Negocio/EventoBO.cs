@@ -375,5 +375,72 @@ namespace EventodromoRest.Negocio
             };
         }
 
+        public GenericResponse<bool> EliminarEvento(int idEvento, int idAdmin)
+        {
+            try
+            {
+                var eventoMapper = new EventoMapper(globales, DB);
+
+                // 1️⃣ Verificar que el evento existe (sin cargar relaciones pesadas)
+                var evento = eventoMapper.ObtenerEventoPorIdSimple(idEvento);
+                if (evento == null)
+                {
+                    return new GenericResponse<bool>
+                    {
+                        Success = false,
+                        Message = "El evento no existe.",
+                        Error = "Evento no encontrado.",
+                        Data = false
+                    };
+                }
+
+                // 2️⃣ Verificar que el evento no esté ya eliminado
+                if (evento.isDeleted)
+                {
+                    return new GenericResponse<bool>
+                    {
+                        Success = false,
+                        Message = "El evento ya fue eliminado previamente.",
+                        Error = "Evento ya eliminado.",
+                        Data = false
+                    };
+                }
+
+                // 3️⃣ Realizar eliminación lógica
+                evento.isDeleted = true;
+                int filasAfectadas = eventoMapper.ModificarEvento(evento);
+
+                if (filasAfectadas > 0)
+                {
+                    return new GenericResponse<bool>
+                    {
+                        Success = true,
+                        Message = "Evento eliminado correctamente.",
+                        Error = null,
+                        Data = true
+                    };
+                }
+                else
+                {
+                    return new GenericResponse<bool>
+                    {
+                        Success = false,
+                        Message = "No se pudo eliminar el evento.",
+                        Error = "Error al actualizar la base de datos.",
+                        Data = false
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new GenericResponse<bool>
+                {
+                    Success = false,
+                    Message = "Error interno al eliminar el evento.",
+                    Error = ex.Message,
+                    Data = false
+                };
+            }
+        }
     }
 }
