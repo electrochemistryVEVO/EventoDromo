@@ -137,11 +137,19 @@ namespace EventodromoRest.Mappers
             List<TicketInfo> listaEntrada = new List<TicketInfo>();
             lock (DB)
             {
-                string query = "SELECT TE.nombre,TE.precio,T.nombresCliente,T.apellidosCliente,C.numeroDocumento FROM Transaccion T " +
-                "JOIN Cliente C ON C.id=T.idCliente " +
-                "JOIN Entrada E ON E.idCarrito=T.idCarrito " +
-                "JOIN TipoEntrada TE ON TE.id=E.idTipoEntrada " +
-                "WHERE T.idCliente=@idCliente AND T.numeroTransaccion=@numeroTransaccion;";
+                // Solo retorna entradas que el cliente actualmente posee
+                // Usa LineaTransaccion para vincular correctamente entradas transferidas
+                string query = @"SELECT TE.nombre,TE.precio,T.nombresCliente,T.apellidosCliente,C.numeroDocumento 
+                FROM Transaccion T 
+                JOIN Cliente C ON C.id=T.idCliente 
+                JOIN LineaTransaccion LT ON LT.idTransaccion=T.id
+                JOIN Entrada E ON E.id=LT.idEntrada 
+                JOIN TipoEntrada TE ON TE.id=E.idTipoEntrada 
+                WHERE T.numeroTransaccion=@numeroTransaccion 
+                AND (
+                    (E.idClienteActual IS NULL AND T.idCliente = @idCliente) 
+                    OR E.idClienteActual = @idCliente
+                );";
                 var parametros = new ParameterList();
                 parametros.Add("@numeroTransaccion", numeroTransaccion);
                 parametros.Add("@idCliente", idCliente);

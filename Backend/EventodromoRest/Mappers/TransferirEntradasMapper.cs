@@ -165,7 +165,7 @@ namespace EventodromoRest.Mappers
 
         /// <summary>
         /// Confirma la transferencia (cuando el destinatario acepta).
-        /// Marca las entradas como 'transferida' (no se pueden volver a transferir),
+        /// Vuelve las entradas a estado 'disponible' para el nuevo dueño,
         /// incrementa vecesTransferida y cambia idClienteActual al nuevo dueño.
         /// Las entradas ahora aparecen en una transacción nueva del destinatario.
         /// </summary>
@@ -183,7 +183,7 @@ namespace EventodromoRest.Mappers
             
             string sql = $@"
                 UPDATE Entrada 
-                SET estadoTransferencia = 'transferida',
+                SET estadoTransferencia = 'disponible',
                     vecesTransferida = vecesTransferida + 1
                     {updateClienteActual}
                 WHERE id IN ({idsString})
