@@ -731,11 +731,7 @@ namespace EventodromoRest.Negocio
                         }
                         else
                         {
-                            // ACTUALIZAR
-                            // Si idHorarioReal es 0 (no se encontró pero la entrada existe), 
-                            // asumimos que NO queremos cambiar el horario, así que no lo asignamos si el mapper lo permite.
-                            // Pero tu mapper actualiza todo. Si idHorarioReal es 0, fallará si actualizas.
-                            // Así que aseguramos que si es update, tengamos el ID.
+                           
                             if (idHorarioReal > 0)
                             {
                                 entradaModelo.idFechaEvento = idHorarioReal;
