@@ -343,7 +343,10 @@ namespace EventodromoRest.Controllers
                     idCiudad = request.CiudadId,
                     direccion = request.Direccion,
                     capacidad = request.Capacidad,
-                    imagenURL = request.imagenURL
+                    imagenURL = request.imagenURL,
+                    Latitud = request.Latitud,
+                    Longitud = request.Longitud,
+                    GoogleMapsUrl = request.GoogleMapsUrl
 
                 };
 

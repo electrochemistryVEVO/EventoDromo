@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { insertarLocal, listarCiudades } from '@/services/gestionLocal.service'
 import { fetchUserData, getAuthToken } from '@/services/admin-service'
+import { getApiUrl } from '@/lib/utils'
 import LocalValidationModal from '@/components/modals/LocalValidationModal'
 import LocalSuccessModal from '@/components/modals/LocalSuccessModal'
 

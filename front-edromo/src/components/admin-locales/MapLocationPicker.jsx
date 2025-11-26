@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -30,7 +30,9 @@ function MapClickHandler({ onLocationSelect, markerPosition, setMarkerPosition }
         const data = await response.json();
         
         const address = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-        const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+        // Usar OpenStreetMap para el iframe (gratuito, sin API key)
+        const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.01},${lat-0.01},${lng+0.01},${lat+0.01}&layer=mapnik&marker=${lat},${lng}`;
+        const googleMapsUrl = `<iframe src="${mapUrl}" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
 
         onLocationSelect({
           lat,
@@ -40,11 +42,13 @@ function MapClickHandler({ onLocationSelect, markerPosition, setMarkerPosition }
         });
       } catch (error) {
         console.error('Error en geocodificación:', error);
+        const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.01},${lat-0.01},${lng+0.01},${lat+0.01}&layer=mapnik&marker=${lat},${lng}`;
+        const googleMapsUrl = `<iframe src="${mapUrl}" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
         onLocationSelect({
           lat,
           lng,
           address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
-          googleMapsUrl: `https://www.google.com/maps?q=${lat},${lng}`
+          googleMapsUrl
         });
       }
     },
@@ -95,12 +99,14 @@ function AddressSearch({ onAddressSelect }) {
   const handleSelectResult = (result) => {
     const lat = parseFloat(result.lat);
     const lng = parseFloat(result.lon);
+    const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.01},${lat-0.01},${lng+0.01},${lat+0.01}&layer=mapnik&marker=${lat},${lng}`;
+    const googleMapsUrl = `<iframe src="${mapUrl}" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
     
     onAddressSelect({
       lat,
       lng,
       address: result.display_name,
-      googleMapsUrl: `https://www.google.com/maps?q=${lat},${lng}`
+      googleMapsUrl
     });
     
     setSearchResults([]);

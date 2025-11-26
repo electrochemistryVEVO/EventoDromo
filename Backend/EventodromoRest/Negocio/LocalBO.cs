@@ -96,6 +96,9 @@ namespace EventodromoRest.Negocio
                     capacidad = dto.Capacidad,
                     imagenURL = dto.imagenURL,
                     isDeleted = false, // <-- REGLA: Siempre falso al crear
+                    Latitud = dto.Latitud,
+                    Longitud = dto.Longitud,
+                    GoogleMapsUrl = dto.GoogleMapsUrl,
 
                     // 5. Asignar el ID del admin (del token) al campo 'creadoPor'
                     idAdministrador = adminId  // <-- REGLA: ID del token

@@ -232,8 +232,8 @@ namespace EventodromoRest.Mappers
                                     L.nombre AS NOMBRE,
                                     L.direccion AS DIRECCION,
                                     L.idCiudad AS IDCIUDAD,
-                                    L.latitud AS LATITUD,
-                                    L.longitud AS LONGITUD
+                                    L.latitud AS latitud,
+                                    L.longitud AS longitud
                                 FROM
                                     Local AS L
                                 JOIN
@@ -256,8 +256,8 @@ namespace EventodromoRest.Mappers
                     };
                     
                     // Obtener coordenadas
-                    var latitud = DB.GetNullableDecimal("LATITUD");
-                    var longitud = DB.GetNullableDecimal("LONGITUD");
+                    var latitud = DB.GetNullableDecimal("latitud");
+                    var longitud = DB.GetNullableDecimal("longitud");
                     
                     local.Latitud = latitud;
                     local.Longitud = longitud;
@@ -269,8 +269,8 @@ namespace EventodromoRest.Mappers
                     }
                     else
                     {
-                        // Fallback al iframe hardcodeado si no hay coordenadas (locales antiguos)
-                        local.googleMapsEmbed = "<iframe src=\"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3901.9705727105875!2d-77.037574524449!3d-12.045545688191202!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c8ca3c54dd11%3A0x40b0447dcf24a5c8!2sTeatro%20Municipal%20de%20Lima!5e0!3m2!1ses!2spe!4v1760080206514!5m2!1ses!2spe\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\" referrerpolicy=\"no-referrer-when-downgrade\"></iframe>";
+                        // Fallback a OpenStreetMap del Teatro Municipal si no hay coordenadas
+                        local.googleMapsEmbed = "<iframe src=\"https://www.openstreetmap.org/export/embed.html?bbox=-77.038,-12.047,-77.036,-12.045&layer=mapnik&marker=-12.046,-77.037\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\"></iframe>";
                     }
 
                     local.ciudad = ciudadMapper.ObtenerCiudadPorId((int)local.ciudad.id);
@@ -292,10 +292,17 @@ namespace EventodromoRest.Mappers
             string lat = latitud.ToString(System.Globalization.CultureInfo.InvariantCulture);
             string lng = longitud.ToString(System.Globalization.CultureInfo.InvariantCulture);
             
-            // URL de Google Maps con coordenadas
-            string mapUrl = $"https://maps.google.com/maps?q={lat},{lng}&output=embed";
+            // Calcular bbox (bounding box) para OpenStreetMap
+            decimal bboxOffset = 0.01m;
+            string minLng = (longitud - bboxOffset).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string minLat = (latitud - bboxOffset).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string maxLng = (longitud + bboxOffset).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string maxLat = (latitud + bboxOffset).ToString(System.Globalization.CultureInfo.InvariantCulture);
             
-            return $"<iframe src=\"{mapUrl}\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\" referrerpolicy=\"no-referrer-when-downgrade\"></iframe>";
+            // URL de OpenStreetMap (gratuito, sin API key)
+            string mapUrl = $"https://www.openstreetmap.org/export/embed.html?bbox={minLng},{minLat},{maxLng},{maxLat}&layer=mapnik&marker={lat},{lng}";
+            
+            return $"<iframe src=\"{mapUrl}\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\"></iframe>";
         }
 
         public List<Local> ListarLocalesAdmin()
@@ -346,13 +353,16 @@ namespace EventodromoRest.Mappers
         {
             lock (DB)
             {
-                string query = "UPDATE Local SET NOMBRE = @NOMBRE, IDCIUDAD = @IDCIUDAD, DIRECCION = @DIRECCION, CAPACIDAD = @CAPACIDAD, IMAGENURL = @IMAGENURL WHERE ID = @ID";
+                string query = "UPDATE Local SET NOMBRE = @NOMBRE, IDCIUDAD = @IDCIUDAD, DIRECCION = @DIRECCION, CAPACIDAD = @CAPACIDAD, IMAGENURL = @IMAGENURL, latitud = @LATITUD, longitud = @LONGITUD, googleMapsUrl = @GOOGLEMAPSURL WHERE ID = @ID";
                 var parametros = new ParameterList();
                 parametros.Add("@NOMBRE", local.nombre);
                 parametros.Add("@IDCIUDAD", local.idCiudad);
                 parametros.Add("@DIRECCION", local.direccion);
                 parametros.Add("@CAPACIDAD", local.capacidad);
                 parametros.Add("@IMAGENURL", local.imagenURL);
+                parametros.Add("@LATITUD", local.Latitud);
+                parametros.Add("@LONGITUD", local.Longitud);
+                parametros.Add("@GOOGLEMAPSURL", local.GoogleMapsUrl);
                 parametros.Add("@ID", local.id);
                 int rowsAffected = DB.ExecuteNonQuery(query, parametros);
                 return rowsAffected;
