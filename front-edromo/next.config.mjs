@@ -43,6 +43,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: '0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev',
       },
+      {
+        protocol: 'https',
+        hostname: 'ejemplo.com',
+      },
     ],
   },
 
