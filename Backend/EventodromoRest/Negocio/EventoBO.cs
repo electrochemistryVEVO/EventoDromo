@@ -548,8 +548,7 @@ namespace EventodromoRest.Negocio
         {
             try
             {
-                // LÓGICA INTELIGENTE: Si ID es 0, redirigir a CREAR
-                // (Esta parte se mantiene porque es correcta para el caso de evento NUEVO)
+                // --- LÓGICA DE REDIRECCIÓN A CREAR (Si es evento nuevo) ---
                 if (dto.idEvento == 0)
                 {
                     var crearDto = new CrearEventoDTOFinal
@@ -585,7 +584,6 @@ namespace EventodromoRest.Negocio
                         }).ToList()
                     };
 
-                    // Usamos el ID real que vino del controller
                     var resultadoCreacion = CrearEventoCompleto(crearDto, creadorId);
 
                     if (resultadoCreacion.Success)
@@ -594,35 +592,17 @@ namespace EventodromoRest.Negocio
                         {
                             Success = true,
                             Message = "Evento creado exitosamente (desde actualizar).",
-                            Data = new ActualizarEventoResponseDTO
-                            {
-                                idEvento = resultadoCreacion.Data.id,
-                                nombre = resultadoCreacion.Data.nombre
-                            }
+                            Data = new ActualizarEventoResponseDTO { idEvento = resultadoCreacion.Data.id, nombre = resultadoCreacion.Data.nombre }
                         };
                     }
-                    else
-                    {
-                        return new GenericResponse<ActualizarEventoResponseDTO>
-                        {
-                            Success = false,
-                            Message = resultadoCreacion.Message,
-                            Error = resultadoCreacion.Error
-                        };
-                    }
+                    return new GenericResponse<ActualizarEventoResponseDTO> { Success = false, Message = resultadoCreacion.Message, Error = resultadoCreacion.Error };
                 }
 
                 var eventoMapper = new EventoMapper(globales, DB);
                 var fechaMapper = new FechaEventoMapper(globales, DB);
                 var entradaMapper = new TipoEntradaMapper(globales, DB);
 
-                // 1. Validar y Actualizar Evento Padre
-                var eventoExistente = eventoMapper.ObtenerEventoPorId(dto.idEvento);
-                if (eventoExistente == null)
-                {
-                    return new GenericResponse<ActualizarEventoResponseDTO> { Success = false, Message = "Evento no encontrado.", Error = "404 Not Found" };
-                }
-
+                // 1. ACTUALIZAR EVENTO PADRE
                 var eventoUpdate = new Evento
                 {
                     id = dto.idEvento,
@@ -636,81 +616,61 @@ namespace EventodromoRest.Negocio
                 };
                 eventoMapper.ActualizarEventoExistente(eventoUpdate);
 
-                // 2. Procesar Horarios (Upsert) - ¡LOGICA CORREGIDA AQUÍ!
-                // Iteramos PRIMERO sobre todos los horarios para asegurar que existan en BD.
+                // 2. PROCESAR HORARIOS (UPSERT)
                 if (dto.horarios != null)
                 {
-                    for (int i = 0; i < dto.horarios.Count; i++)
+                    foreach (var h in dto.horarios)
                     {
-                        var h = dto.horarios[i];
                         DateTime fechaHoraCombinada = DateTime.Parse($"{h.fecha} {h.hora}");
 
                         if (h.id == 0)
                         {
-                            // INSERTAR NUEVO HORARIO
                             int nuevoIdHorario = fechaMapper.InsertarFechaEvento(fechaHoraCombinada, dto.idEvento);
-
-                            // ¡CLAVE! Actualizamos el ID en el objeto en memoria.
-                            // Así, cuando procesemos las entradas, podrán encontrar este horario.
-                            h.id = nuevoIdHorario;
+                            h.id = nuevoIdHorario; // Actualizamos ID en memoria
                         }
                         else
                         {
-                            // ACTUALIZAR HORARIO EXISTENTE
                             fechaMapper.ActualizarFechaEvento(h.id, fechaHoraCombinada);
                         }
                     }
                 }
 
-                // 3. Procesar Entradas (Upsert) - ¡LÓGICA CORREGIDA AQUÍ!
+                // 3. PROCESAR ENTRADAS (UPSERT)
                 if (dto.entradas != null)
                 {
                     foreach (var e in dto.entradas)
                     {
                         int idHorarioReal = 0;
 
-                        // Caso A: La entrada ya tiene un horario.id válido > 0 (entrada existente o vinculada a horario existente)
-                        if (e.horario != null && e.horario.id > 0)
+                        if (e.horario != null)
                         {
-                            // Confiamos en el ID que viene del frontend
-                            idHorarioReal = e.horario.id;
-                        }
-                        // Caso B: La entrada es nueva o su horario es nuevo (id=0)
-                        else if (e.horario != null)
-                        {
-                            // Buscamos en la lista de horarios PRINCIPAL (dto.horarios) que YA TIENE LOS IDs REALES
-                            // (porque el paso 2 ya se ejecutó y actualizó los IDs de 0 a >0)
-
-                            // Usamos DateTime para comparar, no strings, para evitar problemas de formato "20:00" vs "20:00:00"
-                            DateTime fechaHoraEntrada;
-                            if (DateTime.TryParse($"{e.horario.fecha} {e.horario.hora}", out fechaHoraEntrada))
+                            if (e.horario.id > 0)
                             {
-                                var horarioCoincidente = dto.horarios.FirstOrDefault(h =>
+                                // Buscamos por ID en la lista actualizada
+                                var horarioMaestro = dto.horarios.FirstOrDefault(h => h.id == e.horario.id);
+                                idHorarioReal = (horarioMaestro != null) ? horarioMaestro.id : e.horario.id;
+                            }
+                            else
+                            {
+                                // Buscamos por coincidencia de fecha
+                                DateTime fechaHoraBusqueda;
+                                if (DateTime.TryParse($"{e.horario.fecha} {e.horario.hora}", out fechaHoraBusqueda))
                                 {
-                                    DateTime fechaHoraLista;
-                                    if (DateTime.TryParse($"{h.fecha} {h.hora}", out fechaHoraLista))
+                                    var horarioCoincidente = dto.horarios.FirstOrDefault(h =>
                                     {
-                                        return fechaHoraLista == fechaHoraEntrada;
-                                    }
-                                    return false;
-                                });
-
-                                if (horarioCoincidente != null)
-                                {
-                                    idHorarioReal = horarioCoincidente.id;
+                                        DateTime fechaHoraLista;
+                                        if (DateTime.TryParse($"{h.fecha} {h.hora}", out fechaHoraLista)) return fechaHoraLista == fechaHoraBusqueda;
+                                        return false;
+                                    });
+                                    if (horarioCoincidente != null) idHorarioReal = horarioCoincidente.id;
                                 }
                             }
                         }
 
-                        // VALIDACIÓN CRÍTICA: Si no encontramos un ID válido, detenemos todo.
                         if (idHorarioReal <= 0 && e.idEntrada == 0)
                         {
                             return new GenericResponse<ActualizarEventoResponseDTO>
-                            {
-                                Success = false,
-                                Message = $"Error crítico: No se encontró el horario para la entrada '{e.nombre}'. Fecha: {e.horario?.fecha} {e.horario?.hora}",
-                                Error = "Foreign Key Error Prevented"
-                            };
+                            { Success = false, Message = $"Error: No se encontró horario para la entrada '{e.nombre}'." };
                         }
 
                         var entradaModelo = new TipoEntrada
@@ -721,36 +681,23 @@ namespace EventodromoRest.Negocio
                             cantidadEntradas = e.cantidadEntradas,
                             limiteCompra = e.limiteCompra,
                             puntos = e.puntos,
-                            idFechaEvento = idHorarioReal // Aquí usamos el ID real encontrado
+                            idFechaEvento = idHorarioReal
                         };
 
                         if (e.idEntrada == 0)
                         {
-                            // INSERTAR
-                            entradaModelo.cantidadVendida = 0; // Inicializar
-                            int nuevoIdEntrada = entradaMapper.InsertarTipoEntrada(entradaModelo);
-                            e.idEntrada = nuevoIdEntrada; // Actualizamos ID en memoria
+                            entradaModelo.cantidadVendida = 0;
+                            int nuevoId = entradaMapper.InsertarTipoEntrada(entradaModelo);
+                            e.idEntrada = nuevoId; // Actualizamos ID en memoria
                         }
                         else
                         {
-                           
-                            if (idHorarioReal > 0)
-                            {
-                                entradaModelo.idFechaEvento = idHorarioReal;
-                                entradaMapper.ActualizarTipoEntrada(entradaModelo);
-                            }
-                            else
-                            {
-                                // Si no encontramos el horario nuevo, quizás deberíamos mantener el viejo.
-                                // Esto requeriría leer la entrada de la BD primero.
-                                // Por ahora, asumimos que siempre enviamos horario válido.
-                                entradaMapper.ActualizarTipoEntrada(entradaModelo);
-                            }
+                            entradaMapper.ActualizarTipoEntrada(entradaModelo);
                         }
                     }
                 }
 
-                // 4. Procesar Descuentos (Upsert)
+                // 4. PROCESAR DESCUENTOS (UPSERT) - ¡AQUÍ ESTÁ LA CORRECCIÓN!
                 if (dto.descuentos != null)
                 {
                     foreach (var d in dto.descuentos)
@@ -770,6 +717,8 @@ namespace EventodromoRest.Negocio
 
                         if (d.id == 0)
                         {
+                            // INSERTAR NUEVO
+                            // Verificamos que tenga una entrada válida asignada
                             if (d.tipoEntradaId > 0)
                             {
                                 eventoMapper.InsertarDescuento(descuentoModelo);
@@ -777,6 +726,8 @@ namespace EventodromoRest.Negocio
                         }
                         else
                         {
+                            // ACTUALIZAR EXISTENTE
+                            // Llamamos al método que actualiza la tabla [Promocion]
                             eventoMapper.ActualizarPromocion(descuentoModelo);
                         }
                     }

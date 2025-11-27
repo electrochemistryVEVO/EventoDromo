@@ -1217,7 +1217,7 @@ WHERE  E.id = @idEvento;
             lock (DB)
             {
                 string query = "UPDATE Promocion SET nombre=@NOM, codigo=@COD, tipo=@TIPO, valor=@VAL, " +
-                               "fechaInicio=@INI, fechaFin=@FIN, cantidadMaxima=@MAX " +
+                               "fechaInicio=@INI, fechaFin=@FIN, usosMaximos=@MAX " +
                                "WHERE id=@ID";
 
                 var p = new ParameterList();
