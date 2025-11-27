@@ -10,6 +10,9 @@ import EventFilters from "@/components/gestion-evento/EventFilters.jsx";
 import EventsTable from "@/components/gestion-evento/EventsTable.jsx";
 import Pagination from "@/components/gestion-evento/Pagination.jsx";
 import Modal from "@/components/gestion-evento/Modal.jsx";
+import EventUploadCSVModal from '@/components/modals/EventUploadCSVModal';
+import EventCSVUploadSuccessModal from '@/components/modals/EventCSVUploadSuccessModal';
+import EventCSVUploadErrorModal from '@/components/modals/EventCSVUploadErrorModal';
 
 const GestionEventosPage = () => {
   const router = useRouter();
@@ -32,6 +35,16 @@ const GestionEventosPage = () => {
     data: null,
   });
 
+  // CSV Upload States
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadStep, setUploadStep] = useState(1);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadErrors, setUploadErrors] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [uploadResult, setUploadResult] = useState({ success: 0, failed: 0, errors: [] });
+
   const closeModal = () => setModalState({ isOpen: false, type: null, data: null });
 
   const handleAction = (type, event = null) => {
@@ -39,7 +52,7 @@ const GestionEventosPage = () => {
       create: () => router.push("/admin/eventos/crear"),
       edit: () => router.push(`/admin/eventos/editar/${event.id}`),
       view: () => router.push(`/admin/eventos/ver/${event.id}`),
-      upload: () => setModalState({ isOpen: true, type: "upload", data: null }),
+      upload: () => setShowUploadModal(true),
       delete: () => setModalState({ isOpen: true, type: "delete", data: event }),
     };
 
@@ -53,12 +66,217 @@ const GestionEventosPage = () => {
     // applyFilters();
   };
 
+  // Parsear línea de CSV manejando comillas
+  const parseCSVLine = (line) => {
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let char of line) {
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        values.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    values.push(current.trim());
+    return values;
+  };
+
+  // Validar y cargar CSV
+  const handleUploadCSV = async () => {
+    if (!selectedFile) {
+      alert('Por favor selecciona un archivo CSV');
+      return;
+    }
+    
+    setIsProcessing(true);
+    setUploadErrors([]);
+    
+    try {
+      const text = await selectedFile.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        throw new Error('El archivo está vacío o solo tiene encabezados');
+      }
+      
+      // Validar headers
+      const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+      const required = ['nombre', 'descripcion', 'local_id', 'tipo_evento_id', 'capacidad', 'fecha_publicacion', 'fecha_compra', 'horarios'];
+      const missing = required.filter(h => !headers.includes(h));
+      
+      if (missing.length > 0) {
+        throw new Error(`Faltan columnas: ${missing.join(', ')}`);
+      }
+      
+      // Procesar filas
+      const eventosData = [];
+      const errors = [];
+      
+      for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        const row = {};
+        headers.forEach((h, idx) => row[h] = values[idx] || '');
+        
+        const rowNum = i + 1;
+        const rowErrors = [];
+        
+        // Validar campos básicos
+        if (!row.nombre) rowErrors.push(`Fila ${rowNum}: Falta nombre`);
+        if (!row.descripcion) rowErrors.push(`Fila ${rowNum}: Falta descripción`);
+        
+        const localId = parseInt(row.local_id);
+        if (isNaN(localId) || localId <= 0) rowErrors.push(`Fila ${rowNum}: Local ID inválido`);
+        
+        const tipoEventoId = parseInt(row.tipo_evento_id);
+        if (isNaN(tipoEventoId) || tipoEventoId <= 0) rowErrors.push(`Fila ${rowNum}: Tipo Evento ID inválido`);
+        
+        const capacidad = parseInt(row.capacidad);
+        if (isNaN(capacidad) || capacidad <= 0) rowErrors.push(`Fila ${rowNum}: Capacidad inválida`);
+        
+        // Validar fechas
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(row.fecha_publicacion)) {
+          rowErrors.push(`Fila ${rowNum}: Fecha de publicación inválida (formato: YYYY-MM-DD)`);
+        }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(row.fecha_compra)) {
+          rowErrors.push(`Fila ${rowNum}: Fecha de compra inválida (formato: YYYY-MM-DD)`);
+        }
+        
+        // Validar horarios
+        const horarios = row.horarios ? row.horarios.split('|').filter(h => h.trim()) : [];
+        if (horarios.length === 0) {
+          rowErrors.push(`Fila ${rowNum}: Debe haber al menos un horario`);
+        }
+        
+        // Validar imagen URL (opcional)
+        if (row.imagen_url && !/^https?:\/\//i.test(row.imagen_url)) {
+          rowErrors.push(`Fila ${rowNum}: URL de imagen inválida`);
+        }
+        
+        // Procesar entradas (al menos una entrada es obligatoria)
+        const entradas = [];
+        let entradaIndex = 1;
+        while (row[`entrada_nombre_${entradaIndex}`]) {
+          const entrada = {
+            nombre: row[`entrada_nombre_${entradaIndex}`],
+            precio: parseFloat(row[`entrada_precio_${entradaIndex}`] || 0),
+            cantidad: parseInt(row[`entrada_cantidad_${entradaIndex}`] || 0),
+            limiteCompra: parseInt(row[`entrada_limite_${entradaIndex}`] || 0),
+            puntos: parseInt(row[`entrada_puntos_${entradaIndex}`] || 0)
+          };
+          
+          if (!entrada.nombre) {
+            rowErrors.push(`Fila ${rowNum}: Entrada ${entradaIndex} falta nombre`);
+          }
+          if (isNaN(entrada.precio) || entrada.precio < 0) {
+            rowErrors.push(`Fila ${rowNum}: Entrada ${entradaIndex} precio inválido`);
+          }
+          if (isNaN(entrada.cantidad) || entrada.cantidad <= 0) {
+            rowErrors.push(`Fila ${rowNum}: Entrada ${entradaIndex} cantidad inválida`);
+          }
+          if (isNaN(entrada.limiteCompra) || entrada.limiteCompra <= 0) {
+            rowErrors.push(`Fila ${rowNum}: Entrada ${entradaIndex} límite inválido`);
+          }
+          
+          entradas.push(entrada);
+          entradaIndex++;
+        }
+        
+        if (entradas.length === 0) {
+          rowErrors.push(`Fila ${rowNum}: Debe haber al menos una entrada`);
+        }
+        
+        if (rowErrors.length > 0) {
+          errors.push(...rowErrors);
+        } else {
+          eventosData.push({
+            nombre: row.nombre,
+            descripcion: row.descripcion,
+            localId: localId,
+            tipoEventoId: tipoEventoId,
+            capacidad: capacidad,
+            fechaPublicacion: row.fecha_publicacion,
+            fechaCompra: row.fecha_compra,
+            imagenURL: row.imagen_url || '',
+            horarios: horarios,
+            entradas: entradas
+          });
+        }
+      }
+      
+      // Si hay errores de validación, mostrarlos en el modal de carga
+      if (errors.length > 0) {
+        setUploadErrors(errors);
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Cargar al backend
+      const token = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user'))?.token : null;
+      if (!token) {
+        throw new Error('No se encontró el token de autenticación');
+      }
+      
+      const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+      
+      const response = await fetch(`${BASE_API_URL}/Evento/EventoCrearMasivo`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ eventos: eventosData })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        
+        // Cerrar modal de carga y mostrar modal de error
+        setShowUploadModal(false);
+        setUploadResult({ 
+          success: 0, 
+          failed: eventosData.length, 
+          errors: [errorData.message || 'Error al cargar eventos al servidor'] 
+        });
+        setShowErrorModal(true);
+        setIsProcessing(false);
+        return;
+      }
+      
+      const result = await response.json();
+      const insertados = result.data?.insertados || result.insertados || eventosData.length;
+      
+      // Recargar lista
+      await applyFilters();
+      
+      // Cerrar modal de carga y mostrar modal de éxito
+      setShowUploadModal(false);
+      setSelectedFile(null);
+      setUploadStep(1);
+      setUploadErrors([]);
+      setUploadResult({ success: insertados, failed: 0, errors: [] });
+      setShowSuccessModal(true);
+      
+    } catch (error) {
+      // Error general (archivo, formato, etc)
+      setShowUploadModal(false);
+      setUploadResult({ 
+        success: 0, 
+        failed: 0, 
+        errors: [error.message] 
+      });
+      setShowErrorModal(true);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const renderModalContent = () => {
     if (!modalState.isOpen) return null;
-
-    if (modalState.type === "upload") {
-      return <p>Aquí irá el componente para subir archivos CSV.</p>;
-    }
 
     if (modalState.type === "delete") {
       return (
@@ -135,6 +353,41 @@ const GestionEventosPage = () => {
         <Modal isOpen={modalState.isOpen} onClose={closeModal} title={modalTitle}>
           {renderModalContent()}
         </Modal>
+
+        {/* --- Modal: Cargar CSV --- */}
+        <EventUploadCSVModal
+          isOpen={showUploadModal}
+          onClose={() => setShowUploadModal(false)}
+          uploadStep={uploadStep}
+          setUploadStep={setUploadStep}
+          selectedFile={selectedFile}
+          setSelectedFile={setSelectedFile}
+          uploadErrors={uploadErrors}
+          setUploadErrors={setUploadErrors}
+          onUpload={handleUploadCSV}
+          isProcessing={isProcessing}
+        />
+
+        {/* --- Modal: Éxito CSV --- */}
+        <EventCSVUploadSuccessModal
+          isOpen={showSuccessModal}
+          onClose={() => {
+            setShowSuccessModal(false);
+            setUploadResult({ success: 0, failed: 0, errors: [] });
+          }}
+          count={uploadResult.success}
+        />
+
+        {/* --- Modal: Error CSV --- */}
+        <EventCSVUploadErrorModal
+          isOpen={showErrorModal}
+          onClose={() => {
+            setShowErrorModal(false);
+            setShowUploadModal(true);
+          }}
+          errors={uploadResult.errors}
+          failedCount={uploadResult.failed}
+        />
       </div>
     </div>
   );
