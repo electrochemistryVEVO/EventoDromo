@@ -5,7 +5,6 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
-// Importamos los servicios de gestión, creación Y EDICIÓN
 import {
   getLocales,
   getEventTypes,
@@ -16,12 +15,11 @@ import {
   updateEvent,
 } from "@/services/ModificarEvento.services.js";
 
-// La estructura inicial es la misma que en la creación
 const initialEventInfo = {
   nombre: "",
   descripcion: "",
   imagenFile: null,
-  imagenPreview: "", // Usaremos esto para la previsualización de la imagen nueva o existente
+  imagenPreview: "",
   localId: "",
   capacidad: "",
   tipoEventoId: "",
@@ -29,45 +27,27 @@ const initialEventInfo = {
   fechaCompra: "",
 };
 
-/**
- * @hook useEventEditor
- * @param {string|number} eventId - El ID del evento que se va a editar.
- */
 export const useEventEditor = (eventId) => {
-  // --- ESTADOS DEL FORMULARIO (Iguales a useEventCreator) ---
   const [eventInfo, setEventInfo] = useState(initialEventInfo);
   const [fechas, setFechas] = useState([]);
   const [tiposEntrada, setTiposEntrada] = useState([]);
   const [descuentos, setDescuentos] = useState([]);
-
-  // --- NUEVOS ESTADOS para rastrear eliminaciones ---
-  /*
-  const [deletedFechasIds, setDeletedFechasIds] = useState([]);
-  const [deletedTiposEntradaIds, setDeletedTiposEntradaIds] = useState([]);
-  const [deletedDescuentosIds, setDeletedDescuentosIds] = useState([]);
-*/
-  // Estado INTERNO para guardar la lista original de entradas del backend.
-  // Es crucial para poder conservar los IDs correctos al actualizar.
   const [entradasOriginales, setEntradasOriginales] = useState([]);
-
-  // --- ESTADOS PARA DATOS EXTERNOS Y UI (Iguales) ---
   const [locales, setLocales] = useState([]);
   const [eventTypes, setEventTypes] = useState([]);
-  const [isLoading, setIsLoading] = useState(true); // Inicia en true para la carga inicial
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [minDateTime, setMinDateTime] = useState(null);
 
-  // --- EFECTOS (useEffect) ---
-
-  // Efecto para la fecha mínima (igual que en la creación)
+  // Efecto para la fecha mínima
   useEffect(() => {
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     setMinDateTime(now.toISOString().slice(0, 16));
   }, []);
 
-  // Efecto principal para CARGAR TODOS LOS DATOS INICIALES
+  // Efecto principal para cargar datos iniciales
   useEffect(() => {
     if (!eventId) {
       setError("No se ha proporcionado un ID de evento.");
@@ -77,56 +57,47 @@ export const useEventEditor = (eventId) => {
 
     const fetchInitialData = async () => {
       try {
-        // Obtenemos todo en paralelo: datos del evento, locales y tipos.
         const [eventData, localesData, eventTypesData] = await Promise.all([
           getEventById(eventId),
           getLocales(),
           getEventTypes(),
         ]);
 
-        // --- POBLAR EL ESTADO CON LOS DATOS CARGADOS ---
         setEventInfo({
           nombre: eventData.nombre,
           descripcion: eventData.descripcion,
-          imagenFile: null, // No hay un archivo nuevo al inicio
-          imagenPreview: eventData.imagenURL, // Mostramos la imagen existente
+          imagenFile: null,
+          imagenPreview: eventData.imagenURL,
           localId: eventData.localId,
           capacidad: eventData.capacidad,
           tipoEventoId: eventData.tipoEventoId,
           fechaPublicacion: eventData.fechaPublicacion,
           fechaCompra: eventData.fechaCompra,
         });
-        console.log("DATOS CRUDOS DEL BACKEND (entradas):", eventData.entrada);
-        console.log("DATOS CRUDOS DEL BACKEND:", eventData);
-        console.log("DATOS CRUDOS DEL BACKEND (horarios):", eventData.horarios);
-        // Poblamos las listas dinámicas. Asignamos el ID que viene del backend.
+
+        // Guardamos los horarios tal cual vienen del backend
         setFechas(eventData.horarios);
 
-        // 2. Guardar la lista COMPLETA de entradas originales para referencia futura
+        // Guardamos las entradas originales con sus IDs reales
         setEntradasOriginales(eventData.entradas);
 
-        // 3. DEDUCIR las "plantillas de entrada" a partir de los datos recibidos
-        const plantillasMap = new Map();
+        // Extraemos los tipos de entrada únicos (sin duplicar por horario)
+        const tiposMap = new Map();
         eventData.entradas.forEach((entrada) => {
-          const nombrePlantilla = entrada.nombre.split(" - ")[0]; // Extrae "General" de "General - 28 Nov"
-          if (!plantillasMap.has(nombrePlantilla)) {
-            plantillasMap.set(nombrePlantilla, {
-              id: `plantilla-${nombrePlantilla.replace(/\s+/g, "-")}`, // Usamos un ID real para la clave de React
-              nombre: nombrePlantilla,
-              precio: entrada.precio ?? "",
-              cantidad: entrada.cantidad ?? "", // Mapeamos el nombre para que coincida con el formulario
-              limiteCompra: entrada.limiteCompra ?? "",
-              puntos: entrada.puntos ?? "",
+          if (!tiposMap.has(entrada.id)) {
+            tiposMap.set(entrada.id, {
+              id: entrada.id, // ID REAL de la entrada (clave principal)
+              nombre: entrada.nombre,
+              precio: entrada.precio,
+              cantidad: entrada.cantidad,
+              limiteCompra: entrada.limiteCompra,
+              puntos: entrada.puntos,
+              horarioId: entrada.horarioId, // Guardamos el horarioId original
             });
           }
         });
-        const plantillasGeneradas = Array.from(plantillasMap.values());
-        console.log(
-          "PLANTILLAS GENERADAS PARA EL FORMULARIO:",
-          plantillasGeneradas
-        );
-        setTiposEntrada(Array.from(plantillasMap.values()));
 
+        setTiposEntrada(Array.from(tiposMap.values()));
         setDescuentos(eventData.descuentos || []);
         setLocales(localesData);
         setEventTypes(eventTypesData);
@@ -134,29 +105,20 @@ export const useEventEditor = (eventId) => {
         console.error("Error fetching initial data for editor:", err);
         setError("No se pudieron cargar los datos del evento para editar.");
       } finally {
-        setIsLoading(false); // Terminamos la carga inicial
+        setIsLoading(false);
       }
     };
 
     fetchInitialData();
-  }, [eventId]); // Se ejecuta si el ID del evento cambia.
+  }, [eventId]);
 
-  // --- MANEJADORES DE EVENTOS (Casi idénticos a useEventCreator) ---
-
-  // La lógica de handleInfoChange, handleImageChange, addFecha, etc., no necesita cambios.
-  /**
-   * @function handleInfoChange
-   * @description Maneja los cambios en todos los inputs de la sección "Información del evento".
-   */
   const handleInfoChange = (e) => {
     const { name, value } = e.target;
 
-    // Lógica especial para cuando el usuario selecciona un Local.
     if (name === "localId") {
       const selectedLocal = locales.find(
         (local) => local.id === parseInt(value, 10)
       );
-      // Autocompleta la capacidad y la guarda en el estado.
       setEventInfo((prev) => ({
         ...prev,
         localId: value,
@@ -165,7 +127,6 @@ export const useEventEditor = (eventId) => {
       return;
     }
 
-    // Lógica para la validación cruzada entre Fecha de Publicación y Fecha de Compra.
     setEventInfo((prev) => {
       const newState = { ...prev, [name]: value };
       if (
@@ -173,17 +134,18 @@ export const useEventEditor = (eventId) => {
         newState.fechaCompra &&
         value > newState.fechaCompra
       ) {
-        newState.fechaCompra = ""; // Resetea la fecha de compra si es inválida.
+        newState.fechaCompra = "";
       }
       if (
         name === "fechaCompra" &&
         newState.fechaPublicacion &&
         value < newState.fechaPublicacion
       ) {
-        newState.fechaPublicacion = ""; // Resetea la fecha de publicación si es inválida.
+        newState.fechaPublicacion = "";
       }
       return newState;
     });
+
     if (name === "fechaCompra" && value) {
       setFechas((currentFechas) =>
         currentFechas.filter((f) => {
@@ -194,12 +156,10 @@ export const useEventEditor = (eventId) => {
     }
   };
 
-  // Funciones que responden a las interacciones del usuario en la UI.
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setEventInfo((prev) => {
-        // Si ya existía una URL de preview creada con createObjectURL, la liberamos.
         if (prev.imagenPreview && prev.imagenPreview.startsWith("blob:")) {
           URL.revokeObjectURL(prev.imagenPreview);
         }
@@ -214,12 +174,15 @@ export const useEventEditor = (eventId) => {
 
   const addFecha = () =>
     setFechas((prev) => [...prev, { id: Date.now(), fecha: "", hora: "" }]);
+
   const removeFecha = (id) =>
     setFechas((prev) => prev.filter((f) => f.id !== id));
+
   const handleFechaChange = (id, field, value) =>
     setFechas((prev) =>
       prev.map((f) => (f.id === id ? { ...f, [field]: value } : f))
     );
+
   const addTipoEntrada = () =>
     setTiposEntrada((prev) => [
       ...prev,
@@ -230,28 +193,31 @@ export const useEventEditor = (eventId) => {
         cantidad: "",
         limiteCompra: "",
         puntos: "",
+        horarioId: null,
       },
     ]);
+
   const handleTipoEntradaChange = (id, field, value) =>
     setTiposEntrada((prev) =>
       prev.map((t) => (t.id === id ? { ...t, [field]: value } : t))
     );
 
   const removeTipoEntrada = (id) => {
-    // VALIDACIÓN: No permitir borrar si el tipo de entrada está en uso por un descuento
-    const estaEnUso = descuentos.some(
+    // VALIDACIÓN: Verificar si este tipo de entrada está siendo usado por un descuento
+    const descuentoAsociado = descuentos.find(
       (d) => parseInt(d.tipoEntradaId, 10) === id
     );
-    if (estaEnUso) {
+
+    if (descuentoAsociado) {
       alert(
-        "No puede eliminar este tipo de entrada porque está siendo utilizado por al menos un descuento. Por favor, elimine o modifique el descuento primero."
+        `No puede eliminar este tipo de entrada porque está asociado al descuento "${descuentoAsociado.nombre}". Por favor, elimine o modifique el descuento primero.`
       );
       return;
     }
+
     setTiposEntrada((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // --- NUEVOS MANEJADORES PARA DESCUENTOS ---
   const addDescuento = () =>
     setDescuentos((prev) => [
       ...prev,
@@ -259,7 +225,7 @@ export const useEventEditor = (eventId) => {
         id: Date.now(),
         nombre: "",
         codigo: "",
-        tipo: "Porcentaje",
+        tipo: "PORCENTAJE",
         valor: "",
         fechaInicio: "",
         fechaFin: "",
@@ -277,11 +243,6 @@ export const useEventEditor = (eventId) => {
       prev.map((d) => (d.id === id ? { ...d, [field]: value } : d))
     );
 
-  /**
-   * @constant aforoRestante
-   * @description Calcula la capacidad restante del evento en tiempo real.
-   *              `useMemo` asegura que este cálculo solo se rehaga si la capacidad o los tipos de entrada cambian.
-   */
   const aforoRestante = useMemo(() => {
     const capacidadTotal = parseInt(eventInfo.capacidad, 10) || 0;
     const aforoAsignado = tiposEntrada.reduce(
@@ -291,16 +252,11 @@ export const useEventEditor = (eventId) => {
     return capacidadTotal - aforoAsignado;
   }, [eventInfo.capacidad, tiposEntrada]);
 
-  /**
-   * @function handleSubmit
-   * @description Orquesta la validación y el envío del formulario completo.
-   */
-
   const handleSubmit = async () => {
     setError(null);
     setIsSuccess(false);
 
-    // --- LÓGICA DE VALIDACIÓN ---
+    // --- VALIDACIÓN ---
     const validationErrors = [];
     if (!eventInfo.nombre.trim()) validationErrors.push("Nombre del Evento");
     if (!eventInfo.descripcion.trim()) validationErrors.push("Descripción");
@@ -379,75 +335,71 @@ export const useEventEditor = (eventId) => {
           ", "
         )}.`
       );
-      return; // Detiene la ejecución si hay errores.
+      return;
     }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      // Lógica de imagen: si hay un archivo nuevo, lo subimos. Si no, usamos la URL existente.
-      let imageUrl = eventInfo.imagenPreview; // Empezamos con la URL existente o la nueva preview
+      let imageUrl = eventInfo.imagenPreview;
       if (eventInfo.imagenFile) {
         imageUrl = await uploadImageAndGetUrl(eventInfo.imagenFile);
       }
-      // Generamos la lista final de entradas combinando horarios y plantillas.
-      const entradasFinales = [];
-      fechas.forEach((horario) => {
-        tiposEntrada.forEach((plantilla) => {
-          // --- ¡LÓGICA CORREGIDA PARA ENCONTRAR LA ENTRADA ORIGINAL! ---
-          // Creamos una cadena de texto de la fecha del horario para buscarla en el nombre.
-          const fechaBusqueda = new Date(horario.fecha)
-            .toLocaleDateString("es-ES", {
-              day: "numeric",
 
-              month: "short",
-            })
-            .replace(".", ""); // Ej: "15 nov"
-
-          // Buscamos la entrada original comparando el nombre de la plantilla Y la fecha en el nombre.
-          const entradaOriginal = entradasOriginales.find(
-            (e) =>
-              e.nombre.startsWith(plantilla.nombre) &&
-              e.nombre.toLowerCase().includes(fechaBusqueda.toLowerCase())
-          );
-
-          // El resto de la lógica para construir la entrada final es la misma.
-          entradasFinales.push({
-            idEntrada: entradaOriginal ? entradaOriginal.id : 0, // Usamos el 'id' de la entrada original
-            nombre: `${plantilla.nombre} - ${fechaBusqueda}`,
-            precio: parseFloat(plantilla.precio),
-            cantidadEntradas: parseInt(plantilla.cantidad, 10),
-            limiteCompra: parseInt(plantilla.limiteCompra, 10),
-            puntos: parseInt(plantilla.puntos, 10),
-            horario: {
-              id:
-                typeof horario.id === "string" || horario.id > 1_000_000
-                  ? 0
-                  : horario.id,
-              fecha: horario.fecha,
-              hora: horario.hora,
-            },
-          });
-        });
+      // Mapear entradas: si tienen ID real (de BD), mantenerlas; si son nuevas (Date.now()), enviar ID 0
+      const entradasFinales = tiposEntrada.map((tipo) => {
+        const isNew = typeof tipo.id === "number" && tipo.id > 1_000_000_000;
+        return {
+          idEntrada: isNew ? 0 : tipo.id,
+          nombre: tipo.nombre,
+          precio: parseFloat(tipo.precio),
+          cantidadEntradas: parseInt(tipo.cantidad, 10),
+          limiteCompra: parseInt(tipo.limiteCompra, 10),
+          puntos: parseInt(tipo.puntos, 10),
+          horario: {
+            id: tipo.horarioId > 1_000_000 ? 0 : tipo.horarioId,
+            fecha: "",
+            hora: "",
+          },
+        };
       });
-      // Ensamblamos el payload final
+
       const finalEventData = {
         idEvento: parseInt(eventId, 10),
-        ...eventInfo,
+        nombre: eventInfo.nombre,
+        descripcion: eventInfo.descripcion,
         imagenURL: imageUrl,
+        localId: parseInt(eventInfo.localId, 10),
+        tipoEventoId: parseInt(eventInfo.tipoEventoId, 10),
+        capacidad: parseInt(eventInfo.capacidad, 10),
+        fechaPublicacion: eventInfo.fechaPublicacion,
+        fechaCompra: eventInfo.fechaCompra,
         horarios: fechas.map((f) => ({
-          id: typeof f.id === "string" || f.id > 1_000_000 ? 0 : f.id, // Nuevos horarios tienen ID 0
+          id: typeof f.id === "string" || f.id > 1_000_000 ? 0 : f.id,
           fecha: f.fecha,
           hora: f.hora,
         })),
         entradas: entradasFinales,
-        descuentos,
+        descuentos: descuentos.map((d) => ({
+          id: typeof d.id === "string" || d.id > 1_000_000 ? 0 : d.id,
+          nombre: d.nombre,
+          codigo: d.codigo,
+          tipo: d.tipo,
+          valor: parseFloat(d.valor),
+          fechaInicio: d.fechaInicio,
+          fechaFin: d.fechaFin,
+          usosMaximos: parseInt(d.usosMaximos, 10),
+          tipoEntradaId: d.tipoEntradaId ? parseInt(d.tipoEntradaId, 10) : null,
+        })),
       };
 
-      // Llamamos al servicio de ACTUALIZACIÓN
-      await updateEvent(finalEventData);
+      console.log(
+        "Payload final para actualización:",
+        JSON.stringify(finalEventData, null, 2)
+      );
 
+      await updateEvent(finalEventData);
       setIsSuccess(true);
     } catch (err) {
       setError(err.message || "Ocurrió un error al actualizar el evento.");
@@ -456,7 +408,6 @@ export const useEventEditor = (eventId) => {
     }
   };
 
-  // --- RETORNO DEL HOOK ---
   return {
     eventInfo,
     fechas,
@@ -464,7 +415,7 @@ export const useEventEditor = (eventId) => {
     locales,
     eventTypes,
     aforoRestante,
-    isLoading, // Es importante para mostrar un spinner mientras se cargan los datos iniciales
+    isLoading,
     error,
     isSuccess,
     minDateTime,

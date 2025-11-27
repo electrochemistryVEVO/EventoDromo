@@ -1136,5 +1136,190 @@ WHERE  E.id = @idEvento;
             return $"<iframe src=\"{mapUrl}\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\"></iframe>";
         }
 
+        public Evento ObtenerEventoPorIdSimple(int id)
+        {
+            lock (DB)
+            {
+                string query = @"
+            SELECT 
+                ID, 
+                NOMBRE, 
+                DESCRIPCION, 
+                IDTIPOEVENTO, 
+                IDLOCAL, 
+                CREADOPOR, 
+                FECHAPUBLICACION, 
+                FECHACOMPRA, 
+                ISDELETED, 
+                IMAGENURL
+            FROM Evento 
+            WHERE ID = @ID";
+        
+                var parametros = new ParameterList();
+                parametros.Add("@ID", id);
+        
+                Evento evento = null;
+        
+                DB.Select(query, parametros);
+                try
+                {
+                    if (DB.Read())
+                    {
+                        evento = new Evento
+                        {
+                            id = DB.GetInt("ID"),
+                            nombre = DB.GetString("NOMBRE"),
+                            descripcion = DB.GetString("DESCRIPCION"),
+                            idTipoEvento = DB.GetInt("IDTIPOEVENTO"),
+                            idLocal = DB.GetInt("IDLOCAL"),
+                            creadoPor = DB.GetInt("CREADOPOR"),
+                            fechaPublicacion = DB.GetDateTime("FECHAPUBLICACION"),
+                            fechaCompra = DB.GetDateTime("FECHACOMPRA"),
+                            isDeleted = DB.GetBoolean("ISDELETED"),
+                            imagenURL = DB.GetString("IMAGENURL")
+                        };
+                    }
+                }
+                finally
+                {
+                    DB.CloseReader();
+                }
+        
+                return evento;
+            }
+        }
+        public int ActualizarEventoExistente(Evento evento)
+        {
+            lock (DB)
+            {
+                try { DB.CloseReader(); } catch { /* Ignorar si ya estaba cerrado */ }
+
+                // Query para actualizar los datos base del evento
+                string query = "UPDATE Evento SET nombre=@NOM, descripcion=@DESC, idLocal=@LOC, idTipoEvento=@TIPO, " +
+                               "fechaPublicacion=@PUB, fechaCompra=@COMP, imagenURL=@IMG " +
+                               "WHERE id=@ID";
+
+                var p = new ParameterList();
+                p.Add("@NOM", evento.nombre);
+                p.Add("@DESC", evento.descripcion);
+                p.Add("@LOC", evento.idLocal);
+                p.Add("@TIPO", evento.idTipoEvento);
+                p.Add("@PUB", evento.fechaPublicacion);
+                p.Add("@COMP", evento.fechaCompra);
+                p.Add("@IMG", evento.imagenURL);
+                p.Add("@ID", evento.id);
+
+                // Ahora sí, ejecutamos el comando
+                return DB.ExecuteNonQuery(query, p);
+            }
+        }
+        public int InsertarDescuento(Descuento descuento)
+        {
+            lock (DB)
+            {
+                // 1. Insertar en la tabla [Promocion]
+                // CORREGIDO: Usamos 'tipo' en lugar de 'esPorcentaje'
+                string queryPromo = "INSERT INTO Promocion (nombre, codigo, tipo, valor, fechaInicio, fechaFin,usosMaximos,usosActuales) " +
+                                    "VALUES (@NOM, @COD, @TIPO, @VAL, @INI, @FIN, @MAX, 0); SELECT LAST_INSERT_ID();";
+
+                var pPromo = new ParameterList();
+                pPromo.Add("@NOM", descuento.nombre);
+                pPromo.Add("@COD", descuento.codigo);
+
+                // Guardamos el string directamente (ej. "Porcentaje" o "Fijo")
+                pPromo.Add("@TIPO", descuento.tipo);
+
+                pPromo.Add("@VAL", descuento.valor);
+                pPromo.Add("@INI", descuento.fechaInicio);
+                pPromo.Add("@FIN", descuento.fechaFin);
+                pPromo.Add("@MAX", descuento.usosMaximos);
+
+                // Ejecutar y obtener el ID de la promoción
+                int idPromocion = Convert.ToInt32(DB.ExecuteScalar(queryPromo, pPromo));
+
+                // 2. Insertar en la tabla [Promocion_Aplicable] usando el ID recién creado
+                string queryAplicable = "INSERT INTO Promocion_Aplicable (idPromocion, idTipoEntrada) VALUES (@IDPROM, @IDENT)";
+
+                var pAplicable = new ParameterList();
+                pAplicable.Add("@IDPROM", idPromocion);
+                pAplicable.Add("@IDENT", descuento.idTipoEntrada); // El objeto descuento ya trae el ID de la entrada
+
+                DB.ExecuteNonQuery(queryAplicable, pAplicable);
+
+                return idPromocion;
+            }
+        }
+        public int ActualizarPromocion(Descuento d)
+        {
+            lock (DB)
+            {
+                string query = "UPDATE Promocion SET nombre=@NOM, codigo=@COD, tipo=@TIPO, valor=@VAL, " +
+                               "fechaInicio=@INI, fechaFin=@FIN, usosMaximos=@MAX " +
+                               "WHERE id=@ID";
+
+                var p = new ParameterList();
+                p.Add("@NOM", d.nombre);
+                p.Add("@COD", d.codigo);
+                p.Add("@TIPO", d.tipo);
+                p.Add("@VAL", d.valor);
+                p.Add("@INI", d.fechaInicio);
+                p.Add("@FIN", d.fechaFin);
+                p.Add("@MAX", d.usosMaximos);
+                p.Add("@ID", d.id); // ID obligatorio para el WHERE
+
+                return DB.ExecuteNonQuery(query, p);
+            }
+        }
+        public List<DescuentoDTO> ListarPromocionesPorEvento(int idEvento)
+        {
+            var lista = new List<DescuentoDTO>();
+            lock (DB)
+            {
+                // Query con JOINs para encontrar las promociones de las entradas de este evento
+                string query = @"
+            SELECT 
+                p.id, 
+                p.nombre, 
+                p.codigo, 
+                p.tipo, 
+                p.valor, 
+                p.fechaInicio, 
+                p.fechaFin, 
+                p.usosMaximos,
+                pa.idTipoEntrada
+            FROM Promocion p
+            JOIN Promocion_Aplicable pa ON p.id = pa.idPromocion
+            JOIN TipoEntrada te ON pa.idTipoEntrada = te.id
+            JOIN FechaEvento fe ON te.idFechaEvento = fe.id
+            WHERE fe.idEvento = @ID_EVENTO";
+                // Nota: Si tienes isDeleted en Promocion, añade: AND p.isDeleted = 0
+
+                var p = new ParameterList();
+                p.Add("@ID_EVENTO", idEvento);
+
+                DB.Select(query, p);
+
+                while (DB.Read())
+                {
+                    lista.Add(new DescuentoDTO
+                    {
+                        Id = DB.GetInt("id"),
+                        Nombre = DB.GetString("nombre"),
+                        Codigo = DB.GetString("codigo"),
+                        Tipo = DB.GetString("tipo"),
+                        Valor = DB.GetDecimal("valor"),
+
+                        // Convertimos DateTime a String ISO para el DTO
+                        FechaInicio = DB.GetDateTime("fechaInicio").ToString("s"),
+                        FechaFin = DB.GetDateTime("fechaFin").ToString("s"),
+
+                        UsosMaximos = DB.GetInt("usosMaximos"),
+                        TipoEntradaId = DB.GetInt("idTipoEntrada") // Importante para el frontend
+                    });
+                }
+                DB.CloseReader(); // ¡Siempre cerrar el reader!
+            }
+            return lista;
+        }
     }
 }

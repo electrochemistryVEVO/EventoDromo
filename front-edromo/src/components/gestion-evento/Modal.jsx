@@ -12,9 +12,10 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 
   return (
     // Fondo oscuro semi-transparente
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+    <div className="fixed inset-0 z-50 flex justify-center items-center backdrop-blur-[1px]">
+      <div className="absolute inset-0 bg-transparent" onClick={onClose}></div>
       {/* Contenedor del modal */}
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md m-4">
+      <div className="bg-white rounded-lg shadow-2xl border border-gray-200 w-full max-w-md m-4 relative z-10">
         {/* Encabezado del modal */}
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-xl font-semibold text-gray-800">{title}</h3>

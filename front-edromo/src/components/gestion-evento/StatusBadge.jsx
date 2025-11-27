@@ -14,7 +14,7 @@ const StatusBadge = ({ status }) => {
       case "Publicado":
         return "publicado";
       case "En venta":
-        return "publicado"; // Mismo estilo que publicado
+        return "bg-purple-200 text-purple-800"; // Mismo estilo que publicado
       case "Concluido":
         return "finalizado";
       case "Cancelado":
@@ -24,11 +24,7 @@ const StatusBadge = ({ status }) => {
     }
   };
 
-  return (
-    <span className={`status-badge ${getStatusClass()}`}>
-      {status}
-    </span>
-  );
+  return <span className={`status-badge ${getStatusClass()}`}>{status}</span>;
 };
 
 export default StatusBadge;

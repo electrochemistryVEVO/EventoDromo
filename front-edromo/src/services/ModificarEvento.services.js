@@ -1,5 +1,5 @@
 /**
- * @file eventEditionService.js
+ * @file ModificarEvento.services.js
  * @description Servicios para obtener y actualizar los datos de un evento existente.
  */
 
@@ -7,14 +7,10 @@ const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const getAuthToken = () => {
   try {
-    // 1. Lee la clave "user" de localStorage (donde UserContext la guarda)
     const userJSON = localStorage.getItem("user");
-
     if (!userJSON) {
       return null;
     }
-
-    // 2. Parsea el objeto y devuelve la propiedad "token"
     const userData = JSON.parse(userJSON);
     return userData?.token || null;
   } catch (error) {
@@ -24,171 +20,10 @@ const getAuthToken = () => {
 };
 
 /**
- * --- VERSIÓN SIMULADA (MOCK) ---
- * Obtiene los detalles completos de un evento por su ID.
- */
-/*
-export const getEventById = async (eventId) => {
-  console.log(`Fetching simulated event data for ID: ${eventId}...`);
-
-  if (!eventId) {
-    throw new Error("Se requiere un ID de evento para obtener los detalles.");
-  }
-
-  await new Promise((resolve) => setTimeout(resolve, 800));
-
-  const mockEventData = {
-    nombre: "Overpass Lima",
-    descripcion: "El mejor concierto del año...",
-    imagenURL: "https://via.placeholder.com/800x600.png?text=Overpass+Lima",
-    localId: 1,
-    tipoEventoId: 1,
-    capacidad: 3000,
-    fechaPublicacion: "2025-10-15T10:00",
-    fechaCompra: "2025-10-30T11:00",
-    horarios: [
-      { id: 201, fecha: "2025-11-11", hora: "20:00" },
-      { id: 202, fecha: "2025-11-12", hora: "21:00" },
-    ],
-    entradas: [
-      {
-        id: 101,
-        nombre: "General",
-        precio: 200,
-        cantidad: 300,
-        limiteCompra: 10,
-        puntos: 2,
-      },
-      {
-        id: 102,
-        nombre: "VIP",
-        precio: 350,
-        cantidad: 100,
-        limiteCompra: 10,
-        puntos: 3,
-      },
-    ],
-    descuentos: [
-      {
-        id: 51,
-        nombre: "Preventa Fans",
-        codigo: "FANCLUB20",
-        tipo: "Porcentaje",
-        valor: 20,
-        fechaInicio: "2025-10-30T12:00",
-        fechaFin: "2025-11-05T23:59",
-        usosMaximos: 50,
-        tipoEntradaId: 102, // Vinculado a VIP
-      },
-    ],
-  };
-
-  console.log("Simulated event data fetched:", mockEventData);
-  return mockEventData;
-};
-*/
-/**
- * --- VERSIÓN SIMULADA (MOCK) ---
- * Simula el envío de los datos actualizados de un evento al backend.
- *
- * @param {string|number} eventId - El ID del evento a actualizar.
- * @param {object} eventData - El objeto con todos los datos actualizados del formulario.
- * @returns {Promise<object>} Una promesa que resuelve con la respuesta de éxito simulada.
- */
-/*
-export const updateEvent = async (eventId, eventData) => {
-  console.log(`1. INICIANDO ACTUALIZACIÓN SIMULADA para Evento ID: ${eventId}`);
-  console.log("2. DATOS RECIBIDOS DEL FORMULARIO:", eventData);
-
-  // --- VALIDACIONES BÁSICAS ---
-  if (!eventId || !eventData) {
-    throw new Error(
-      "Se requiere el ID del evento y los datos para actualizar."
-    );
-  }
-
-  // --- TRANSFORMACIÓN DEL PAYLOAD (Igual que en la versión real) ---
-  const payload = {
-    nombre: eventData.nombre,
-    descripcion: eventData.descripcion,
-    localId: parseInt(eventData.localId, 10),
-    tipoEventoId: parseInt(eventData.tipoEventoId, 10),
-    capacidad: parseInt(eventData.capacidad, 10),
-    fechaPublicacion: eventData.fechaPublicacion,
-    fechaCompra: eventData.fechaCompra,
-    imagenURL: eventData.imagenURL,
-    horarios: eventData.fechas.map((f) => ({
-      id: f.id,
-      fecha: f.fecha,
-      hora: f.hora,
-    })),
-    entradas: eventData.tiposEntrada.map((t) => ({
-      id: t.id,
-      nombre: t.nombre,
-      precio: parseFloat(t.precio),
-      cantidad: parseInt(t.cantidad, 10),
-      limiteCompra: parseInt(t.limiteCompra, 10),
-      puntos: parseInt(t.puntos, 10),
-    })),
-    descuentos: eventData.descuentos.map((d) => ({
-      id: d.id,
-      nombre: d.nombre,
-      codigo: d.codigo,
-      tipo: d.tipo,
-      valor: parseFloat(d.valor),
-      fechaInicio: d.fechaInicio,
-      fechaFin: d.fechaFin,
-      usosMaximos: parseInt(d.usosMaximos, 10),
-      tipoEntradaId: parseInt(d.tipoEntradaId, 10),
-    })),
-    // --- NUEVOS ARRAYS DE IDs ELIMINADOS ---
-    deletedFechasIds: eventData.deletedFechasIds,
-    deletedTiposEntradaIds: eventData.deletedTiposEntradaIds,
-    deletedDescuentosIds: eventData.deletedDescuentosIds,
-  };
-
-  console.log(
-    "3. PAYLOAD TRANSFORMADO (simulando lo que se enviaría):",
-    payload
-  );
-
-  return new Promise((resolve, reject) => {
-    // Simula un retraso de red
-    setTimeout(() => {
-      // --- SIMULACIÓN DE VALIDACIÓN DEL BACKEND ---
-      const aforoTotalAsignado = payload.entradas.reduce(
-        (sum, e) => sum + e.cantidad,
-        0
-      );
-      if (aforoTotalAsignado > payload.capacidad) {
-        const errorResponse = {
-          message: `La suma de las cantidades de entrada (${aforoTotalAsignado}) excede la capacidad del local (${payload.capacidad}).`,
-        };
-        console.error("4. SIMULACIÓN DE ACTUALIZACIÓN FALLIDA:", errorResponse);
-        return reject(new Error(errorResponse.message));
-      }
-
-      // Si la validación pasa, devolvemos una respuesta de éxito.
-      const successResponse = {
-        message: `Evento con ID ${eventId} actualizado exitosamente (simulado).`,
-        data: {
-          id: eventId, // Devolvemos el mismo ID que recibimos
-          ...payload, // Devolvemos los datos actualizados
-        },
-      };
-
-      console.log("4. SIMULACIÓN DE ACTUALIZACIÓN EXITOSA:", successResponse);
-      resolve(successResponse);
-    }, 1500); // Retardo de 1.5 segundos para simular la operación
-  });
-};
-*/
-/**
  * Actualiza un evento existente enviando todos sus datos.
- * El backend identifica si un horario o entrada es nuevo si su 'id' es 0.
+ * El backend identifica si una entrada es nueva si su 'idEntrada' es 0.
  *
  * @param {object} eventData - El objeto completo con los datos del evento a actualizar.
- * Debe coincidir con la estructura que el frontend maneja en su estado.
  * @returns {Promise<object>} La respuesta del servidor tras la actualización.
  * @throws {Error} Si los datos son inválidos, falta el token o la API devuelve un error.
  */
@@ -212,18 +47,9 @@ export const updateEvent = async (eventData) => {
     throw new Error("Token de autenticación no encontrado.");
   }
 
-  // --- 2. Transformación de Datos (Frontend -> Backend) ---
-  // Mapeamos la estructura de datos del estado del frontend
-  // a la estructura exacta que el backend espera recibir.
-
   try {
-    // Primero, creamos un mapa de los horarios para un acceso eficiente.
-    // Esto nos permitirá encontrar fácilmente el objeto horario completo para cada entrada.
-    const horariosMap = new Map();
-    (eventData.fechas || []).forEach((h) => horariosMap.set(h.id, h));
-
+    // Construir el payload tal cual lo envía el controller
     const payload = {
-      // Campos principales
       idEvento: eventData.idEvento,
       nombre: eventData.nombre,
       descripcion: eventData.descripcion,
@@ -231,46 +57,45 @@ export const updateEvent = async (eventData) => {
       localId: parseInt(eventData.localId, 10),
       tipoEventoId: parseInt(eventData.tipoEventoId, 10),
       capacidad: parseInt(eventData.capacidad, 10),
-      fechaPublicacion: eventData.fechaPublicacion, // Asegúrate que esté en formato ISO "YYYY-MM-DDTHH:mm:ss"
+      fechaPublicacion: eventData.fechaPublicacion,
       fechaCompra: eventData.fechaCompra,
-
-      // Mapeo de horarios (la estructura parece ser la misma)
-      horarios: (eventData.fechas || []).map((h) => ({
-        id: h.id, // Puede ser 0 para nuevos horarios
-        fecha: h.fecha, // "YYYY-MM-DD"
-        hora: h.hora, // "HH:mm"
+      horarios: eventData.horarios.map((h) => ({
+        id: h.id,
+        fecha: h.fecha,
+        hora: h.hora,
       })),
-
-      // Mapeo de entradas (la transformación más importante)
-      entradas: (eventData.tiposEntrada || []).map((t) => {
-        // Buscamos el objeto de horario completo que corresponde a esta entrada.
-        const horarioAsociado = horariosMap.get(t.horarioId);
-
-        if (!horarioAsociado) {
-          // Esta es una validación crítica. Si una entrada no tiene un horario, la solicitud es inválida.
-          throw new Error(
-            `La entrada "${t.nombre}" está asociada a un horarioId (${t.horarioId}) que no existe.`
-          );
-        }
-
-        return {
-          idEntrada: t.id, // Puede ser 0 para nuevas entradas
-          nombre: t.nombre,
-          precio: parseFloat(t.precio),
-          cantidadEntradas: parseInt(t.cantidad, 10),
-          limiteCompra: parseInt(t.limiteCompra, 10),
-          puntos: parseInt(t.puntos, 10),
-          horario: {
-            // Incrustamos el objeto de horario completo
-            id: horarioAsociado.id,
-            fecha: horarioAsociado.fecha,
-            hora: horarioAsociado.hora,
-          },
-        };
-      }),
+      entradas: eventData.entradas.map((e) => ({
+        idEntrada: e.idEntrada,
+        nombre: e.nombre,
+        precio: e.precio,
+        cantidadEntradas: e.cantidadEntradas,
+        limiteCompra: e.limiteCompra,
+        puntos: e.puntos,
+        horario: {
+          id: e.horario.id,
+          fecha: e.horario.fecha || "",
+          hora: e.horario.hora || "",
+        },
+      })),
+      descuentos: eventData.descuentos.map((d) => ({
+        id: d.id,
+        nombre: d.nombre,
+        codigo: d.codigo,
+        tipo: d.tipo,
+        valor: d.valor,
+        fechaInicio: d.fechaInicio,
+        fechaFin: d.fechaFin,
+        usosMaximos: d.usosMaximos,
+        tipoEntradaId: d.tipoEntradaId,
+      })),
     };
 
-    // --- 3. Petición a la API ---
+    console.log(
+      "Payload actualización evento:",
+      JSON.stringify(payload, null, 2)
+    );
+
+    // --- 2. Petición a la API ---
     const response = await fetch(`${BASE_API_URL}/Evento/ActualizarEvento`, {
       method: "POST",
       headers: {
@@ -280,21 +105,22 @@ export const updateEvent = async (eventData) => {
       body: JSON.stringify(payload),
     });
 
-    // --- 4. Manejo de la Respuesta ---
+    // --- 3. Manejo de la Respuesta ---
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({
         message: `Error del servidor: ${response.status} ${response.statusText}`,
       }));
+      console.error("Error response from backend:", errorData);
       throw new Error(
         errorData.message || "Ocurrió un error al actualizar el evento."
       );
     }
 
-    return await response.json();
+    const responseData = await response.json();
+    console.log("Evento actualizado exitosamente:", responseData);
+    return responseData;
   } catch (error) {
-    // Capturamos cualquier error (de validación, de red, etc.) para un mejor diagnóstico.
-    console.error("Error crítico en el servicio updateEvent:", error.message);
-    // Re-lanzamos el error para que el código que llama a esta función pueda manejarlo (ej. mostrar un toast de error).
+    console.error("Error crítico en el servicio updateEvent:", error);
     throw error;
   }
 };
@@ -304,7 +130,6 @@ export const updateEvent = async (eventData) => {
  * @param {string|number} eventId - El ID del evento.
  * @returns {Promise<object>} Los datos completos del evento, incluyendo descuentos.
  */
-
 export const getEventById = async (eventId) => {
   const token = getAuthToken();
   if (!token) throw new Error("Token de autenticación no encontrado.");
@@ -331,6 +156,7 @@ export const getEventById = async (eventId) => {
     if (!apiResponse.data.descuentos) {
       apiResponse.data.descuentos = [];
     }
+    console.log("Datos del evento cargados:", apiResponse.data);
     return apiResponse.data || {};
   } else {
     throw new Error(
@@ -338,78 +164,3 @@ export const getEventById = async (eventId) => {
     );
   }
 };
-
-/**
- * Envía los datos actualizados de un evento al backend, incluyendo la gestión de descuentos.
- * @param {string|number} eventId - El ID del evento a actualizar.
- * @param {object} eventData - Los datos completos del formulario.
- * @returns {Promise<object>} La respuesta del backend.
- */
-/*
-export const updateEvent = async (eventId, eventData) => {
-  const token = getAuthToken();
-  if (!token) throw new Error("Token de autenticación no encontrado.");
-
-  // --- El payload ahora incluye los descuentos y los IDs a eliminar ---
-  const payload = {
-    nombre: eventData.nombre,
-    descripcion: eventData.descripcion,
-    localId: parseInt(eventData.localId, 10),
-    tipoEventoId: parseInt(eventData.tipoEventoId, 10),
-    capacidad: parseInt(eventData.capacidad, 10),
-    fechaPublicacion: eventData.fechaPublicacion,
-    fechaCompra: eventData.fechaCompra,
-    imagenURL: eventData.imagenURL,
-    horarios: eventData.fechas.map((f) => ({
-      id: f.id,
-      fecha: f.fecha,
-      hora: f.hora,
-    })),
-    entradas: eventData.tiposEntrada.map((t) => ({
-      id: t.id,
-      nombre: t.nombre,
-      precio: parseFloat(t.precio),
-      cantidad: parseInt(t.cantidad, 10),
-      limiteCompra: parseInt(t.limiteCompra, 10),
-      puntos: parseInt(t.puntos, 10),
-    })),
-    descuentos: eventData.descuentos.map((d) => ({
-      id: d.id,
-      nombre: d.nombre,
-      codigo: d.codigo,
-      tipo: d.tipo,
-      valor: parseFloat(d.valor),
-      fechaInicio: d.fechaInicio,
-      fechaFin: d.fechaFin,
-      usosMaximos: parseInt(d.usosMaximos, 10),
-      tipoEntradaId: parseInt(d.tipoEntradaId, 10),
-    })),
-    deletedFechasIds: eventData.deletedFechasIds,
-    deletedTiposEntradaIds: eventData.deletedTiposEntradaIds,
-    deletedDescuentosIds: eventData.deletedDescuentosIds,
-  };
-
-  const response = await fetch(
-    `${BASE_API_URL}/Evento/ActualizarEvento/${eventId}`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    }
-  );
-
-  if (!response.ok) {
-    const errorData = await response
-      .json()
-      .catch(() => ({ message: `Error del servidor: ${response.status}` }));
-    throw new Error(
-      errorData.message || "Ocurrió un error al actualizar el evento."
-    );
-  }
-
-  return await response.json();
-};
-*/
