@@ -47,6 +47,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'eventodromo-s3.s3.amazonaws.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'ejemplo.com',
+      },
     ],
   },
 
