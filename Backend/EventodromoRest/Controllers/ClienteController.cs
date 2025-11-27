@@ -1,14 +1,13 @@
 ﻿//para token
-using EventodromoRest.Servicios;
-using System.IdentityModel.Tokens.Jwt;
-
-
 using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
 using EventodromoRest.Servicios;
+using EventodromoRest.Servicios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 
@@ -16,11 +15,14 @@ namespace EventodromoRest.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    public class ClienteController (Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService) : BaseController
+    public class ClienteController (Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService, EmailService emailService, IConfiguration configuration) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
         private readonly Globales.Globales globales = globales;
         private readonly TokenService tokenService = tokenService;
+        private readonly EmailService _emailService = emailService;
+        private readonly IConfiguration _configuration = configuration;
+
 
         [HttpPost]
         [Route("/api/[controller]/[action]")]
@@ -597,5 +599,140 @@ namespace EventodromoRest.Controllers
             // Devuelve el valor, no el 'int?'
             return idCliente.Value;
         }
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<RecuperarContrasenaResponse> RecuperarContrasena([FromBody] RequestRecuperarContrasena request)
+        {
+            try
+            {
+                // 1. Validar request
+                if (request == null || string.IsNullOrWhiteSpace(request.email))
+                {
+                    return new GenericResponse<RecuperarContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "Solicitud inválida",
+                        Data = null,
+                        Error = "Debe proporcionar un email válido"
+                    };
+                }
+
+
+
+                // 3. Buscar al usuario en BD
+                var clienteBO = new ClienteBO(globales, BD);
+                Cliente cliente = clienteBO.EncontrarClientePorEmail(request.email);
+
+                if (cliente == null || cliente.id==null)
+                {
+                    return new GenericResponse<RecuperarContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "El correo no está registrado",
+                        Data = null,
+                        Error = "No existe un usuario con este correo"
+                    };
+                }
+
+                // 4. Generar token GUID único
+                string tokenRecuperacion = Guid.NewGuid().ToString("N");
+
+                // Determinar expiración (ej: 1 hora)
+                DateTime fechaExpiracion = DateTime.Now.AddHours(1);
+
+                // 5. Registrar el token en BD
+                var registro = new RecuperacionContrasenaPendiente
+                {
+                    ClienteId = cliente.id ?? 0,
+                    Token = tokenRecuperacion,
+                    FechaSolicitud = DateTime.Now,
+                    FechaExpiracion = fechaExpiracion,
+                    Usado = false
+                };
+                if (clienteBO.RegistrarRecuperarContrasenaPendiente(registro) == -1) //se guarda en la tabla RecuperarContrasenaPendiente el registro
+                {
+                    return new GenericResponse<RecuperarContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "Error al RegistrarRecuperarContrasenaPendiente ",
+                        Data = null,
+                        Error = "NO se pudo RegistrarRecuperarContrasenaPendiente"
+                    };
+                }
+                ;//se guarda en la tabla RecuperarContrasenaPendiente el registro
+
+                // 6. Obtener URL base (frontend)
+                string urlBase = _configuration["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
+                string urlFinal = $"{urlBase}/auth/recuperarContrasena?token={tokenRecuperacion}";
+
+                // 7. Enviar email de forma asíncrona SIN bloquear la respuesta
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        // HTML que quieres mostrar dentro del template (puede ser simple)
+                        string cuerpoHtml = $@"
+            <h3>Recuperación de contraseña</h3>
+            <p>Haz clic en el enlace para continuar:</p>
+            <a href='{urlFinal}'>{urlFinal}</a>
+            <p>El enlace expirará en 1 hora.</p>
+        ";
+
+                        // Construimos el template usando las propiedades existentes en EmailTemplateData
+                        var templateData = new EmailTemplateData
+                        {
+                            Titulo = "Recuperación de contraseña",
+                            Emoji = "🔑",
+                            MensajePrincipal = cuerpoHtml,
+                            AlertaTipo = "info",
+                            AlertaIcono = "⏰",
+                            AlertaMensaje = "El enlace expirará en 1 hora."
+                        };
+
+                        // Llamada correcta según la firma de tu EmailService
+                        await _emailService.EnviarEmailGenericoAsync(
+                            destinatario: request.email,
+                            asunto: "🔑 Recuperación de contraseña - Eventodromo",
+                            nombreDestinatario: $"{cliente?.nombres} {cliente?.apellidos}".Trim(),
+                            templateData: templateData
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Error enviando email de recuperación: {ex.Message}");
+                    }
+                });
+
+
+
+
+                // 8. Respuesta inmediata
+                return new GenericResponse<RecuperarContrasenaResponse>
+                {
+                    Success = true,
+                    Message = "Se ha enviado un correo con instrucciones.",
+                    Data = new RecuperarContrasenaResponse
+                    {
+                        success = true
+                    }
+                };
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<RecuperarContrasenaResponse>
+                {
+                    Success = false,
+                    Message = "Error en el servidor.",
+                    Error = e.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+
     }
 }

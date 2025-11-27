@@ -221,5 +221,17 @@ namespace EventodromoRest.Negocio
 
             return datos;
         }
+
+        public Cliente EncontrarClientePorEmail(string email)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            return mapper.ObtenerClienteAuxPorEmail(email);
+        }
+
+        public int RegistrarRecuperarContrasenaPendiente(RecuperacionContrasenaPendiente registro)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            return mapper.InsertarRecuperacionContrasenaPendiente(registro);
+        }
     }
 }

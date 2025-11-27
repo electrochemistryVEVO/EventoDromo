@@ -143,7 +143,7 @@
     }
 
     // ==================== DTOs PARA AUDITORÍAS ====================
-    
+
     /// <summary>
     /// DTO para la lista de clientes en la página de auditoría
     /// </summary>
@@ -205,7 +205,7 @@
         public int Puntos { get; set; }
         public ResumenClienteDTO Resumen { get; set; }
         public List<ActividadHistorialDTO> HistorialActividades { get; set; }
-        
+
         // Propiedades para paginación del historial
         public int TotalPaginasHistorial { get; set; }
         public int PaginaActualHistorial { get; set; }
@@ -233,4 +233,30 @@
         public string Hora { get; set; }
     }
 
+    public class RequestRecuperarContrasena
+    {
+        public string email { get; set; }
+
+    }
+
+    public class RecuperarContrasenaResponse
+    {
+        public bool success { get; set; }
+    }
+
+    public class RecuperacionContrasenaPendiente
+    {
+        public int Id { get; set; }
+
+        public int ClienteId { get; set; }     // FK hacia la tabla Usuario
+        public string Token { get; set; } = ""; // Token único
+        public DateTime FechaSolicitud { get; set; }
+        public DateTime FechaExpiracion { get; set; }
+
+        public bool Usado { get; set; } = false; // True si ya se usó
+
+    }
+
+
 }
+

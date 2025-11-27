@@ -390,5 +390,50 @@ namespace EventodromoRest.Mappers
                 return rowsAffected;
             }
         }
+
+        public Cliente ObtenerClienteAuxPorEmail(string email)
+        {
+            lock (DB)
+            {
+                string query = "SELECT * FROM Cliente WHERE email = @email";
+                var parametros = new ParameterList();
+                parametros.Add("@email", email);
+                DB.Select(query, parametros);
+                Cliente cliente = null;
+                if (DB.Read())
+                {
+                    cliente = MapearClienteDesdeReader(); // Usamos método auxiliar
+                }
+                DB.CloseReader();
+                return cliente;
+            }
+        }
+
+        public int InsertarRecuperacionContrasenaPendiente(RecuperacionContrasenaPendiente registro)
+        {
+            lock (DB)
+            {
+                // Llamada al stored procedure + obtener el último ID insertado
+                string query = "CALL sp_InsertarRecuperacionContrasenaPendiente(" +
+                               "@p_ClienteId, @p_Token, @p_FechaSolicitud, @p_FechaExpiracion, @p_Usado);" +
+                               " SELECT LAST_INSERT_ID();";
+
+                var parametros = new ParameterList();
+
+                // Parámetros que tu SP debe recibir
+                parametros.Add("@p_ClienteId", registro.ClienteId);
+                parametros.Add("@p_Token", registro.Token);
+                parametros.Add("@p_FechaSolicitud", registro.FechaSolicitud);
+                parametros.Add("@p_FechaExpiracion", registro.FechaExpiracion);
+                parametros.Add("@p_Usado", registro.Usado);
+
+                // Ejecutar y obtener el nuevo ID
+                object result = DB.ExecuteScalar(query, parametros);
+
+                int newId = Convert.ToInt32(result);
+                return newId;
+            }
+        }
+
     }
 }
