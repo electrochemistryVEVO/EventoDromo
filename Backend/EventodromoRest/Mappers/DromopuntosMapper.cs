@@ -206,13 +206,31 @@ namespace EventodromoRest.Mappers
         }
 
         /// <summary>
+        /// Obtiene las horas de expiración de transferencias desde la configuración.
+        /// </summary>
+        public int ObtenerHorasExpiracionTransferencia()
+        {
+            lock (DB)
+            {
+                string query = "SELECT horas_expiracion_transferencia FROM configuracion WHERE id = 1";
+                object result = DB.ExecuteScalar(query, new ParameterList());
+
+                if (result != null && result != DBNull.Value)
+                {
+                    return Convert.ToInt32(result);
+                }
+                return 24; // Fallback: 24 horas
+            }
+        }
+
+        /// <summary>
         /// Obtiene todas las configuraciones del sistema.
         /// </summary>
         public Modelos.Utiles.ConfiguracionDTO ObtenerConfiguracionCompleta()
         {
             lock (DB)
             {
-                string query = "SELECT puntos_por_sol, meses_vigencia_puntos, minutos_vigencia_carrito FROM configuracion WHERE id = 1";
+                string query = "SELECT puntos_por_sol, meses_vigencia_puntos, minutos_vigencia_carrito, horas_expiracion_transferencia FROM configuracion WHERE id = 1";
                 DB.Select(query, new ParameterList());
                 
                 try
@@ -223,7 +241,8 @@ namespace EventodromoRest.Mappers
                         {
                             PuntosPorSol = DB.GetDecimal("puntos_por_sol"),
                             MesesVigenciaPuntos = DB.GetInt("meses_vigencia_puntos"),
-                            MinutosVigenciaCarrito = DB.GetInt("minutos_vigencia_carrito")
+                            MinutosVigenciaCarrito = DB.GetInt("minutos_vigencia_carrito"),
+                            HorasExpiracionTransferencia = DB.GetInt("horas_expiracion_transferencia")
                         };
                     }
                 }
@@ -237,7 +256,8 @@ namespace EventodromoRest.Mappers
                 {
                     PuntosPorSol = 10.0m,
                     MesesVigenciaPuntos = 6,
-                    MinutosVigenciaCarrito = 30
+                    MinutosVigenciaCarrito = 30,
+                    HorasExpiracionTransferencia = 24
                 };
             }
         }
@@ -268,6 +288,12 @@ namespace EventodromoRest.Mappers
                 {
                     updates.Add("minutos_vigencia_carrito = @minutosCarrito");
                     parametros.Add("@minutosCarrito", configuracion.MinutosVigenciaCarrito.Value);
+                }
+
+                if (configuracion.HorasExpiracionTransferencia.HasValue)
+                {
+                    updates.Add("horas_expiracion_transferencia = @horasTransferencia");
+                    parametros.Add("@horasTransferencia", configuracion.HorasExpiracionTransferencia.Value);
                 }
 
                 if (updates.Count == 0)

@@ -19,6 +19,11 @@ namespace EventodromoRest.Modelos.Utiles
         /// Tiempo de vigencia del carrito en minutos (ej: 30 = 30 minutos)
         /// </summary>
         public int MinutosVigenciaCarrito { get; set; }
+
+        /// <summary>
+        /// Tiempo de expiración de transferencias en horas (ej: 24 = 24 horas)
+        /// </summary>
+        public int HorasExpiracionTransferencia { get; set; }
     }
 
     /// <summary>
@@ -40,5 +45,10 @@ namespace EventodromoRest.Modelos.Utiles
         /// Nueva vigencia del carrito en minutos
         /// </summary>
         public int? MinutosVigenciaCarrito { get; set; }
+
+        /// <summary>
+        /// Nueva vigencia de transferencias en horas
+        /// </summary>
+        public int? HorasExpiracionTransferencia { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 import "@/css/signup-style.css";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { onSubmit } from "./controller";
 import { obtenerDatosDeRegistro } from "@/services/signUpService";
 import Link from "next/link";
@@ -14,6 +15,7 @@ const EMPTY_DATA = {
 };
 
 function App() {
+  const searchParams = useSearchParams();
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [dataRegistro, setDataRegistro] = useState(EMPTY_DATA);
@@ -72,8 +74,9 @@ function App() {
       formData.set("idciudad", idCiudad);
       formData.set("idpais", idPais);
 
-      
-      const result = await onSubmit(formData);
+      // Obtener redirect si existe
+      const redirect = searchParams.get('redirect');
+      const result = await onSubmit(formData, redirect);
       
       if (result?.error) {
         setError(result.error);

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { insertarUsuario } from "@/services/signUpService";
 
-export async function onSubmit(formData) {
+export async function onSubmit(formData, redirectUrl = null) {
   try {
     const clienteData = {
       nombres: formData.get("nombres"),
@@ -23,8 +23,11 @@ export async function onSubmit(formData) {
 
     const response = await insertarUsuario(clienteData);
     if (response.success) {
-          // Redirigir al login después de un registro exitoso
-      window.location.href = "/auth/login";
+      // Redirigir al login preservando el redirect para volver al detalle del evento
+      const loginUrl = redirectUrl 
+        ? `/auth/login?redirect=${encodeURIComponent(redirectUrl)}`
+        : "/auth/login";
+      window.location.href = loginUrl;
       return { success: true };
     } else {
       return { error: "No se pudo completar el registro" };

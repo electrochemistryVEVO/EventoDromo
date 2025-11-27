@@ -15,41 +15,59 @@ const nextConfig = {
   // Configuración de Imágenes - CORREGIDA
   images: {
     domains: [
-      'via.placeholder.com',
-      'placehold.co',
-      'i0.wp.com',
-      '37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev',
-      '0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev'
+      "via.placeholder.com",
+      "placehold.co",
+      "i0.wp.com",
+      "ejemplo.com",
+      "example.com",
+      "localhost",
+      "37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev",
+      "0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev",
+      "eventodromo-s3.s3.amazonaws.com",
     ],
-    // O si prefieres usar remotePatterns (una u otra, no ambas):
+    // remotePatterns permite más flexibilidad con wildcards
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'via.placeholder.com',
+        protocol: "https",
+        hostname: "via.placeholder.com",
       },
       {
-        protocol: 'https',
-        hostname: 'placehold.co',
+        protocol: "https",
+        hostname: "placehold.co",
       },
       {
-        protocol: 'https',
-        hostname: 'i0.wp.com',
+        protocol: "https",
+        hostname: "i0.wp.com",
       },
       {
-        protocol: 'https',
-        hostname: '37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev',
+        protocol: "https",
+        hostname: "ejemplo.com",
       },
       {
-        protocol: 'https',
-        hostname: '0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev',
+        protocol: "https",
+        hostname: "example.com",
       },
       {
-        protocol: 'https',
-        hostname: 'eventodromo-s3.s3.amazonaws.com',
+        protocol: "http",
+        hostname: "localhost",
       },
       {
-        protocol: 'https',
-        hostname: 'ejemplo.com',
+        protocol: "https",
+        hostname:
+          "37e6ca8b-43ff-46a4-8cba-0a40e79dc62e-00-2962a2qy7dfqe.janeway.replit.dev",
+      },
+      {
+        protocol: "https",
+        hostname:
+          "0b6f33a6-f216-4645-98ae-d4fef9b8eee6-00-200tr4xsxrq60.riker.replit.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "eventodromo-s3.s3.amazonaws.com",
+      },
+      {
+        protocol: "https",
+        hostname: "ejemplo.com",
       },
     ],
   },

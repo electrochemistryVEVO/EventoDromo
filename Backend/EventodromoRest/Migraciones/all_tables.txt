@@ -1,0 +1,432 @@
+DROP TABLE IF EXISTS `Administrador`;
+CREATE TABLE `Administrador` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombres` varchar(255) NOT NULL,
+  `apellidos` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `passwordHash` varchar(255) NOT NULL,
+  `fechaCreacion` date NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `Auditoria`;
+CREATE TABLE `Auditoria` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `idCliente` int NOT NULL,
+  `idTipoAuditoria` int NOT NULL,
+  `descripcion` varchar(255) NOT NULL,
+  `fechaHora` datetime NOT NULL,
+  `monto` decimal(10,2) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `Auditoria_fk1` (`idCliente`),
+  KEY `Auditoria_fk2` (`idTipoAuditoria`),
+  CONSTRAINT `Auditoria_fk1` FOREIGN KEY (`idCliente`) REFERENCES `Cliente` (`id`),
+  CONSTRAINT `Auditoria_fk2` FOREIGN KEY (`idTipoAuditoria`) REFERENCES `TipoAuditoria` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=87 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `Carrito`;
+CREATE TABLE `Carrito` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `idCliente` int NOT NULL,
+  `fechaExpiracion` datetime NOT NULL,
+  `fechaCreacion` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `Carrito_fk1` (`idCliente`),
+  CONSTRAINT `Carrito_fk1` FOREIGN KEY (`idCliente`) REFERENCES `Cliente` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=141 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `Ciudad`;
+CREATE TABLE `Ciudad` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL,
+  `idPais` int NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `Ciudad_fk2` (`idPais`),
+  CONSTRAINT `Ciudad_fk2` FOREIGN KEY (`idPais`) REFERENCES `Pais` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=259 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `Cliente`;
+CREATE TABLE `Cliente` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombres` varchar(255) NOT NULL,
+  `apellidos` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `passwordHash` varchar(255) NOT NULL,
+  `fechaNacimiento` date NOT NULL,
+  `idSexo` int DEFAULT NULL,
+  `idTipoDocumento` int NOT NULL,
+  `numeroDocumento` varchar(255) NOT NULL,
+  `telefono` varchar(255) DEFAULT NULL,
+  `idCiudad` int DEFAULT NULL,
+  `politicaDePrivacidad` bit(1) NOT NULL,
+  `envioDePublicidad` bit(1) DEFAULT NULL,
+  `fechaCreacion` date NOT NULL,
+  `fechaUltimaEdicion` date DEFAULT NULL,
+  `fechaUltimaSesion` date DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `email` (`email`),
+  KEY `Cliente_fk6` (`idSexo`),
+  KEY `Cliente_fk7` (`idTipoDocumento`),
+  KEY `Cliente_fk10` (`idCiudad`),
+  CONSTRAINT `Cliente_fk10` FOREIGN KEY (`idCiudad`) REFERENCES `Ciudad` (`id`),
+  CONSTRAINT `Cliente_fk6` FOREIGN KEY (`idSexo`) REFERENCES `Sexo` (`id`),
+  CONSTRAINT `Cliente_fk7` FOREIGN KEY (`idTipoDocumento`) REFERENCES `TipoDocumento` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `configuracion`;
+CREATE TABLE `configuracion` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `puntos_por_sol` decimal(10,2) NOT NULL,
+  `meses_vigencia_puntos` int NOT NULL DEFAULT '6' COMMENT 'Tiempo de vida de los puntos en meses (ej: 6 = 6 meses)',
+  `minutos_vigencia_carrito` int NOT NULL DEFAULT '10' COMMENT 'Tiempo de vida del carrito en minutos (ej: 30 = 30 minutos)',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `EliminarEvento`;
+CREATE TABLE `EliminarEvento` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `idEvento` int NOT NULL,
+  `fechaEliminacion` datetime NOT NULL,
+  `fechaEliminacionReal` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `idEvento` (`idEvento`),
+  CONSTRAINT `EliminarEvento_fk1` FOREIGN KEY (`idEvento`) REFERENCES `Evento` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `Entrada`;
+CREATE TABLE `Entrada` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `idCarrito` int NOT NULL,
+  `idTipoEntrada` int NOT NULL,
+  `estadoTransferencia` enum('disponible','transferida','pendiente') NOT NULL DEFAULT 'disponible' COMMENT 'Estado de transferencia de la entrada: disponible, transferida, pendiente',
+  `vecesTransferida` int NOT NULL DEFAULT '0',
+  `idClienteActual` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `Entrada_fk1` (`idCarrito`),
+  KEY `Entrada_fk2` (`idTipoEntrada`),
+  KEY `idx_entrada_estado_transferencia` (`estadoTransferencia`),
+  KEY `idx_veces_transferida` (`vecesTransferida`),
+  KEY `idx_cliente_actual` (`idClienteActual`),
+  CONSTRAINT `Entrada_fk1` FOREIGN KEY (`idCarrito`) REFERENCES `Carrito` (`id`),
+  CONSTRAINT `Entrada_fk2` FOREIGN KEY (`idTipoEntrada`) REFERENCES `TipoEntrada` (`id`),
+  CONSTRAINT `fk_entrada_cliente_actual` FOREIGN KEY (`idClienteActual`) REFERENCES `Cliente` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=406 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `Evento`;
+CREATE TABLE `Evento` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL,
+  `descripcion` varchar(255) NOT NULL,
+  `idTipoEvento` int NOT NULL,
+  `idLocal` int NOT NULL,
+  `creadoPor` int NOT NULL,
+  `fechaPublicacion` datetime NOT NULL,
+  `fechaCompra` datetime NOT NULL,
+  `isDeleted` bit(1) NOT NULL,
+  `imagenURL` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `Evento_fk3` (`idTipoEvento`),
+  KEY `Evento_fk4` (`idLocal`),
+  KEY `Evento_fk5` (`creadoPor`),
+  CONSTRAINT `Evento_fk3` FOREIGN KEY (`idTipoEvento`) REFERENCES `TipoEvento` (`id`),
+  CONSTRAINT `Evento_fk4` FOREIGN KEY (`idLocal`) REFERENCES `Local` (`id`),
+  CONSTRAINT `Evento_fk5` FOREIGN KEY (`creadoPor`) REFERENCES `Administrador` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `FechaEvento`;
+CREATE TABLE `FechaEvento` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `fechaHora` datetime NOT NULL,
+  `idEvento` int NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `FechaEvento_fk2` (`idEvento`),
+  CONSTRAINT `FechaEvento_fk2` FOREIGN KEY (`idEvento`) REFERENCES `Evento` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `LineaTransaccion`;
+CREATE TABLE `LineaTransaccion` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `idTransaccion` int NOT NULL,
+  `idEntrada` int NOT NULL,
+  `precio` decimal(10,2) NOT NULL,
+  `puntosGanados` int NOT NULL,
+  `Transferido` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `LineaTransaccion_fk1` (`idTransaccion`),
+  KEY `LineaTransaccion_fk2` (`idEntrada`),
+  CONSTRAINT `LineaTransaccion_fk1` FOREIGN KEY (`idTransaccion`) REFERENCES `Transaccion` (`id`),
+  CONSTRAINT `LineaTransaccion_fk2` FOREIGN KEY (`idEntrada`) REFERENCES `Entrada` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=153 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `Local`;
+CREATE TABLE `Local` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL,
+  `idCiudad` int NOT NULL,
+  `direccion` varchar(255) NOT NULL,
+  `capacidad` int NOT NULL,
+  `isDeleted` bit(1) NOT NULL,
+  `creadoPor` int NOT NULL,
+  `imagenURL` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `direccion` (`direccion`),
+  KEY `Local_fk2` (`idCiudad`),
+  KEY `Local_fk6` (`creadoPor`),
+  CONSTRAINT `Local_fk2` FOREIGN KEY (`idCiudad`) REFERENCES `Ciudad` (`id`),
+  CONSTRAINT `Local_fk6` FOREIGN KEY (`creadoPor`) REFERENCES `Administrador` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `Pais`;
+CREATE TABLE `Pais` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=241 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `Promocion`;
+CREATE TABLE `Promocion` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL COMMENT 'Nombre descriptivo. Ej: "Cyber Wow 20%"',
+  `codigo` varchar(50) NOT NULL COMMENT 'El código que el usuario escribe. Ej: "CYBERWOW"',
+  `tipo` enum('PORCENTAJE','MONTO_FIJO') NOT NULL DEFAULT 'PORCENTAJE' COMMENT 'Define si el valor es un % o un monto fijo S/',
+  `valor` decimal(10,2) NOT NULL COMMENT 'El valor del descuento (ej. 20.00 para 20% o 50.00 para S/ 50)',
+  `fechaInicio` datetime NOT NULL COMMENT 'Cuándo empieza a ser válida la promoción',
+  `fechaFin` datetime NOT NULL COMMENT 'Cuándo deja de ser válida la promoción',
+  `usosMaximos` int DEFAULT NULL COMMENT 'Límite total de usos (NULL para ilimitado)',
+  `usosActuales` int NOT NULL DEFAULT '0' COMMENT 'Contador de cuántas veces se ha usado',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `codigo` (`codigo`),
+  UNIQUE KEY `idx_codigo_unico` (`codigo`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `Promocion_Aplicable`;
+CREATE TABLE `Promocion_Aplicable` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `idPromocion` int NOT NULL,
+  `idTipoEntrada` int NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_promo_entrada_unica` (`idPromocion`,`idTipoEntrada`),
+  KEY `FK_PromoAp_TipoEntrada` (`idTipoEntrada`),
+  CONSTRAINT `FK_PromoAp_Promocion` FOREIGN KEY (`idPromocion`) REFERENCES `Promocion` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_PromoAp_TipoEntrada` FOREIGN KEY (`idTipoEntrada`) REFERENCES `TipoEntrada` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `Punto`;
+CREATE TABLE `Punto` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `cantidad` int NOT NULL,
+  `cantidadRestante` int NOT NULL COMMENT 'Puntos que quedan disponibles de este lote',
+  `fechaHoraRegistro` datetime NOT NULL,
+  `idCliente` int NOT NULL,
+  `fechaExpiracion` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `Punto_fk3` (`idCliente`),
+  CONSTRAINT `Punto_fk3` FOREIGN KEY (`idCliente`) REFERENCES `Cliente` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `Sexo`;
+CREATE TABLE `Sexo` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `Tarjeta`;
+CREATE TABLE `Tarjeta` (
+  `numero` varchar(255) NOT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `TipoAuditoria`;
+CREATE TABLE `TipoAuditoria` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL,
+  `iconoURL` varchar(255) NOT NULL,
+  `color` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `TipoDocumento`;
+CREATE TABLE `TipoDocumento` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `TipoEntrada`;
+CREATE TABLE `TipoEntrada` (
+  `precio` decimal(10,2) NOT NULL,
+  `limiteCompra` int NOT NULL,
+  `puntos` int NOT NULL,
+  `nombre` varchar(255) NOT NULL,
+  `cantidadEntradas` int NOT NULL,
+  `cantidadVendida` int NOT NULL,
+  `idFechaEvento` int NOT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `TipoEntrada_fk6` (`idFechaEvento`),
+  CONSTRAINT `TipoEntrada_fk6` FOREIGN KEY (`idFechaEvento`) REFERENCES `FechaEvento` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=58 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `TipoEvento`;
+CREATE TABLE `TipoEvento` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `Transaccion`;
+CREATE TABLE `Transaccion` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `idCarrito` int NOT NULL,
+  `fechaHoraCompra` datetime NOT NULL,
+  `numeroTransaccion` varchar(255) NOT NULL,
+  `nombresCliente` varchar(255) NOT NULL,
+  `apellidosCliente` varchar(255) NOT NULL,
+  `emailCliente` varchar(255) NOT NULL,
+  `numeroDocumentoCliente` varchar(255) NOT NULL,
+  `idTipoDocumento` int NOT NULL,
+  `montoTotal` decimal(10,2) NOT NULL,
+  `idCliente` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `Transaccion_fk1` (`idCarrito`),
+  KEY `Transaccion_fk9` (`idTipoDocumento`),
+  KEY `FK_Transacciones_Cliente` (`idCliente`),
+  CONSTRAINT `FK_Transacciones_Cliente` FOREIGN KEY (`idCliente`) REFERENCES `Cliente` (`id`),
+  CONSTRAINT `Transaccion_fk1` FOREIGN KEY (`idCarrito`) REFERENCES `Carrito` (`id`),
+  CONSTRAINT `Transaccion_fk9` FOREIGN KEY (`idTipoDocumento`) REFERENCES `TipoDocumento` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `TransaccionPuntos`;
+CREATE TABLE `TransaccionPuntos` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `idTransaccion` int NOT NULL,
+  `idCliente` int NOT NULL,
+  `puntosGastados` int NOT NULL DEFAULT '0' COMMENT 'Cantidad de puntos que se gastaron en esta transacción',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `TransaccionPuntos_fk1` (`idTransaccion`),
+  KEY `TransaccionPuntos_fk2` (`idCliente`),
+  CONSTRAINT `TransaccionPuntos_fk1` FOREIGN KEY (`idTransaccion`) REFERENCES `Transaccion` (`id`),
+  CONSTRAINT `TransaccionPuntos_fk2` FOREIGN KEY (`idCliente`) REFERENCES `Cliente` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `TransaccionTarjeta`;
+CREATE TABLE `TransaccionTarjeta` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `idTransaccion` int NOT NULL,
+  `idTarjeta` int NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `TransaccionTarjeta_fk1` (`idTransaccion`),
+  KEY `TransaccionTarjeta_fk2` (`idTarjeta`),
+  CONSTRAINT `TransaccionTarjeta_fk1` FOREIGN KEY (`idTransaccion`) REFERENCES `Transaccion` (`id`),
+  CONSTRAINT `TransaccionTarjeta_fk2` FOREIGN KEY (`idTarjeta`) REFERENCES `Tarjeta` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `TransaccionTransferencia`;
+CREATE TABLE `TransaccionTransferencia` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `idTransaccion` int NOT NULL,
+  `idTransferenciaPendiente` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_transaccion` (`idTransaccion`),
+  KEY `idx_transferencia` (`idTransferenciaPendiente`),
+  CONSTRAINT `fk_transaccion_transferencia_pendiente` FOREIGN KEY (`idTransferenciaPendiente`) REFERENCES `TransferenciaPendiente` (`id`),
+  CONSTRAINT `fk_transaccion_transferencia_transaccion` FOREIGN KEY (`idTransaccion`) REFERENCES `Transaccion` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+
+DROP TABLE IF EXISTS `TransferenciaPendiente`;
+CREATE TABLE `TransferenciaPendiente` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `token` varchar(500) NOT NULL,
+  `numeroTransaccion` varchar(255) NOT NULL,
+  `emailRemitente` varchar(255) NOT NULL,
+  `emailDestino` varchar(255) NOT NULL,
+  `cantidadEntradas` int NOT NULL,
+  `detalleEntradas` text NOT NULL,
+  `estado` enum('pendiente','aceptada','rechazada','expirada') NOT NULL DEFAULT 'pendiente',
+  `fechaCreacion` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `fechaExpiracion` datetime NOT NULL,
+  `fechaRespuesta` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `token` (`token`),
+  KEY `idx_token` (`token`),
+  KEY `idx_email_destino` (`emailDestino`),
+  KEY `idx_estado` (`estado`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

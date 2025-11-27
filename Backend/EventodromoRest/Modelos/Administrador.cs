@@ -9,6 +9,7 @@
         public string? passwordHash { get; set; }
         public DateTime? fechaCreacion { get; set; }
     }
+
     public class MetricasDashboardDTO
     {
         public MetricaConMontoDTO ingresosTotales { get; set; }
@@ -24,4 +25,8 @@
         public decimal porcentajeCambio { get; set; }
     }
 
+    public class ResponseEventosMasVendidos
+    {
+        public List<EventoMasVendidoDTO> data { get; set; }
+    }
 }

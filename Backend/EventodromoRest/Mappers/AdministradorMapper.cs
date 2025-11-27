@@ -227,5 +227,54 @@ JOIN KpiUsuarios u ON 1=1;";
                 return metricas;
             }
         }
+
+        public List<EventoMasVendidoDTO> ObtenerEventosMasVendidos()
+        {
+            lock (DB)
+            {
+                string query = @"
+SELECT 
+    e.id AS id,
+    e.nombre AS nombre,
+    l.nombre AS ubicacion,
+    MIN(te.precio) AS precio,
+    SUM(te.cantidadVendida) AS entradasVendidas
+FROM Evento e
+INNER JOIN Local l ON e.idLocal = l.id
+INNER JOIN FechaEvento fe ON fe.idEvento = e.id
+INNER JOIN TipoEntrada te ON te.idFechaEvento = fe.id
+WHERE e.isDeleted = 0
+GROUP BY e.id, e.nombre, l.nombre
+ORDER BY entradasVendidas DESC
+LIMIT 5;";
+
+                List<EventoMasVendidoDTO> eventos = new List<EventoMasVendidoDTO>();
+
+                DB.Select(query, null);
+
+                try
+                {
+                    while (DB.Read())
+                    {
+                        EventoMasVendidoDTO evento = new EventoMasVendidoDTO
+                        {
+                            id = DB.GetInt("id"), // Convertir INT a string
+                            nombre = DB.GetString("nombre"),
+                            ubicacion = DB.GetString("ubicacion"),
+                            precio = DB.GetDecimal("precio"),
+                            entradasVendidas = DB.GetInt("entradasVendidas")
+                        };
+
+                        eventos.Add(evento);
+                    }
+                }
+                finally
+                {
+                    DB.CloseReader();
+                }
+
+                return eventos;
+            }
+        }
     }
 }

@@ -1,0 +1,44 @@
+{
+  "success": true,
+  "mensaje": "Detalle de transacción obtenido correctamente.",
+  "data": {
+    "evento": {
+      "titulo": "Concierto de Rock en Vivo",
+      "imagen": "/images/eventos/rock-concert.jpg",
+      "ubicacion": "Estadio Nacional, LIMA, PE",
+      "fecha": "2025-12-15T20:00:00Z"
+    },
+    "transaccion": {
+      "numeroTransaccion": "TXN-2025-001234",
+      "fecha": "2025-11-20T14:30:00Z",
+      "estado": "Completada"
+    },
+    "cliente": {
+      "nombre": "Juan Pérez García",
+      "email": "juan.perez@example.com",
+      "telefono": "+51 987 654 321"
+    },
+    "entradas": [
+      {
+        "tipoEntrada": "VIP - Palco Premium",
+        "cantidad": 2,
+        "precioUnitario": 250.00,
+        "subtotal": 500.00
+      },
+      {
+        "tipoEntrada": "General - Platea Alta",
+        "cantidad": 3,
+        "precioUnitario": 80.00,
+        "subtotal": 240.00
+      }
+    ],
+    "metodoPago": {
+      "tipo": "tarjeta",
+      "detalles": {
+        "ultimos4Digitos": "4532"
+      }
+    },
+    "total": 740.00
+  },
+  "error": null
+}

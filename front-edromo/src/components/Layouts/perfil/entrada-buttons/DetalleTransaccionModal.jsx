@@ -1,0 +1,237 @@
+import React from "react";
+import Image from "next/image";
+
+export default function DetalleTransaccionModal({ 
+  isOpen, 
+  onClose, 
+  detalle,
+  loading,
+  error 
+}) {
+  if (!isOpen) {
+    return null;
+  }
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" onClick={onClose}>
+        <div className="bg-white rounded-lg p-8 max-w-2xl mx-4" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-center">
+            <div className="spinner-border text-primary" role="status" />
+            <span className="ms-2">Cargando detalles...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" onClick={onClose}>
+        <div className="bg-white rounded-lg p-8 max-w-2xl mx-4 relative" onClick={(e) => e.stopPropagation()}>
+          <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-3xl" onClick={onClose}>×</button>
+          <div className="alert alert-danger m-4">
+            <strong>Error:</strong> {error.message || error}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!detalle) return null;
+
+  const { evento, transaccion, cliente, entradas, metodoPago, total } = detalle;
+
+  // Verificar si el evento ya pasó
+  const eventoFecha = new Date(evento.fecha);
+  const ahora = new Date();
+  const eventoVencido = eventoFecha < ahora;
+
+  // Determinar el tipo de pago
+  const esTransferencia = metodoPago?.tipo === "transferencia";
+  const esPendienteTransferencia = metodoPago?.tipo === "transferencia_pendiente";
+  const esPuntos = metodoPago?.tipo === "puntos";
+  const esTarjeta = metodoPago?.tipo === "tarjeta";
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
+        <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-3xl z-10" onClick={onClose}>×</button>
+
+        {/* Header con imagen del evento */}
+        <div className="relative">
+          {evento.imagen ? (
+            <Image
+              src={evento.imagen}
+              alt={evento.titulo}
+              width={600}
+              height={300}
+              className="w-full h-64 object-cover rounded-t-lg"
+            />
+          ) : (
+            <div className="w-full h-64 bg-linear-to-r from-purple-600 to-blue-600 rounded-t-lg"></div>
+          )}
+          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent rounded-t-lg flex flex-col justify-end p-6">
+            <h2 className="text-2xl font-bold mb-3 text-white drop-shadow-lg">{evento.titulo}</h2>
+            <div className="text-sm space-y-1 text-white drop-shadow">
+              <p><span className="font-semibold">Fecha y hora del evento</span></p>
+              <p>{new Date(evento.fecha).toLocaleDateString('es-PE', { 
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}</p>
+              <p><span className="font-semibold">Ubicación</span></p>
+              <p>{evento.ubicacion}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Datos de transacción */}
+        <div className="p-6 border-b">
+          <h3 className="text-lg font-semibold mb-4">Datos de transacción</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="text-sm text-gray-600">Fecha de compra</span>
+              <p className="font-medium">{new Date(transaccion.fecha).toLocaleDateString('es-PE')}</p>
+            </div>
+            <div>
+              <span className="text-sm text-gray-600">Hora de compra</span>
+              <p className="font-medium">{new Date(transaccion.fecha).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</p>
+            </div>
+            <div className="col-span-2">
+              <span className="text-sm text-gray-600">N° Transacción</span>
+              <p className="font-medium font-mono">{transaccion.numeroTransaccion}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Datos del cliente */}
+        <div className="p-6 border-b">
+          <h3 className="text-lg font-semibold mb-4">Datos del cliente</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="text-sm text-gray-600">Nombre</span>
+              <p className="font-medium">{cliente.nombre}</p>
+            </div>
+            <div>
+              <span className="text-sm text-gray-600">Correo</span>
+              <p className="font-medium">{cliente.email}</p>
+            </div>
+            <div>
+              <span className="text-sm text-gray-600">Tipo de documento</span>
+              <p className="font-medium">{cliente.tipoDocumento || 'DNI'}</p>
+            </div>
+            <div>
+              <span className="text-sm text-gray-600">N° de documento</span>
+              <p className="font-medium">{cliente.numeroDocumento || 'N/A'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Datos de la compra */}
+        <div className="p-6 border-b">
+          <h3 className="text-lg font-semibold mb-4">Datos de la compra</h3>
+          <p className="text-sm text-gray-600 mb-3">Entradas</p>
+          <div className="space-y-2">
+            {entradas.map((entrada, index) => {
+              // Determinar badge de estado
+              let estadoBadge;
+              
+              // Prioridad 1: Si el evento ya pasó, mostrar "Vencido"
+              if (eventoVencido) {
+                estadoBadge = { color: 'bg-gray-100 text-gray-800', icon: '⏱️', label: 'Vencido' };
+              } else {
+                // Prioridad 2: Estado de transferencia
+                estadoBadge = {
+                  disponible: { color: 'bg-green-100 text-green-800', icon: '✅', label: 'Disponible' },
+                  transferida: { color: 'bg-orange-100 text-orange-800', icon: '🔄', label: 'Transferida' },
+                  pendiente: { color: 'bg-blue-100 text-blue-800', icon: '⏳', label: 'Pendiente' }
+                }[entrada.estado || 'disponible'];
+              }
+
+              return (
+                <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <div className="flex items-center gap-3 flex-1">
+                    <span className="font-semibold text-purple-600">x{entrada.cantidad}</span>
+                    <span className="flex-1">{entrada.tipoEntrada}</span>
+                    <span className={`text-xs px-2 py-1 rounded-full ${estadoBadge.color} flex items-center gap-1`}>
+                      <span>{estadoBadge.icon}</span>
+                      <span>{estadoBadge.label}</span>
+                    </span>
+                  </div>
+                  <span className="font-medium ml-4">S/{entrada.precioUnitario.toFixed(2)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Datos del pago / origen */}
+        <div className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Datos del pago</h3>
+          
+          {/* Caso: Transferencia recibida */}
+          {esTransferencia && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex gap-3">
+              <div className="text-3xl">📨</div>
+              <div>
+                <strong className="text-blue-800 block mb-1">Entradas recibidas por transferencia</strong>
+                <p className="text-sm text-blue-700">Estas entradas fueron transferidas a tu cuenta por otro usuario y ya están disponibles para su uso.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Caso: Pendiente de transferencia */}
+          {esPendienteTransferencia && (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4 flex gap-3">
+              <div className="text-3xl">⏳</div>
+              <div>
+                <strong className="text-orange-800 block mb-1">Transferencia en proceso</strong>
+                <p className="text-sm text-orange-700">
+                  Has enviado estas entradas a <strong>{metodoPago.detalles.emailDestino}</strong>. El destinatario debe aceptar la transferencia.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Caso: Pago con tarjeta */}
+          {esTarjeta && (
+            <div className="bg-gray-50 rounded-lg p-4 mb-4 space-y-3">
+              <div>
+                <span className="text-sm text-gray-600">Método de pago</span>
+                <p className="font-medium">Tarjeta Débito/ Crédito</p>
+              </div>
+              <div>
+                <span className="text-sm text-gray-600">Número de Tarjeta</span>
+                <p className="font-medium font-mono">XXXX XXXX XXXX {metodoPago.detalles.ultimos4Digitos}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Caso: Pago con puntos */}
+          {esPuntos && (
+            <div className="bg-linear-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 mb-4 space-y-3">
+              <div>
+                <span className="text-sm text-gray-600">Método de pago</span>
+                <p className="font-medium">DromoPuntos</p>
+              </div>
+              <div>
+                <span className="text-sm text-gray-600">Puntos utilizados</span>
+                <p className="font-bold text-purple-600 text-lg">{metodoPago.detalles.puntosUtilizados} pt.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Total */}
+          <div className="border-t pt-4 flex justify-between items-center">
+            <span className="text-lg font-semibold">Total</span>
+            <span className="text-2xl font-bold text-purple-600">S/ {total.toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+

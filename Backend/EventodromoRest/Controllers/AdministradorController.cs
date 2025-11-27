@@ -154,5 +154,59 @@ namespace EventodromoRest.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("/api/[controller]/EventosMasVendidos")]
+        [Authorize]
+        public GenericResponse<List<EventoMasVendidoDTO>> ObtenerEventosMasVendidos()
+        {
+            try
+            {
+                // 1️⃣ Leer el token de la cabecera
+                var authHeader = Request.Headers["Authorization"].ToString();
+
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<List<EventoMasVendidoDTO>>
+                    {
+                        Success = false,
+                        Message = "Token no proporcionado o inválido.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                // 2️⃣ Extraer el token y obtener el ID del admin
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<List<EventoMasVendidoDTO>>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                // 3️⃣ Obtener los eventos más vendidos
+                var administradorBO = new AdministradorBO(globales, BD);
+                return administradorBO.ObtenerEventosMasVendidos();
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<List<EventoMasVendidoDTO>>
+                {
+                    Success = false,
+                    Message = "Error al obtener los eventos más vendidos.",
+                    Error = e.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(e, "SinBody", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
     }
 }

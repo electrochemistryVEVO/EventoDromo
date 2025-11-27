@@ -151,7 +151,7 @@ const Navbar = () => {
                   onClick={closeUserMenu}
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-md transition-colors"
                 >
-                  Configurar DromoPuntos
+                  Configuraciones
                 </Link>
                 <button
                   onClick={handleLogout}
