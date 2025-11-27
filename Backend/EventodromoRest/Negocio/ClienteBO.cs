@@ -233,5 +233,29 @@ namespace EventodromoRest.Negocio
             var mapper = new ClienteMapper(globales, DB);
             return mapper.InsertarRecuperacionContrasenaPendiente(registro);
         }
+
+        public RecuperacionContrasenaPendiente ObtenerRecuperarContrasenaPendientePorToken(string token)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            return mapper.ObtenerRecuperacionContrasenaPendientePorToken(token);
+        }
+
+        public Cliente ReestablecerContrasenaEncontrarClientePorId(int idCliente)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            return mapper.ObtenerClienteAuxPorId(idCliente);
+        }
+
+        public bool ReestablecerContrasenaActualizarContrasena(int id, string passwordNueva)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            return mapper.ModificarClienteContrasenaPorId(id, passwordNueva);
+        }
+
+        public int ReestablecerContrasenaMarcarRecuperacionComoUsada(int idRecuperacion)
+        {
+            var mapper = new ClienteMapper(globales, DB);
+            return mapper.ModificarRecuperacionContrasenaPendienteComoUsadaPorId(idRecuperacion);
+        }
     }
 }

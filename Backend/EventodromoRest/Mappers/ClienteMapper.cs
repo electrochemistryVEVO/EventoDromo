@@ -435,5 +435,61 @@ namespace EventodromoRest.Mappers
             }
         }
 
+        public RecuperacionContrasenaPendiente ObtenerRecuperacionContrasenaPendientePorToken(string token)
+        {
+            lock (DB)
+            {
+                string query = "SELECT * FROM RecuperacionContrasenaPendiente WHERE token = @token";
+                var parametros = new ParameterList();
+                parametros.Add("@token", token);
+                DB.Select(query, parametros);
+                RecuperacionContrasenaPendiente registro = null;
+                if (DB.Read())
+                {
+                    registro = new RecuperacionContrasenaPendiente
+                    {
+                        Id = DB.GetInt("ID"),
+                        ClienteId = DB.GetInt("ClienteId"),
+                        Token = DB.GetString("Token"),
+                        FechaSolicitud = DB.GetDateTime("FechaSolicitud"),
+                        FechaExpiracion = DB.GetDateTime("FechaExpiracion"),
+                        Usado = DB.GetBoolean("Usado")
+                    };
+                }
+                DB.CloseReader();
+                return registro;
+            }
+
+        }
+
+        public Cliente ObtenerClienteAuxPorId(int id)
+        {
+            lock (DB)
+            {
+                string query = "SELECT * FROM Cliente WHERE id = @id";
+                var parametros = new ParameterList();
+                parametros.Add("@id", id);
+                DB.Select(query, parametros);
+                Cliente cliente = null;
+                if (DB.Read())
+                {
+                    cliente = MapearClienteDesdeReader(); // Usamos método auxiliar
+                }
+                DB.CloseReader();
+                return cliente;
+            }
+        }
+
+        public int ModificarRecuperacionContrasenaPendienteComoUsadaPorId(int id)
+        {
+            lock (DB)
+            {
+                string query = "UPDATE RecuperacionContrasenaPendiente SET usado = 1 WHERE ID = @id";
+                var parametros = new ParameterList();
+                parametros.Add("@id", id);
+                int rowsAffected = DB.ExecuteNonQuery(query, parametros);
+                return rowsAffected;
+            }
+        }
     }
 }

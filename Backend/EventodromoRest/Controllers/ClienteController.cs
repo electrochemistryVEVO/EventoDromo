@@ -733,6 +733,108 @@ namespace EventodromoRest.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<RestablecerContrasenaResponse> RestablecerContrasena([FromBody] RequestRestablecerContrasena request)
+        {
+            try
+            {
+                // 1. Validar request
+                if (request == null ||
+                    string.IsNullOrWhiteSpace(request.token) ||
+                    string.IsNullOrWhiteSpace(request.newPassword))
+                {
+                    return new GenericResponse<RestablecerContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "Solicitud inválida",
+                        Error = "Debe proporcionar token y nueva contraseña"
+                    };
+                }
+
+                var clienteBO = new ClienteBO(globales, BD);
+
+                // 2. Buscar el token en BD
+                var registro = clienteBO.ObtenerRecuperarContrasenaPendientePorToken(request.token);
+
+                if (registro == null)
+                {
+                    return new GenericResponse<RestablecerContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "El enlace es inválido o ha expirado.",
+                        Error = "Token no encontrado"
+                    };
+                }
+
+                // 3. Validar expiración o si ya se usó
+                if (registro.Usado == true || registro.FechaExpiracion < DateTime.Now)
+                {
+                    return new GenericResponse<RestablecerContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "El enlace es inválido o ha expirado.",
+                        Error = "Token usado o expirado"
+                    };
+                }
+
+                // 4. Buscar usuario asociado
+                var cliente = clienteBO.ReestablecerContrasenaEncontrarClientePorId(registro.ClienteId);
+                if (cliente == null)
+                {
+                    return new GenericResponse<RestablecerContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "No se encontró el usuario.",
+                        Error = "ClienteId inválido en el token"
+                    };
+                }
+
+                // 5. Hashear la nueva contraseña ESTO TODAVÍA NO SE VE, NO LO DESCOMENTEN NADIE LO HA PROBADO
+                //string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.newPassword);
+                string passwordHash = request.newPassword; //Temporal mientras no se prueba el hash
+
+
+                // 6. Actualizar contraseña
+                if (!clienteBO.ReestablecerContrasenaActualizarContrasena(cliente.id.Value, passwordHash))
+                {
+                    return new GenericResponse<RestablecerContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "No se pudo actualizar la contraseña.",
+                        Error = "Error al guardar nueva contraseña"
+                    };
+                }
+
+                // 7. Marcar token como usado
+                clienteBO.ReestablecerContrasenaMarcarRecuperacionComoUsada(registro.Id);
+
+                // 8. Respuesta final
+                return new GenericResponse<RestablecerContrasenaResponse>
+                {
+                    Success = true,
+                    Message = "Contraseña actualizada correctamente.",
+                    Data = new RestablecerContrasenaResponse
+                    {
+                        success = true
+                    }
+                };
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<RestablecerContrasenaResponse>
+                {
+                    Success = false,
+                    Message = "Error en el servidor.",
+                    Error = e.Message
+                };
+
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+
 
     }
 }

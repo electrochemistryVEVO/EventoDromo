@@ -257,6 +257,18 @@
 
     }
 
+    public class RequestRestablecerContrasena
+    {
+        public string token { get; set; }
+        public string newPassword { get; set; }
+    }
+    
+    public class RestablecerContrasenaResponse
+    {
+        public bool success { get; set; }
+    }
+
+
 
 }
 
