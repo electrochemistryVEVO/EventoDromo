@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useEventManager } from "./controller";
-import '@/css/adminEventos/gestionEventos.css';
-import { FiPlus, FiUpload } from 'react-icons/fi';
+import "@/css/adminEventos/gestionEventos.css";
+import { FiPlus, FiUpload } from "react-icons/fi";
 
 import EventFilters from "@/components/gestion-evento/EventFilters.jsx";
 import EventsTable from "@/components/gestion-evento/EventsTable.jsx";
@@ -21,18 +21,27 @@ const GestionEventosPage = () => {
     isLoading,
     error,
     filters,
+    removeEvent,
     handleFilterChange,
     applyFilters,
     handlePageChange,
   } = useEventManager();
 
+  // Estado para controlar el modal
   const [modalState, setModalState] = useState({
     isOpen: false,
     type: null,
     data: null,
   });
 
-  const closeModal = () => setModalState({ isOpen: false, type: null, data: null });
+  // 1️⃣ NUEVO: Estado local para controlar la carga específica del botón de eliminar
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const closeModal = () => {
+    // Si se está eliminando, evitamos cerrar el modal accidentalmente
+    if (isDeleting) return;
+    setModalState({ isOpen: false, type: null, data: null });
+  };
 
   const handleAction = (type, event = null) => {
     const actions = {
@@ -40,17 +49,37 @@ const GestionEventosPage = () => {
       edit: () => router.push(`/admin/eventos/editar/${event.id}`),
       view: () => router.push(`/admin/eventos/ver/${event.id}`),
       upload: () => setModalState({ isOpen: true, type: "upload", data: null }),
-      delete: () => setModalState({ isOpen: true, type: "delete", data: event }),
+      delete: () =>
+        setModalState({ isOpen: true, type: "delete", data: event }),
     };
 
     actions[type]?.() || console.warn("Tipo de acción desconocida:", type);
   };
 
-  const handleDeleteConfirm = () => {
-    console.log("Eliminando evento:", modalState.data.id);
-    // Aquí iría la llamada al servicio para eliminar el evento
-    closeModal();
-    // applyFilters();
+  const handleDeleteConfirm = async () => {
+    if (!modalState.data?.id) return;
+
+    // 2️⃣ Iniciamos carga del botón
+    setIsDeleting(true);
+
+    // Esperamos a que el controller elimine Y recargue la tabla
+    const result = await removeEvent(modalState.data.id);
+
+    // 3️⃣ Terminamos carga
+    setIsDeleting(false);
+
+    if (result.success) {
+      // 4️⃣ Primero cerramos el modal (actualizamos estado)
+      closeModal();
+
+      // 5️⃣ Usamos un pequeño timeout para el alert.
+      // Esto permite que React desmonte el modal visualmente ANTES de que el alert congele la pantalla.
+      setTimeout(() => {
+        alert("Evento eliminado correctamente");
+      }, 100);
+    } else {
+      alert("Error al eliminar: " + result.message);
+    }
   };
 
   const renderModalContent = () => {
@@ -73,15 +102,31 @@ const GestionEventosPage = () => {
           <div className="flex justify-end gap-4 mt-6">
             <button
               onClick={closeModal}
-              className="px-4 py-2 bg-gray-200 rounded-lg"
+              className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+              disabled={isDeleting} // Deshabilitar si está cargando
             >
               Cancelar
             </button>
+
+            {/* 6️⃣ Botón con Feedback visual de carga */}
             <button
               onClick={handleDeleteConfirm}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg"
+              disabled={isDeleting} // Evita doble clic
+              className={`px-4 py-2 text-white rounded-lg transition-colors flex items-center gap-2 ${
+                isDeleting
+                  ? "bg-red-300 cursor-not-allowed"
+                  : "bg-red-500 hover:bg-red-600"
+              }`}
             >
-              Confirmar Eliminación
+              {isDeleting ? (
+                <>
+                  {/* Spinner simple con CSS de Tailwind */}
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Eliminando...
+                </>
+              ) : (
+                "Confirmar Eliminación"
+              )}
             </button>
           </div>
         </div>
@@ -89,7 +134,8 @@ const GestionEventosPage = () => {
     }
   };
 
-  const modalTitle = modalState.type === "delete" ? "Confirmar Eliminación" : "Cargar CSV";
+  const modalTitle =
+    modalState.type === "delete" ? "Confirmar Eliminación" : "Cargar CSV";
   const showPagination = pagination?.totalPages > 0 && !isLoading;
 
   return (
@@ -98,10 +144,16 @@ const GestionEventosPage = () => {
         <header className="page-header">
           <h1>Gestión de Eventos</h1>
           <div className="flex items-center gap-3">
-            <button className="btn btn-secondary" onClick={() => handleAction("upload")}>
+            <button
+              className="btn btn-secondary"
+              onClick={() => handleAction("upload")}
+            >
               <FiUpload /> Cargar CSV
             </button>
-            <button className="btn btn-create" onClick={() => handleAction("create")}>
+            <button
+              className="btn btn-create"
+              onClick={() => handleAction("create")}
+            >
               <FiPlus /> Crear evento
             </button>
           </div>
@@ -132,7 +184,11 @@ const GestionEventosPage = () => {
           )}
         </div>
 
-        <Modal isOpen={modalState.isOpen} onClose={closeModal} title={modalTitle}>
+        <Modal
+          isOpen={modalState.isOpen}
+          onClose={closeModal}
+          title={modalTitle}
+        >
           {renderModalContent()}
         </Modal>
       </div>

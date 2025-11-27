@@ -216,5 +216,37 @@ namespace EventodromoRest.Mappers
             }
         }
 
+        public int InsertarFechaEvento(DateTime fechaHora, int idEvento)
+        {
+            lock (DB)
+            {
+                // Insertamos y obtenemos el ID generado automáticamente
+                string query = "INSERT INTO FechaEvento (fechaHora, idEvento) VALUES (@FECHA, @IDEVENTO); SELECT LAST_INSERT_ID();";
+
+                var p = new ParameterList();
+                p.Add("@FECHA", fechaHora);
+                p.Add("@IDEVENTO", idEvento);
+
+                // Ejecutamos y convertimos el resultado a int
+                return Convert.ToInt32(DB.ExecuteScalar(query, p));
+            }
+        }
+
+        public int ActualizarFechaEvento(int id, DateTime nuevaFecha)
+        {
+            lock (DB)
+            {
+                // Query para actualizar la fecha y hora de un horario específico
+                string query = "UPDATE FechaEvento SET fechaHora=@FECHA WHERE id=@ID";
+
+                var p = new ParameterList();
+                p.Add("@FECHA", nuevaFecha);
+                p.Add("@ID", id); // ID obligatorio para el WHERE
+
+                // ExecuteNonQuery devuelve el número de filas afectadas
+                return DB.ExecuteNonQuery(query, p);
+            }
+        }
+
     }
 }

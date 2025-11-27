@@ -289,6 +289,28 @@ namespace EventodromoRest.Mappers
             }
         }
 
+        public int ActualizarTipoEntrada(TipoEntrada e)
+        {
+            lock (DB)
+            {
+                // Query para actualizar los datos de un tipo de entrada específico
+                string query = "UPDATE TipoEntrada SET nombre=@NOM, precio=@PRECIO, cantidadEntradas=@CANT, " +
+                               "limiteCompra=@LIM, puntos=@PTS " +
+                               "WHERE id=@ID";
+
+                var p = new ParameterList();
+                p.Add("@NOM", e.nombre);
+                p.Add("@PRECIO", e.precio);
+                p.Add("@CANT", e.cantidadEntradas);
+                p.Add("@LIM", e.limiteCompra);
+                p.Add("@PTS", e.puntos);
+                p.Add("@ID", e.id); // ID obligatorio para saber cuál actualizar
+
+                // ExecuteNonQuery devuelve el número de filas afectadas
+                return DB.ExecuteNonQuery(query, p);
+            }
+        }
+
 
     }
 }
