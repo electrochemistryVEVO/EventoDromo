@@ -26,10 +26,14 @@ export async function autenticarUsuario(loginInfo) {
 
 /**
  * 2. Solicitar Recuperación
- * Envía el correo al backend. El backend verifica si existe y manda el email.
+ * Envía el correo al backend.
  */
 export async function enviarCorreoRecuperacion(email) {
-  const res = await fetch(`${BASE_API_URL}/Auth/SolicitarRecuperacion`, {
+  console.log("--> [FRONT] Enviando a /Cliente/RecuperarContrasena:", {
+    email,
+  });
+
+  const res = await fetch(`${BASE_API_URL}/Cliente/RecuperarContrasena`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
@@ -37,16 +41,25 @@ export async function enviarCorreoRecuperacion(email) {
 
   const data = await res.json();
 
+  console.log("<-- [FRONT] Respuesta recibida del backend:", data);
+
+  // 1. Validación de error HTTP (Status 400, 500, etc.)
   if (!res.ok) {
-    // Si es 404 o 400, asumimos que el correo no existe o hay error
     throw new Error(
-      data.mensaje || "No se pudo enviar el correo de recuperación."
+      data.message ||
+        data.error ||
+        "No se pudo enviar el correo de recuperación."
     );
   }
 
-  return data; // { success: true, mensaje: "Correo enviado..." }
-}
+  // Si el backend dice success: false, lanzamos el error manualmente para que el Modal lo capture.
+  if (data.success === false) {
+    // Usamos data.message o data.error según lo que mande tu backend
+    throw new Error(data.message || data.error || "El correo no es válido.");
+  }
 
+  return data;
+}
 /**
  * 3. Restablecer Contraseña (Para la pantalla nueva)
  * Envía el token (que venía en el link del correo) y la nueva contraseña.
