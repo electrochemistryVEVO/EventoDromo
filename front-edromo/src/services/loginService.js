@@ -61,21 +61,67 @@ export async function enviarCorreoRecuperacion(email) {
   return data;
 }
 /**
- * 3. Restablecer Contraseña (Para la pantalla nueva)
- * Envía el token (que venía en el link del correo) y la nueva contraseña.
+ * 3. Restablecer Contraseña
+ * Envía el token y la nueva contraseña para cambiarla definitivamente.
  */
 export async function resetearPasswordConToken(token, newPassword) {
-  const res = await fetch(`${BASE_API_URL}/Auth/RestablecerPassword`, {
-    method: "POST", // Usualmente es POST o PUT
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token, newPassword }),
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.mensaje || "El enlace ha expirado o es inválido.");
+  // 1. VALIDACIÓN PREVENTIVA (Best Practice)
+  // Antes de llamar al servidor, validamos que tengamos los datos necesarios.
+  if (!token) {
+    throw new Error("Token no válido o expirado.");
+  }
+  if (!newPassword || newPassword.length < 6) {
+    // Puedes ajustar la longitud según tus reglas de negocio
+    throw new Error("La contraseña debe tener al menos 6 caracteres.");
   }
 
-  return data; // { success: true, mensaje: "Contraseña actualizada" }
+  // 2. LOG DE ENTRADA
+  // Mostramos qué se envía. Por seguridad, en logs reales se suele ocultar la pass,
+  // pero para tu desarrollo actual lo dejaremos visible o parcialmente oculto.
+  console.log("--> [FRONT] Enviando a /Auth/RestablecerPassword:", {
+    token,
+    newPassword, // Ojo: en producción evita loguear contraseñas reales
+  });
+
+  try {
+    const res = await fetch(`${BASE_API_URL}/Cliente/RestablecerContrasena`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, newPassword }),
+    });
+
+    // Verificamos que el servidor realmente devuelva JSON antes de intentar parsearlo
+    const contentType = res.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new Error("Error de servidor: La respuesta no es un JSON válido.");
+    }
+
+    const data = await res.json();
+
+    // 3. LOG DE SALIDA
+    console.log("<-- [FRONT] Respuesta recibida del backend:", data);
+
+    // 4. VALIDACIÓN DE ERROR HTTP (404, 500, etc.)
+    if (!res.ok) {
+      throw new Error(
+        data.message ||
+          data.error ||
+          `Error del servidor (Código: ${res.status})`
+      );
+    }
+
+    // 5. VALIDACIÓN LÓGICA DEL BACKEND (Status 200 pero success: false)
+    if (data.success === false) {
+      throw new Error(
+        data.message ||
+          data.error ||
+          "No se pudo restablecer la contraseña. El enlace puede haber expirado."
+      );
+    }
+
+    return data; // Retorna éxito
+  } catch (error) {
+    console.error("xxx [FRONT] Error en resetearPasswordConToken:", error);
+    throw error;
+  }
 }
