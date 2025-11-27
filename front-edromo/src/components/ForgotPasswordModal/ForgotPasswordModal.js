@@ -1,4 +1,3 @@
-// src/components/ForgotPasswordModal/ForgotPasswordModal.jsx
 import { useState } from "react";
 import styles from "./ForgotPasswordModal.module.css";
 import { enviarCorreoRecuperacion } from "@/services/loginService";
@@ -11,6 +10,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
 
   const handleClose = () => {
     onClose();
+    // Esperamos la animación de cierre para limpiar el estado
     setTimeout(() => {
       setEmail("");
       setMessage("");
@@ -23,19 +23,21 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage("");
+    setMessageType("");
 
     try {
       await enviarCorreoRecuperacion(email);
+
+      // ✅ Al ser exitoso, cambiamos el estado.
+      // Esto disparará el cambio en la vista (JSX) abajo.
       setMessageType("success");
       setMessage(
         "Se ha enviado un enlace a tu correo electrónico para restablecer tu contraseña."
       );
+      setEmail("");
     } catch (err) {
       setMessageType("error");
-      setMessage(
-        "El correo electrónico no está registrado. Por favor, verifica e intenta de nuevo."
-      );
-      console.error("Error capturado en el modal:", err.message);
+      setMessage(err.message || "Ocurrió un error al procesar la solicitud.");
     } finally {
       setIsLoading(false);
     }
@@ -53,37 +55,55 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* El mensaje de éxito o error se mostrará aquí, encima del formulario */}
+        {/* Mensaje de éxito o error */}
         {message && (
           <div className={`${styles.message} ${styles[messageType]}`}>
             {message}
           </div>
         )}
 
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <div className={styles.inputGroup}>
-            <label htmlFor="recovery-email" className={styles.label}>
-              Correo Electrónico
-            </label>
-            <input
-              type="email"
-              id="recovery-email"
-              className={styles.input}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="tu-correo@ejemplo.com"
+        {/* 
+            LOGICA CONDICIONAL:
+            Si NO es éxito, mostramos el formulario.
+            Si SI es éxito, mostramos un botón para cerrar.
+        */}
+        {messageType !== "success" ? (
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <div className={styles.inputGroup}>
+              <label htmlFor="recovery-email" className={styles.label}>
+                Correo Electrónico
+              </label>
+              <input
+                type="email"
+                id="recovery-email"
+                className={styles.input}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="tu-correo@ejemplo.com"
+                disabled={isLoading}
+              />
+            </div>
+            <button
+              type="submit"
+              className={styles.submitButton}
               disabled={isLoading}
-            />
+            >
+              {isLoading ? "Enviando..." : "Enviar"}
+            </button>
+          </form>
+        ) : (
+          /* Opcional: Un botón para cerrar el modal amigablemente cuando todo salió bien */
+          <div style={{ marginTop: "20px", textAlign: "center" }}>
+            <button
+              className={styles.submitButton}
+              onClick={handleClose}
+              type="button"
+            >
+              Entendido, cerrar
+            </button>
           </div>
-          <button
-            type="submit"
-            className={styles.submitButton}
-            disabled={isLoading}
-          >
-            {isLoading ? "Enviando..." : "Enviar"}
-          </button>
-        </form>
+        )}
       </div>
     </div>
   );
