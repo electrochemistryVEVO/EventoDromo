@@ -96,6 +96,9 @@ namespace EventodromoRest.Negocio
                     capacidad = dto.Capacidad,
                     imagenURL = dto.imagenURL,
                     isDeleted = false, // <-- REGLA: Siempre falso al crear
+                    Latitud = dto.Latitud,
+                    Longitud = dto.Longitud,
+                    GoogleMapsUrl = dto.GoogleMapsUrl,
 
                     // 5. Asignar el ID del admin (del token) al campo 'creadoPor'
                     idAdministrador = adminId  // <-- REGLA: ID del token
@@ -187,6 +190,12 @@ namespace EventodromoRest.Negocio
                 Error = null,
                 Data = ocupacionLocales
             };
+        }
+
+        public List<Feat_MetricDashB_ObtenerOcupacionLocales> ObtenerOcupacionLocalesUltimos30Dias()
+        {
+            LocalMapper mapper = new LocalMapper(globales, DB);
+            return mapper.ObtenerOcupacionLocalesUltimos30Dias();
         }
     }
 }

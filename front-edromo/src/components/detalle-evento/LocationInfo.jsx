@@ -12,8 +12,8 @@ import "@/css/detalle-Evento/LocationInfo.css";
 const LocationInfo = ({ city, venue, address, googleMapsEmbed }) => {
   // React normalmente no renderiza HTML desde strings para prevenir ataques (XSS).
   // 'dangerouslySetInnerHTML' es la forma oficial de hacerlo cuando confías en la
-  // fuente del HTML (en este caso, nuestro propio JSON).
-  // Lo usamos para que el <iframe> del mapa se inserte correctamente en la página.
+  // fuente del HTML (en este caso, viene del backend que ya maneja el fallback).
+  // El backend devuelve el iframe dinámico si hay coordenadas, o el hardcodeado si no.
   const mapHtml = { __html: googleMapsEmbed };
 
   return (

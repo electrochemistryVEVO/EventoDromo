@@ -14,11 +14,56 @@ namespace EventodromoRest.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    public class LocalController(Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService) : BaseController
+    public class LocalController(Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService, IS3Service s3Service) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
         private readonly Globales.Globales globales = globales;
         private readonly TokenService tokenService = tokenService;
+        private readonly IS3Service _s3Service = s3Service;
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        [Authorize]
+        public async Task<GenericResponse<string>> SubirImagenLocal(IFormFile imagen)
+        {
+            try
+            {
+                if (imagen == null || imagen.Length == 0)
+                {
+                    return new GenericResponse<string>
+                    {
+                        Success = false,
+                        Message = "No se proporcionó ninguna imagen",
+                        Error = null,
+                        Data = null
+                    };
+                }
+
+                // Subir a S3 en la carpeta "locales"
+                var rutaArchivo = await _s3Service.SubirImagenAsync(imagen, "locales");
+                var urlPublica = _s3Service.ObtenerUrlPublica(rutaArchivo);
+
+                return new GenericResponse<string>
+                {
+                    Success = true,
+                    Message = "Imagen subida correctamente",
+                    Error = null,
+                    Data = urlPublica
+                };
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<string>
+                {
+                    Success = false,
+                    Message = "Error al subir la imagen",
+                    Error = e.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(e, "SubirImagenLocal", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
 
         [HttpGet]
         [Route("/api/[controller]/[action]")]
@@ -298,7 +343,10 @@ namespace EventodromoRest.Controllers
                     idCiudad = request.CiudadId,
                     direccion = request.Direccion,
                     capacidad = request.Capacidad,
-                    imagenURL = request.imagenURL
+                    imagenURL = request.imagenURL,
+                    Latitud = request.Latitud,
+                    Longitud = request.Longitud,
+                    GoogleMapsUrl = request.GoogleMapsUrl
 
                 };
 
@@ -394,6 +442,79 @@ namespace EventodromoRest.Controllers
                 return response;
             }
         }
+
+        [HttpGet]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<List<Feat_MetricDashB_ObtenerOcupacionLocales>> Feat_MetricDashB_ObtenerOcupacionLocales()
+        {
+            try
+            {
+                
+                // 1️⃣ Validar token JWT
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<List<Feat_MetricDashB_ObtenerOcupacionLocales>>
+                    {
+                        Success = false,
+                        Message = "Acceso no autorizado. Se requiere un token válido.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<List<Feat_MetricDashB_ObtenerOcupacionLocales>>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+                
+                // 2️⃣ Llamar al BO
+                var bo = new LocalBO(globales, BD);
+                List<Feat_MetricDashB_ObtenerOcupacionLocales> lista = bo.ObtenerOcupacionLocalesUltimos30Dias();
+               
+                if (lista == null || lista.Count == 0)
+                {
+                    return new GenericResponse<List<Feat_MetricDashB_ObtenerOcupacionLocales>>
+                    {
+                        Success = false,
+                        Message = "No se encontraron datos de ocupación.",
+                        Error = null,
+                        Data = null
+                    };
+                }
+
+                return new GenericResponse<List<Feat_MetricDashB_ObtenerOcupacionLocales>>
+                {
+                    Success = true,
+                    Message = "Ocupación obtenida correctamente.",
+                    Error = null,
+                    Data = lista
+                };
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<List<Feat_MetricDashB_ObtenerOcupacionLocales>>
+                {
+                    Success = false,
+                    Message = "Error fatal en el controlador de Local.",
+                    Error = e.Message
+                };
+
+                AgregarEntradaBitacora(e, null, JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+
+
 
     }
 }

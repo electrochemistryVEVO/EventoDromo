@@ -6,7 +6,8 @@ export const useDromoPuntosManager = () => {
   const [config, setConfig] = useState({
     puntosPorSol: "",
     mesesVigenciaPuntos: "",
-    minutosVigenciaCarrito: ""
+    minutosVigenciaCarrito: "",
+    horasExpiracionTransferencia: ""
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -23,7 +24,8 @@ export const useDromoPuntosManager = () => {
           setConfig({
             puntosPorSol: apiResponse.data.puntosPorSol?.toString() || "",
             mesesVigenciaPuntos: apiResponse.data.mesesVigenciaPuntos?.toString() || "",
-            minutosVigenciaCarrito: apiResponse.data.minutosVigenciaCarrito?.toString() || ""
+            minutosVigenciaCarrito: apiResponse.data.minutosVigenciaCarrito?.toString() || "",
+            horasExpiracionTransferencia: apiResponse.data.horasExpiracionTransferencia?.toString() || ""
           });
         } else {
           throw new Error(apiResponse.message || "La respuesta del API no fue exitosa.");
@@ -52,6 +54,7 @@ export const useDromoPuntosManager = () => {
       const puntosPorSol = parseFloat(config.puntosPorSol);
       const mesesVigenciaPuntos = parseInt(config.mesesVigenciaPuntos);
       const minutosVigenciaCarrito = parseInt(config.minutosVigenciaCarrito);
+      const horasExpiracionTransferencia = parseInt(config.horasExpiracionTransferencia);
       
       if (isNaN(puntosPorSol) || puntosPorSol <= 0) {
         throw new Error("El valor en soles del punto debe ser un número mayor a cero.");
@@ -64,12 +67,17 @@ export const useDromoPuntosManager = () => {
       if (isNaN(minutosVigenciaCarrito) || minutosVigenciaCarrito <= 0) {
         throw new Error("Los minutos de vigencia del carrito deben ser un número entero mayor a cero.");
       }
+
+      if (isNaN(horasExpiracionTransferencia) || horasExpiracionTransferencia <= 0) {
+        throw new Error("Las horas de expiración de transferencias deben ser un número entero mayor a cero.");
+      }
       
       const token = getAuthToken();
       const configData = {
         puntosPorSol,
         mesesVigenciaPuntos,
-        minutosVigenciaCarrito
+        minutosVigenciaCarrito,
+        horasExpiracionTransferencia
       };
       
       await updateConfig(configData, token);

@@ -102,5 +102,179 @@ namespace EventodromoRest.Mappers
                 return rowsAffected;
             }
         }
+
+        public MetricasDashboardDTO ObtenerMetricasDashboard()
+        {
+            lock (DB)
+            {
+                string query = @"
+WITH 
+Fechas AS (
+    SELECT 
+        DATE_FORMAT(NOW(), '%Y-%m-01 00:00:00') as InicioMesActual,
+        DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01 00:00:00') as InicioMesAnterior
+),
+
+KpiTransaccional AS (
+    SELECT 
+        COALESCE(SUM(CASE WHEN t.fechaHoraCompra >= f.InicioMesActual THEN t.montoTotal ELSE 0 END), 0) as Ingresos_Actual,
+        COALESCE(SUM(CASE WHEN t.fechaHoraCompra >= f.InicioMesAnterior AND t.fechaHoraCompra < f.InicioMesActual THEN t.montoTotal ELSE 0 END), 0) as Ingresos_Anterior,
+        
+        COALESCE(COUNT(DISTINCT CASE WHEN t.fechaHoraCompra >= f.InicioMesActual THEN t.idCliente END), 0) as Compradores_Actual,
+        COALESCE(COUNT(DISTINCT CASE WHEN t.fechaHoraCompra >= f.InicioMesAnterior AND t.fechaHoraCompra < f.InicioMesActual THEN t.idCliente END), 0) as Compradores_Anterior
+    FROM Transaccion t
+    JOIN Fechas f ON 1=1
+    WHERE t.fechaHoraCompra >= f.InicioMesAnterior
+),
+
+KpiEntradas AS (
+    SELECT 
+        COALESCE(COUNT(CASE WHEN t.fechaHoraCompra >= f.InicioMesActual THEN 1 END), 0) as Actual,
+        COALESCE(COUNT(CASE WHEN t.fechaHoraCompra >= f.InicioMesAnterior AND t.fechaHoraCompra < f.InicioMesActual THEN 1 END), 0) as Anterior
+    FROM LineaTransaccion lt
+    JOIN Transaccion t ON lt.idTransaccion = t.id
+    JOIN Fechas f ON 1=1
+    WHERE t.fechaHoraCompra >= f.InicioMesAnterior
+),
+
+KpiPuntos AS (
+    SELECT 
+        COALESCE(SUM(CASE WHEN t.fechaHoraCompra >= f.InicioMesActual THEN tp.puntosGastados ELSE 0 END), 0) as Actual,
+        COALESCE(SUM(CASE WHEN t.fechaHoraCompra >= f.InicioMesAnterior AND t.fechaHoraCompra < f.InicioMesActual THEN tp.puntosGastados ELSE 0 END), 0) as Anterior
+    FROM TransaccionPuntos tp
+    JOIN Transaccion t ON tp.idTransaccion = t.id
+    JOIN Fechas f ON 1=1
+    WHERE t.fechaHoraCompra >= f.InicioMesAnterior
+),
+
+KpiUsuarios AS (
+    SELECT 
+        COALESCE(COUNT(CASE WHEN c.fechaCreacion >= f.InicioMesActual THEN 1 END), 0) as Actual,
+        COALESCE(COUNT(CASE WHEN c.fechaCreacion >= f.InicioMesAnterior AND c.fechaCreacion < f.InicioMesActual THEN 1 END), 0) as Anterior
+    FROM Cliente c
+    JOIN Fechas f ON 1=1
+    WHERE c.fechaCreacion >= f.InicioMesAnterior
+)
+
+SELECT 
+    t.Ingresos_Actual as Ingresos_Monto,
+    IF(t.Ingresos_Anterior = 0, 0, ((t.Ingresos_Actual - t.Ingresos_Anterior) / t.Ingresos_Anterior) * 100) as Ingresos_Cambio,
+    
+    p.Actual as Puntos_Monto, 
+    IF(p.Anterior = 0, 0, ((p.Actual - p.Anterior) / p.Anterior) * 100) as Puntos_Cambio,
+    
+    e.Actual as Entradas_Monto,
+    IF(e.Anterior = 0, 0, ((e.Actual - e.Anterior) / e.Anterior) * 100) as Entradas_Cambio,
+    
+    u.Actual as Usuarios_Monto,
+    IF(u.Anterior = 0, 0, ((u.Actual - u.Anterior) / u.Anterior) * 100) as Usuarios_Cambio,
+    
+    IF(u.Actual = 0, 0, (t.Compradores_Actual / u.Actual) * 100) as Conversion_Tasa,
+    
+    IF(u.Anterior = 0 OR t.Compradores_Anterior = 0, 0, 
+       ( ( (IF(u.Actual=0,0,t.Compradores_Actual/u.Actual)) - (t.Compradores_Anterior/u.Anterior) ) / (t.Compradores_Anterior/u.Anterior) ) * 100
+    ) as Conversion_Cambio
+
+FROM KpiTransaccional t
+JOIN KpiEntradas e ON 1=1
+JOIN KpiPuntos p ON 1=1
+JOIN KpiUsuarios u ON 1=1;";
+
+                MetricasDashboardDTO metricas = new MetricasDashboardDTO();
+
+                DB.Select(query, null);
+
+                try
+                {
+                    if (DB.Read())
+                    {
+                        metricas.ingresosTotales = new MetricaConMontoDTO
+                        {
+                            valor = DB.GetDecimal("Ingresos_Monto"),
+                            porcentajeCambio = DB.GetDecimal("Ingresos_Cambio")
+                        };
+
+                        metricas.puntosUsadosPromedio = new MetricaConMontoDTO
+                        {
+                            valor = DB.GetInt("Puntos_Monto"),
+                            porcentajeCambio = DB.GetDecimal("Puntos_Cambio")
+                        };
+
+                        metricas.entradasVendidas = new MetricaConMontoDTO
+                        {
+                            valor = DB.GetInt("Entradas_Monto"),
+                            porcentajeCambio = DB.GetDecimal("Entradas_Cambio")
+                        };
+
+                        metricas.usuariosNuevos = new MetricaConMontoDTO
+                        {
+                            valor = DB.GetInt("Usuarios_Monto"),
+                            porcentajeCambio = DB.GetDecimal("Usuarios_Cambio")
+                        };
+
+                        metricas.tasaConversion = new MetricaConMontoDTO
+                        {
+                            valor = DB.GetDecimal("Conversion_Tasa"),
+                            porcentajeCambio = DB.GetDecimal("Conversion_Cambio")
+                        };
+                    }
+                }
+                finally
+                {
+                    DB.CloseReader();
+                }
+
+                return metricas;
+            }
+        }
+
+        public List<EventoMasVendidoDTO> ObtenerEventosMasVendidos()
+        {
+            lock (DB)
+            {
+                string query = @"
+SELECT 
+    e.id AS id,
+    e.nombre AS nombre,
+    l.nombre AS ubicacion,
+    MIN(te.precio) AS precio,
+    SUM(te.cantidadVendida) AS entradasVendidas
+FROM Evento e
+INNER JOIN Local l ON e.idLocal = l.id
+INNER JOIN FechaEvento fe ON fe.idEvento = e.id
+INNER JOIN TipoEntrada te ON te.idFechaEvento = fe.id
+WHERE e.isDeleted = 0
+GROUP BY e.id, e.nombre, l.nombre
+ORDER BY entradasVendidas DESC
+LIMIT 5;";
+
+                List<EventoMasVendidoDTO> eventos = new List<EventoMasVendidoDTO>();
+
+                DB.Select(query, null);
+
+                try
+                {
+                    while (DB.Read())
+                    {
+                        EventoMasVendidoDTO evento = new EventoMasVendidoDTO
+                        {
+                            id = DB.GetInt("id"), // Convertir INT a string
+                            nombre = DB.GetString("nombre"),
+                            ubicacion = DB.GetString("ubicacion"),
+                            precio = DB.GetDecimal("precio"),
+                            entradasVendidas = DB.GetInt("entradasVendidas")
+                        };
+
+                        eventos.Add(evento);
+                    }
+                }
+                finally
+                {
+                    DB.CloseReader();
+                }
+
+                return eventos;
+            }
+        }
     }
 }

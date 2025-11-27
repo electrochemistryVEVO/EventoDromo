@@ -135,6 +135,10 @@ namespace EventodromoRest.Negocio
                 // Generar token único para esta transferencia (no usar TokenService, solo Guid)
                 string tokenTransferencia = Guid.NewGuid().ToString("N"); // Token simple para la transferencia
                 
+                // Obtener horas de expiraci\u00f3n desde configuraci\u00f3n
+                var dromopuntosMapper = new DromopuntosMapper(globales, DB);
+                int horasExpiracion = dromopuntosMapper.ObtenerHorasExpiracionTransferencia();
+
                 // Registrar la transferencia pendiente en la tabla
                 var transferenciaPendiente = new TransferenciaPendiente
                 {
@@ -146,7 +150,7 @@ namespace EventodromoRest.Negocio
                     DetalleEntradas = JsonSerializer.Serialize(idsEntradasTransferidas),
                     Estado = "pendiente",
                     FechaCreacion = DateTime.Now,
-                    FechaExpiracion = DateTime.Now.AddHours(24)
+                    FechaExpiracion = DateTime.Now.AddHours(horasExpiracion)
                 };
 
                 bool registroExitoso = mapper.RegistrarTransferenciaPendiente(transferenciaPendiente);
@@ -176,30 +180,43 @@ namespace EventodromoRest.Negocio
                     return $"{e.cantidad}x {nombreTipo}";
                 }).ToList();
                 
-                // Email al destinatario con botones de aceptar/rechazar
+                // Enviar emails de forma asíncrona sin bloquear la respuesta
                 string urlBase = _configuration["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
-                emailService.EnviarEmailDestinatarioTransferencia(
-                    request.emailDestino,
-                    request.nombreRemitente ?? "Un usuario",
-                    nombreEvento,
-                    idsEntradasTransferidas.Count,
-                    tiposEntradaTexto,
-                    tokenTransferencia,
-                    urlBase
-                );
-
-                // Email al remitente confirmando el envío
-                if (!string.IsNullOrWhiteSpace(request.emailRemitente))
+                _ = Task.Run(async () =>
                 {
-                    emailService.EnviarEmailRemitenteTransferencia(
-                        request.emailRemitente,
-                        request.nombreRemitente ?? "Usuario",
-                        nombreEvento,
-                        request.emailDestino,
-                        idsEntradasTransferidas.Count,
-                        tiposEntradaTexto
-                    );
-                }
+                    try
+                    {
+                        // Email al destinatario con botones de aceptar/rechazar
+                        await emailService.EnviarEmailDestinatarioTransferenciaAsync(
+                            request.emailDestino,
+                            request.nombreRemitente ?? "Un usuario",
+                            nombreEvento,
+                            idsEntradasTransferidas.Count,
+                            tiposEntradaTexto,
+                            tokenTransferencia,
+                            urlBase,
+                            horasExpiracion
+                        );
+
+                        // Email al remitente confirmando el envío
+                        if (!string.IsNullOrWhiteSpace(request.emailRemitente))
+                        {
+                            await emailService.EnviarEmailRemitenteTransferenciaAsync(
+                                request.emailRemitente,
+                                request.nombreRemitente ?? "Usuario",
+                                nombreEvento,
+                                request.emailDestino,
+                                idsEntradasTransferidas.Count,
+                                tiposEntradaTexto,
+                                horasExpiracion
+                            );
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ No se pudo enviar emails de transferencia: {ex.Message}");
+                    }
+                });
 
                 var response = new TransferirEntradasResponse
                 {
@@ -210,7 +227,7 @@ namespace EventodromoRest.Negocio
                 return new GenericResponse<TransferirEntradasResponse>
                 {
                     Success = true,
-                    Message = "Transferencia enviada exitosamente. El destinatario tiene 24 horas para aceptarla.",
+                    Message = $"Transferencia enviada exitosamente. El destinatario tiene {horasExpiracion} horas para aceptarla.",
                     Data = response,
                     Error = null
                 };

@@ -85,21 +85,32 @@ namespace EventodromoRest.Negocio
                 var detallesEntradas = transaccionMapper.ObtenerDetallesEntradasParaEmail(response.IdTransaccion);
                 var emailService = new EmailService();
                 
-                emailService.EnviarEmailConfirmacionCompraTarjeta(
-                    request.DatosFacturacion.Email,
-                    request.DatosFacturacion.Nombres + " " + request.DatosFacturacion.Apellidos,
-                    response.NumeroTransaccion,
-                    response.FechaCompra,
-                    response.MontoTotal,
-                    response.PuntosGanados,
-                    response.Ultimos4DigitosTarjeta ?? "****",
-                    detallesEntradas
-                );
+                // Enviar email de forma asíncrona sin bloquear la respuesta
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await emailService.EnviarEmailConfirmacionCompraTarjetaAsync(
+                            request.DatosFacturacion.Email,
+                            request.DatosFacturacion.Nombres + " " + request.DatosFacturacion.Apellidos,
+                            response.NumeroTransaccion,
+                            response.FechaCompra,
+                            response.MontoTotal,
+                            response.PuntosGanados,
+                            response.Ultimos4DigitosTarjeta ?? "****",
+                            detallesEntradas
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ No se pudo enviar email de confirmación: {ex.Message}");
+                    }
+                });
             }
             catch (Exception ex)
             {
                 // No fallar la transacción si el email falla, solo loguearlo
-                Console.WriteLine($"⚠️ No se pudo enviar email de confirmación: {ex.Message}");
+                Console.WriteLine($"⚠️ Error preparando email de confirmación: {ex.Message}");
             }
 
             // --- 4. Devolver respuesta exitosa ---
@@ -123,19 +134,30 @@ namespace EventodromoRest.Negocio
                 var detallesEntradas = transaccionMapper.ObtenerDetallesEntradasParaEmail(response.IdTransaccion);
                 var emailService = new EmailService();
                 
-                emailService.EnviarEmailConfirmacionCompraPuntos(
-                    request.DatosFacturacion.Email,
-                    request.DatosFacturacion.Nombres + " " + request.DatosFacturacion.Apellidos,
-                    response.NumeroTransaccion,
-                    response.FechaCompra,
-                    response.PuntosGastados,
-                    detallesEntradas
-                );
+                // Enviar email de forma asíncrona sin bloquear la respuesta
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await emailService.EnviarEmailConfirmacionCompraPuntosAsync(
+                            request.DatosFacturacion.Email,
+                            request.DatosFacturacion.Nombres + " " + request.DatosFacturacion.Apellidos,
+                            response.NumeroTransaccion,
+                            response.FechaCompra,
+                            response.PuntosGastados,
+                            detallesEntradas
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ No se pudo enviar email de confirmación: {ex.Message}");
+                    }
+                });
             }
             catch (Exception ex)
             {
                 // No fallar la transacción si el email falla, solo loguearlo
-                Console.WriteLine($"⚠️ No se pudo enviar email de confirmación: {ex.Message}");
+                Console.WriteLine($"⚠️ Error preparando email de confirmación: {ex.Message}");
             }
 
             // --- 3. Devolver respuesta exitosa ---
@@ -144,6 +166,29 @@ namespace EventodromoRest.Negocio
                 Success = true,
                 Message = "Pago con puntos procesado exitosamente.",
                 Data = response
+            };
+        }
+
+        /// <summary>
+        /// Obtiene el detalle completo de una transacción filtrado por evento
+        /// Verifica que la transacción pertenezca al cliente autenticado
+        /// </summary>
+        public GenericResponse<DetalleTransaccionCompleto> ObtenerDetalleCompleto(string numeroTransaccion, int idEvento, int idCliente)
+        {
+            var transaccionMapper = new TransaccionMapper(globales, DB);
+            var detalle = transaccionMapper.ObtenerDetalleCompleto(numeroTransaccion, idEvento, idCliente);
+
+            if (detalle == null)
+            {
+                throw new Exception("Transacción no encontrada o no tiene permisos para ver esta transacción.");
+            }
+
+            return new GenericResponse<DetalleTransaccionCompleto>
+            {
+                Success = true,
+                Message = "Detalle de transacción obtenido correctamente.",
+                Data = detalle,
+                Error = null
             };
         }
     }
