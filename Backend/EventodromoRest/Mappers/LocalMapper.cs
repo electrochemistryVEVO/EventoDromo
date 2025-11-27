@@ -396,5 +396,137 @@ namespace EventodromoRest.Mappers
             }
             return listaOcupacion;
         }
+
+        public int InsertarLocalesMasivo(List<LocalMasivoItem> locales, int idAdministrador)
+        {
+            lock (DB)
+            {
+                try
+                {
+                    // Iniciar transacción
+                    DB.BeginTransaction();
+
+                    int insertados = 0;
+
+                    foreach (var local in locales)
+                    {
+                        string query = "INSERT INTO Local (NOMBRE, IDCIUDAD, DIRECCION, CAPACIDAD, IMAGENURL, ISDELETED, CREADOPOR) " +
+                                     "VALUES (@NOMBRE, @IDCIUDAD, @DIRECCION, @CAPACIDAD, @IMAGENURL, @ISDELETED, @CREADOPOR)";
+                        
+                        var parametros = new ParameterList();
+                        parametros.Add("@NOMBRE", local.nombre);
+                        parametros.Add("@IDCIUDAD", local.idCiudad);
+                        parametros.Add("@DIRECCION", local.direccion);
+                        parametros.Add("@CAPACIDAD", local.capacidad);
+                        parametros.Add("@IMAGENURL", string.IsNullOrWhiteSpace(local.imagen) ? null : local.imagen);
+                        parametros.Add("@ISDELETED", false);
+                        parametros.Add("@CREADOPOR", idAdministrador);
+
+                        int rowsAffected = DB.ExecuteNonQuery(query, parametros);
+                        insertados += rowsAffected;
+                    }
+
+                    // Confirmar transacción
+                    DB.Commit();
+                    return insertados;
+                }
+                catch (Exception)
+                {
+                    // Revertir transacción en caso de error
+                    DB.Rollback();
+                    throw;
+                }
+            }
+        }
+
+        public bool VerificarDireccionesDuplicadasEnBD(List<string> direcciones)
+        {
+            lock (DB)
+            {
+                if (direcciones == null || !direcciones.Any())
+                    return false;
+
+                // Crear lista de parámetros
+                var parametros = new ParameterList();
+                var placeholders = new List<string>();
+                
+                for (int i = 0; i < direcciones.Count; i++)
+                {
+                    string paramName = $"@DIRECCION{i}";
+                    parametros.Add(paramName, direcciones[i]);
+                    placeholders.Add(paramName);
+                }
+
+                string query = $"SELECT COUNT(*) FROM Local WHERE direccion IN ({string.Join(",", placeholders)})";
+                
+                object result = DB.ExecuteScalar(query, parametros);
+                int count = Convert.ToInt32(result);
+                
+                return count > 0;
+            }
+        }
+
+        public List<string> ObtenerDireccionesDuplicadasEnBD(List<string> direcciones)
+        {
+            lock (DB)
+            {
+                var duplicadas = new List<string>();
+                
+                if (direcciones == null || !direcciones.Any())
+                    return duplicadas;
+
+                // Crear lista de parámetros
+                var parametros = new ParameterList();
+                var placeholders = new List<string>();
+                
+                for (int i = 0; i < direcciones.Count; i++)
+                {
+                    string paramName = $"@DIRECCION{i}";
+                    parametros.Add(paramName, direcciones[i]);
+                    placeholders.Add(paramName);
+                }
+
+                string query = $"SELECT direccion FROM Local WHERE direccion IN ({string.Join(",", placeholders)})";
+                
+                DB.Select(query, parametros);
+                while (DB.Read())
+                {
+                    duplicadas.Add(DB.GetString("direccion"));
+                }
+                DB.CloseReader();
+                
+                return duplicadas;
+            }
+        }
+
+        public bool VerificarCiudadesExisten(List<int> idsCiudad)
+        {
+            lock (DB)
+            {
+                if (idsCiudad == null || !idsCiudad.Any())
+                    return true;
+
+                var idsUnicos = idsCiudad.Distinct().ToList();
+                
+                // Crear lista de parámetros
+                var parametros = new ParameterList();
+                var placeholders = new List<string>();
+                
+                for (int i = 0; i < idsUnicos.Count; i++)
+                {
+                    string paramName = $"@ID{i}";
+                    parametros.Add(paramName, idsUnicos[i]);
+                    placeholders.Add(paramName);
+                }
+
+                string query = $"SELECT COUNT(*) FROM Ciudad WHERE id IN ({string.Join(",", placeholders)})";
+                
+                object result = DB.ExecuteScalar(query, parametros);
+                int count = Convert.ToInt32(result);
+                
+                // Todas las ciudades deben existir
+                return count == idsUnicos.Count;
+            }
+        }
     }
 }

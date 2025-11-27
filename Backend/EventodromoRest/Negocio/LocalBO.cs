@@ -188,5 +188,134 @@ namespace EventodromoRest.Negocio
                 Data = ocupacionLocales
             };
         }
+
+        public GenericResponse<LocalCrearMasivoResponseData> InsertarLocalesMasivo(List<LocalMasivoItem> locales, int idAdministrador)
+        {
+            try
+            {
+                var mapper = new LocalMapper(globales, DB);
+
+                // 1. Validar que el array no esté vacío
+                if (locales == null || !locales.Any())
+                {
+                    return new GenericResponse<LocalCrearMasivoResponseData>
+                    {
+                        Success = false,
+                        Message = "El array de locales no puede estar vacío.",
+                        Data = new LocalCrearMasivoResponseData { insertados = 0, fallidos = locales?.Count ?? 0 }
+                    };
+                }
+
+                // 2. Validar que cada local tenga campos requeridos
+                for (int i = 0; i < locales.Count; i++)
+                {
+                    var local = locales[i];
+                    
+                    if (string.IsNullOrWhiteSpace(local.nombre))
+                    {
+                        return new GenericResponse<LocalCrearMasivoResponseData>
+                        {
+                            Success = false,
+                            Message = $"Local en posición {i + 1}: El nombre es requerido.",
+                            Data = new LocalCrearMasivoResponseData { insertados = 0, fallidos = locales.Count }
+                        };
+                    }
+
+                    if (string.IsNullOrWhiteSpace(local.direccion))
+                    {
+                        return new GenericResponse<LocalCrearMasivoResponseData>
+                        {
+                            Success = false,
+                            Message = $"Local en posición {i + 1}: La dirección es requerida.",
+                            Data = new LocalCrearMasivoResponseData { insertados = 0, fallidos = locales.Count }
+                        };
+                    }
+
+                    if (local.capacidad <= 0)
+                    {
+                        return new GenericResponse<LocalCrearMasivoResponseData>
+                        {
+                            Success = false,
+                            Message = $"Local en posición {i + 1}: La capacidad debe ser mayor a 0.",
+                            Data = new LocalCrearMasivoResponseData { insertados = 0, fallidos = locales.Count }
+                        };
+                    }
+
+                    if (local.idCiudad <= 0)
+                    {
+                        return new GenericResponse<LocalCrearMasivoResponseData>
+                        {
+                            Success = false,
+                            Message = $"Local en posición {i + 1}: El ID de ciudad es requerido.",
+                            Data = new LocalCrearMasivoResponseData { insertados = 0, fallidos = locales.Count }
+                        };
+                    }
+                }
+
+                // 3. Validar direcciones duplicadas dentro del batch
+                var direcciones = locales.Select(l => l.direccion.Trim()).ToList();
+                var direccionesDuplicadasEnBatch = direcciones
+                    .GroupBy(d => d)
+                    .Where(g => g.Count() > 1)
+                    .Select(g => g.Key)
+                    .ToList();
+
+                if (direccionesDuplicadasEnBatch.Any())
+                {
+                    return new GenericResponse<LocalCrearMasivoResponseData>
+                    {
+                        Success = false,
+                        Message = $"Dirección duplicada dentro del batch: {direccionesDuplicadasEnBatch.First()}",
+                        Data = new LocalCrearMasivoResponseData { insertados = 0, fallidos = locales.Count }
+                    };
+                }
+
+                // 4. Validar que las direcciones no existan en la BD
+                var direccionesDuplicadasEnBD = mapper.ObtenerDireccionesDuplicadasEnBD(direcciones);
+                if (direccionesDuplicadasEnBD.Any())
+                {
+                    return new GenericResponse<LocalCrearMasivoResponseData>
+                    {
+                        Success = false,
+                        Message = $"Dirección ya existe en la base de datos: {direccionesDuplicadasEnBD.First()}",
+                        Data = new LocalCrearMasivoResponseData { insertados = 0, fallidos = locales.Count }
+                    };
+                }
+
+                // 5. Validar que los idCiudad existan
+                var idsCiudad = locales.Select(l => l.idCiudad).Distinct().ToList();
+                bool ciudadesExisten = mapper.VerificarCiudadesExisten(idsCiudad);
+                
+                if (!ciudadesExisten)
+                {
+                    return new GenericResponse<LocalCrearMasivoResponseData>
+                    {
+                        Success = false,
+                        Message = "Una o más ciudades especificadas no existen en la base de datos.",
+                        Data = new LocalCrearMasivoResponseData { insertados = 0, fallidos = locales.Count }
+                    };
+                }
+
+                // 6. Insertar todos los locales en una transacción
+                int insertados = mapper.InsertarLocalesMasivo(locales, idAdministrador);
+
+                return new GenericResponse<LocalCrearMasivoResponseData>
+                {
+                    Success = true,
+                    Message = $"Se insertaron {insertados} locales exitosamente.",
+                    Data = new LocalCrearMasivoResponseData { insertados = insertados, fallidos = 0 }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GenericResponse<LocalCrearMasivoResponseData>
+                {
+                    Success = false,
+                    Message = "Error al insertar locales masivamente.",
+                    Error = ex.Message,
+                    Data = new LocalCrearMasivoResponseData { insertados = 0, fallidos = locales?.Count ?? 0 }
+                };
+            }
+        }
     }
 }

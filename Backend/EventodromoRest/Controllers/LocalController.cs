@@ -395,5 +395,68 @@ namespace EventodromoRest.Controllers
             }
         }
 
+        /// <summary>
+        /// Carga masiva de locales desde un CSV procesado por el frontend.
+        /// Recibe un array de locales y los inserta todos en una sola transacción.
+        /// Si alguno falla, se hace rollback de toda la operación.
+        /// </summary>
+        [HttpPost]
+        [Route("/api/[controller]/[action]")] // -> /api/Local/LocalCrearMasivo
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        public GenericResponse<LocalCrearMasivoResponseData> LocalCrearMasivo([FromBody] LocalCrearMasivoRequest request)
+        {
+            try
+            {
+                // Validar que el request no sea nulo
+                if (request == null || request.locales == null)
+                {
+                    return new GenericResponse<LocalCrearMasivoResponseData>
+                    {
+                        Success = false,
+                        Message = "El cuerpo de la solicitud no puede estar vacío.",
+                        Data = new LocalCrearMasivoResponseData { insertados = 0, fallidos = 0 }
+                    };
+                }
+
+                // Obtener el ID del administrador del token (si aplica autorización)
+                // Si no usas token, puedes usar un valor por defecto o recibirlo en el request
+                int idAdministrador = 1; // Valor por defecto
+                
+                // Si tienes autorización por token, descomenta esto:
+                // var userIdString = User.FindFirst("idAdministrador")?.Value;
+                // if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out idAdministrador))
+                // {
+                //     return new GenericResponse<LocalCrearMasivoResponseData>
+                //     {
+                //         Success = false,
+                //         Message = "ID de administrador inválido en el token.",
+                //         Data = new LocalCrearMasivoResponseData { insertados = 0, fallidos = request.locales.Count }
+                //     };
+                // }
+
+                var bo = new LocalBO(globales, BD);
+                var response = bo.InsertarLocalesMasivo(request.locales, idAdministrador);
+                
+                return response;
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<LocalCrearMasivoResponseData>
+                {
+                    Success = false,
+                    Message = "Error fatal en el controlador al procesar la carga masiva.",
+                    Error = e.Message,
+                    Data = new LocalCrearMasivoResponseData 
+                    { 
+                        insertados = 0, 
+                        fallidos = request?.locales?.Count ?? 0 
+                    }
+                };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
     }
 }
