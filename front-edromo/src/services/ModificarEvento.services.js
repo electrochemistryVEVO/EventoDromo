@@ -1,5 +1,5 @@
 /**
- * @file eventEditionService.js
+ * @file ModificarEvento.services.js
  * @description Servicios para obtener y actualizar los datos de un evento existente.
  */
 
@@ -7,14 +7,10 @@ const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const getAuthToken = () => {
   try {
-    // 1. Lee la clave "user" de localStorage (donde UserContext la guarda)
     const userJSON = localStorage.getItem("user");
-
     if (!userJSON) {
       return null;
     }
-
-    // 2. Parsea el objeto y devuelve la propiedad "token"
     const userData = JSON.parse(userJSON);
     return userData?.token || null;
   } catch (error) {
@@ -24,8 +20,8 @@ const getAuthToken = () => {
 };
 
 /**
- * Actualiza un evento existente enviando todos sus datos, incluyendo horarios, entradas y descuentos.
- * El backend identifica si un sub-elemento es nuevo si su 'id' es 0.
+ * Actualiza un evento existente enviando todos sus datos.
+ * El backend identifica si una entrada es nueva si su 'idEntrada' es 0.
  *
  * @param {object} eventData - El objeto completo con los datos del evento a actualizar.
  * @returns {Promise<object>} La respuesta del servidor tras la actualización.
@@ -51,19 +47,9 @@ export const updateEvent = async (eventData) => {
     throw new Error("Token de autenticación no encontrado.");
   }
 
-  // --- 2. Transformación de Datos (Frontend -> Backend) ---
   try {
-    const resolveId = (id) => {
-      if (!id) return 0;
-      return id > 2000000000 ? 0 : id;
-    };
-
-    // Mapa de horarios para vincularlos a las entradas (preservando tu lógica anterior)
-    const horariosMap = new Map();
-    (eventData.fechas || []).forEach((h) => horariosMap.set(h.id, h));
-
+    // Construir el payload tal cual lo envía el controller
     const payload = {
-      // --- Campos Principales ---
       idEvento: eventData.idEvento,
       nombre: eventData.nombre,
       descripcion: eventData.descripcion,
@@ -73,55 +59,45 @@ export const updateEvent = async (eventData) => {
       capacidad: parseInt(eventData.capacidad, 10),
       fechaPublicacion: eventData.fechaPublicacion,
       fechaCompra: eventData.fechaCompra,
-
-      // --- Mapeo de Horarios ---
-      horarios: (eventData.fechas || []).map((h) => ({
-        id: resolveId(h.id),
+      horarios: eventData.horarios.map((h) => ({
+        id: h.id,
         fecha: h.fecha,
         hora: h.hora,
       })),
-
-      // --- Mapeo de Entradas ---
-      entradas: (eventData.tiposEntrada || []).map((t) => {
-        // Lógica existente: vincular con objeto horario completo
-        const horarioAsociado = horariosMap.get(t.horarioId);
-
-        return {
-          idEntrada: resolveId(t.id),
-          nombre: t.nombre,
-          precio: parseFloat(t.precio),
-          cantidadEntradas: parseInt(t.cantidad, 10),
-          limiteCompra: parseInt(t.limiteCompra, 10),
-          puntos: parseInt(t.puntos, 10),
-          horario: horarioAsociado
-            ? {
-                id: resolveId(horarioAsociado.id),
-                fecha: horarioAsociado.fecha,
-                hora: horarioAsociado.hora,
-              }
-            : null,
-        };
-      }),
-
-      // --- Mapeo de Descuentos (NUEVO) ---
-      descuentos: (eventData.descuentos || []).map((d) => ({
-        id: resolveId(d.id), // 0 si es nuevo, ID real si existe
+      entradas: eventData.entradas.map((e) => ({
+        idEntrada: e.idEntrada,
+        nombre: e.nombre,
+        precio: e.precio,
+        cantidadEntradas: e.cantidadEntradas,
+        limiteCompra: e.limiteCompra,
+        puntos: e.puntos,
+        horario: {
+          id: e.horario.id,
+          fecha: e.horario.fecha || "",
+          hora: e.horario.hora || "",
+        },
+      })),
+      descuentos: eventData.descuentos.map((d) => ({
+        id: d.id,
         nombre: d.nombre,
         codigo: d.codigo,
-        tipo: d.tipo, // "Porcentaje" o "Fijo"
-        valor: parseFloat(d.valor),
+        tipo: d.tipo,
+        valor: d.valor,
         fechaInicio: d.fechaInicio,
         fechaFin: d.fechaFin,
-        usosMaximos: parseInt(d.usosMaximos, 10),
-        tipoEntradaId: parseInt(d.tipoEntradaId, 10),
+        usosMaximos: d.usosMaximos,
+        tipoEntradaId: d.tipoEntradaId,
       })),
     };
 
-    console.log("Payload updateEvent:", JSON.stringify(payload, null, 2));
+    console.log(
+      "Payload actualización evento:",
+      JSON.stringify(payload, null, 2)
+    );
 
-    // --- 3. Petición a la API ---
+    // --- 2. Petición a la API ---
     const response = await fetch(`${BASE_API_URL}/Evento/ActualizarEvento`, {
-      method: "POST", // O 'PUT' dependiendo de tu backend, pero veo que usabas POST
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -129,17 +105,20 @@ export const updateEvent = async (eventData) => {
       body: JSON.stringify(payload),
     });
 
-    // --- 4. Manejo de la Respuesta ---
+    // --- 3. Manejo de la Respuesta ---
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({
         message: `Error del servidor: ${response.status} ${response.statusText}`,
       }));
+      console.error("Error response from backend:", errorData);
       throw new Error(
         errorData.message || "Ocurrió un error al actualizar el evento."
       );
     }
 
-    return await response.json();
+    const responseData = await response.json();
+    console.log("Evento actualizado exitosamente:", responseData);
+    return responseData;
   } catch (error) {
     console.error("Error crítico en el servicio updateEvent:", error);
     throw error;
@@ -151,7 +130,6 @@ export const updateEvent = async (eventData) => {
  * @param {string|number} eventId - El ID del evento.
  * @returns {Promise<object>} Los datos completos del evento, incluyendo descuentos.
  */
-
 export const getEventById = async (eventId) => {
   const token = getAuthToken();
   if (!token) throw new Error("Token de autenticación no encontrado.");
@@ -178,6 +156,7 @@ export const getEventById = async (eventId) => {
     if (!apiResponse.data.descuentos) {
       apiResponse.data.descuentos = [];
     }
+    console.log("Datos del evento cargados:", apiResponse.data);
     return apiResponse.data || {};
   } else {
     throw new Error(
