@@ -148,6 +148,10 @@
         public string FechaCompra { get; set; }
         public List<EventoDatosHorarioDTO> Horarios { get; set; }
         public List<EventoDatosEntradaDTO> Entradas { get; set; }
+
+        public List<DescuentoDTO> Descuentos { get; set; }
+
+
     }
 
     
@@ -167,8 +171,21 @@
         public int Cantidad { get; set; } 
         public int LimiteCompra { get; set; }
         public int Puntos { get; set; }
-    }
 
+        public int HorarioId { get; set; }
+    }
+    public class DescuentoDTO
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; }
+        public string Codigo { get; set; }
+        public string Tipo { get; set; }
+        public decimal Valor { get; set; }
+        public string FechaInicio { get; set; }
+        public string FechaFin { get; set; }
+        public int UsosMaximos { get; set; }
+        public int TipoEntradaId { get; set; }
+    }
     public class ResponseEventoGetEvents
     {
         public List<ResponseEventoGetEventsEventos> Data { get; set; }           // ← lista de eventos simplificados
@@ -244,7 +261,7 @@
         public int entradasVendidas { get; set; }
     }
 
-    // --- PEGA ESTO AL FINAL DE TU ARCHIVO Evento.cs (dentro del namespace) ---
+    
 
     public class CrearEventoDTO
     {

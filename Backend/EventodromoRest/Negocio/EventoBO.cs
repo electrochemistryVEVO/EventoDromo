@@ -184,7 +184,7 @@ namespace EventodromoRest.Negocio
                 // --- 3. Obtener listas relacionadas (Horarios y Entradas) ---
                 List<FechaEvento> horariosDB = fechaEventoMapper.ListarHorariosPorEvento(idEvento);
                 List<TipoEntrada> entradasDB = tipoEntradaMapper.ListarEntradasPorEvento(idEvento);
-
+                List<DescuentoDTO> descuentosDB = eventoMapper.ListarPromocionesPorEvento(idEvento);
                 // --- 4. Transformar (Mapear) a los DTOs ---
                 var dto = new EventoDetalleDTO
                 {
@@ -216,7 +216,9 @@ namespace EventodromoRest.Negocio
                         Cantidad = e.cantidadEntradas ?? 0, // Renombrado
                         LimiteCompra = e.limiteCompra ?? 0,
                         Puntos = e.puntos ?? 0
-                    }).ToList()
+                    }).ToList(),
+
+                     Descuentos = descuentosDB ?? new List<DescuentoDTO>()
                 };
 
                 // --- 5. Retornar éxito ---

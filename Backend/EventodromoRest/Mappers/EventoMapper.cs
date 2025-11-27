@@ -1233,6 +1233,56 @@ WHERE  E.id = @idEvento;
                 return DB.ExecuteNonQuery(query, p);
             }
         }
+        public List<DescuentoDTO> ListarPromocionesPorEvento(int idEvento)
+        {
+            var lista = new List<DescuentoDTO>();
+            lock (DB)
+            {
+                // Query con JOINs para encontrar las promociones de las entradas de este evento
+                string query = @"
+            SELECT 
+                p.id, 
+                p.nombre, 
+                p.codigo, 
+                p.tipo, 
+                p.valor, 
+                p.fechaInicio, 
+                p.fechaFin, 
+                p.usosMaximos,
+                pa.idTipoEntrada
+            FROM Promocion p
+            JOIN Promocion_Aplicable pa ON p.id = pa.idPromocion
+            JOIN TipoEntrada te ON pa.idTipoEntrada = te.id
+            JOIN FechaEvento fe ON te.idFechaEvento = fe.id
+            WHERE fe.idEvento = @ID_EVENTO";
+                // Nota: Si tienes isDeleted en Promocion, añade: AND p.isDeleted = 0
 
+                var p = new ParameterList();
+                p.Add("@ID_EVENTO", idEvento);
+
+                DB.Select(query, p);
+
+                while (DB.Read())
+                {
+                    lista.Add(new DescuentoDTO
+                    {
+                        Id = DB.GetInt("id"),
+                        Nombre = DB.GetString("nombre"),
+                        Codigo = DB.GetString("codigo"),
+                        Tipo = DB.GetString("tipo"),
+                        Valor = DB.GetDecimal("valor"),
+
+                        // Convertimos DateTime a String ISO para el DTO
+                        FechaInicio = DB.GetDateTime("fechaInicio").ToString("s"),
+                        FechaFin = DB.GetDateTime("fechaFin").ToString("s"),
+
+                        UsosMaximos = DB.GetInt("usosMaximos"),
+                        TipoEntradaId = DB.GetInt("idTipoEntrada") // Importante para el frontend
+                    });
+                }
+                DB.CloseReader(); // ¡Siempre cerrar el reader!
+            }
+            return lista;
+        }
     }
 }
