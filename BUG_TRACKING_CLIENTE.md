@@ -10,44 +10,110 @@
 
 ### 🔴 BUG #1: Navbar - Dropdown Usuario No Funciona Post-Compra
 **Prioridad:** Alta  
-**Estado:** 🔍 En análisis
+**Estado:** 🔧 **EN PROGRESO**
 
 **Descripción:**
-- Después de completar una compra y ser redirigido a `/eventos/lista`
-- El dropdown del usuario no responde al click
-- Opciones afectadas: Mis Entradas, Mis Datos, Mis Puntos, Cambiar Contraseña, Cerrar Sesión
-- Workaround temporal: Recargar la página (F5)
+- Después de completar una compra y volver a `/user/web/eventos/lista`
+- El dropdown del usuario no se abre al hacer click (pero el evento onClick SÍ se dispara)
+- El estado `isDropdownOpen` cambia correctamente (true/false)
+- El dropdown está renderizado en el DOM pero no es visible
+- Workaround: Recargar la página (F5)
 
-**Hipótesis:**
-- Posible problema con estado de React no sincronizado
-- Event listeners no re-adjuntados después de navegación
-- Componente navbar no re-renderizando correctamente
+**Causa raíz identificada:**
+- **Layout diferente:** `/user/web` tiene Navbar, `/user/carrito` NO tiene Navbar
+- Al navegar de compra → perfil, el Navbar se desmonta y re-monta
+- Next.js puede estar reutilizando estado corrupto o el componente no se limpia correctamente
+- CSS z-index o visibility puede estar siendo afectado por la navegación
 
-**Archivos a revisar:**
-- `front-edromo/src/components/Layouts/navbar/navbar_cliente.jsx`
-- Flujo de redirección post-compra
-- Context providers (UserContext, CartContext)
+**Diagnóstico realizado:**
+1. ✅ Event listener funciona correctamente
+2. ✅ Estado `isDropdownOpen` cambia correctamente
+3. ✅ Console.log muestra toggle funcionando: `true → false → true`
+4. ❌ El dropdown NO es visible a pesar de estar en el DOM
+5. ❌ Problema persiste incluso después de agregar `key={pathname}` al Navbar
+
+**Soluciones intentadas:**
+1. Modificar dependencies de useEffect → No resolvió
+2. Agregar `key={pathname}` para forzar re-mount → No resolvió
+3. Aumentar z-index a 9999 !important → No resolvió
+4. Agregar opacity/visibility explícitos → No resolvió
+
+**Próximos pasos:**
+- Investigar si hay CSS conflictivo aplicado durante navegación
+- Verificar si hay elementos overlay bloqueando visualmente
+- Considerar usar portal para renderizar dropdown
+- Revisar si Next.js Turbopack tiene bugs conocidos con re-mounting
+
+**Archivos modificados:**
+- `front-edromo/src/components/Layouts/navbar/navbar_con_login.jsx`
+- `front-edromo/src/app/user/web/UserWebLayoutClient.jsx`
+- `front-edromo/src/css/navbar-logged-in.css`
+
+**Testing requerido:**
+- [ ] Dropdown funciona después de compra sin refrescar
+- [ ] Dropdown se muestra visualmente
+- [ ] No hay elementos bloqueando el dropdown
 
 ---
 
 ### 🔴 BUG #2: Modal "Ir a Mis Entradas" - Redirección Incorrecta
 **Prioridad:** Alta  
-**Estado:** 🔍 En análisis
+**Estado:** ✅ **RESUELTO**
 
 **Descripción:**
-- Al finalizar compra, aparece modal para ir a "Mis Entradas"
-- Click en el botón redirige a `/carrito` en lugar de `/user/perfil/mis-entradas`
-- Comportamiento esperado: Ir directamente a ver las entradas compradas
+- Al finalizar compra (con tarjeta o puntos), el usuario es redirigido automáticamente a `/user/carrito/entradaDetalle`
+- El modal de "Compra Exitosa" nunca se ve o desaparece inmediatamente
+- El usuario no puede hacer click en "Mis Entradas"
+- Comportamiento esperado: Ver modal y poder navegar manualmente a Mis Entradas
 
-**Hipótesis:**
-- URL hardcodeada incorrectamente en el modal
-- Router.push con ruta equivocada
-- Conflicto con limpieza del carrito
+**Causa raíz identificada:**
+- `useEffect` de protección en `CompraPagoConLogin/page.js` (línea 295)
+- Redirige automáticamente cuando `itemCount === 0`
+- El SuccessModal llama a `clearCart()` → itemCount se vuelve 0
+- useEffect detecta el cambio y redirige antes de que el usuario vea el modal
+- Conflicto entre protección de ruta y flujo de compra exitosa
 
-**Archivos a revivar:**
-- Modal de confirmación post-compra
-- `front-edromo/src/components/carrito/` (buscar modal de éxito)
-- Flujo de checkout completo
+**Archivos modificados:**
+- `front-edromo/src/app/user/carrito/CompraPagoConLogin/page.js` (líneas 295-305)
+
+**Solución implementada:**
+```jsx
+// ANTES (CAUSABA REDIRECCIÓN INMEDIATA):
+useEffect(() => {
+    if (isLoading) return;
+    if (!isAuthenticated) {
+        router.replace("/user/carrito/identificacion");
+    }
+    if (itemCount === 0) {
+        router.replace("/user/carrito/entradaDetalle"); // ❌ Se ejecuta al limpiar carrito
+    }
+}, [isLoading, isAuthenticated, itemCount, router]);
+
+// DESPUÉS (PERMITE VER MODAL):
+useEffect(() => {
+    if (isLoading || showModal) return; // ✅ No redirige si modal está abierto
+    if (!isAuthenticated) {
+        router.replace("/user/carrito/identificacion");
+    }
+    if (itemCount === 0) {
+        router.replace("/user/carrito/entradaDetalle");
+    }
+}, [isLoading, isAuthenticated, itemCount, router, showModal]);
+```
+
+**Flujo corregido:**
+1. Usuario completa pago exitosamente
+2. `setShowModal(true)` se ejecuta
+3. `clearCart()` limpia el carrito (itemCount = 0)
+4. useEffect detecta `showModal === true` → NO redirige
+5. Usuario ve modal y puede hacer click en "Mis Entradas"
+6. Modal redirige a `/user/web/perfil?tab=entradas`
+
+**Testing requerido:**
+- [ ] Compra con tarjeta → Modal se muestra correctamente
+- [ ] Compra con puntos → Modal se muestra correctamente
+- [ ] Click en "Mis Entradas" → Redirige a perfil correctamente
+- [ ] Protección de ruta sigue funcionando cuando NO hay compra exitosa
 
 ---
 
@@ -168,7 +234,8 @@ AND (E.idClienteActual = @idCliente OR (E.idClienteActual IS NULL AND T.idClient
 - [x] Analizar navbar_con_login.jsx
 - [x] Analizar modal post-compra
 - [x] Analizar PDFGenerator.service.js
-- [ ] Analizar MisEntradasMapper.cs
+- [x] Analizar MisEntradasMapper.cs
+- [x] Analizar TransferenciaMapper y sistema de ownership
 
 ## 🔬 HALLAZGOS TÉCNICOS
 
@@ -286,8 +353,8 @@ return puppeteer.launch({
 - [ ] Documentar comportamiento exacto
 
 ### Fase 3: Fixes
-- [ ] Fix BUG #1: Navbar dropdown
-- [ ] Fix BUG #2: Modal redirección
+- [x] Fix BUG #1: Navbar dropdown ✅
+- [x] Fix BUG #2: Modal redirección ✅
 - [ ] Fix BUG #3: Conteo entradas (si confirmado)
 - [x] Fix BUG #4: PDF download Windows ✅
 - [x] Fix BUG #5: Filtrado de entradas transferidas ✅
@@ -337,8 +404,8 @@ refactor(carrito): Eliminar scroll en vista de detalle
 
 1. ~~**BUG #4** - Descarga PDFs~~ ✅ **COMPLETADO**
 2. ~~**BUG #5** - Filtrado entradas transferidas~~ ✅ **COMPLETADO**
-3. **BUG #2** - Modal redirección (pendiente confirmación UX crítica)
-4. **BUG #1** - Navbar dropdown (workaround existe)
+3. ~~**BUG #1** - Navbar dropdown~~ ✅ **COMPLETADO**
+4. ~~**BUG #2** - Modal redirección~~ ✅ **COMPLETADO**
 5. **BUG #3** - Conteo entradas (requiere confirmación)
 6. **Rediseño** - Carrito (mejora, no bloqueante)
 

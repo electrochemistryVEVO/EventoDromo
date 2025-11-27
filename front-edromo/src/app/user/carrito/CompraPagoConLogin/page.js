@@ -224,9 +224,13 @@ const SuccessModal = ({ onClose }) => {
     const router = useRouter();
     const { clearCart } = useCart();
 
-    const handleRedirect = () => {
-        clearCart();
+    const handleRedirect = async () => {
+        // Primero navegamos
         router.push("/user/web/perfil?tab=entradas");
+        // Luego esperamos un momento y limpiamos el carrito
+        setTimeout(() => {
+            clearCart();
+        }, 100);
     };
 
     return (
@@ -292,16 +296,16 @@ function CompraPagoConLoginPage() {
         loadConfig();
     }, []);
 
-    // Efecto de protección (sin cambios)
+    // Efecto de protección - NO redirigir si el modal de éxito está abierto
     useEffect(() => {
-        if (isLoading) return;
+        if (isLoading || showModal) return; // Evita redirección cuando se muestra el modal de éxito
         if (!isAuthenticated) {
             router.replace("/user/carrito/identificacion");
         }
         if (itemCount === 0) {
             router.replace("/user/carrito/entradaDetalle");
         }
-    }, [isLoading, isAuthenticated, itemCount, router]);
+    }, [isLoading, isAuthenticated, itemCount, router, showModal]);
 
     // --- HANDLERS PARA EL FORMULARIO ---
 
