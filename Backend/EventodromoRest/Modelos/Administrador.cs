@@ -24,4 +24,8 @@
         public decimal porcentajeCambio { get; set; }
     }
 
+    public class ResponseEventosMasVendidos
+    {
+        public List<EventoMasVendidoDTO> data { get; set; }
+    }
 }

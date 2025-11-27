@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Plantilla Handlebars — Entrada estilo ticket</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+    /* Reset */
+    *{box-sizing:border-box;font-family: "Nunito",sans-serif}
+    body{background:#f3f3f4;padding:30px}
+
+    /* Ticket container */
+    .ticket{
+      width:90%; /* similar to the image proportions */
+      height:80%;
+      margin:0 auto;
+      background:linear-gradient(180deg,#ffffff, #f7f7f8);
+      border-radius:14px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.12);
+      display:flex;
+      overflow:hidden;
+      position:relative;
+      border:2px solid rgba(0,0,0,0.06);
+      background-size: cover;
+      background-position: center;
+    }
+
+    /* Left stub (logo + QR) */
+    .stub{
+      width:260px;
+      padding:28px 22px;
+      background:linear-gradient(90deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      align-items:flex-start;
+      position:relative;
+    }
+
+    .logo{
+      display:flex;align-items:center;gap:10px;font-weight:700;color:#07bfb4
+    }
+    .logo img{height:36px}
+
+    .qr{width:140px;height:140px;background:#fff;display:flex;align-items:center;justify-content:center;border-radius:6px;overflow:hidden;border:1px solid rgba(0,0,0,0.06)}
+    .qr img{width:100%;height:100%;object-fit:cover}
+
+    .stub .meta{font-size:14px;color:#202124}
+    .muted{color:#6b6b6b;font-size:13px}
+
+    /* Perforation column */
+    .perforation{
+      width:32px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:transparent;
+      padding:12px 6px
+    }
+    .perforation .dot{width:10px;height:10px;border-radius:50%;background:rgba(0,0,0,0.08)}
+
+    /* Main body */
+    .main{
+      flex:1;padding:26px 28px;display:flex;flex-direction:column;gap:16px;position:relative
+    }
+
+    .barcode{
+        transform: rotate(270deg);
+        height: 50px;
+        margin-top: 80%;
+        margin-bottom:90px;
+    }
+
+    .heading{font-size:26px;font-weight:800;letter-spacing:0.6px}
+    .venue{font-size:14px;color:#333}
+
+    .cols{display:flex;gap:18px;align-items:flex-start}
+
+    .left-col{flex:1}
+    .right-col{width:320px;padding:14px;background:linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));border-radius:6px;border:1px solid rgba(0,0,0,0.04)}
+
+    .label{font-size:12px;color:#6b6b6b}
+    .value{font-weight:700;font-size:16px;margin-top:6px}
+
+    .price{font-weight:800;font-size:18px}
+
+    /* Vertical sidebar on right for small print & barcode-text */
+    .rightstrip{
+      width:64px;background:linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;gap:12px
+    }
+    .barcode-text{writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;color:#333}
+
+    /* Small footnote */
+    .footnote{font-size:12px;color:#6b6b6b;margin-top:8px}
+
+    /* Responsive-ish */
+    @media (max-width:1060px){.ticket{transform:scale(0.9);transform-origin:top center}}
+  </style>
+</head>
+<body>
+
+  <!--
+    Plantilla Handlebars: rellena con un contexto similar a:
+    {
+      "event": {"title":"OVERPASS LIMA","venue":"Estadio San Marcos","date":"11 de septiembre del 2025","time":"07:00 P.M","type":"SuperVIP","price":"S/ 500.00"},
+      "holder": {"name":"Carlos Perez","dni":"12345678"},
+      "qrUrl":"/path/to/qr.png",
+      "ticketId": "A1B2C3-0001"
+    }
+  -->
+
+  <div class="ticket" role="article" aria-label="Entrada - {{title}}">
+
+    <aside class="stub">
+      <div class="logo">
+        <!-- Se incluye la imagen subida como logo/brand. -->
+        <img src="{{urls.logo_eventodromo}}" alt="Evento Dromo logo"/>
+        <div>EVENTO<br/><strong>DROMO</strong></div>
+      </div>
+
+      <div class="qr" aria-hidden="false">
+        {{#if qrUrl}}
+          <img src="{{qrUrl}}" alt="QR de la entrada" />
+        {{else}}
+          <!-- placeholder cuadrado para QR -->
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" fill="#e9e9ea"/></svg>
+        {{/if}}
+      </div>
+
+      <div class="meta">
+        <div class="heading">{{nombreEvento}}</div>
+        <div class="muted">{{lugar}}</div>
+        <div style="margin-top:10px"><span class="muted">{{fecha}} - {{hora}}</span></div>
+        <div style="margin-top:8px"><span class="label">Tipo de entrada</span><div class="value">{{tipoEntrada}}</div></div>
+      </div>
+
+    </aside>
+
+    <div class="perforation" aria-hidden="true">
+      {{!-- simulated perforation dots --}}
+      {{#each (range 8)}}<div class="dot"></div>{{/each}}
+    </div>
+
+    <main class="main">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="venue">{{lugar}}</div>
+          <div class="heading">{{nombreEvento}}</div>
+        </div>
+
+        <div class="muted" style="text-align:right">
+          <div>{{nombreCliente}}</div>
+          <div>DNI <strong>{{dniCliente}}</strong></div>
+        </div>
+      </div>
+
+      <div class="cols">
+        <div class="left-col">
+          <p class="muted">*Apto para menores de 18 años en compañía de un adulto</p>
+
+          <div style="margin-top:18px;display:flex;gap:18px">
+            <div>
+              <div class="label">Fecha</div>
+              <div class="value">{{fecha}}</div>
+            </div>
+            <div>
+              <div class="label">Hora</div>
+              <div class="value">{{hora}}</div>
+            </div>
+          </div>
+
+        </div>
+
+        <aside class="right-col">
+          <div class="label">Tipo</div>
+          <div class="value">{{tipoEntrada}}</div>
+
+          <div style="margin-top:12px" class="label">Hora inicio</div>
+          <div class="value">{{hora}}</div>
+
+          <div style="margin-top:12px" class="label">Precio</div>
+          <div class="price">{{precio}}</div>
+
+          <div style="margin-top:18px;display:flex;align-items:center;gap:10px">
+            <div style="width:72px;height:36px;display:flex;align-items:center;justify-content:center">
+              <!-- Small brand stamp -->
+              <img src="{{urls.logo_eventodromo}}" alt="logo" style="height:36px;object-fit:contain"/>
+            </div>
+          </div>
+
+        </aside>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <div class="footnote">{{lugar}} — {{fecha}} • {{hora}}</div>
+        <div class="muted">Precio impreso: <strong>{{precio}}</strong></div>
+      </div>
+
+    </main>
+
+    <div class="rightstrip">
+      <div class="barcode-text">{{nombreEvento}}<br>DNI {{dniCliente}}<br>Tipo: {{tipoEntrada}}</div>
+
+        <img src="{{barCode}}" alt="barcode" class="barcode"/>
+      <div style="font-size:10px;color:#6b6b6b">S/ 500.00</div>
+    </div>
+
+  </div>
+
+</body>
+</html>

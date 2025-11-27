@@ -43,5 +43,30 @@ namespace EventodromoRest.Negocio
             };
 
         }
+
+        public GenericResponse<List<EventoMasVendidoDTO>> ObtenerEventosMasVendidos()
+        {
+            var mapper = new AdministradorMapper(globales, DB);
+            var eventos = mapper.ObtenerEventosMasVendidos();
+
+            if (eventos == null || eventos.Count == 0)
+            {
+                return new GenericResponse<List<EventoMasVendidoDTO>>
+                {
+                    Success = true,
+                    Message = "No se encontraron eventos vendidos.",
+                    Error = null,
+                    Data = new List<EventoMasVendidoDTO>()
+                };
+            }
+
+            return new GenericResponse<List<EventoMasVendidoDTO>>
+            {
+                Success = true,
+                Message = "Eventos más vendidos obtenidos correctamente.",
+                Error = null,
+                Data = eventos
+            };
+        }
     }
 }

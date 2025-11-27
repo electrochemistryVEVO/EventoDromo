@@ -452,6 +452,7 @@ namespace EventodromoRest.Mappers
                 E.id AS EventoId, E.nombre AS EventoNombre, E.descripcion, E.imagenURL,
                 T.id AS TipoEventoId, T.nombre AS TipoEventoNombre,
                 L.id AS LocalId, L.nombre AS LocalNombre, L.direccion,
+                L.latitud AS Latitud, L.longitud AS Longitud,
                 C.id AS CiudadId, C.nombre AS CiudadNombre,
                 P.id AS PaisId, P.nombre AS PaisNombre
             FROM
@@ -491,17 +492,22 @@ namespace EventodromoRest.Mappers
                     }
                 };
 
+                // Obtener coordenadas y generar iframe
+                var latitud = DB.GetNullableDecimal("Latitud");
+                var longitud = DB.GetNullableDecimal("Longitud");
+
                 resultado.local = new ResponseLocal
                 {
                     id = DB.GetInt("LocalId"),
                     nombre = DB.GetString("LocalNombre"),
                     direccion = DB.GetString("direccion"),
-                    googleMapsEmbed = "<iframe src=\"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3901.9705727105875!2d-77.037574524449!3d-12.045545688191202!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c8ca3c54dd11%3A0x40b0447dcf24a5c8!2sTeatro%20Municipal%20de%20Lima!5e0!3m2!1ses!2spe!4v1760080206514!5m2!1ses!2spe\" width=\"600\" height=\"450\" ...></iframe>",
+                    Latitud = latitud,
+                    Longitud = longitud,
                     ciudad = new Ciudad
                     {
                         id = DB.GetInt("CiudadId"),
                         nombre = DB.GetString("CiudadNombre"),
-                        idPais = DB.GetInt("PaisId"), // Asumiendo que quieres el ID
+                        idPais = DB.GetInt("PaisId"),
                         pais = new Pais
                         {
                             id = DB.GetInt("PaisId"),
@@ -509,6 +515,18 @@ namespace EventodromoRest.Mappers
                         }
                     }
                 };
+
+                // Generar iframe dinámicamente o usar fallback
+                if (latitud.HasValue && longitud.HasValue)
+                {
+                    resultado.local.googleMapsEmbed = GenerarGoogleMapsIframe(latitud.Value, longitud.Value);
+                }
+                else
+                {
+                    // Fallback a OpenStreetMap del Teatro Municipal si no hay coordenadas
+                    resultado.local.googleMapsEmbed = "<iframe src=\"https://www.openstreetmap.org/export/embed.html?bbox=-77.038,-12.047,-77.036,-12.045&layer=mapnik&marker=-12.046,-77.037\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\"></iframe>";
+                }
+
                 DB.CloseReader(); // Importante: Cerrar el primer reader
 
                 // --- CONSULTA 2: Funciones (FechaEvento) y sus TiposDeEntrada (hijos) ---
@@ -1097,6 +1115,25 @@ WHERE  E.id = @idEvento;
 
                 return listaEvento;
             }
+        }
+
+        private string GenerarGoogleMapsIframe(decimal latitud, decimal longitud)
+        {
+            // Usar InvariantCulture para que use punto decimal en lugar de coma
+            string lat = latitud.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string lng = longitud.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            
+            // Calcular bbox (bounding box) para OpenStreetMap
+            decimal bboxOffset = 0.01m;
+            string minLng = (longitud - bboxOffset).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string minLat = (latitud - bboxOffset).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string maxLng = (longitud + bboxOffset).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string maxLat = (latitud + bboxOffset).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            
+            // URL de OpenStreetMap (gratuito, sin API key)
+            string mapUrl = $"https://www.openstreetmap.org/export/embed.html?bbox={minLng},{minLat},{maxLng},{maxLat}&layer=mapnik&marker={lat},{lng}";
+            
+            return $"<iframe src=\"{mapUrl}\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\"></iframe>";
         }
 
         public Evento ObtenerEventoPorIdSimple(int id)

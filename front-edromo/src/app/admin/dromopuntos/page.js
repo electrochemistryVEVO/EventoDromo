@@ -46,7 +46,7 @@ const DromoPuntosPage = () => {
             </svg>
           </button>
           <h1 className="text-2xl font-bold text-gray-800">
-            Gestión de DromoPuntos
+            Configuraciones
           </h1>
         </header>
 

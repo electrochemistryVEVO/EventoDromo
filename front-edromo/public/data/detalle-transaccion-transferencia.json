@@ -1,0 +1,36 @@
+{
+  "success": true,
+  "mensaje": "Detalle de transacción obtenido correctamente.",
+  "data": {
+    "evento": {
+      "titulo": "Teatro: La Casa de Bernarda Alba",
+      "imagen": "/images/eventos/teatro-bernarda.jpg",
+      "ubicacion": "Teatro Segura, LIMA, PE",
+      "fecha": "2025-12-10T21:00:00Z"
+    },
+    "transaccion": {
+      "numeroTransaccion": "TRF-2025-009876",
+      "fecha": "2025-11-22T10:15:00Z",
+      "estado": "Completada"
+    },
+    "cliente": {
+      "nombre": "Carlos Ramírez Torres",
+      "email": "carlos.ramirez@example.com",
+      "telefono": "+51 998 765 432"
+    },
+    "entradas": [
+      {
+        "tipoEntrada": "Platea - Fila Central",
+        "cantidad": 4,
+        "precioUnitario": 90.00,
+        "subtotal": 360.00
+      }
+    ],
+    "metodoPago": {
+      "tipo": "transferencia",
+      "detalles": {}
+    },
+    "total": 360.00
+  },
+  "error": null
+}

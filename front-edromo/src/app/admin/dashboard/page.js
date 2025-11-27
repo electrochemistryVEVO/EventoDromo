@@ -21,6 +21,17 @@ const ICON_PATHS = {
   ocupacionLocales: "/images/icon/icon-ubicacion.png",
 };
 
+// Función auxiliar para formatear los porcentajes
+const formatearPorcentaje = (valor) => {
+  if (valor === undefined || valor === null) return 0;
+
+  // Opción A: Siempre muestra 2 decimales (ej: 5.00, 5.50, 5.55) -> Recomendado para dashboards
+  return Number(valor).toFixed(2);
+
+  // Opción B: Muestra "como máximo" 2 decimales, borra ceros innecesarios (ej: 5, 5.5, 5.55)
+  // return Number(Number(valor).toFixed(2));
+};
+
 const DashboardAnaliticasPage = () => {
   const { isLoading, error, indicadores, eventos, ocupacion } =
     useAnaliticasController();
@@ -52,41 +63,53 @@ const DashboardAnaliticasPage = () => {
           <IndicadorCard
             icono={ICON_PATHS.ingresos}
             titulo="Ingresos Totales"
-            valor={indicadores.ingresosTotales.monto.toLocaleString("es-PE")}
+            valor={indicadores.ingresosTotales.valor.toLocaleString("es-PE")}
             prefijoValor="S/"
-            porcentajeCambio={indicadores.ingresosTotales.porcentajeCambio}
+            porcentajeCambio={formatearPorcentaje(
+              indicadores.ingresosTotales.porcentajeCambio
+            )}
           />
           <IndicadorCard
             icono={ICON_PATHS.puntos}
             titulo="Uso de puntos promedio"
-            valor={indicadores.puntosUsadosPromedio.monto}
-            porcentajeCambio={indicadores.puntosUsadosPromedio.porcentajeCambio}
+            valor={indicadores.puntosUsadosPromedio.valor}
+            porcentajeCambio={formatearPorcentaje(
+              indicadores.puntosUsadosPromedio.porcentajeCambio
+            )}
           />
           <IndicadorCard
             icono={ICON_PATHS.entradas}
             titulo="Entradas Vendidas"
-            valor={indicadores.entradasVendidas.monto.toLocaleString("es-PE")}
-            porcentajeCambio={indicadores.entradasVendidas.porcentajeCambio}
+            valor={indicadores.entradasVendidas.valor.toLocaleString("es-PE")}
+            porcentajeCambio={formatearPorcentaje(
+              indicadores.entradasVendidas.porcentajeCambio
+            )}
           />
           <IndicadorCard
             icono={ICON_PATHS.usuarios}
             titulo="Usuarios nuevos"
-            valor={indicadores.usuariosNuevos.monto.toLocaleString("es-PE")}
-            porcentajeCambio={indicadores.usuariosNuevos.porcentajeCambio}
+            valor={indicadores.usuariosNuevos.valor.toLocaleString("es-PE")}
+            porcentajeCambio={formatearPorcentaje(
+              indicadores.usuariosNuevos.porcentajeCambio
+            )}
           />
           <IndicadorCard
             icono={ICON_PATHS.sesion}
             titulo="Tiempo medio de sesión"
             valor={indicadores.tiempoSesionPromedio.minutos}
             sufijoValor=" min"
-            porcentajeCambio={indicadores.tiempoSesionPromedio.porcentajeCambio}
+            porcentajeCambio={formatearPorcentaje(
+              indicadores.tiempoSesionPromedio.porcentajeCambio
+            )}
           />
           <IndicadorCard
             icono={ICON_PATHS.conversion}
             titulo="Tasa de Conversión"
-            valor={indicadores.tasaConversion.tasa}
+            valor={indicadores.tasaConversion.valor}
             sufijoValor="%"
-            porcentajeCambio={indicadores.tasaConversion.porcentajeCambio}
+            porcentajeCambio={formatearPorcentaje(
+              indicadores.tasaConversion.porcentajeCambio
+            )}
           />
         </div>
       )}

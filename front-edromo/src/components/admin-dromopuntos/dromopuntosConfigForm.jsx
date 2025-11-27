@@ -81,6 +81,22 @@ export const DromoPuntosConfigForm = ({
             min="1"
           />
         </FormField>
+
+        <FormField
+          label="Expiración de Transferencias (en horas)"
+          description="Tiempo en horas para que el destinatario acepte una transferencia de entradas."
+        >
+          <input
+            type="number"
+            name="horasExpiracionTransferencia"
+            placeholder="Ej: 24"
+            value={config.horasExpiracionTransferencia}
+            onChange={handleConfigChange}
+            className="w-full p-2 border border-gray-300 rounded-md"
+            step="1"
+            min="1"
+          />
+        </FormField>
       </div>
 
       <div className="flex justify-end items-center gap-4 pt-6 mt-4 border-t">

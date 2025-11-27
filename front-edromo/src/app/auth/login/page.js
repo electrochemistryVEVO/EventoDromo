@@ -2,7 +2,7 @@
 
 // Importamos los hooks de React y Next.js
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -20,12 +20,17 @@ import "@/css/forgot-password.css";
 function App() {
   // --- TODA LA LÓGICA DE TU VERSIÓN "NUEVA" ---
   const { login } = useUser();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  //const router = useRouter();
-  //const searchParams = useSearchParams();
+  
+  // Construir URL de registro preservando el redirect
+  const signupUrl = useMemo(() => {
+    const redirect = searchParams.get('redirect');
+    return redirect ? `/auth/signup?redirect=${encodeURIComponent(redirect)}` : '/auth/signup';
+  }, [searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -110,8 +115,8 @@ function App() {
           <div className="login-hipervinculos-container">
             <button type="submit">Ingresa</button>
             <p>¿Aún no tienes cuenta?</p>
-            {/* El Link a 'signup' es el mismo en ambas versiones */}
-            <Link href="/auth/signup">Registrate Aquí</Link>
+            {/* Preserva el parámetro redirect al ir a registro */}
+            <Link href={signupUrl}>Registrate Aquí</Link>
           </div>
         </form>
 

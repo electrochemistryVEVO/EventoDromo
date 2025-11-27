@@ -100,7 +100,7 @@ export default function MisEntradaItem({ entrada, index, onTransferComplete }) {
                 src={entrada.imagen}
                 alt={entrada.titulo}
                 onError={(e) => {
-                  e.currentTarget.src = "/images/cards-04.png";
+                  e.currentTarget.src = "https://placehold.co/400";
                 }}
               />
             ) : (
@@ -193,14 +193,14 @@ export default function MisEntradaItem({ entrada, index, onTransferComplete }) {
           </div>
 
           <div className="mei-buttons">
-            <DescargarButton />
+            <DescargarButton entrada={entrada} />
             <TransferirButton 
               transaccion={entrada.transaccion}
               tiposEntrada={tiposEntrada}
               onTransferComplete={handleTransferComplete}
               disabled={estadoEntradas.disponibles === 0 && estadoEntradas.total > 0}
             />
-            <VerDetalleButton />
+            <VerDetalleButton numeroTransaccion={entrada.transaccion} idEvento={entrada.id} />
           </div>
         </div>
       </div>

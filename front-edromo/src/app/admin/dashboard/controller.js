@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import {
-  obtenerIndicadoresDashboardHarcodeado,
-  obtenerOcupacionLocalesHarcodeado,
-  obtenerEventosMasVendidosHarcodeado,
+  obtenerIndicadoresDashboard,
+  obtenerOcupacionLocales,
+  obtenerEventosMasVendidos,
 } from "@/services/dashboard.services.js";
 
 export const useAnaliticasController = () => {
@@ -19,9 +19,9 @@ export const useAnaliticasController = () => {
         setError(null);
 
         const resultados = await Promise.allSettled([
-          obtenerIndicadoresDashboardHarcodeado(),
-          obtenerEventosMasVendidosHarcodeado(),
-          obtenerOcupacionLocalesHarcodeado(),
+          obtenerIndicadoresDashboard(),
+          obtenerEventosMasVendidos(),
+          obtenerOcupacionLocales(),
         ]);
 
         const errores = [];
@@ -43,7 +43,17 @@ export const useAnaliticasController = () => {
           resultados[1].status === "fulfilled" &&
           resultados[1].value.success
         ) {
-          setEventos(resultados[1].value.data);
+          const listaEventos = resultados[1].value.data || [];
+
+          // Ordenamos de MAYOR a MENOR precio
+          const eventosOrdenados = listaEventos.sort((a, b) => {
+            const precioA = a.precio || 0;
+            const precioB = b.precio || 0;
+
+            return precioB - precioA; // Orden descendente (Mayor -> Menor)
+          });
+
+          setEventos(eventosOrdenados);
         } else {
           errores.push("No se pudieron cargar los eventos más vendidos.");
           console.error(
@@ -56,7 +66,23 @@ export const useAnaliticasController = () => {
           resultados[2].status === "fulfilled" &&
           resultados[2].value.success
         ) {
-          setOcupacion(resultados[2].value.data);
+          // 1. Obtenemos el array original
+          const listaLocales = resultados[2].value.data || [];
+
+          // 2. Ordenamos de MAYOR a MENOR por tasa de ocupación
+          // IMPORTANTE: Asegúrate de que la propiedad en tu JSON se llame "tasaOcupacion".
+          // Si tu backend la envía como "porcentaje" o "valor", cambia 'b.tasaOcupacion' por ese nombre.
+          const listaOrdenada = listaLocales.sort((a, b) => {
+            const tasaA = a.tasaOcupacion || 0;
+            const tasaB = b.tasaOcupacion || 0;
+            return tasaB - tasaA; // Resta b - a para orden descendente
+          });
+
+          // 3. Cortamos el array para quedarnos solo con los 10 primeros
+          const top10Locales = listaOrdenada.slice(0, 10);
+
+          // 4. Guardamos en el estado
+          setOcupacion(top10Locales);
         } else {
           errores.push("No se pudo cargar la ocupación de locales.");
           console.error(
