@@ -47,7 +47,6 @@ const GestionEventosPage = () => {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [uploadResult, setUploadResult] = useState({ success: 0, failed: 0, errors: [] });
 
-  const closeModal = () => setModalState({ isOpen: false, type: null, data: null });
   // 1️⃣ NUEVO: Estado local para controlar la carga específica del botón de eliminar
   const [isDeleting, setIsDeleting] = useState(false);
 
