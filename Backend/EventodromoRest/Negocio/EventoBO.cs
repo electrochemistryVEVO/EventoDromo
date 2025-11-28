@@ -406,9 +406,9 @@ namespace EventodromoRest.Negocio
                 var fechaMapper = new FechaEventoMapper(globales, DB);
                 var entradaMapper = new TipoEntradaMapper(globales, DB);
 
-                // Obtener listas de IDs válidos para validación
-                var localesExistentes = localMapper.ListarLocales2().Select(l => l.id).ToList();
-                var tiposEventoExistentes = tipoEventoMapper.ListarTipoEvento().Select(t => t.id).ToList();
+                // Obtener listas de IDs válidos para validación (UNA SOLA VEZ)
+                var localesExistentes = localMapper.ListarLocales2().Select(l => l.id).ToHashSet();
+                var tiposEventoExistentes = tipoEventoMapper.ListarTipoEvento().Select(t => t.id).ToHashSet();
 
                 // 2. Procesar cada evento individualmente
                 for (int i = 0; i < eventos.Count; i++)
@@ -487,17 +487,14 @@ namespace EventodromoRest.Negocio
                         }
 
                         // Validar formato de fechas
-                        DateTime fechaPublicacion;
-                        DateTime fechaCompra;
-
-                        if (!DateTime.TryParse(evento.fechaPublicacion, out fechaPublicacion))
+                        if (!DateTime.TryParse(evento.fechaPublicacion, out DateTime fechaPublicacion))
                         {
                             errores.Add($"Evento '{nombreEvento}': Formato de fecha de publicación inválido.");
                             fallidos++;
                             continue;
                         }
 
-                        if (!DateTime.TryParse(evento.fechaCompra, out fechaCompra))
+                        if (!DateTime.TryParse(evento.fechaCompra, out DateTime fechaCompra))
                         {
                             errores.Add($"Evento '{nombreEvento}': Formato de fecha de compra inválido.");
                             fallidos++;
@@ -517,13 +514,21 @@ namespace EventodromoRest.Negocio
                         bool horarioInvalido = false;
                         foreach (var horario in evento.horarios)
                         {
-                            DateTime horarioDateTime;
-                            if (!DateTime.TryParse(horario, out horarioDateTime))
+                            if (!DateTime.TryParse(horario, out DateTime horarioDateTime))
                             {
                                 errores.Add($"Evento '{nombreEvento}': Formato de horario inválido '{horario}'.");
                                 horarioInvalido = true;
                                 break;
                             }
+                            
+                            // Validar que el horario sea futuro
+                            if (horarioDateTime <= DateTime.Now)
+                            {
+                                errores.Add($"Evento '{nombreEvento}': El horario '{horario}' debe ser futuro.");
+                                horarioInvalido = true;
+                                break;
+                            }
+                            
                             horariosValidos.Add(horarioDateTime);
                         }
 

@@ -232,34 +232,45 @@ const GestionEventosPage = () => {
         body: JSON.stringify({ eventos: eventosData })
       });
       
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        
+      const result = await response.json();
+      
+      if (!response.ok || !result.success) {
         // Cerrar modal de carga y mostrar modal de error
         setShowUploadModal(false);
         setUploadResult({ 
-          success: 0, 
-          failed: eventosData.length, 
-          errors: [errorData.message || 'Error al cargar eventos al servidor'] 
+          success: result.data?.insertados || 0,
+          failed: result.data?.fallidos || eventosData.length, 
+          errors: result.data?.errores || [result.message || 'Error al cargar eventos al servidor'] 
         });
         setShowErrorModal(true);
         setIsProcessing(false);
         return;
       }
       
-      const result = await response.json();
-      const insertados = result.data?.insertados || result.insertados || eventosData.length;
+      const insertados = result.data?.insertados || 0;
+      const fallidos = result.data?.fallidos || 0;
       
       // Recargar lista
       await applyFilters();
       
-      // Cerrar modal de carga y mostrar modal de éxito
+      // Cerrar modal de carga
       setShowUploadModal(false);
       setSelectedFile(null);
       setUploadStep(1);
       setUploadErrors([]);
-      setUploadResult({ success: insertados, failed: 0, errors: [] });
-      setShowSuccessModal(true);
+      
+      // Mostrar resultado apropiado
+      if (fallidos > 0) {
+        setUploadResult({ 
+          success: insertados, 
+          failed: fallidos, 
+          errors: result.data?.errores || [] 
+        });
+        setShowErrorModal(true);
+      } else {
+        setUploadResult({ success: insertados, failed: 0, errors: [] });
+        setShowSuccessModal(true);
+      }
       
     } catch (error) {
       // Error general (archivo, formato, etc)
@@ -387,6 +398,7 @@ const GestionEventosPage = () => {
           }}
           errors={uploadResult.errors}
           failedCount={uploadResult.failed}
+          successCount={uploadResult.success}
         />
       </div>
     </div>

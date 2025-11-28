@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { FiX, FiUpload } from 'react-icons/fi';
 
-const EventCSVUploadErrorModal = ({ isOpen, onClose, errors, failedCount = 0 }) => {
+const EventCSVUploadErrorModal = ({ isOpen, onClose, errors, failedCount = 0, successCount = 0 }) => {
   if (!isOpen) return null;
 
   const handleOverlayClick = (e) => {
@@ -10,6 +10,8 @@ const EventCSVUploadErrorModal = ({ isOpen, onClose, errors, failedCount = 0 }) 
       onClose();
     }
   };
+
+  const hasPartialSuccess = successCount > 0;
 
   return (
     <div
@@ -34,18 +36,34 @@ const EventCSVUploadErrorModal = ({ isOpen, onClose, errors, failedCount = 0 }) 
           </div>
 
           <div className="flex items-center justify-center mb-6">
-            <div className="w-32 h-32 bg-red-500 rounded-full flex items-center justify-center">
-              <svg className="w-20 h-20 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="15" y1="9" x2="9" y2="15"></line>
-                <line x1="9" y1="9" x2="15" y2="15"></line>
-              </svg>
+            <div className={`w-32 h-32 rounded-full flex items-center justify-center ${hasPartialSuccess ? 'bg-yellow-500' : 'bg-red-500'}`}>
+              {hasPartialSuccess ? (
+                <svg className="w-20 h-20 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              ) : (
+                <svg className="w-20 h-20 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="15" y1="9" x2="9" y2="15"></line>
+                  <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+              )}
             </div>
           </div>
           
           <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">
-            Carga fallida . <strong>{failedCount} Evento{failedCount !== 1 ? 's' : ''}</strong> no {failedCount !== 1 ? 'han' : 'ha'} podido ser cargado{failedCount !== 1 ? 's' : ''}.
+            {hasPartialSuccess ? 'Carga parcial' : 'Carga fallida'}
           </h2>
+          
+          {hasPartialSuccess && (
+            <p className="text-center text-gray-600 mb-4">
+              <span className="text-green-600 font-semibold">{successCount} evento{successCount !== 1 ? 's' : ''}</span> cargado{successCount !== 1 ? 's' : ''} correctamente
+            </p>
+          )}
+          
+          <p className="text-center text-gray-600">
+            <strong className="text-red-600">{failedCount} Evento{failedCount !== 1 ? 's' : ''}</strong> no {failedCount !== 1 ? 'han' : 'ha'} podido ser cargado{failedCount !== 1 ? 's' : ''}.
+          </p>
 
           {errors && errors.length > 0 && (
             <div className="mt-6 max-h-60 overflow-y-auto">
@@ -86,6 +104,7 @@ EventCSVUploadErrorModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   errors: PropTypes.arrayOf(PropTypes.string),
   failedCount: PropTypes.number,
+  successCount: PropTypes.number,
 };
 
 export default EventCSVUploadErrorModal;
