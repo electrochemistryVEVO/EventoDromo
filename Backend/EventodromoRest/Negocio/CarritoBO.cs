@@ -81,7 +81,9 @@ namespace EventodromoRest.Negocio
                         idEntrada = entrada.idEntrada,
                         idTipoEntrada = entrada.idTipoEntrada,
                         nombreTipoEntrada = entrada.nombreTipoEntrada,
-                        precio = entrada.precio
+                        precio = entrada.precio,
+                        limiteCompra = entrada.limiteCompra,
+                        puntos = entrada.puntos
                     };
 
                     eventoDto.entradas.Add(nuevaEntrada);

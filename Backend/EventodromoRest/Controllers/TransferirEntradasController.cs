@@ -47,17 +47,17 @@ namespace EventodromoRest.Controllers
         }
 
         /// <summary>
-        /// Obtiene el estado de las entradas (disponibles/transferidas/pendientes) para una transacción.
-        /// GET /api/TransferirEntradas/ObtenerEstadoEntradas?numeroTransaccion=ABC123
+        /// Obtiene el estado de las entradas (disponibles/transferidas/pendientes) para una transacción y evento específico.
+        /// GET /api/TransferirEntradas/ObtenerEstadoEntradas?numeroTransaccion=ABC123&idEvento=5
         /// </summary>
         [HttpGet]
         [Route("/api/[controller]/[action]")]
-        public GenericResponse<EstadoEntradasDTO> ObtenerEstadoEntradas([FromQuery] string numeroTransaccion)
+        public GenericResponse<EstadoEntradasDTO> ObtenerEstadoEntradas([FromQuery] string numeroTransaccion, [FromQuery] int? idEvento)
         {
             try
             {
                 var bo = new TransferirEntradasBO(globales, BD, _configuration);
-                return bo.ObtenerEstadoEntradas(numeroTransaccion);
+                return bo.ObtenerEstadoEntradas(numeroTransaccion, idEvento);
             }
             catch (Exception e)
             {

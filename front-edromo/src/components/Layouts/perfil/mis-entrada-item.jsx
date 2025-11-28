@@ -18,10 +18,10 @@ export default function MisEntradaItem({ entrada, index, onTransferComplete }) {
 
   // Función para recargar el estado de las entradas
   const recargarEstado = async () => {
-    if (!entrada.transaccion) return;
+    if (!entrada.transaccion || !entrada.id) return;
     
     try {
-      const estado = await servicePerfil.obtenerEstadoEntradas(entrada.transaccion);
+      const estado = await servicePerfil.obtenerEstadoEntradas(entrada.transaccion, entrada.id);
       setEstadoEntradas(estado);
     } catch (error) {
       console.error('Error cargando estado de entradas:', error);

@@ -882,8 +882,8 @@ namespace EventodromoRest.Mappers
 
                 DB.CloseReader();
 
-                // Obtener las entradas de la transacción filtradas por evento
-                detalle.Entradas = ObtenerEntradasDeTransaccion(numeroTransaccion, idEvento);
+                // Obtener las entradas de la transacción filtradas por evento y cliente
+                detalle.Entradas = ObtenerEntradasDeTransaccion(numeroTransaccion, idEvento, idCliente);
 
                 return detalle;
             }
@@ -891,8 +891,9 @@ namespace EventodromoRest.Mappers
 
         /// <summary>
         /// Obtiene la lista de entradas agrupadas por tipo para una transacción y evento específico
+        /// Solo incluye entradas que el cliente actualmente posee (no transferidas a otros)
         /// </summary>
-        private List<EntradaTransaccionDTO> ObtenerEntradasDeTransaccion(string numeroTransaccion, int idEvento)
+        private List<EntradaTransaccionDTO> ObtenerEntradasDeTransaccion(string numeroTransaccion, int idEvento, int idCliente)
         {
             lock (DB)
             {
@@ -911,12 +912,17 @@ namespace EventodromoRest.Mappers
                     INNER JOIN Evento ev ON fe.idEvento = ev.id
                     WHERE t.numeroTransaccion = @numeroTransaccion
                       AND ev.id = @idEvento
+                      AND (
+                          (e.idClienteActual IS NULL AND t.idCliente = @idCliente)
+                          OR e.idClienteActual = @idCliente
+                      )
                     GROUP BY te.nombre, lt.precio, COALESCE(e.estadoTransferencia, 'disponible')
                     ORDER BY te.nombre, COALESCE(e.estadoTransferencia, 'disponible')";
 
                 var parametros = new ParameterList();
                 parametros.Add("@numeroTransaccion", numeroTransaccion);
                 parametros.Add("@idEvento", idEvento);
+                parametros.Add("@idCliente", idCliente);
 
                 var entradas = new List<EntradaTransaccionDTO>();
 

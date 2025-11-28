@@ -165,7 +165,7 @@ namespace EventodromoRest.Mappers
 
         /// <summary>
         /// Confirma la transferencia (cuando el destinatario acepta).
-        /// Marca las entradas como 'transferida' (no se pueden volver a transferir),
+        /// Vuelve las entradas a estado 'disponible' para el nuevo dueño,
         /// incrementa vecesTransferida y cambia idClienteActual al nuevo dueño.
         /// Las entradas ahora aparecen en una transacción nueva del destinatario.
         /// </summary>
@@ -183,7 +183,7 @@ namespace EventodromoRest.Mappers
             
             string sql = $@"
                 UPDATE Entrada 
-                SET estadoTransferencia = 'transferida',
+                SET estadoTransferencia = 'disponible',
                     vecesTransferida = vecesTransferida + 1
                     {updateClienteActual}
                 WHERE id IN ({idsString})
@@ -430,9 +430,10 @@ namespace EventodromoRest.Mappers
         }
 
         /// <summary>
-        /// Obtiene el conteo de entradas por estado para una transacción específica.
+        /// Obtiene el conteo de entradas por estado para una transacción específica,
+        /// opcionalmente filtrado por evento.
         /// </summary>
-        public Dictionary<string, int> ObtenerEstadoEntradas(string numeroTransaccion)
+        public Dictionary<string, int> ObtenerEstadoEntradas(string numeroTransaccion, int? idEvento = null)
         {
             var resultado = new Dictionary<string, int>
             {
@@ -442,19 +443,29 @@ namespace EventodromoRest.Mappers
                 { "total", 0 }
             };
 
-            string sql = @"
+            string eventoFilter = idEvento.HasValue ? "AND EV.id = @idEvento" : "";
+            
+            string sql = $@"
                 SELECT 
                     COALESCE(E.estadoTransferencia, 'disponible') as estadoTransferencia,
                     COUNT(DISTINCT E.id) as cantidad
                 FROM Entrada E
                 INNER JOIN LineaTransaccion LT ON E.id = LT.idEntrada
                 INNER JOIN Transaccion T ON LT.idTransaccion = T.id
+                INNER JOIN TipoEntrada TE ON E.idTipoEntrada = TE.id
+                INNER JOIN FechaEvento FE ON TE.idFechaEvento = FE.id
+                INNER JOIN Evento EV ON FE.idEvento = EV.id
                 WHERE T.numeroTransaccion = @numeroTransaccion
+                  {eventoFilter}
                 GROUP BY COALESCE(E.estadoTransferencia, 'disponible');
             ";
 
             var parametros = new ParameterList();
             parametros.Add("@numeroTransaccion", numeroTransaccion);
+            if (idEvento.HasValue)
+            {
+                parametros.Add("@idEvento", idEvento.Value);
+            }
 
             lock (DB)
             {

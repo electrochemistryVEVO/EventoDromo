@@ -3,6 +3,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { obtenerPuntosDisponibles } from "@/services/dromopuntos.service";
 
 const UserContext = createContext();
 
@@ -91,6 +92,29 @@ export const UserProvider = ({ children }) => {
     return user?.rol === 'C';
   };
 
+  const updateUserPoints = (newPoints) => {
+    if (user) {
+      const updatedUser = { ...user, totalPuntos: newPoints };
+      setUser(updatedUser);
+      try {
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+      } catch (error) {
+        console.warn("Error al actualizar puntos en localStorage:", error);
+      }
+    }
+  };
+
+  const refreshUserPoints = async () => {
+    if (!user?.token) return;
+    
+    try {
+      const puntosActualizados = await obtenerPuntosDisponibles(user.token);
+      updateUserPoints(puntosActualizados);
+    } catch (error) {
+      console.warn("Error al refrescar puntos del usuario:", error);
+    }
+  };
+
   return (
     <UserContext.Provider
       value={{
@@ -101,6 +125,8 @@ export const UserProvider = ({ children }) => {
         isCliente,
         login,
         logout,
+        updateUserPoints,
+        refreshUserPoints,
       }}
     >
       {children}

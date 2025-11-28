@@ -193,12 +193,16 @@ export const servicePerfil = {
   },
 
   /**
-   * Obtiene el estado de las entradas de una transacción (disponibles/transferidas/pendientes).
+   * Obtiene el estado de las entradas de una transacción y evento específico (disponibles/transferidas/pendientes).
    * @param {string} numeroTransaccion - Número de transacción
+   * @param {number} idEvento - ID del evento para filtrar
    */
-  obtenerEstadoEntradas: async (numeroTransaccion) => {
+  obtenerEstadoEntradas: async (numeroTransaccion, idEvento) => {
     try {
       const params = new URLSearchParams({ numeroTransaccion });
+      if (idEvento) {
+        params.append('idEvento', idEvento);
+      }
       const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/TransferirEntradas/ObtenerEstadoEntradas?${params.toString()}`;
       
       const res = await fetch(url, {

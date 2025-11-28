@@ -1,16 +1,14 @@
+const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 export async function autenticarUsuario(loginInfo) {
   //link q funciona en individual: http://localhost:5189/api/Cliente/AutenticarLoginCliente"
   //link q funciona en docker: http://localhost:8081/api/Cliente/AutenticarLoginCliente"
-  const res = await fetch(
-      process.env.NEXT_PUBLIC_API_BASE_URL+"/Cliente/AutenticarLoginCliente",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(loginInfo),
-    }
-  );
+  const res = await fetch(BASE_API_URL + "/Cliente/AutenticarLoginCliente", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(loginInfo),
+  });
   console.log(res);
   if (!res.ok)
     throw new Error(
@@ -26,169 +24,104 @@ export async function autenticarUsuario(loginInfo) {
   return json.data;
 }
 
-export async function verificarCorreoExistente(email) {
-  // Simulación - Comenta el código real y usa este para pruebas
-  await new Promise((resolve) => setTimeout(resolve, 1000)); // Simula delay de red
-
-  // Caso 1: Email existe (ejemplo@gmail.com)
-  if (email === "ejemplo@gmail.com") {
-    return {
-      success: true,
-      data: {
-        exists: true,
-        mensaje: "El correo existe en la base de datos",
-      },
-    };
-  }
-
-  // Caso 2: Email no existe (cualquier otro correo)
-  return {
-    success: false,
-    data: {
-      exists: false,
-      mensaje: "El correo no está registrado",
-    },
-  };
-}
-/*
-export async function verificarCorreoExistente(email) {
-  try {
-    const res = await fetch(`http://localhost:5189/api/Cliente/VerificarCorreoCliente?email=${encodeURIComponent(email)}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error("Error al consultar el correo (status:" + res.status + ")");
-    }
-
-    const json = await res.json();
-
-    // Asumimos que el backend devuelve { exists: true/false }
-    return json.data;//el propio contenido del json que haré dentro tenga exists como campo.
-  } catch (error) {
-    console.error("Error en el servicio verificarCorreoExistente:", error);
-    throw error;
-  }
-};*/
-
 /**
- * Llama al backend para solicitar el envío de un correo de recuperación.
- * @param {string} email - El correo del usuario que necesita recuperar la contraseña.
- * @returns {Promise<Object>} - La respuesta del backend.
+ * 2. Solicitar Recuperación
+ * Envía el correo al backend.
  */
-/*
 export async function enviarCorreoRecuperacion(email) {
-  try {
-    const res = await fetch(
-      "http://localhost:5189/api/Auth/EnviarCorreoRecuperacion",
-      {
-        // <-- Endpoint de ejemplo
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: email }), // Enviamos el correo en el body
-      }
+  console.log("--> [FRONT] Enviando a /Cliente/RecuperarContrasena:", {
+    email,
+  });
+
+  const res = await fetch(`${BASE_API_URL}/Cliente/RecuperarContrasena`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await res.json();
+
+  console.log("<-- [FRONT] Respuesta recibida del backend:", data);
+
+  // 1. Validación de error HTTP (Status 400, 500, etc.)
+  if (!res.ok) {
+    throw new Error(
+      data.message ||
+        data.error ||
+        "No se pudo enviar el correo de recuperación."
     );
-
-    if (!res.ok) {
-      // Si el backend responde con un error (ej: 404 si el correo no existe)
-      const errorJson = await res.json();
-      throw new Error(
-        errorJson.message || "Error al solicitar el envío del correo."
-      );
-    }
-
-    return await res.json(); // Devuelve { success: true, message: "Correo enviado" }
-  } catch (error) {
-    console.error("Error en el servicio enviarCorreoRecuperacion:", error);
-    throw error;
   }
+
+  // Si el backend dice success: false, lanzamos el error manualmente para que el Modal lo capture.
+  if (data.success === false) {
+    // Usamos data.message o data.error según lo que mande tu backend
+    throw new Error(data.message || data.error || "El correo no es válido.");
+  }
+
+  return data;
 }
-*/
 /**
- * Envía el token y la nueva contraseña al backend para finalizar el reseteo.
- * @param {string} token - El token de la URL.
- * @param {string} newPassword - La nueva contraseña del usuario.
- * @returns {Promise<Object>}
+ * 3. Restablecer Contraseña
+ * Envía el token y la nueva contraseña para cambiarla definitivamente.
  */
-/*
 export async function resetearPasswordConToken(token, newPassword) {
+  // 1. VALIDACIÓN PREVENTIVA (Best Practice)
+  // Antes de llamar al servidor, validamos que tengamos los datos necesarios.
+  if (!token) {
+    throw new Error("Token no válido o expirado.");
+  }
+  if (!newPassword || newPassword.length < 6) {
+    // Puedes ajustar la longitud según tus reglas de negocio
+    throw new Error("La contraseña debe tener al menos 6 caracteres.");
+  }
+
+  // 2. LOG DE ENTRADA
+  // Mostramos qué se envía. Por seguridad, en logs reales se suele ocultar la pass,
+  // pero para tu desarrollo actual lo dejaremos visible o parcialmente oculto.
+  console.log("--> [FRONT] Enviando a /Auth/RestablecerPassword:", {
+    token,
+    newPassword, // Ojo: en producción evita loguear contraseñas reales
+  });
+
   try {
-    // Este es el segundo endpoint que tu amigo debe crear
-    const res = await fetch("http://localhost:5189/api/Auth/ResetPassword", {
+    const res = await fetch(`${BASE_API_URL}/Cliente/RestablecerContrasena`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token, newPassword }),
     });
 
+    // Verificamos que el servidor realmente devuelva JSON antes de intentar parsearlo
+    const contentType = res.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new Error("Error de servidor: La respuesta no es un JSON válido.");
+    }
+
+    const data = await res.json();
+
+    // 3. LOG DE SALIDA
+    console.log("<-- [FRONT] Respuesta recibida del backend:", data);
+
+    // 4. VALIDACIÓN DE ERROR HTTP (404, 500, etc.)
     if (!res.ok) {
-      const errorData = await res.json();
       throw new Error(
-        errorData.message || "El enlace es inválido o ha expirado."
+        data.message ||
+          data.error ||
+          `Error del servidor (Código: ${res.status})`
       );
     }
-    return await res.json();
+
+    // 5. VALIDACIÓN LÓGICA DEL BACKEND (Status 200 pero success: false)
+    if (data.success === false) {
+      throw new Error(
+        data.message ||
+          data.error ||
+          "No se pudo restablecer la contraseña. El enlace puede haber expirado."
+      );
+    }
+
+    return data; // Retorna éxito
   } catch (error) {
-    console.error("Error en servicio resetearPasswordConToken:", error);
+    console.error("xxx [FRONT] Error en resetearPasswordConToken:", error);
     throw error;
   }
-}
-*/
-// ... (tus otras funciones como autenticarUsuario se quedan igual)
-
-/**
- * --- SIMULACIÓN ---
- * Finge que envía un correo de recuperación.
- */
-export async function enviarCorreoRecuperacion(email) {
-  // Definimos un correo que "existe" en nuestra simulación
-  const MOCK_EXISTING_EMAIL = "test@example.com";
-
-  console.log(`SIMULACIÓN: Solicitud para enviar correo a: ${email}`);
-
-  // Usamos una Promesa para simular el tiempo de espera de la red
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // Comparamos el email ingresado con nuestro email de prueba
-      if (email === MOCK_EXISTING_EMAIL) {
-        console.log("SIMULACIÓN: Correo encontrado. Fingiendo envío exitoso.");
-        // Si el correo es el correcto, resolvemos la promesa (éxito)
-        resolve({ success: true, message: "Correo de recuperación enviado." });
-      } else {
-        console.log("SIMULACIÓN: Correo no encontrado. Rechazando la promesa.");
-        // Si no es correcto, rechazamos la promesa (error)
-        reject(new Error("El correo no está registrado."));
-      }
-    }, 1500); // Simulamos una espera de 1.5 segundos
-  });
-}
-
-/**
- * --- SIMULACIÓN ---
- * Finge que resetea la contraseña con un token.
- */
-export async function resetearPasswordConToken(token, newPassword) {
-  // Definimos un token que es "válido" en nuestra simulación
-  const MOCK_VALID_TOKEN = "valid-token-123";
-
-  console.log(`SIMULACIÓN: Intento de reseteo con token: ${token}`);
-  console.log(`SIMULACIÓN: Nueva contraseña recibida: ${newPassword}`);
-
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (token === MOCK_VALID_TOKEN) {
-        console.log(
-          "SIMULACIÓN: Token válido. Contraseña 'actualizada' exitosamente."
-        );
-        resolve({ success: true, message: "Contraseña actualizada." });
-      } else {
-        console.log("SIMULACIÓN: Token inválido o expirado.");
-        reject(new Error("El enlace es inválido o ha expirado."));
-      }
-    }, 1500); // Simulamos 1.5 segundos de espera
-  });
 }
