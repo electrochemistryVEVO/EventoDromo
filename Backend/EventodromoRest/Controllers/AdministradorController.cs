@@ -18,6 +18,34 @@ namespace EventodromoRest.Controllers
         private readonly Globales.Globales globales = globales;
         private readonly TokenService tokenService = tokenService;
 
+        /// <summary>
+        /// Registra un nuevo administrador en el sistema.
+        /// POST /api/Administrador/Registrar
+        /// </summary>
+        [HttpPost]
+        [Route("/api/[controller]/Registrar")]
+        public GenericResponse<RegistrarAdminResponse> Registrar([FromBody] RegistrarAdminRequest request)
+        {
+            try
+            {
+                var administradorBO = new AdministradorBO(globales, BD);
+                return administradorBO.RegistrarAdministrador(request);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<RegistrarAdminResponse>
+                {
+                    Success = false,
+                    Message = "Error al registrar administrador.",
+                    Error = e.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
         [HttpGet]
         [Route("/api/[controller]/FetchAdminData")]
         public GenericResponse<FetchUserDataResponse> FetchAdminData()

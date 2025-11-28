@@ -28,4 +28,20 @@
     {
         public List<EventoMasVendidoDTO> data { get; set; }
     }
+
+    public class RegistrarAdminRequest
+    {
+        public required string nombres { get; set; }
+        public required string apellidos { get; set; }
+        public required string email { get; set; }
+        public required string password { get; set; }
+    }
+
+    public class RegistrarAdminResponse
+    {
+        public int id { get; set; }
+        public required string nombres { get; set; }
+        public required string apellidos { get; set; }
+        public required string email { get; set; }
+    }
 }

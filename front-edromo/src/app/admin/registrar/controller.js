@@ -44,8 +44,9 @@ export function useCreateAdmin() {
         email: form.email.trim(),
         password: form.password
       }
-      // Ajusta la URL del endpoint según tu backend
-      const res = await fetch('http://localhost:5189/api/Admin/Registrar', {
+      // Usar variable de entorno para la URL del backend
+      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/Administrador/Registrar`;
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

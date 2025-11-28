@@ -105,7 +105,7 @@ namespace EventodromoRest.Negocio
 
                 var mapper = new TransferirEntradasMapper(globales, DB);
 
-                // Validar que las entradas existan y estén disponibles
+                // Validar que las entradas existan, estén disponibles y sean de eventos futuros
                 bool entradasValidas = mapper.ValidarEntradasDisponibles(request.entradas);
                 if (!entradasValidas)
                 {
@@ -114,7 +114,7 @@ namespace EventodromoRest.Negocio
                         Success = false,
                         Message = "Entradas no disponibles",
                         Data = null,
-                        Error = "Una o más entradas no están disponibles para transferir"
+                        Error = "No se pueden transferir entradas de eventos pasados o que no están disponibles"
                     };
                 }
 

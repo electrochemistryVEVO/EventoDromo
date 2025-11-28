@@ -90,6 +90,28 @@ export default function MisEntradaItem({ entrada, index, onTransferComplete }) {
     }
   };
 
+  // Verificar si el evento está vencido
+  const esEventoVencido = () => {
+    if (!entrada.fecha || !entrada.hora) return false;
+    
+    try {
+      // Parsear la fecha y hora del evento
+      const [dia, mes, anio] = entrada.fecha.split('/').map(Number);
+      const [horas, minutos] = entrada.hora.split(':').map(Number);
+      
+      // Crear fecha del evento (mes es 0-indexed en JS)
+      const fechaEvento = new Date(anio, mes - 1, dia, horas, minutos);
+      const ahora = new Date();
+      
+      return fechaEvento < ahora;
+    } catch (error) {
+      console.error('Error al verificar fecha del evento:', error);
+      return false;
+    }
+  };
+
+  const eventoVencido = esEventoVencido();
+
   return (
     <div className="mei-item" data-index={index}>
       <div className="mei-card">
@@ -198,7 +220,11 @@ export default function MisEntradaItem({ entrada, index, onTransferComplete }) {
               transaccion={entrada.transaccion}
               tiposEntrada={tiposEntrada}
               onTransferComplete={handleTransferComplete}
-              disabled={estadoEntradas.disponibles === 0 && estadoEntradas.total > 0}
+              disabled={
+                eventoVencido || 
+                (estadoEntradas.disponibles === 0 && estadoEntradas.total > 0)
+              }
+              disabledReason={eventoVencido ? 'expired' : 'no-available'}
             />
             <VerDetalleButton numeroTransaccion={entrada.transaccion} idEvento={entrada.id} />
           </div>

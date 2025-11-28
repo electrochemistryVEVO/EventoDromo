@@ -75,6 +75,36 @@ namespace EventodromoRest.Mappers
             }
         }
 
+        public Administrador ObtenerAdministradorPorEmail(string email)
+        {
+            lock (DB)
+            {
+                string query = "SELECT * FROM Administrador WHERE EMAIL = @EMAIL";
+                var parametros = new ParameterList();
+                parametros.Add("@EMAIL", email);
+                DB.Select(query, parametros);
+                if (DB.Read())
+                {
+                    Administrador administrador = new()
+                    {
+                        id = DB.GetInt("ID"),
+                        nombres = DB.GetString("NOMBRES"),
+                        apellidos = DB.GetString("APELLIDOS"),
+                        email = DB.GetString("EMAIL"),
+                        passwordHash = DB.GetString("PASSWORDHASH"),
+                        fechaCreacion = DB.GetDateTime("FECHACREACION"),
+                    };
+                    DB.CloseReader();
+                    return administrador;
+                }
+                else
+                {
+                    DB.CloseReader();
+                    return null;
+                }
+            }
+        }
+
         public int EliminarAdministradorPorId(int id)
         {
             lock (DB)

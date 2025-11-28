@@ -5,7 +5,8 @@ export default function TransferirButton({
   transaccion = null, 
   tiposEntrada = [], // Array de { idTipoEntrada, nombreTipo, cantidadDisponible }
   onTransferComplete = null, // Callback cuando se completa la transferencia
-  disabled = false // Nuevo prop para deshabilitar el botón
+  disabled = false, // Nuevo prop para deshabilitar el botón
+  disabledReason = null // Razón específica para deshabilitar: 'expired', 'no-available', etc.
 }) {
   const [showModal, setShowModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -152,6 +153,14 @@ export default function TransferirButton({
     }
   };
 
+  // Determinar mensaje de tooltip según la razón
+  const getTooltipMessage = () => {
+    if (!disabled) return "";
+    if (disabledReason === 'expired') return "No se pueden transferir entradas de eventos pasados";
+    if (!tiposEntrada || tiposEntrada.length === 0) return "No hay entradas disponibles para transferir";
+    return "No hay entradas disponibles para transferir";
+  };
+
   return (
     <>
       <button
@@ -159,7 +168,7 @@ export default function TransferirButton({
         className="mei-btn mei-btn--transferir"
         onClick={() => setShowModal(true)}
         disabled={disabled || !tiposEntrada || tiposEntrada.length === 0}
-        title={disabled ? "No hay entradas disponibles para transferir" : ""}
+        title={getTooltipMessage()}
       >
         Transferir
       </button>
