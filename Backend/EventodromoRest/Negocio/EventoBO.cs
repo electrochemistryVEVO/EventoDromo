@@ -377,6 +377,281 @@ namespace EventodromoRest.Negocio
             };
         }
 
+        public GenericResponse<EventoCrearMasivoResponseData> InsertarEventosMasivo(List<EventoMasivoItem> eventos, int idAdministrador)
+        {
+            var errores = new List<string>();
+            int insertados = 0;
+            int fallidos = 0;
+
+            try
+            {
+                // 1. Validar que el array no esté vacío
+                if (eventos == null || !eventos.Any())
+                {
+                    return new GenericResponse<EventoCrearMasivoResponseData>
+                    {
+                        Success = false,
+                        Message = "El array de eventos no puede estar vacío.",
+                        Data = new EventoCrearMasivoResponseData 
+                        { 
+                            insertados = 0, 
+                            fallidos = 0,
+                            errores = new List<string> { "El array de eventos no puede estar vacío." }
+                        }
+                    };
+                }
+
+                // Preparar mappers
+                var eventoMapper = new EventoMapper(globales, DB);
+                var localMapper = new LocalMapper(globales, DB);
+                var tipoEventoMapper = new TipoEventoMapper(globales, DB);
+                var fechaMapper = new FechaEventoMapper(globales, DB);
+                var entradaMapper = new TipoEntradaMapper(globales, DB);
+
+                // Obtener listas de IDs válidos para validación (UNA SOLA VEZ)
+                var localesExistentes = localMapper.ListarLocales2().Select(l => l.id).ToHashSet();
+                var tiposEventoExistentes = tipoEventoMapper.ListarTipoEvento().Select(t => t.id).ToHashSet();
+
+                // 2. Procesar cada evento individualmente
+                for (int i = 0; i < eventos.Count; i++)
+                {
+                    var evento = eventos[i];
+                    var nombreEvento = string.IsNullOrWhiteSpace(evento.nombre) ? $"Evento {i + 1}" : evento.nombre;
+
+                    try
+                    {
+                        // Validar campos obligatorios
+                        if (string.IsNullOrWhiteSpace(evento.nombre))
+                        {
+                            errores.Add($"Evento {i + 1}: El nombre es requerido.");
+                            fallidos++;
+                            continue;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(evento.descripcion))
+                        {
+                            errores.Add($"Evento '{nombreEvento}': La descripción es requerida.");
+                            fallidos++;
+                            continue;
+                        }
+
+                        if (evento.localId <= 0)
+                        {
+                            errores.Add($"Evento '{nombreEvento}': El ID de local es requerido.");
+                            fallidos++;
+                            continue;
+                        }
+
+                        if (evento.tipoEventoId <= 0)
+                        {
+                            errores.Add($"Evento '{nombreEvento}': El ID de tipo de evento es requerido.");
+                            fallidos++;
+                            continue;
+                        }
+
+                        if (evento.capacidad <= 0)
+                        {
+                            errores.Add($"Evento '{nombreEvento}': La capacidad debe ser mayor a 0.");
+                            fallidos++;
+                            continue;
+                        }
+
+                        // Validar que localId exista
+                        if (!localesExistentes.Contains(evento.localId))
+                        {
+                            errores.Add($"Evento '{nombreEvento}': El local con ID {evento.localId} no existe.");
+                            fallidos++;
+                            continue;
+                        }
+
+                        // Validar que tipoEventoId exista
+                        if (!tiposEventoExistentes.Contains(evento.tipoEventoId))
+                        {
+                            errores.Add($"Evento '{nombreEvento}': El tipo de evento con ID {evento.tipoEventoId} no existe.");
+                            fallidos++;
+                            continue;
+                        }
+
+                        // Validar horarios
+                        if (evento.horarios == null || !evento.horarios.Any())
+                        {
+                            errores.Add($"Evento '{nombreEvento}': Debe tener al menos un horario.");
+                            fallidos++;
+                            continue;
+                        }
+
+                        // Validar entradas
+                        if (evento.entradas == null || !evento.entradas.Any())
+                        {
+                            errores.Add($"Evento '{nombreEvento}': Debe tener al menos una entrada.");
+                            fallidos++;
+                            continue;
+                        }
+
+                        // Validar formato de fechas
+                        if (!DateTime.TryParse(evento.fechaPublicacion, out DateTime fechaPublicacion))
+                        {
+                            errores.Add($"Evento '{nombreEvento}': Formato de fecha de publicación inválido.");
+                            fallidos++;
+                            continue;
+                        }
+
+                        if (!DateTime.TryParse(evento.fechaCompra, out DateTime fechaCompra))
+                        {
+                            errores.Add($"Evento '{nombreEvento}': Formato de fecha de compra inválido.");
+                            fallidos++;
+                            continue;
+                        }
+
+                        // Validar que fechaPublicacion sea anterior a fechaCompra
+                        if (fechaPublicacion >= fechaCompra)
+                        {
+                            errores.Add($"Evento '{nombreEvento}': La fecha de publicación debe ser anterior a la fecha de compra.");
+                            fallidos++;
+                            continue;
+                        }
+
+                        // Validar formato de horarios
+                        var horariosValidos = new List<DateTime>();
+                        bool horarioInvalido = false;
+                        foreach (var horario in evento.horarios)
+                        {
+                            if (!DateTime.TryParse(horario, out DateTime horarioDateTime))
+                            {
+                                errores.Add($"Evento '{nombreEvento}': Formato de horario inválido '{horario}'.");
+                                horarioInvalido = true;
+                                break;
+                            }
+                            
+                            // Validar que el horario sea futuro
+                            if (horarioDateTime <= DateTime.Now)
+                            {
+                                errores.Add($"Evento '{nombreEvento}': El horario '{horario}' debe ser futuro.");
+                                horarioInvalido = true;
+                                break;
+                            }
+                            
+                            horariosValidos.Add(horarioDateTime);
+                        }
+
+                        if (horarioInvalido)
+                        {
+                            fallidos++;
+                            continue;
+                        }
+
+                        // Validar entradas
+                        int totalEntradasEvento = 0;
+                        bool entradaInvalida = false;
+
+                        foreach (var entrada in evento.entradas)
+                        {
+                            if (string.IsNullOrWhiteSpace(entrada.nombre))
+                            {
+                                errores.Add($"Evento '{nombreEvento}': El nombre de la entrada no puede estar vacío.");
+                                entradaInvalida = true;
+                                break;
+                            }
+
+                            if (entrada.precio < 0)
+                            {
+                                errores.Add($"Evento '{nombreEvento}': El precio de la entrada '{entrada.nombre}' debe ser mayor o igual a 0.");
+                                entradaInvalida = true;
+                                break;
+                            }
+
+                            if (entrada.cantidad <= 0)
+                            {
+                                errores.Add($"Evento '{nombreEvento}': La cantidad de la entrada '{entrada.nombre}' debe ser mayor a 0.");
+                                entradaInvalida = true;
+                                break;
+                            }
+
+                            if (entrada.limiteCompra <= 0)
+                            {
+                                errores.Add($"Evento '{nombreEvento}': El límite de compra de la entrada '{entrada.nombre}' debe ser mayor a 0.");
+                                entradaInvalida = true;
+                                break;
+                            }
+
+                            totalEntradasEvento += entrada.cantidad;
+                        }
+
+                        if (entradaInvalida)
+                        {
+                            fallidos++;
+                            continue;
+                        }
+
+                        // Validar que la suma de entradas no exceda la capacidad
+                        if (totalEntradasEvento > evento.capacidad)
+                        {
+                            errores.Add($"Evento '{nombreEvento}': La suma de entradas ({totalEntradasEvento}) excede la capacidad del evento ({evento.capacidad}).");
+                            fallidos++;
+                            continue;
+                        }
+
+                        // ✅ Todas las validaciones pasaron, proceder a insertar
+                        var nuevoEvento = new Evento
+                        {
+                            nombre = evento.nombre,
+                            descripcion = evento.descripcion,
+                            idLocal = evento.localId,
+                            idTipoEvento = evento.tipoEventoId,
+                            creadoPor = idAdministrador,
+                            fechaPublicacion = fechaPublicacion,
+                            fechaCompra = fechaCompra,
+                            isDeleted = false,
+                            imagenURL = evento.imagenURL
+                        };
+
+                        // Insertar el evento usando la lógica existente
+                        int idEvento = CrearEvento(nuevoEvento, evento.horarios, evento.entradas);
+
+                        insertados++;
+                    }
+                    catch (Exception ex)
+                    {
+                        errores.Add($"Evento '{nombreEvento}': Error al insertar - {ex.Message}");
+                        fallidos++;
+                    }
+                }
+
+                // 3. Preparar respuesta
+                var success = insertados > 0;
+                var message = insertados == eventos.Count
+                    ? $"{insertados} eventos creados exitosamente"
+                    : $"Se crearon {insertados} eventos, fallaron {fallidos}";
+
+                return new GenericResponse<EventoCrearMasivoResponseData>
+                {
+                    Success = success,
+                    Message = message,
+                    Data = new EventoCrearMasivoResponseData
+                    {
+                        insertados = insertados,
+                        fallidos = fallidos,
+                        errores = errores
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GenericResponse<EventoCrearMasivoResponseData>
+                {
+                    Success = false,
+                    Message = "Error fatal al procesar la carga masiva de eventos.",
+                    Error = ex.Message,
+                    Data = new EventoCrearMasivoResponseData
+                    {
+                        insertados = insertados,
+                        fallidos = eventos?.Count ?? 0,
+                        errores = errores
+                    }
+                };
+            }
+        }
+    
         public GenericResponse<bool> EliminarEvento(int idEvento, int idAdmin)
         {
             try

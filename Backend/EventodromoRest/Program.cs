@@ -149,18 +149,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseRouting();
-// AGREGAR USO DE CORS - Esto también es necesario
+// CORS debe ir antes de UseRouting
 app.UseCors("AllowAll");
+
+app.UseRouting();
 
 //app.UseHttpsRedirection();
 
 //PARA EL TOKEN
 app.UseAuthentication();
 
-
 app.UseAuthorization();
-
 
 app.MapControllers();
 

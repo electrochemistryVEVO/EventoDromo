@@ -4,6 +4,14 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { listarCiudades, listarLocales } from "@/services/gestionLocal.service";
 import { submitInput, modifyLocal, deleteLocal, restoreLocal } from "@/app/admin/locales/gestion/controller";
+import { getAuthToken } from '@/services/admin-service'
+import { getApiUrl } from '@/lib/utils'
+import LocalDeleteWarningModal from '@/components/modals/LocalDeleteWarningModal'
+import LocalDeleteConfirmModal from '@/components/modals/LocalDeleteConfirmModal'
+import LocalRestoreModal from '@/components/modals/LocalRestoreModal'
+import LocalUploadCSVModal from '@/components/modals/LocalUploadCSVModal'
+import CSVUploadSuccessModal from '@/components/modals/CSVUploadSuccessModal'
+import CSVUploadErrorModal from '@/components/modals/CSVUploadErrorModal'
 import '@/css/adminLocales/gestionLocales.css';
 import {
     FiSearch,
@@ -13,7 +21,8 @@ import {
     FiSlash,
     FiRotateCcw,
     FiChevronLeft,
-    FiChevronRight
+    FiChevronRight,
+    FiUpload,
 } from 'react-icons/fi';
 
 // --- Sub-componentes ---
@@ -191,6 +200,9 @@ function GestionLocales() {
     const [modalData, setModalData] = useState({})
     const [filter, setFilter] = useState('')
     const [estadoFilter, setEstadoFilter] = useState('Todos')
+    const [ciudadFilter, setCiudadFilter] = useState('Todas')
+    const [capacidadMin, setCapacidadMin] = useState('')
+    const [capacidadMax, setCapacidadMax] = useState('')
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const [createPopup, setCreatePopup] = useState(false)
     const [deleteModalData, setDeleteModalData] = useState(null)
@@ -198,6 +210,14 @@ function GestionLocales() {
     const [showConfirmModal, setShowConfirmModal] = useState(false)
     const [showRestoreModal, setShowRestoreModal] = useState(false)
     const [restoreModalData, setRestoreModalData] = useState(null)
+    const [showUploadModal, setShowUploadModal] = useState(false)
+    const [uploadStep, setUploadStep] = useState(1)
+    const [selectedFile, setSelectedFile] = useState(null)
+    const [uploadErrors, setUploadErrors] = useState([])
+    const [isProcessing, setIsProcessing] = useState(false)
+    const [showSuccessModal, setShowSuccessModal] = useState(false)
+    const [showErrorModal, setShowErrorModal] = useState(false)
+    const [uploadResult, setUploadResult] = useState({ success: 0, failed: 0, errors: [] })
     
     // Estados para paginación
     const [currentPage, setCurrentPage] = useState(1)
@@ -243,7 +263,19 @@ function GestionLocales() {
             matchesEstado = e.isDeleted
         }
         
-        return matchesSearch && matchesEstado
+        // Filtro de ciudad
+        const matchesCiudad = ciudadFilter === 'Todas' || e.nombreCiudad === ciudadFilter
+        
+        // Filtro de capacidad
+        let matchesCapacidad = true
+        if (capacidadMin !== '' && e.capacidad < parseInt(capacidadMin)) {
+            matchesCapacidad = false
+        }
+        if (capacidadMax !== '' && e.capacidad > parseInt(capacidadMax)) {
+            matchesCapacidad = false
+        }
+        
+        return matchesSearch && matchesEstado && matchesCiudad && matchesCapacidad
     }) || []
     
     // Calcular paginación
@@ -268,7 +300,157 @@ function GestionLocales() {
     // Resetear a página 1 cuando cambian los filtros
     useEffect(() => {
         setCurrentPage(1)
-    }, [filter, estadoFilter])
+    }, [filter, estadoFilter, ciudadFilter, capacidadMin, capacidadMax])
+    
+    // Parsear línea de CSV manejando comillas
+    const parseCSVLine = (line) => {
+        const values = [];
+        let current = '';
+        let inQuotes = false;
+        
+        for (let char of line) {
+            if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                values.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        values.push(current.trim());
+        return values;
+    };
+    
+    // Validar y cargar CSV
+    const handleUploadCSV = async () => {
+        if (!selectedFile) {
+            alert('Por favor selecciona un archivo CSV');
+            return;
+        }
+        
+        setIsProcessing(true);
+        setUploadErrors([]);
+        
+        try {
+            const text = await selectedFile.text();
+            const lines = text.split('\n').filter(line => line.trim());
+            
+            if (lines.length < 2) {
+                throw new Error('El archivo está vacío o solo tiene encabezados');
+            }
+            
+            // Validar headers
+            const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+            const required = ['nombre_local', 'ciudad', 'direccion', 'capacidad', 'imagen_url'];
+            const missing = required.filter(h => !headers.includes(h));
+            
+            if (missing.length > 0) {
+                throw new Error(`Faltan columnas: ${missing.join(', ')}`);
+            }
+            
+            // Procesar filas
+            const locales = [];
+            const errors = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const values = parseCSVLine(lines[i]);
+                const row = {};
+                headers.forEach((h, idx) => row[h] = values[idx] || '');
+                
+                const rowNum = i + 1;
+                const rowErrors = [];
+                
+                // Validar campos
+                if (!row.nombre_local) rowErrors.push(`Fila ${rowNum}: Falta nombre`);
+                if (!row.direccion) rowErrors.push(`Fila ${rowNum}: Falta dirección`);
+                
+                const ciudad = ciudades.find(c => c.nombre.toLowerCase() === row.ciudad.toLowerCase());
+                if (!ciudad) rowErrors.push(`Fila ${rowNum}: Ciudad "${row.ciudad}" no existe`);
+                
+                const capacidad = parseInt(row.capacidad);
+                if (isNaN(capacidad) || capacidad <= 0) rowErrors.push(`Fila ${rowNum}: Capacidad inválida`);
+                
+                if (row.imagen_url && !/^https?:\/\//i.test(row.imagen_url)) {
+                    rowErrors.push(`Fila ${rowNum}: URL inválida`);
+                }
+                
+                if (rowErrors.length > 0) {
+                    errors.push(...rowErrors);
+                } else {
+                    locales.push({
+                        nombre: row.nombre_local,
+                        idCiudad: ciudad.id,
+                        direccion: row.direccion,
+                        capacidad: capacidad,
+                        imagen: row.imagen_url || ''
+                    });
+                }
+            }
+            
+            // Si hay errores de validación, mostrarlos en el modal de carga
+            if (errors.length > 0) {
+                setUploadErrors(errors);
+                setIsProcessing(false);
+                return;
+            }
+            
+            // Cargar al backend
+            const token = getAuthToken();
+            const url = await getApiUrl();
+            
+            const response = await fetch(`${url}/Local/LocalCrearMasivo`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ locales })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                
+                // Cerrar modal de carga y mostrar modal de error
+                setShowUploadModal(false);
+                setUploadResult({ 
+                    success: 0, 
+                    failed: locales.length, 
+                    errors: [errorData.message || 'Error al cargar locales al servidor'] 
+                });
+                setShowErrorModal(true);
+                setIsProcessing(false);
+                return;
+            }
+            
+            const result = await response.json();
+            const insertados = result.data?.insertados || result.insertados || locales.length;
+            
+            // Recargar lista
+            const actualizados = await listarLocales();
+            setLocales(actualizados?.data || actualizados);
+            
+            // Cerrar modal de carga y mostrar modal de éxito
+            setShowUploadModal(false);
+            setSelectedFile(null);
+            setUploadStep(1);
+            setUploadErrors([]);
+            setUploadResult({ success: insertados, failed: 0, errors: [] });
+            setShowSuccessModal(true);
+            
+        } catch (error) {
+            // Error general (archivo, formato, etc)
+            setShowUploadModal(false);
+            setUploadResult({ 
+                success: 0, 
+                failed: 0, 
+                errors: [error.message] 
+            });
+            setShowErrorModal(true);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
 
     return (
         <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
@@ -276,9 +458,14 @@ function GestionLocales() {
                 {/* --- Cabecera --- */}
                 <header className="page-header">
                     <h1>Gestión de Locales</h1>
-                    <button className="btn btn-create" onClick={() => router.push('/admin/locales/crear')}>
-                        <FiPlus /> Crear local
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <button className="btn btn-secondary" onClick={() => setShowUploadModal(true)}>
+                            <FiUpload /> Cargar CSV
+                        </button>
+                        <button className="btn btn-create" onClick={() => router.push('/admin/locales/crear')}>
+                            <FiPlus /> Crear local
+                        </button>
+                    </div>
                 </header>
 
                 {/* --- Contenedor Principal (Filtros + Tabla) --- */}
@@ -338,6 +525,62 @@ function GestionLocales() {
                                 </div>
                             )}
                         </div>
+                        
+                        {/* Filtro por Ciudad */}
+                        <div className="filter-select">
+                            <label htmlFor="ciudad-filter">Ciudad</label>
+                            <select
+                                id="ciudad-filter"
+                                value={ciudadFilter}
+                                onChange={(e) => setCiudadFilter(e.target.value)}
+                            >
+                                <option value="Todas">Todas</option>
+                                {ciudades.map((ciudad) => (
+                                    <option key={ciudad.id} value={ciudad.nombre}>
+                                        {ciudad.nombre}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        
+                        {/* Filtro por Capacidad */}
+                        <div className="filter-select">
+                            <label>Capacidad</label>
+                            <div className="filter-date-range">
+                                <input
+                                    type="number"
+                                    placeholder="Mín"
+                                    value={capacidadMin}
+                                    onChange={(e) => setCapacidadMin(e.target.value)}
+                                    style={{ width: '100px' }}
+                                />
+                                <span>-</span>
+                                <input
+                                    type="number"
+                                    placeholder="Máx"
+                                    value={capacidadMax}
+                                    onChange={(e) => setCapacidadMax(e.target.value)}
+                                    style={{ width: '100px' }}
+                                />
+                            </div>
+                        </div>
+                        
+                        {/* Botón para limpiar filtros */}
+                        <button
+                            onClick={() => {
+                                setCiudadFilter('Todas')
+                                setCapacidadMin('')
+                                setCapacidadMax('')
+                                setEstadoFilter('Todos')
+                                setFilter('')
+                                // Limpiar también el campo de búsqueda
+                                const searchInput = document.querySelector('.search-bar input')
+                                if (searchInput) searchInput.value = ''
+                            }}
+                            className="text-sm text-red-600 hover:text-red-800 font-medium self-end pb-2"
+                        >
+                            Limpiar filtros
+                        </button>
                     </div>
 
                     {/* --- Contenedor de la Tabla (para scroll horizontal) --- */}
@@ -509,165 +752,89 @@ function GestionLocales() {
             )}
 
             {/* --- Modal: No se puede inactivar (con eventos activos) --- */}
-            {showDeleteModal && deleteModalData && (
-                <div className="fixed z-[999] inset-0 bg-black/50 grid h-screen w-screen place-items-center">
-                    <div className="relative max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8">
-                        {/* Botón Cerrar */}
-                        <button 
-                            onClick={() => setShowDeleteModal(false)}
-                            className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition-colors"
-                            aria-label="Cerrar modal"
-                        >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                        </button>
-
-                        {/* Título */}
-                        <h2 className="text-2xl font-bold text-red-600 mb-4">
-                            No se puede inactivar este local
-                        </h2>
-
-                        {/* Mensaje */}
-                        <p className="text-gray-700 text-lg mb-6">
-                            El local <strong>{deleteModalData.nombre}</strong> no puede ser puesto en estado inactivo por que tiene <strong>{deleteModalData.eventos} eventos activos</strong>
-                        </p>
-
-                        {/* Caja de advertencia */}
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                            <div className="flex items-start gap-3">
-                                <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <line x1="12" y1="8" x2="12" y2="12"></line>
-                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                                    </svg>
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="font-semibold text-red-800 text-lg mb-1">
-                                        Eventos activos: {deleteModalData.eventos}
-                                    </h3>
-                                    <p className="text-red-700 text-sm">
-                                        Para bloquear este local, primero debe cancelar o finalizar todos los eventos activos
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Botón */}
-                        <div className="flex justify-end">
-                            <button 
-                                onClick={() => setShowDeleteModal(false)}
-                                className="px-8 py-2.5 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-                            >
-                                Cancelar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <LocalDeleteWarningModal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                localData={deleteModalData}
+            />
 
             {/* --- Modal: Confirmación de inactivación (sin eventos activos) --- */}
-            {showConfirmModal && deleteModalData && (
-                <div className="fixed z-[999] inset-0 bg-black/50 grid h-screen w-screen place-items-center">
-                    <div className="relative max-w-xl mx-auto bg-white rounded-2xl shadow-xl p-8">
-                        {/* Título */}
-                        <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                            ¿Estas seguro de que quieres inactivar el local "{deleteModalData.nombre}"?
-                        </h2>
-
-                        {/* Mensaje */}
-                        <p className="text-gray-600 mb-8">
-                            Esta acción marcará el local como inactivo pero podrás restaurarlo más tarde.
-                        </p>
-
-                        {/* Botones */}
-                        <div className="flex justify-end gap-3">
-                            <button 
-                                onClick={() => setShowConfirmModal(false)}
-                                className="px-6 py-2.5 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-                            >
-                                Cancelar
-                            </button>
-                            <button 
-                                onClick={() => {
-                                    deleteLocal(deleteModalData.id);
-                                    setShowConfirmModal(false);
-                                    listarLocales().then((res) => { 
-                                        setLocales(res?.data) 
-                                    });
-                                }}
-                                className="px-6 py-2.5 text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors font-medium"
-                            >
-                                Inactivar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <LocalDeleteConfirmModal
+                isOpen={showConfirmModal}
+                onClose={() => setShowConfirmModal(false)}
+                onConfirm={async () => {
+                    await deleteLocal(deleteModalData.id);
+                    setShowConfirmModal(false);
+                    const res = await listarLocales();
+                    setLocales(res?.data);
+                }}
+                localData={deleteModalData}
+            />
 
             {/* --- Modal: Confirmación de restauración --- */}
-            {showRestoreModal && restoreModalData && (
-                <div className="fixed z-[999] inset-0 bg-black/50 grid h-screen w-screen place-items-center">
-                    <div className="relative max-w-xl mx-auto bg-white rounded-2xl shadow-xl p-8">
-                        {/* Título */}
-                        <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                            Restaurar Local
-                        </h2>
+            <LocalRestoreModal
+                isOpen={showRestoreModal}
+                onClose={() => setShowRestoreModal(false)}
+                onConfirm={async () => {
+                    try {
+                        const result = await restoreLocal(restoreModalData.id);
+                        const isSuccess = result && (
+                            result.success === true || 
+                            result.success === undefined ||
+                            result.status === 'success' ||
+                            (result.message && !result.message.toLowerCase().includes('error'))
+                        );
+                        
+                        if (isSuccess) {
+                            alert('Local restaurado exitosamente');
+                            setShowRestoreModal(false);
+                            const res = await listarLocales();
+                            setLocales(res?.data);
+                        } else {
+                            alert(result?.message || 'Error al restaurar el local');
+                        }
+                    } catch (error) {
+                        alert('Error al restaurar el local: ' + error.message);
+                    }
+                }}
+                localData={restoreModalData}
+            />
 
-                        {/* Mensaje */}
-                        <p className="text-gray-700 text-lg mb-8">
-                            ¿Estas seguro de que quieres restaurar el local "{restoreModalData.nombre}"? El local volverá a estar activo y disponible para eventos.
-                        </p>
+            {/* --- Modal: Cargar CSV --- */}
+            <LocalUploadCSVModal
+                isOpen={showUploadModal}
+                onClose={() => setShowUploadModal(false)}
+                uploadStep={uploadStep}
+                setUploadStep={setUploadStep}
+                selectedFile={selectedFile}
+                setSelectedFile={setSelectedFile}
+                uploadErrors={uploadErrors}
+                setUploadErrors={setUploadErrors}
+                onUpload={handleUploadCSV}
+                isProcessing={isProcessing}
+            />
 
-                        {/* Botones */}
-                        <div className="flex justify-end gap-3">
-                            <button 
-                                onClick={() => setShowRestoreModal(false)}
-                                className="px-6 py-2.5 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-                            >
-                                Cancelar
-                            </button>
-                            <button 
-                                onClick={async () => {
-                                    try {
-                                        console.log('[BUTTON] Iniciando restauración del local:', restoreModalData);
-                                        const result = await restoreLocal(restoreModalData.id);
-                                        console.log('[BUTTON] Resultado de restoreLocal:', result);
-                                        
-                                        // Verificar varios casos de éxito
-                                        const isSuccess = result && (
-                                            result.success === true || 
-                                            result.success === undefined ||
-                                            result.status === 'success' ||
-                                            (result.message && !result.message.toLowerCase().includes('error'))
-                                        );
-                                        
-                                        if (isSuccess) {
-                                            console.log('[BUTTON] Restauración exitosa');
-                                            alert('Local restaurado exitosamente');
-                                            setShowRestoreModal(false);
-                                            const res = await listarLocales();
-                                            console.log('[BUTTON] Lista actualizada:', res);
-                                            setLocales(res?.data);
-                                        } else {
-                                            console.error('[BUTTON] Error en restauración:', result);
-                                            alert(result?.message || 'Error al restaurar el local');
-                                        }
-                                    } catch (error) {
-                                        console.error('[BUTTON] Error capturado:', error);
-                                        alert('Error al restaurar el local: ' + error.message);
-                                    }
-                                }}
-                                className="px-6 py-2.5 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors font-medium"
-                            >
-                                Restaurar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* --- Modal: Éxito CSV --- */}
+            <CSVUploadSuccessModal
+                isOpen={showSuccessModal}
+                onClose={() => {
+                    setShowSuccessModal(false);
+                    setUploadResult({ success: 0, failed: 0, errors: [] });
+                }}
+                count={uploadResult.success}
+            />
+
+            {/* --- Modal: Error CSV --- */}
+            <CSVUploadErrorModal
+                isOpen={showErrorModal}
+                onClose={() => {
+                    setShowErrorModal(false);
+                    setUploadResult({ success: 0, failed: 0, errors: [] });
+                    setShowUploadModal(true);
+                }}
+                errors={uploadResult.errors}
+                failedCount={uploadResult.failed}
+            />
         </div>
     );
 }

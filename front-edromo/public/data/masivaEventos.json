@@ -1,0 +1,26 @@
+{
+	"eventos": [
+		{
+			"nombre": "string",
+			"descripcion": "string",
+			"localId": 0,
+			"tipoEventoId": 0,
+			"capacidad": 0,
+			"fechaPublicacion": "string",
+			"fechaCompra": "string",
+			"imagenURL": "string",
+			"horarios": [
+				"string"
+			],
+			"entradas": [
+				{
+					"nombre": "string",
+					"precio": 0,
+					"cantidad": 0,
+					"limiteCompra": 0,
+					"puntos": 0
+				}
+			]
+		}
+	]
+}

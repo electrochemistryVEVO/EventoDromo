@@ -346,6 +346,77 @@ namespace EventodromoRest.Controllers
             }
         }
 
+        /// <summary>
+        /// Recibe un array de eventos y los inserta de forma tolerante a fallos.
+        /// Cada evento se procesa individualmente, si uno falla, continúa con los demás.
+        /// </summary>
+        [HttpPost]
+        [Route("/api/[controller]/[action]")] // -> /api/Evento/EventoCrearMasivo
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        public GenericResponse<EventoCrearMasivoResponseData> EventoCrearMasivo([FromBody] EventoCrearMasivoRequest request)
+        {
+            try
+            {
+                // Validar que el request no sea nulo
+                if (request == null || request.eventos == null)
+                {
+                    return new GenericResponse<EventoCrearMasivoResponseData>
+                    {
+                        Success = false,
+                        Message = "El cuerpo de la solicitud no puede estar vacío.",
+                        Data = new EventoCrearMasivoResponseData 
+                        { 
+                            insertados = 0, 
+                            fallidos = 0,
+                            errores = new List<string> { "El cuerpo de la solicitud no puede estar vacío." }
+                        }
+                    };
+                }
+
+                // Obtener el ID del administrador del token (si aplica autorización)
+                int idAdministrador = 1; // Valor por defecto
+                
+                // Si tienes autorización por token, descomenta esto:
+                // var userIdString = User.FindFirst("idAdministrador")?.Value;
+                // if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out idAdministrador))
+                // {
+                //     return new GenericResponse<EventoCrearMasivoResponseData>
+                //     {
+                //         Success = false,
+                //         Message = "ID de administrador inválido en el token.",
+                //         Data = new EventoCrearMasivoResponseData 
+                //         { 
+                //             insertados = 0, 
+                //             fallidos = request.eventos.Count,
+                //             errores = new List<string> { "ID de administrador inválido en el token." }
+                //         }
+                //     };
+                // }
+
+                var bo = new EventoBO(globales, BD);
+                var response = bo.InsertarEventosMasivo(request.eventos, idAdministrador);
+                
+                return response;
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<EventoCrearMasivoResponseData>
+                {
+                    Success = false,
+                    Message = "Error fatal en el controlador al procesar la carga masiva.",
+                    Error = e.Message,
+                    Data = new EventoCrearMasivoResponseData 
+                    { 
+                        insertados = 0, 
+                        fallidos = request?.eventos?.Count ?? 0,
+                        errores = new List<string> { e.Message }
+                    }
+                };
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+            }
+        }
+         
         [HttpDelete]
         [Authorize]
         [Route("/api/[controller]/[action]")]

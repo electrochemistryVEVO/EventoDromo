@@ -121,6 +121,26 @@
         public decimal tasaOcupacion { get; set; }
     }
 
+    public class LocalMasivoItem
+    {
+        public string nombre { get; set; }
+        public int idCiudad { get; set; }
+        public string direccion { get; set; }
+        public int capacidad { get; set; }
+        public string? imagen { get; set; }
+    }
+
+    public class LocalCrearMasivoRequest
+    {
+        public List<LocalMasivoItem> locales { get; set; }
+    }
+
+    public class LocalCrearMasivoResponseData
+    {
+        public int insertados { get; set; }
+        public int fallidos { get; set; }
+    }
+   
     public class Feat_MetricDashB_ObtenerOcupacionLocales
     {
         public int id { get; set; }
