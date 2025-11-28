@@ -261,7 +261,7 @@ function CompraPagoConLoginPage() {
         itemCount,
         totalPrice,
     } = useCart();
-    const { user, isAuthenticated, isLoading: isUserLoading } = useUser();
+    const { user, isAuthenticated, isLoading: isUserLoading, updateUserPoints, refreshUserPoints } = useUser();
 
     const [showModal, setShowModal] = useState(false);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
@@ -280,6 +280,13 @@ function CompraPagoConLoginPage() {
 
     const userPuntos = user?.totalPuntos ?? 0;
     const [puntosPorSol, setPuntosPorSol] = useState(10);
+
+    // Refrescar puntos del usuario al cargar la página (por si hubo compras previas)
+    useEffect(() => {
+        if (isAuthenticated && refreshUserPoints) {
+            refreshUserPoints();
+        }
+    }, [isAuthenticated, refreshUserPoints]);
 
     // Cargar configuración al iniciar
     useEffect(() => {
@@ -416,6 +423,12 @@ function CompraPagoConLoginPage() {
                 };
 
                 response = await procesarPagoConPuntos(payload, token);
+                
+                // ✅ Actualizar puntos del usuario después del pago exitoso
+                if (response.success) {
+                    const nuevosPuntos = userPuntos - puntosRequeridos;
+                    updateUserPoints(nuevosPuntos);
+                }
 
             } else {
                 throw new Error("Por favor, seleccione un método de pago.");
