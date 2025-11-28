@@ -288,7 +288,35 @@ namespace EventodromoRest.Mappers
                 return lista;
             }
         }
+        public TipoEntrada obtenerDentradapoId(int idTipoEntrada)
+        {
+            lock (DB)
+            {
+                // Solo necesitamos estas dos columnas para la disponibilidad
+                string query = "SELECT cantidadEntradas, cantidadVendida FROM TipoEntrada WHERE id = @ID";
 
+                var p = new ParameterList();
+                p.Add("@ID", idTipoEntrada);
+
+                DB.Select(query, p);
+
+                if (DB.Read())
+                {
+                    var entrada = new TipoEntrada
+                    {
+                        // Mapeamos solo lo necesario
+                        // Asegúrate de que tu modelo usa propiedades con mayúscula o minúscula según corresponda
+                        cantidadEntradas = DB.GetInt("cantidadEntradas"),
+                        cantidadVendida = DB.GetInt("cantidadVendida")
+                    };
+                    DB.CloseReader();
+                    return entrada;
+                }
+
+                DB.CloseReader();
+                return null;
+            }
+        }
 
     }
 }

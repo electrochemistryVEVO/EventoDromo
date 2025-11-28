@@ -26,4 +26,16 @@
         public bool agotado { get; set; }
         public int limiteCompra { get; set; } // lo acabo de añadir
     }
+
+    public class DisponibilidadRequestDTO
+    {
+        public int idTipoEntrada { get; set; }
+    }
+
+   
+    public class DisponibilidadResponseDTO
+    {
+        public int vendidas { get; set; }
+        public int total { get; set; }
+    }
 }
