@@ -101,3 +101,45 @@ export const updateConfig = async (configData, token) => {
     return { success: true, message: "Configuración actualizada en el mock." };
   }
 };
+
+/**
+ * Obtiene los puntos disponibles actuales del usuario autenticado desde el backend.
+ * @param {string} token - El token JWT del cliente autenticado.
+ * @returns {Promise<number>} Una promesa que resuelve con la cantidad de puntos disponibles.
+ */
+export const obtenerPuntosDisponibles = async (token) => {
+  if (!token) {
+    throw new Error("Token de autenticación no proporcionado al servicio.");
+  }
+
+  try {
+    console.log("SERVICE: Obteniendo puntos disponibles del usuario desde el BACKEND...");
+    const response = await fetch(`${BASE_API_URL}/Dromopuntos/ObtenerResumen`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || errorData.error || `Error HTTP ${response.status}: ${response.statusText}`
+      );
+    }
+
+    const json = await response.json();
+
+    if (!json.success) {
+      throw new Error(json.error || json.message || "Error desconocido en el backend");
+    }
+
+    // json.data contiene ResumenDromopuntosDTO, que tiene TotalDisponible
+    return json.data?.totalDisponible ?? 0;
+
+  } catch (error) {
+    console.error("Error en el servicio obtenerPuntosDisponibles:", error);
+    throw error;
+  }
+};

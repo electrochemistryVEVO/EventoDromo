@@ -23,14 +23,16 @@
   top: 60px; /* Ajusta esta distancia según sea necesario */
   right: 0;
   background-color: #ffffff;
-  border: 1px solid var(--border-color);
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   width: 220px;
-  z-index: 1000;
+  z-index: 9999 !important; /* Muy alto para estar sobre todo */
   display: flex;
   flex-direction: column;
   padding: 0.5rem 0;
+  opacity: 1;
+  visibility: visible;
 }
 
 .dropdown-item {
@@ -39,13 +41,14 @@
   gap: 12px;
   padding: 0.75rem 1rem;
   font-size: 0.95rem;
-  color: var(--primary-text);
+  color: #333333;
   text-decoration: none;
   background-color: transparent;
   border: none;
   width: 100%;
   text-align: left;
   cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .dropdown-item:hover {
@@ -60,7 +63,7 @@
 /* Línea divisora dentro del menú */
 .dropdown-divider {
   height: 1px;
-  background-color: var(--border-color);
+  background-color: #e0e0e0;
   margin: 0.5rem 0;
 }
 

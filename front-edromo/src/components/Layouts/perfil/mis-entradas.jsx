@@ -43,11 +43,11 @@ export default function MisEntradas({
 
   return (
     <div style={{ overflowX: "hidden" }}>
-      <h1>Mis entradas</h1>
+      <h1>Mis compras de entradas</h1>
       {/* Top row: filtros en una sola linea */}
       <div className="mef-filters-row">
         <div className="mef-left">
-          <span className="mef-label">Mostrar entradas:</span>
+          <span className="mef-label">Mostrar compras:</span>
           <div className="mef-chip-group">
             <label className="mef-checkbox-label">
               <input
@@ -96,7 +96,7 @@ export default function MisEntradas({
       >
         {entries.length === 0 ? (
           <div className="text-center p-4 text-muted">
-            No hay entradas en este rango de fechas / estado.
+            No hay compras en este rango de fechas / estado.
           </div>
         ) : (
           entries.map((entrada, index) => (
@@ -114,7 +114,7 @@ export default function MisEntradas({
       {/* Paginación (fuera del scroll) */}
       <div className="mef-footer">
         <div className="mef-summary small text-muted">
-          Mostrando {entries.length} de {totalItems} entradas — Página{" "}
+          Mostrando {entries.length} de {totalItems} compras — Página{" "}
           {currentPage} / {totalPages} — {pageSize} por página
         </div>
 

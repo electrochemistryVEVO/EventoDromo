@@ -31,7 +31,12 @@ namespace EventodromoRest.Mappers
             // --- 2. WHERE DINÁMICO ---
             // Filtramos solo por el cliente del carrito
             // Las entradas transferidas se muestran en una transacción separada creada para el destinatario
-            string sqlWhere = " WHERE CA.idCliente = @idCliente ";
+            // Filtramos entradas que el usuario actualmente posee (no transferidas a otros)
+            string sqlWhere = @" WHERE CA.idCliente = @idCliente 
+                AND (
+                    (E.idClienteActual IS NULL)
+                    OR E.idClienteActual = @idCliente
+                ) ";
 
             if (!string.IsNullOrEmpty(filtros.fechaInicio))
             {

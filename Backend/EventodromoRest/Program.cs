@@ -89,7 +89,7 @@ builder.Services.AddDbContext<DBManager>(options =>
 {
     var cs = builder.Configuration.GetConnectionString("DefaultConnection");
 
-    // SQL
+    // SQL 
     //options.UseSqlServer(cs);
 
     //MySQL
