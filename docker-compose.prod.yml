@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+    www:
+        build: ./front-edromo/
+        restart: unless-stopped
+        environment:
+            NEXT_PUBLIC_API_BASE_URL: "http://34.238.85.28:8080/api"
+        ports: 
+            - "0.0.0.0:3000:3000"
+        depends_on:
+            - aspnet
+            - db
+        networks:
+            - frontend
+
+    aspnet:
+        build: ./Backend/EventodromoRest/
+        restart: unless-stopped
+        environment:
+            ASPNETCORE_ENVIRONMENT: Production
+            AppSettings__FrontendUrl: "http://34.238.85.28:3000"
+        ports:
+            - "0.0.0.0:8080:8080"
+        depends_on:
+            - db
+        networks:
+            - frontend
+            - backend
+    
+    db:
+        build: ./sql/
+        restart: unless-stopped
+        ports: 
+            - "127.0.0.1:1433:1433"
+        environment:
+            ACCEPT_EULA: "Y" 
+            MSSQL_SA_PASSWORD: T8m!r2xZ
+        volumes:
+            - ./sql/myDb.sql:/myDb.sql
+            - ./sql/init.sh:/init.sh
+        networks:
+            - backend
+        entrypoint: ["/bin/bash", "/init.sh"]
+
+networks:
+    frontend:
+        driver: bridge
+    backend:
+        driver: bridge
+        internal: true
+
+volumes:
+    persistent:

@@ -28,5 +28,6 @@ RUN dotnet publish "./EventodromoRest.csproj" -c $BUILD_CONFIGURATION -o /app/pu
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+ENV ASPNETCORE_ENVIRONMENT=Production
 ENV AppSettings__FrontendUrl="http://localhost:3000"
 ENTRYPOINT ["dotnet", "EventodromoRest.dll"]
