@@ -24,6 +24,11 @@ namespace EventodromoRest.Modelos.Utiles
         /// Tiempo de expiración de transferencias en horas (ej: 24 = 24 horas)
         /// </summary>
         public int HorasExpiracionTransferencia { get; set; }
+
+        /// <summary>
+        /// Tiempo de expiración del token de recuperación de contraseña en minutos (ej: 60 = 1 hora)
+        /// </summary>
+        public int MinutosExpiracionRecovery { get; set; }
     }
 
     /// <summary>
@@ -50,5 +55,10 @@ namespace EventodromoRest.Modelos.Utiles
         /// Nueva vigencia de transferencias en horas
         /// </summary>
         public int? HorasExpiracionTransferencia { get; set; }
+
+        /// <summary>
+        /// Nueva vigencia del token de recuperación de contraseña en minutos
+        /// </summary>
+        public int? MinutosExpiracionRecovery { get; set; }
     }
 }

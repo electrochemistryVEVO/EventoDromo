@@ -205,32 +205,50 @@ namespace EventodromoRest.Mappers
             }
         }
 
-        /// <summary>
-        /// Obtiene las horas de expiración de transferencias desde la configuración.
-        /// </summary>
-        public int ObtenerHorasExpiracionTransferencia()
+    /// <summary>
+    /// Obtiene las horas de expiración de transferencias desde la configuración.
+    /// </summary>
+    public int ObtenerHorasExpiracionTransferencia()
+    {
+        lock (DB)
         {
-            lock (DB)
-            {
-                string query = "SELECT horas_expiracion_transferencia FROM configuracion WHERE id = 1";
-                object result = DB.ExecuteScalar(query, new ParameterList());
+            string query = "SELECT horas_expiracion_transferencia FROM configuracion WHERE id = 1";
+            object result = DB.ExecuteScalar(query, new ParameterList());
 
-                if (result != null && result != DBNull.Value)
-                {
-                    return Convert.ToInt32(result);
-                }
-                return 24; // Fallback: 24 horas
+            if (result != null && result != DBNull.Value)
+            {
+                return Convert.ToInt32(result);
             }
+            return 24; // Fallback: 24 horas
         }
+    }
 
-        /// <summary>
-        /// Obtiene todas las configuraciones del sistema.
-        /// </summary>
-        public Modelos.Utiles.ConfiguracionDTO ObtenerConfiguracionCompleta()
+    /// <summary>
+    /// Obtiene los minutos de expiración del token de recuperación de contraseña desde la configuración.
+    /// </summary>
+    public int ObtenerMinutosExpiracionRecovery()
+    {
+        lock (DB)
+        {
+            string query = "SELECT minutos_expiracion_recovery FROM configuracion WHERE id = 1";
+            object result = DB.ExecuteScalar(query, new ParameterList());
+
+            if (result != null && result != DBNull.Value)
+            {
+                return Convert.ToInt32(result);
+            }
+            return 60; // Fallback: 60 minutos (1 hora)
+        }
+    }
+
+    /// <summary>
+    /// Obtiene todas las configuraciones del sistema.
+    /// </summary>
+    public Modelos.Utiles.ConfiguracionDTO ObtenerConfiguracionCompleta()
         {
             lock (DB)
             {
-                string query = "SELECT puntos_por_sol, meses_vigencia_puntos, minutos_vigencia_carrito, horas_expiracion_transferencia FROM configuracion WHERE id = 1";
+                string query = "SELECT puntos_por_sol, meses_vigencia_puntos, minutos_vigencia_carrito, horas_expiracion_transferencia, minutos_expiracion_recovery FROM configuracion WHERE id = 1";
                 DB.Select(query, new ParameterList());
                 
                 try
@@ -242,7 +260,8 @@ namespace EventodromoRest.Mappers
                             PuntosPorSol = DB.GetDecimal("puntos_por_sol"),
                             MesesVigenciaPuntos = DB.GetInt("meses_vigencia_puntos"),
                             MinutosVigenciaCarrito = DB.GetInt("minutos_vigencia_carrito"),
-                            HorasExpiracionTransferencia = DB.GetInt("horas_expiracion_transferencia")
+                            HorasExpiracionTransferencia = DB.GetInt("horas_expiracion_transferencia"),
+                            MinutosExpiracionRecovery = DB.GetInt("minutos_expiracion_recovery")
                         };
                     }
                 }
@@ -257,7 +276,8 @@ namespace EventodromoRest.Mappers
                     PuntosPorSol = 10.0m,
                     MesesVigenciaPuntos = 6,
                     MinutosVigenciaCarrito = 30,
-                    HorasExpiracionTransferencia = 24
+                    HorasExpiracionTransferencia = 24,
+                    MinutosExpiracionRecovery = 60
                 };
             }
         }
@@ -294,6 +314,12 @@ namespace EventodromoRest.Mappers
                 {
                     updates.Add("horas_expiracion_transferencia = @horasTransferencia");
                     parametros.Add("@horasTransferencia", configuracion.HorasExpiracionTransferencia.Value);
+                }
+
+                if (configuracion.MinutosExpiracionRecovery.HasValue)
+                {
+                    updates.Add("minutos_expiracion_recovery = @minutosRecovery");
+                    parametros.Add("@minutosRecovery", configuracion.MinutosExpiracionRecovery.Value);
                 }
 
                 if (updates.Count == 0)
