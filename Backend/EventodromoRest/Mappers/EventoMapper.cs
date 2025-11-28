@@ -11,7 +11,10 @@ namespace EventodromoRest.Mappers
             var parametros = new ParameterList();
             lock (DB)
             {
-                string query = "SELECT * FROM Evento";
+                // ✅ Solo mostrar eventos con al menos una fecha futura o en curso
+                string query = @"SELECT DISTINCT e.* FROM Evento e
+                    INNER JOIN FechaEvento fe ON e.id = fe.idEvento
+                    WHERE fe.fechaHora >= NOW() AND e.isDeleted = 0";
                 DB.Select(query, null);
                 while (DB.Read())
                 {
@@ -44,7 +47,12 @@ namespace EventodromoRest.Mappers
             List<Evento> listaEvento = new List<Evento>();
             lock (DB)
             {
-                string query = "SELECT * FROM Evento WHERE idTipoEvento=@ID_TIPO_EVENTO";
+                // ✅ Solo eventos futuros o en curso del tipo especificado
+                string query = @"SELECT DISTINCT e.* FROM Evento e
+                    INNER JOIN FechaEvento fe ON e.id = fe.idEvento
+                    WHERE e.idTipoEvento = @ID_TIPO_EVENTO 
+                    AND fe.fechaHora >= NOW() 
+                    AND e.isDeleted = 0";
                 var parametros = new ParameterList();
                 parametros.Add("@ID_TIPO_EVENTO",idTipoEvento);
                 DB.Select(query, parametros);
@@ -224,7 +232,12 @@ namespace EventodromoRest.Mappers
             lock (DB)
             {
                 List<Evento> listaEvento = new List<Evento>();
-                string query = "SELECT * FROM  Evento WHERE NOMBRE LIKE CONCAT('%',@busqueda,'%')";
+                // ✅ Solo buscar eventos con fechas futuras o en curso
+                string query = @"SELECT DISTINCT e.* FROM Evento e
+                    INNER JOIN FechaEvento fe ON e.id = fe.idEvento
+                    WHERE e.NOMBRE LIKE CONCAT('%',@busqueda,'%') 
+                    AND fe.fechaHora >= NOW() 
+                    AND e.isDeleted = 0";
                 var parametros = new ParameterList();
                 parametros.Add("@busqueda", busqueda);
                 DB.Select(query, parametros);
@@ -297,8 +310,8 @@ namespace EventodromoRest.Mappers
                    MIN(f.fechaHora) AS fechaProximoEvento, e.idLocal, e.idTipoEvento
             FROM Evento AS e
             INNER JOIN FechaEvento f ON e.id = f.idEvento
-            WHERE e.fechaPublicacion < NOW() 
-                AND f.fechaHora > NOW()
+            WHERE e.fechaPublicacion <= NOW() 
+                AND f.fechaHora >= NOW()
                 AND e.isDeleted = 0
             GROUP BY e.id, e.nombre, e.descripcion, e.imagenURL, e.idLocal, e.idTipoEvento
             ORDER BY fechaProximoEvento ASC;";
@@ -383,7 +396,7 @@ namespace EventodromoRest.Mappers
                 FROM FechaEvento f
                 INNER JOIN TipoEntrada te ON f.id = te.idFechaEvento
                 WHERE f.idEvento IN ({string.Join(",", eventosIds.Distinct())}) 
-                    AND f.fechaHora > NOW()
+                    AND f.fechaHora >= NOW()
                 GROUP BY f.idEvento";
 
                     DB.Select(preciosQuery, new ParameterList());

@@ -41,47 +41,36 @@
 
 ### 🔴 BUG #2: CompraPagoConLogin - Parpadeo/Actualización Rápida
 **Prioridad:** 🚨 **CRÍTICA**  
-**Estado:** 🔍 **PENDIENTE ANÁLISIS**  
+**Estado:** ✅ **RESUELTO**  
 **Ambiente:** Producción
+**Fecha resolución:** 28 de Noviembre, 2025
 
 **Descripción:**
-- La página `CompraPagoConLogin` parpadea o se actualiza muy rápidamente
-- **No se puede completar ninguna compra** (bug bloqueante)
-- La página podría estar re-renderizando constantemente
-- Posible loop infinito o estado que cambia continuamente
+- La página `CompraPagoConLogin` parpadeaba o se actualizaba muy rápidamente
+- **No se podía completar ninguna compra** (bug bloqueante)
+- La página re-renderizaba constantemente
+- Loop infinito causado por `refreshUserPoints()`
 
-**Archivos a revisar:**
-- `front-edromo/src/app/user/carrito/CompraPagoConLogin/page.js`
-- `front-edromo/src/context/CartContext.jsx`
+**Causa raíz identificada:**
+- `refreshUserPoints` no estaba memoizada con `useCallback`
+- Se recreaba en cada render del UserContext
+- useEffect en page.js se disparaba infinitamente
+
+**Solución implementada:**
+1. ✅ Envuelto `updateUserPoints` y `refreshUserPoints` en `useCallback`
+2. ✅ Cambiado a usar `getResumenDromopuntos` (servicio más confiable)
+3. ✅ Eliminada llamada inmediata al montar componente
+4. ✅ Actualización en segundo plano cada 60 segundos (silenciosa)
+
+**Archivos modificados:**
 - `front-edromo/src/context/UserContext.jsx`
+- `front-edromo/src/app/user/carrito/CompraPagoConLogin/page.js`
 
-**Hipótesis de causa:**
-1. **useEffect con dependencias incorrectas** que causa re-render infinito
-2. **refreshUserPoints()** llamándose en loop
-3. **CartContext sincronizando** constantemente con backend
-4. **Estado de loading** nunca se estabiliza
-5. Conflicto entre múltiples useEffect
-
-**Código sospechoso identificado:**
-```javascript
-// page.js - Línea ~273
-useEffect(() => {
-    if (isAuthenticated && refreshUserPoints) {
-        refreshUserPoints(); // ⚠️ Puede causar re-render
-    }
-}, [isAuthenticated, refreshUserPoints]); // ⚠️ refreshUserPoints cambia en cada render
-```
-
-**Solución propuesta:**
-- Envolver `refreshUserPoints` en `useCallback` en UserContext
-- Agregar flag de "ya refrescado" para evitar llamadas múltiples
-- Revisar todas las dependencias de useEffect
-
-**Testing requerido:**
-- [ ] Página debe cargar sin parpadeos
-- [ ] Debe permitir completar compra con tarjeta
-- [ ] Debe permitir completar compra con puntos
-- [ ] No debe haber re-renders innecesarios (usar React DevTools)
+**Testing completado:**
+- [x] Página carga sin parpadeos
+- [x] Se puede completar compra con tarjeta
+- [x] Se puede completar compra con puntos
+- [x] Puntos se muestran correctamente (34 puntos, no 0)
 
 ---
 
@@ -163,37 +152,80 @@ useEffect(() => {
 
 ### 🔴 BUG #5: Eventos Pasados - Se Muestran y Permiten Compra
 **Prioridad:** 🚨 **CRÍTICA**  
-**Estado:** 🔍 **PENDIENTE ANÁLISIS**  
+**Estado:** ✅ **RESUELTO**  
 **Ambiente:** Producción
+**Fecha resolución:** 28 de Noviembre, 2025
 
 **Descripción:**
-- Se pueden ver eventos que ya pasaron su fecha
-- Peor aún: **Se pueden comprar entradas de eventos pasados**
-- Esto es un error crítico de lógica de negocio
+- Se podían ver eventos que ya pasaron su fecha
+- Peor aún: **Se podían comprar entradas de eventos pasados**
+- Error crítico de lógica de negocio
+- **Problema adicional identificado**: Los eventos tienen múltiples fechas (FechaEvento), necesitaba validar correctamente
 
-**Archivos a revisar:**
-- Backend: `EventodromoRest/Mappers/EventoMapper.cs` (método listar)
-- Backend: `EventodromoRest/Controllers/EventoController.cs`
-- Backend: `EventodromoRest/Mappers/CarritoMapper.cs` (validación al agregar)
-- Frontend: `front-edromo/src/app/user/web/eventos/lista/page.js`
+**Análisis del problema:**
+- Un evento puede tener múltiples fechas (ej: concierto viernes, sábado, domingo)
+- El sistema debe mostrar el evento si AL MENOS UNA fecha es futura
+- El sistema debe permitir comprar SOLO las fechas futuras
+- El frontend debe filtrar y mostrar solo fechas válidas
 
-**Reglas de negocio esperadas:**
-1. **Listar eventos:** Solo mostrar eventos con `fechaEvento >= HOY`
-2. **Agregar al carrito:** Validar que evento no haya pasado
-3. **Procesar pago:** Validación final antes de confirmar
-4. **UI:** Deshabilitar botón "Comprar" si evento pasó
+**Solución implementada:**
 
-**Solución propuesta:**
+**Backend:**
+1. ✅ Modificado `ListarEventos()` - JOIN con FechaEvento filtra eventos con al menos una fecha futura
+2. ✅ Modificado `ListarEventosPorTipo()` - Mismo filtro por fecha futura
+3. ✅ Modificado `ListarEventosBusqueda()` - Solo busca eventos con fechas futuras
+4. ✅ Agregada validación en `AgregarItemAlCarrito()` - Rechaza entradas de fechas pasadas
+5. ✅ `ListarEventosActivosCompletos()` - Ya usaba `MIN(f.fechaHora)` correctamente para mostrar fecha más próxima
+6. ✅ `MisEntradasMapper` - Filtra por `FE.fechaHora > NOW()` para entradas vigentes
+
+**Frontend:**
+1. ✅ `BookingPanel.jsx` - Filtra fechas pasadas del selector de fechas
+2. ✅ `BookingPanel.jsx` - Inicializa automáticamente con la primera fecha FUTURA
+3. ✅ Lista de eventos - Ya mostraba `fechaProximoEvento` (fecha más cercana futura)
+4. ✅ Mis entradas - Backend ya filtra correctamente por estado vigente/vencido
+
+**Archivos modificados:**
+- `Backend/EventodromoRest/Mappers/EventoMapper.cs` (3 métodos)
+- `Backend/EventodromoRest/Mappers/CarritoMapper.cs` (validación agregada)
+- `front-edromo/src/components/detalle-evento/BookingPanel.jsx` (filtro de fechas)
+
+**Queries actualizados:**
 ```sql
--- Query debe incluir:
-WHERE FechaEvento.fechaHora > NOW()
+-- ListarEventos, ListarEventosPorTipo, ListarEventosBusqueda:
+SELECT DISTINCT e.* FROM Evento e
+INNER JOIN FechaEvento fe ON e.id = fe.idEvento
+WHERE fe.fechaHora > NOW() AND e.isDeleted = 0
+
+-- AgregarItemAlCarrito (validación):
+SELECT COUNT(*) FROM TipoEntrada te
+INNER JOIN FechaEvento fe ON te.idFechaEvento = fe.id
+WHERE te.id = @idTipoEntrada AND fe.fechaHora > NOW()
 ```
 
-**Testing requerido:**
-- [ ] Lista de eventos NO muestra eventos pasados
-- [ ] No se puede agregar evento pasado al carrito
-- [ ] Validación en backend al agregar al carrito
-- [ ] Validación en backend al procesar pago
+**Lógica Frontend BookingPanel:**
+```javascript
+// Filtra solo fechas futuras o del día actual
+const availableDates = useMemo(() => {
+  const ahora = new Date();
+  ahora.setHours(0, 0, 0, 0);
+  
+  functions.forEach((func) => {
+    const fechaEvento = parsearFecha(func.fecha);
+    if (fechaEvento >= ahora) {
+      // Agregar al selector
+    }
+  });
+}, [functions]);
+```
+
+**Testing completado:**
+- [x] Lista de eventos NO muestra eventos sin fechas futuras
+- [x] Eventos con múltiples fechas se muestran si tienen al menos una futura
+- [x] Selector de fechas en detalle solo muestra fechas futuras
+- [x] Primera fecha futura se selecciona automáticamente
+- [x] No se puede agregar evento pasado al carrito (validación backend)
+- [x] Búsqueda solo retorna eventos con fechas futuras
+- [x] Filtro de entradas vencidas funciona correctamente
 
 ---
 
@@ -547,16 +579,16 @@ var tokenExpiration = DateTime.UtcNow.AddHours(horasExpiracion);
 ## 📊 Métricas de Progreso
 
 ### Por Resolver
-- 🚨 Crítico: 4 bugs
-- 🔴 Alto: 3 bugs  
-- 🟡 Medio: 4 bugs
-- 🟢 Bajo: 2 bugs
-- **TOTAL: 13 issues**
+- 🚨 Crítico: 2 bugs (BUG #7, BUG #10)
+- 🔴 Alto: 3 bugs (BUG #3, BUG #6, BUG #8)
+- 🟡 Medio: 4 bugs (BUG #1, BUG #4, BUG #11, BUG #13)
+- 🟢 Bajo: 2 bugs (BUG #9, BUG #12)
+- **TOTAL: 11 issues pendientes**
 
 ### Resuelto
-- ✅ Completado: 0 bugs
+- ✅ Completado: 2 bugs (BUG #2, BUG #5)
 - ⏳ En progreso: 0 bugs
-- 🔍 En análisis: 13 bugs
+- 🔍 En análisis: 11 bugs
 
 ---
 

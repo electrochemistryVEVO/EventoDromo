@@ -31,16 +31,25 @@ const BookingPanel = ({ eventName, eventId, functions, onAddToCart }) => {
   // --- DATOS DERIVADOS Y MEMOIZADOS ---
   const availableDates = useMemo(() => {
     const dates = {};
+    const ahora = new Date();
+    ahora.setHours(0, 0, 0, 0); // Inicio del día actual
+    
     (functions || []).forEach((func) => {
-      const date = func.fecha;
-      if (!dates[date]) {
-        dates[date] = [];
+      const [year, month, day] = func.fecha.split("-").map(Number);
+      const fechaEvento = new Date(year, month - 1, day);
+      
+      // ✅ Solo incluir fechas futuras o del día actual
+      if (fechaEvento >= ahora) {
+        const date = func.fecha;
+        if (!dates[date]) {
+          dates[date] = [];
+        }
+        dates[date].push({
+          id: func.id,
+          time: func.hora,
+          tiposDeEntrada: (func.tiposDeEntrada || []).sort((a, b) => b.precio - a.precio),
+        });
       }
-      dates[date].push({
-        id: func.id,
-        time: func.hora,
-        tiposDeEntrada: (func.tiposDeEntrada || []).sort((a, b) => b.precio - a.precio),
-      });
     });
     return dates;
   }, [functions]);
@@ -93,12 +102,24 @@ const BookingPanel = ({ eventName, eventId, functions, onAddToCart }) => {
     setTotalPrice(newTotal);
   }, [calculateTotal]);
 
-  // ✅ CORREGIDO: Efecto para inicializar la primera fecha disponible
+  // ✅ CORREGIDO: Efecto para inicializar la primera fecha FUTURA disponible
   useEffect(() => {
     if (functions && functions.length > 0 && !selectedDate) {
-      const firstDateStr = functions[0].fecha;
-      const [year, month, day] = firstDateStr.split("-").map(Number);
-      setSelectedDate(new Date(year, month - 1, day));
+      const ahora = new Date();
+      ahora.setHours(0, 0, 0, 0);
+      
+      // Encontrar la primera función con fecha futura
+      const primeraFuncionFutura = functions.find(func => {
+        const [year, month, day] = func.fecha.split("-").map(Number);
+        const fechaEvento = new Date(year, month - 1, day);
+        return fechaEvento >= ahora;
+      });
+      
+      if (primeraFuncionFutura) {
+        const firstDateStr = primeraFuncionFutura.fecha;
+        const [year, month, day] = firstDateStr.split("-").map(Number);
+        setSelectedDate(new Date(year, month - 1, day));
+      }
     }
   }, [functions, selectedDate]);
 
