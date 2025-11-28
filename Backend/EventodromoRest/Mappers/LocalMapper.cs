@@ -469,28 +469,48 @@ namespace EventodromoRest.Mappers
             {
                 try
                 {
+                    if (locales == null || !locales.Any())
+                        return 0;
+
                     // Iniciar transacción
                     DB.BeginTransaction();
 
-                    int insertados = 0;
+                    // Construir query con múltiples VALUES en un solo INSERT
+                    var valuesClauses = new List<string>();
+                    var parametros = new ParameterList();
 
-                    foreach (var local in locales)
+                    for (int i = 0; i < locales.Count; i++)
                     {
-                        string query = "INSERT INTO Local (NOMBRE, IDCIUDAD, DIRECCION, CAPACIDAD, IMAGENURL, ISDELETED, CREADOPOR) " +
-                                     "VALUES (@NOMBRE, @IDCIUDAD, @DIRECCION, @CAPACIDAD, @IMAGENURL, @ISDELETED, @CREADOPOR)";
-                        
-                        var parametros = new ParameterList();
-                        parametros.Add("@NOMBRE", local.nombre);
-                        parametros.Add("@IDCIUDAD", local.idCiudad);
-                        parametros.Add("@DIRECCION", local.direccion);
-                        parametros.Add("@CAPACIDAD", local.capacidad);
-                        parametros.Add("@IMAGENURL", string.IsNullOrWhiteSpace(local.imagen) ? null : local.imagen);
-                        parametros.Add("@ISDELETED", false);
-                        parametros.Add("@CREADOPOR", idAdministrador);
+                        var local = locales[i];
 
-                        int rowsAffected = DB.ExecuteNonQuery(query, parametros);
-                        insertados += rowsAffected;
+                        // Crear parámetros únicos para cada registro
+                        string pNombre = $"@NOMBRE{i}";
+                        string pIdCiudad = $"@IDCIUDAD{i}";
+                        string pDireccion = $"@DIRECCION{i}";
+                        string pCapacidad = $"@CAPACIDAD{i}";
+                        string pImagenUrl = $"@IMAGENURL{i}";
+                        string pIsDeleted = $"@ISDELETED{i}";
+                        string pCreadoPor = $"@CREADOPOR{i}";
+
+                        // Agregar parámetros
+                        parametros.Add(pNombre, local.nombre);
+                        parametros.Add(pIdCiudad, local.idCiudad);
+                        parametros.Add(pDireccion, local.direccion);
+                        parametros.Add(pCapacidad, local.capacidad);
+                        parametros.Add(pImagenUrl, string.IsNullOrWhiteSpace(local.imagen) ? null : local.imagen);
+                        parametros.Add(pIsDeleted, false);
+                        parametros.Add(pCreadoPor, idAdministrador);
+
+                        // Construir cláusula VALUES para este registro
+                        valuesClauses.Add($"({pNombre}, {pIdCiudad}, {pDireccion}, {pCapacidad}, {pImagenUrl}, {pIsDeleted}, {pCreadoPor})");
                     }
+
+                    // Construir query completo con todos los VALUES
+                    string query = "INSERT INTO Local (NOMBRE, IDCIUDAD, DIRECCION, CAPACIDAD, IMAGENURL, ISDELETED, CREADOPOR) " +
+                                  $"VALUES {string.Join(", ", valuesClauses)}";
+
+                    // Ejecutar una sola vez
+                    int insertados = DB.ExecuteNonQuery(query, parametros);
 
                     // Confirmar transacción
                     DB.Commit();
