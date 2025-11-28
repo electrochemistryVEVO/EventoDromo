@@ -281,12 +281,8 @@ function CompraPagoConLoginPage() {
     const userPuntos = user?.totalPuntos ?? 0;
     const [puntosPorSol, setPuntosPorSol] = useState(10);
 
-    // Refrescar puntos del usuario al cargar la página (por si hubo compras previas)
-    useEffect(() => {
-        if (isAuthenticated && refreshUserPoints) {
-            refreshUserPoints();
-        }
-    }, [isAuthenticated, refreshUserPoints]);
+    // ✅ Los puntos se actualizan automáticamente en UserContext (segundo plano)
+    // Ya no es necesario llamar refreshUserPoints() aquí
 
     // Cargar configuración al iniciar
     useEffect(() => {

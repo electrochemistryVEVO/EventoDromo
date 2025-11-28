@@ -1,9 +1,9 @@
 // src/context/UserContext.jsx
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { obtenerPuntosDisponibles } from "@/services/dromopuntos.service";
+import { getResumenDromopuntos } from "@/services/mis-dromopuntos.service";
 
 const UserContext = createContext();
 
@@ -92,28 +92,44 @@ export const UserProvider = ({ children }) => {
     return user?.rol === 'C';
   };
 
-  const updateUserPoints = (newPoints) => {
-    if (user) {
-      const updatedUser = { ...user, totalPuntos: newPoints };
-      setUser(updatedUser);
+  const updateUserPoints = useCallback((newPoints) => {
+    setUser(prevUser => {
+      if (!prevUser) return prevUser;
+      const updatedUser = { ...prevUser, totalPuntos: newPoints };
       try {
         localStorage.setItem("user", JSON.stringify(updatedUser));
       } catch (error) {
         console.warn("Error al actualizar puntos en localStorage:", error);
       }
-    }
-  };
+      return updatedUser;
+    });
+  }, []); // ✅ Función estable, no depende de nada externo
 
-  const refreshUserPoints = async () => {
+  const refreshUserPoints = useCallback(async () => {
     if (!user?.token) return;
     
     try {
-      const puntosActualizados = await obtenerPuntosDisponibles(user.token);
-      updateUserPoints(puntosActualizados);
+      const resumen = await getResumenDromopuntos(user.token);
+      updateUserPoints(resumen.total || 0);
     } catch (error) {
       console.warn("Error al refrescar puntos del usuario:", error);
     }
-  };
+  }, [user?.token, updateUserPoints]); // ✅ Solo cambia si el token cambia
+
+  // ✅ Actualizar puntos automáticamente en segundo plano (silencioso)
+  useEffect(() => {
+    if (!user?.token) return;
+
+    // ✅ NO refrescar inmediatamente - evita parpadeo inicial
+    // Los puntos se cargan desde localStorage al iniciar sesión
+    
+    // Configurar intervalo para refrescar cada 60 segundos (más espaciado)
+    const intervalId = setInterval(() => {
+      refreshUserPoints();
+    }, 60000); // 60 segundos
+
+    return () => clearInterval(intervalId);
+  }, [user?.token, refreshUserPoints]);
 
   return (
     <UserContext.Provider
