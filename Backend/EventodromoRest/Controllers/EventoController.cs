@@ -414,6 +414,7 @@ namespace EventodromoRest.Controllers
                     }
                 };
                 AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
             }
         }
          

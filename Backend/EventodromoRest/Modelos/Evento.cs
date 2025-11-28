@@ -292,20 +292,6 @@
         public List<DescuentoCreacionDTO> Descuentos { get; set; }
     }
 
-    public class CrearEventoDTOFinal
-    {
-        public string nombre { get; set; }
-        public string descripcion { get; set; }
-        public int localId { get; set; }
-        public int tipoEventoId { get; set; }
-        public int capacidad { get; set; }
-        public string fechaPublicacion { get; set; }
-        public string fechaCompra { get; set; }
-        public string? imagenURL { get; set; }
-        public List<string> horarios { get; set; }
-        public List<EntradaRequest> entradas { get; set; }
-    }
-
     public class EventoCrearMasivoRequest
     {
         public List<EventoMasivoItem> eventos { get; set; }
