@@ -121,7 +121,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, itemsPerPage, total
     const pageNumbers = getPageNumbers();
     
     return (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+        <div className="flex flex-col items-center justify-between gap-4 mt-6 sm:flex-row">
             {/* Selector de items por página */}
             <div className="flex items-center gap-2">
                 <label htmlFor="items-per-page" className="text-sm text-gray-600">
@@ -131,7 +131,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, itemsPerPage, total
                     id="items-per-page"
                     value={itemsPerPage}
                     onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                    className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                     <option value={10}>10</option>
                     <option value={20}>20</option>
@@ -453,7 +453,7 @@ function GestionLocales() {
     };
 
     return (
-        <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
+        <div className="min-h-screen p-4 md:p-8 bg-gray-50">
             <div className="page-container">
                 {/* --- Cabecera --- */}
                 <header className="page-header">
@@ -577,7 +577,7 @@ function GestionLocales() {
                                 const searchInput = document.querySelector('.search-bar input')
                                 if (searchInput) searchInput.value = ''
                             }}
-                            className="text-sm text-red-600 hover:text-red-800 font-medium self-end pb-2"
+                            className="self-end pb-2 text-sm font-medium text-red-600 hover:text-red-800"
                         >
                             Limpiar filtros
                         </button>
@@ -600,7 +600,7 @@ function GestionLocales() {
                             <tbody>
                                 {currentLocales.length === 0 ? (
                                     <tr>
-                                        <td colSpan="7" className="text-center py-8 text-gray-500">
+                                        <td colSpan="7" className="py-8 text-center text-gray-500">
                                             No se encontraron locales
                                         </td>
                                     </tr>
