@@ -1,4 +1,5 @@
 ﻿//para token
+using EventodromoRest.Mappers;
 using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
@@ -638,8 +639,12 @@ namespace EventodromoRest.Controllers
                 // 4. Generar token GUID único
                 string tokenRecuperacion = Guid.NewGuid().ToString("N");
 
-                // Determinar expiración (ej: 1 hora)
-                DateTime fechaExpiracion = DateTime.Now.AddHours(1);
+                // Obtener minutos de expiración desde configuración
+                var dromopuntosMapper = new DromopuntosMapper(globales, BD);
+                int minutosExpiracion = dromopuntosMapper.ObtenerMinutosExpiracionRecovery();
+
+                // Determinar expiración según configuración
+                DateTime fechaExpiracion = DateTime.Now.AddMinutes(minutosExpiracion);
 
                 // 5. Registrar el token en BD
                 var registro = new RecuperacionContrasenaPendiente
@@ -671,12 +676,32 @@ namespace EventodromoRest.Controllers
                 {
                     try
                     {
+                        // Formatear tiempo de expiración de forma amigable
+                        string tiempoExpiracion;
+                        if (minutosExpiracion >= 60)
+                        {
+                            int horas = minutosExpiracion / 60;
+                            int minutosRestantes = minutosExpiracion % 60;
+                            if (minutosRestantes == 0)
+                            {
+                                tiempoExpiracion = horas == 1 ? "1 hora" : $"{horas} horas";
+                            }
+                            else
+                            {
+                                tiempoExpiracion = $"{horas} hora{(horas > 1 ? "s" : "")} y {minutosRestantes} minuto{(minutosRestantes > 1 ? "s" : "")}";
+                            }
+                        }
+                        else
+                        {
+                            tiempoExpiracion = minutosExpiracion == 1 ? "1 minuto" : $"{minutosExpiracion} minutos";
+                        }
+
                         // HTML que quieres mostrar dentro del template (puede ser simple)
                         string cuerpoHtml = $@"
             <h3>Recuperación de contraseña</h3>
             <p>Haz clic en el enlace para continuar:</p>
             <a href='{urlFinal}'>{urlFinal}</a>
-            <p>El enlace expirará en 1 hora.</p>
+            <p>El enlace expirará en {tiempoExpiracion}.</p>
         ";
 
                         // Construimos el template usando las propiedades existentes en EmailTemplateData
@@ -687,7 +712,7 @@ namespace EventodromoRest.Controllers
                             MensajePrincipal = cuerpoHtml,
                             AlertaTipo = "info",
                             AlertaIcono = "⏰",
-                            AlertaMensaje = "El enlace expirará en 1 hora."
+                            AlertaMensaje = $"El enlace expirará en {tiempoExpiracion}."
                         };
 
                         // Llamada correcta según la firma de tu EmailService

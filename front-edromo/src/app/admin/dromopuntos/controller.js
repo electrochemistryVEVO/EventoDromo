@@ -7,7 +7,8 @@ export const useDromoPuntosManager = () => {
     puntosPorSol: "",
     mesesVigenciaPuntos: "",
     minutosVigenciaCarrito: "",
-    horasExpiracionTransferencia: ""
+    horasExpiracionTransferencia: "",
+    minutosExpiracionRecovery: ""
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -25,7 +26,8 @@ export const useDromoPuntosManager = () => {
             puntosPorSol: apiResponse.data.puntosPorSol?.toString() || "",
             mesesVigenciaPuntos: apiResponse.data.mesesVigenciaPuntos?.toString() || "",
             minutosVigenciaCarrito: apiResponse.data.minutosVigenciaCarrito?.toString() || "",
-            horasExpiracionTransferencia: apiResponse.data.horasExpiracionTransferencia?.toString() || ""
+            horasExpiracionTransferencia: apiResponse.data.horasExpiracionTransferencia?.toString() || "",
+            minutosExpiracionRecovery: apiResponse.data.minutosExpiracionRecovery?.toString() || ""
           });
         } else {
           throw new Error(apiResponse.message || "La respuesta del API no fue exitosa.");
@@ -71,13 +73,19 @@ export const useDromoPuntosManager = () => {
       if (isNaN(horasExpiracionTransferencia) || horasExpiracionTransferencia <= 0) {
         throw new Error("Las horas de expiración de transferencias deben ser un número entero mayor a cero.");
       }
+
+      const minutosExpiracionRecovery = parseInt(config.minutosExpiracionRecovery);
+      if (isNaN(minutosExpiracionRecovery) || minutosExpiracionRecovery <= 0) {
+        throw new Error("Los minutos de expiración del token de recuperación deben ser un número entero mayor a cero.");
+      }
       
       const token = getAuthToken();
       const configData = {
         puntosPorSol,
         mesesVigenciaPuntos,
         minutosVigenciaCarrito,
-        horasExpiracionTransferencia
+        horasExpiracionTransferencia,
+        minutosExpiracionRecovery
       };
       
       await updateConfig(configData, token);

@@ -18,7 +18,7 @@ const DromoPuntosPage = () => {
 
   useEffect(() => {
     if (isSuccess) {
-      alert("¡Configuración de DromoPuntos actualizada exitosamente!");
+      //alert("¡Configuración de DromoPuntos actualizada exitosamente!");
     }
   }, [isSuccess]);
 
