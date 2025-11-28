@@ -11,7 +11,10 @@ namespace EventodromoRest.Mappers
             var parametros = new ParameterList();
             lock (DB)
             {
-                string query = "SELECT * FROM Evento";
+                // ✅ Solo mostrar eventos con al menos una fecha futura o en curso
+                string query = @"SELECT DISTINCT e.* FROM Evento e
+                    INNER JOIN FechaEvento fe ON e.id = fe.idEvento
+                    WHERE fe.fechaHora >= NOW() AND e.isDeleted = 0";
                 DB.Select(query, null);
                 while (DB.Read())
                 {
@@ -44,7 +47,12 @@ namespace EventodromoRest.Mappers
             List<Evento> listaEvento = new List<Evento>();
             lock (DB)
             {
-                string query = "SELECT * FROM Evento WHERE idTipoEvento=@ID_TIPO_EVENTO";
+                // ✅ Solo eventos futuros o en curso del tipo especificado
+                string query = @"SELECT DISTINCT e.* FROM Evento e
+                    INNER JOIN FechaEvento fe ON e.id = fe.idEvento
+                    WHERE e.idTipoEvento = @ID_TIPO_EVENTO 
+                    AND fe.fechaHora >= NOW() 
+                    AND e.isDeleted = 0";
                 var parametros = new ParameterList();
                 parametros.Add("@ID_TIPO_EVENTO",idTipoEvento);
                 DB.Select(query, parametros);
@@ -224,7 +232,12 @@ namespace EventodromoRest.Mappers
             lock (DB)
             {
                 List<Evento> listaEvento = new List<Evento>();
-                string query = "SELECT * FROM  Evento WHERE NOMBRE LIKE CONCAT('%',@busqueda,'%')";
+                // ✅ Solo buscar eventos con fechas futuras o en curso
+                string query = @"SELECT DISTINCT e.* FROM Evento e
+                    INNER JOIN FechaEvento fe ON e.id = fe.idEvento
+                    WHERE e.NOMBRE LIKE CONCAT('%',@busqueda,'%') 
+                    AND fe.fechaHora >= NOW() 
+                    AND e.isDeleted = 0";
                 var parametros = new ParameterList();
                 parametros.Add("@busqueda", busqueda);
                 DB.Select(query, parametros);
@@ -297,8 +310,8 @@ namespace EventodromoRest.Mappers
                    MIN(f.fechaHora) AS fechaProximoEvento, e.idLocal, e.idTipoEvento
             FROM Evento AS e
             INNER JOIN FechaEvento f ON e.id = f.idEvento
-            WHERE e.fechaPublicacion < NOW() 
-                AND f.fechaHora > NOW()
+            WHERE e.fechaPublicacion <= NOW() 
+                AND f.fechaHora >= NOW()
                 AND e.isDeleted = 0
             GROUP BY e.id, e.nombre, e.descripcion, e.imagenURL, e.idLocal, e.idTipoEvento
             ORDER BY fechaProximoEvento ASC;";
@@ -383,7 +396,7 @@ namespace EventodromoRest.Mappers
                 FROM FechaEvento f
                 INNER JOIN TipoEntrada te ON f.id = te.idFechaEvento
                 WHERE f.idEvento IN ({string.Join(",", eventosIds.Distinct())}) 
-                    AND f.fechaHora > NOW()
+                    AND f.fechaHora >= NOW()
                 GROUP BY f.idEvento";
 
                     DB.Select(preciosQuery, new ParameterList());
@@ -452,6 +465,7 @@ namespace EventodromoRest.Mappers
                 E.id AS EventoId, E.nombre AS EventoNombre, E.descripcion, E.imagenURL,
                 T.id AS TipoEventoId, T.nombre AS TipoEventoNombre,
                 L.id AS LocalId, L.nombre AS LocalNombre, L.direccion,
+                L.latitud AS Latitud, L.longitud AS Longitud,
                 C.id AS CiudadId, C.nombre AS CiudadNombre,
                 P.id AS PaisId, P.nombre AS PaisNombre
             FROM
@@ -491,17 +505,22 @@ namespace EventodromoRest.Mappers
                     }
                 };
 
+                // Obtener coordenadas y generar iframe
+                var latitud = DB.GetNullableDecimal("Latitud");
+                var longitud = DB.GetNullableDecimal("Longitud");
+
                 resultado.local = new ResponseLocal
                 {
                     id = DB.GetInt("LocalId"),
                     nombre = DB.GetString("LocalNombre"),
                     direccion = DB.GetString("direccion"),
-                    googleMapsEmbed = "<iframe src=\"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3901.9705727105875!2d-77.037574524449!3d-12.045545688191202!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c8ca3c54dd11%3A0x40b0447dcf24a5c8!2sTeatro%20Municipal%20de%20Lima!5e0!3m2!1ses!2spe!4v1760080206514!5m2!1ses!2spe\" width=\"600\" height=\"450\" ...></iframe>",
+                    Latitud = latitud,
+                    Longitud = longitud,
                     ciudad = new Ciudad
                     {
                         id = DB.GetInt("CiudadId"),
                         nombre = DB.GetString("CiudadNombre"),
-                        idPais = DB.GetInt("PaisId"), // Asumiendo que quieres el ID
+                        idPais = DB.GetInt("PaisId"),
                         pais = new Pais
                         {
                             id = DB.GetInt("PaisId"),
@@ -509,6 +528,18 @@ namespace EventodromoRest.Mappers
                         }
                     }
                 };
+
+                // Generar iframe dinámicamente o usar fallback
+                if (latitud.HasValue && longitud.HasValue)
+                {
+                    resultado.local.googleMapsEmbed = GenerarGoogleMapsIframe(latitud.Value, longitud.Value);
+                }
+                else
+                {
+                    // Fallback a OpenStreetMap del Teatro Municipal si no hay coordenadas
+                    resultado.local.googleMapsEmbed = "<iframe src=\"https://www.openstreetmap.org/export/embed.html?bbox=-77.038,-12.047,-77.036,-12.045&layer=mapnik&marker=-12.046,-77.037\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\"></iframe>";
+                }
+
                 DB.CloseReader(); // Importante: Cerrar el primer reader
 
                 // --- CONSULTA 2: Funciones (FechaEvento) y sus TiposDeEntrada (hijos) ---
@@ -1099,5 +1130,209 @@ WHERE  E.id = @idEvento;
             }
         }
 
+        private string GenerarGoogleMapsIframe(decimal latitud, decimal longitud)
+        {
+            // Usar InvariantCulture para que use punto decimal en lugar de coma
+            string lat = latitud.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string lng = longitud.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            
+            // Calcular bbox (bounding box) para OpenStreetMap
+            decimal bboxOffset = 0.01m;
+            string minLng = (longitud - bboxOffset).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string minLat = (latitud - bboxOffset).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string maxLng = (longitud + bboxOffset).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string maxLat = (latitud + bboxOffset).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            
+            // URL de OpenStreetMap (gratuito, sin API key)
+            string mapUrl = $"https://www.openstreetmap.org/export/embed.html?bbox={minLng},{minLat},{maxLng},{maxLat}&layer=mapnik&marker={lat},{lng}";
+            
+            return $"<iframe src=\"{mapUrl}\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\"></iframe>";
+        }
+
+        public Evento ObtenerEventoPorIdSimple(int id)
+        {
+            lock (DB)
+            {
+                string query = @"
+            SELECT 
+                ID, 
+                NOMBRE, 
+                DESCRIPCION, 
+                IDTIPOEVENTO, 
+                IDLOCAL, 
+                CREADOPOR, 
+                FECHAPUBLICACION, 
+                FECHACOMPRA, 
+                ISDELETED, 
+                IMAGENURL
+            FROM Evento 
+            WHERE ID = @ID";
+        
+                var parametros = new ParameterList();
+                parametros.Add("@ID", id);
+        
+                Evento evento = null;
+        
+                DB.Select(query, parametros);
+                try
+                {
+                    if (DB.Read())
+                    {
+                        evento = new Evento
+                        {
+                            id = DB.GetInt("ID"),
+                            nombre = DB.GetString("NOMBRE"),
+                            descripcion = DB.GetString("DESCRIPCION"),
+                            idTipoEvento = DB.GetInt("IDTIPOEVENTO"),
+                            idLocal = DB.GetInt("IDLOCAL"),
+                            creadoPor = DB.GetInt("CREADOPOR"),
+                            fechaPublicacion = DB.GetDateTime("FECHAPUBLICACION"),
+                            fechaCompra = DB.GetDateTime("FECHACOMPRA"),
+                            isDeleted = DB.GetBoolean("ISDELETED"),
+                            imagenURL = DB.GetString("IMAGENURL")
+                        };
+                    }
+                }
+                finally
+                {
+                    DB.CloseReader();
+                }
+        
+                return evento;
+            }
+        }
+        public int ActualizarEventoExistente(Evento evento)
+        {
+            lock (DB)
+            {
+                try { DB.CloseReader(); } catch { /* Ignorar si ya estaba cerrado */ }
+
+                // Query para actualizar los datos base del evento
+                string query = "UPDATE Evento SET nombre=@NOM, descripcion=@DESC, idLocal=@LOC, idTipoEvento=@TIPO, " +
+                               "fechaPublicacion=@PUB, fechaCompra=@COMP, imagenURL=@IMG " +
+                               "WHERE id=@ID";
+
+                var p = new ParameterList();
+                p.Add("@NOM", evento.nombre);
+                p.Add("@DESC", evento.descripcion);
+                p.Add("@LOC", evento.idLocal);
+                p.Add("@TIPO", evento.idTipoEvento);
+                p.Add("@PUB", evento.fechaPublicacion);
+                p.Add("@COMP", evento.fechaCompra);
+                p.Add("@IMG", evento.imagenURL);
+                p.Add("@ID", evento.id);
+
+                // Ahora sí, ejecutamos el comando
+                return DB.ExecuteNonQuery(query, p);
+            }
+        }
+        public int InsertarDescuento(Descuento descuento)
+        {
+            lock (DB)
+            {
+                // 1. Insertar en la tabla [Promocion]
+                // CORREGIDO: Usamos 'tipo' en lugar de 'esPorcentaje'
+                string queryPromo = "INSERT INTO Promocion (nombre, codigo, tipo, valor, fechaInicio, fechaFin,usosMaximos,usosActuales) " +
+                                    "VALUES (@NOM, @COD, @TIPO, @VAL, @INI, @FIN, @MAX, 0); SELECT LAST_INSERT_ID();";
+
+                var pPromo = new ParameterList();
+                pPromo.Add("@NOM", descuento.nombre);
+                pPromo.Add("@COD", descuento.codigo);
+
+                // Guardamos el string directamente (ej. "Porcentaje" o "Fijo")
+                pPromo.Add("@TIPO", descuento.tipo);
+
+                pPromo.Add("@VAL", descuento.valor);
+                pPromo.Add("@INI", descuento.fechaInicio);
+                pPromo.Add("@FIN", descuento.fechaFin);
+                pPromo.Add("@MAX", descuento.usosMaximos);
+
+                // Ejecutar y obtener el ID de la promoción
+                int idPromocion = Convert.ToInt32(DB.ExecuteScalar(queryPromo, pPromo));
+
+                // 2. Insertar en la tabla [Promocion_Aplicable] usando el ID recién creado
+                string queryAplicable = "INSERT INTO Promocion_Aplicable (idPromocion, idTipoEntrada) VALUES (@IDPROM, @IDENT)";
+
+                var pAplicable = new ParameterList();
+                pAplicable.Add("@IDPROM", idPromocion);
+                pAplicable.Add("@IDENT", descuento.idTipoEntrada); // El objeto descuento ya trae el ID de la entrada
+
+                DB.ExecuteNonQuery(queryAplicable, pAplicable);
+
+                return idPromocion;
+            }
+        }
+        public int ActualizarPromocion(Descuento d)
+        {
+            lock (DB)
+            {
+                string query = "UPDATE Promocion SET nombre=@NOM, codigo=@COD, tipo=@TIPO, valor=@VAL, " +
+                               "fechaInicio=@INI, fechaFin=@FIN, usosMaximos=@MAX " +
+                               "WHERE id=@ID";
+
+                var p = new ParameterList();
+                p.Add("@NOM", d.nombre);
+                p.Add("@COD", d.codigo);
+                p.Add("@TIPO", d.tipo);
+                p.Add("@VAL", d.valor);
+                p.Add("@INI", d.fechaInicio);
+                p.Add("@FIN", d.fechaFin);
+                p.Add("@MAX", d.usosMaximos);
+                p.Add("@ID", d.id); // ID obligatorio para el WHERE
+
+                return DB.ExecuteNonQuery(query, p);
+            }
+        }
+        public List<DescuentoDTO> ListarPromocionesPorEvento(int idEvento)
+        {
+            var lista = new List<DescuentoDTO>();
+            lock (DB)
+            {
+                // Query con JOINs para encontrar las promociones de las entradas de este evento
+                string query = @"
+            SELECT 
+                p.id, 
+                p.nombre, 
+                p.codigo, 
+                p.tipo, 
+                p.valor, 
+                p.fechaInicio, 
+                p.fechaFin, 
+                p.usosMaximos,
+                pa.idTipoEntrada
+            FROM Promocion p
+            JOIN Promocion_Aplicable pa ON p.id = pa.idPromocion
+            JOIN TipoEntrada te ON pa.idTipoEntrada = te.id
+            JOIN FechaEvento fe ON te.idFechaEvento = fe.id
+            WHERE fe.idEvento = @ID_EVENTO";
+                // Nota: Si tienes isDeleted en Promocion, añade: AND p.isDeleted = 0
+
+                var p = new ParameterList();
+                p.Add("@ID_EVENTO", idEvento);
+
+                DB.Select(query, p);
+
+                while (DB.Read())
+                {
+                    lista.Add(new DescuentoDTO
+                    {
+                        Id = DB.GetInt("id"),
+                        Nombre = DB.GetString("nombre"),
+                        Codigo = DB.GetString("codigo"),
+                        Tipo = DB.GetString("tipo"),
+                        Valor = DB.GetDecimal("valor"),
+
+                        // Convertimos DateTime a String ISO para el DTO
+                        FechaInicio = DB.GetDateTime("fechaInicio").ToString("s"),
+                        FechaFin = DB.GetDateTime("fechaFin").ToString("s"),
+
+                        UsosMaximos = DB.GetInt("usosMaximos"),
+                        TipoEntradaId = DB.GetInt("idTipoEntrada") // Importante para el frontend
+                    });
+                }
+                DB.CloseReader(); // ¡Siempre cerrar el reader!
+            }
+            return lista;
+        }
     }
 }

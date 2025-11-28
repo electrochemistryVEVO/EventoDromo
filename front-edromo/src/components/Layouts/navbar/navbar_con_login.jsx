@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
 import { useCart } from "@/context/CartContext";
 import { useUser } from "@/context/UserContext";
 import ModalCarritoController from "@/components/carrito/ModalCarrito.controller";
@@ -13,6 +14,7 @@ import CiudadModal from "@/components/Layouts/navbar/filtros/CiudadModal";
 import FechasModal from "@/components/Layouts/navbar/filtros/FechasModal";
 import "@/css/navbar-style.css";
 import "@/css/navbar-logged-in.css";
+import { useDropdown } from "@/hooks/useDropdown";
 
 import { useNavbarController } from "./controller-navbar.js";
 
@@ -23,29 +25,17 @@ const Navbar = () => {
   const [isCartOpen, setCartOpen] = useState(false);
   const [openFilterModal, setOpenFilterModal] = useState(null);
   const [activeButtonRef, setActiveButtonRef] = useState(null);
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
+  
+  // Hook personalizado para el dropdown
+  const { isOpen: isDropdownOpen, toggle: toggleDropdown, close: closeDropdown, dropdownRef } = useDropdown();
 
   // Referencias para los botones de filtro
   const precioButtonRef = useRef(null);
   const categoriasButtonRef = useRef(null);
   const ciudadButtonRef = useRef(null);
   const fechasButtonRef = useRef(null);
-
-  // ✅ MEJORADO: Manejo del dropdown como en el navbar antiguo
-  const toggleDropdown = () => {
-    setDropdownOpen(!isDropdownOpen);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const avatarButtonRef = useRef(null);
 
   // ✅ FUNCIONES DEL CONTROLADOR PARA FILTROS
   const {
@@ -77,8 +67,19 @@ const Navbar = () => {
   // ✅ MEJORADO: Función de logout completa
   const handleLogout = () => {
     logout();
-    setDropdownOpen(false);
+    closeDropdown();
     router.push("/auth/login");
+  };
+
+  const handleToggleDropdown = (e) => {
+    if (avatarButtonRef.current) {
+      const rect = avatarButtonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 10,
+        right: window.innerWidth - rect.right
+      });
+    }
+    toggleDropdown(e);
   };
 
   return (
@@ -190,26 +191,58 @@ const Navbar = () => {
 
           {isAuthenticated ? (
             // ✅ USUARIO AUTENTICADO - Versión mejorada del navbar antiguo
-            <div className="user-profile-section" ref={dropdownRef}>
+            <div className="user-profile-section">
               <button
+                ref={avatarButtonRef}
                 className="icon-btn user-avatar-btn"
-                onClick={toggleDropdown}
+                onClick={handleToggleDropdown}
+                type="button"
               >
                 <Image
                   src="/images/icon/cuenta-logged-in.png"
                   alt="Usuario"
                   width={48}
                   height={48}
+                  priority
                 />
               </button>
 
-              {/* ✅ MENÚ DESPLEGABLE COMPLETO - Igual al navbar antiguo */}
-              {isDropdownOpen && (
-                <div className="dropdown-menu">
+              {/* ✅ MENÚ DESPLEGABLE CON PORTAL */}
+              {isDropdownOpen && typeof window !== 'undefined' && createPortal(
+                <div 
+                  ref={dropdownRef}
+                  className="dropdown-menu-portal"
+                  style={{
+                    position: 'fixed',
+                    top: `${dropdownPosition.top}px`,
+                    right: `${dropdownPosition.right}px`,
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    width: '220px',
+                    zIndex: 99999,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '0.5rem 0'
+                  }}
+                >
                   <Link
                     href="/user/web/perfil?tab=info"
-                    className="dropdown-item"
-                    onClick={() => setDropdownOpen(false)}
+                    onClick={closeDropdown}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '0.75rem 1rem',
+                      fontSize: '0.95rem',
+                      color: '#333333',
+                      textDecoration: 'none',
+                      backgroundColor: 'transparent',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     <Image
                       src="/images/icon/mis-datos.svg"
@@ -221,8 +254,20 @@ const Navbar = () => {
                   </Link>
                   <Link
                     href="/user/web/perfil?tab=entradas"
-                    className="dropdown-item"
-                    onClick={() => setDropdownOpen(false)}
+                    onClick={closeDropdown}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '0.75rem 1rem',
+                      fontSize: '0.95rem',
+                      color: '#333333',
+                      textDecoration: 'none',
+                      backgroundColor: 'transparent',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     <Image
                       src="/images/icon/mis-entradas.svg"
@@ -234,8 +279,20 @@ const Navbar = () => {
                   </Link>
                   <Link
                     href="/user/web/perfil?tab=dromopuntos"
-                    className="dropdown-item"
-                    onClick={() => setDropdownOpen(false)}
+                    onClick={closeDropdown}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '0.75rem 1rem',
+                      fontSize: '0.95rem',
+                      color: '#333333',
+                      textDecoration: 'none',
+                      backgroundColor: 'transparent',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     <Image
                       src="/images/icon/mis-puntos.svg"
@@ -247,8 +304,20 @@ const Navbar = () => {
                   </Link>
                   <Link
                     href="/user/cambiarcontrasena/contrasenaActual"
-                    className="dropdown-item"
-                    onClick={() => setDropdownOpen(false)}
+                    onClick={closeDropdown}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '0.75rem 1rem',
+                      fontSize: '0.95rem',
+                      color: '#333333',
+                      textDecoration: 'none',
+                      backgroundColor: 'transparent',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     <Image
                       src="/images/icon/cambiar-contrasena.svg"
@@ -258,10 +327,29 @@ const Navbar = () => {
                     />
                     Cambiar Contraseña
                   </Link>
-                  <div className="dropdown-divider"></div>
+                  <div style={{
+                    height: '1px',
+                    backgroundColor: '#e0e0e0',
+                    margin: '0.5rem 0'
+                  }}></div>
                   <button
                     onClick={handleLogout}
-                    className="dropdown-item dropdown-item-logout"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '0.75rem 1rem',
+                      fontSize: '0.95rem',
+                      color: '#e53e3e',
+                      textDecoration: 'none',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      width: '100%',
+                      textAlign: 'left',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     <Image
                       src="/images/icon/cerrar-sesion.svg"
@@ -271,7 +359,8 @@ const Navbar = () => {
                     />
                     Cerrar Sesión
                   </button>
-                </div>
+                </div>,
+                document.body
               )}
             </div>
           ) : (

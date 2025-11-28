@@ -1,22 +1,143 @@
 .pageContainer {
     padding: 2rem 5%;
     background-color: #fff;
-    min-height: 100vh;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .header {
     display: flex;
     align-items: center;
-    gap: 1rem; /* 16px */
-    margin-bottom: 2.5rem;
+    gap: 1rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid #e5e7eb;
+    flex-shrink: 0;
 }
 
 .title {
     font-family: 'Nunito', sans-serif;
-    font-size: 1.5rem; /* 24px */
-    line-height: 2rem; /* 32px */
-    font-weight: 800; /* Extra-bold */
-    color: #374151; /* text-gray-700 */
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 800;
+    color: #374151;
+}
+
+.mainSection {
+    display: flex;
+    gap: 2rem;
+    flex: 1;
+    overflow: hidden;
+    margin-top: 2rem;
+}
+
+.leftColumn {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-right: 1rem;
+    min-height: 0;
+}
+
+.rightColumn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 420px;
+    min-width: 320px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.paymentCard {
+    background-color: #EFECEC;
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+}
+
+.paymentTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.checkboxContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+}
+
+.buttonContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.finalizeButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 1.25rem 1rem;
+    border-radius: 1rem;
+    background-color: #00C49A;
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: background-color 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.finalizeButton:hover:not(:disabled) {
+    background-color: #00b088;
+}
+
+.finalizeButton:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.backButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 1rem;
+    background-color: #EFECEC;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 700;
+    border: 2px solid #9ca3af;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.backButton:hover {
+    background-color: #e5e7eb;
+    border-color: #6b7280;
+}
+
+@media (max-width: 1024px) {
+    .mainSection {
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .leftColumn {
+        overflow-y: visible;
+        padding-right: 0;
+    }
+
+    .rightColumn {
+        max-width: 100%;
+        min-width: auto;
+    }
 }

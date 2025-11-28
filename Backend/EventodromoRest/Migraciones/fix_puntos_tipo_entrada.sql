@@ -1,0 +1,47 @@
+-- Script para actualizar los puntos en la tabla TipoEntrada
+-- Opción 1: Actualizar automáticamente basado en el 10% del precio
+UPDATE TipoEntrada SET puntos = ROUND(precio * 0.1, 0);
+
+-- Verificar los resultados
+SELECT id, nombre, precio, puntos FROM TipoEntrada ORDER BY id;
+
+-- ============================================================
+-- Opción 2: Si prefieres los valores exactos del script original
+-- ============================================================
+-- UPDATE TipoEntrada SET puntos = 50 WHERE id = 1;
+-- UPDATE TipoEntrada SET puntos = 120 WHERE id = 2;
+-- UPDATE TipoEntrada SET puntos = 55 WHERE id = 3;
+-- UPDATE TipoEntrada SET puntos = 130 WHERE id = 4;
+-- UPDATE TipoEntrada SET puntos = 15 WHERE id = 5;
+-- UPDATE TipoEntrada SET puntos = 28 WHERE id = 6;
+-- UPDATE TipoEntrada SET puntos = 45 WHERE id = 7;
+-- UPDATE TipoEntrada SET puntos = 8 WHERE id = 8;
+-- UPDATE TipoEntrada SET puntos = 12 WHERE id = 9;
+-- UPDATE TipoEntrada SET puntos = 8 WHERE id = 10;
+-- UPDATE TipoEntrada SET puntos = 12 WHERE id = 11;
+-- UPDATE TipoEntrada SET puntos = 12 WHERE id = 12;
+-- UPDATE TipoEntrada SET puntos = 18 WHERE id = 13;
+-- UPDATE TipoEntrada SET puntos = 12 WHERE id = 14;
+-- UPDATE TipoEntrada SET puntos = 18 WHERE id = 15;
+-- UPDATE TipoEntrada SET puntos = 12 WHERE id = 16;
+-- UPDATE TipoEntrada SET puntos = 18 WHERE id = 17;
+-- UPDATE TipoEntrada SET puntos = 12 WHERE id = 18;
+-- UPDATE TipoEntrada SET puntos = 18 WHERE id = 19;
+-- UPDATE TipoEntrada SET puntos = 5 WHERE id = 20;
+-- UPDATE TipoEntrada SET puntos = 5 WHERE id = 21;
+-- UPDATE TipoEntrada SET puntos = 25 WHERE id = 22;
+-- UPDATE TipoEntrada SET puntos = 40 WHERE id = 23;
+-- UPDATE TipoEntrada SET puntos = 60 WHERE id = 24;
+-- UPDATE TipoEntrada SET puntos = 35 WHERE id = 25;
+-- UPDATE TipoEntrada SET puntos = 55 WHERE id = 26;
+-- UPDATE TipoEntrada SET puntos = 75 WHERE id = 27;
+-- UPDATE TipoEntrada SET puntos = 40 WHERE id = 28;
+-- UPDATE TipoEntrada SET puntos = 60 WHERE id = 29;
+-- UPDATE TipoEntrada SET puntos = 85 WHERE id = 30;
+-- UPDATE TipoEntrada SET puntos = 6 WHERE id = 31;
+-- UPDATE TipoEntrada SET puntos = 9 WHERE id = 32;
+-- UPDATE TipoEntrada SET puntos = 9 WHERE id = 33;
+-- UPDATE TipoEntrada SET puntos = 10 WHERE id = 34;
+-- UPDATE TipoEntrada SET puntos = 15 WHERE id = 35;
+-- UPDATE TipoEntrada SET puntos = 10 WHERE id = 36;
+-- UPDATE TipoEntrada SET puntos = 15 WHERE id = 37;

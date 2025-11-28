@@ -32,6 +32,16 @@ services:
             - db
         networks:
             - frontend
+        develop:
+          watch:
+            - action: sync
+              path: ./front-edromo
+              target: /app
+              initial_sync: true
+              ignore:
+                - node_modules/
+            - action: rebuild
+              path: package.json
         healthcheck:
             test: ["CMD", "curl", "-f", "http://localhost"]
             interval: 10s
@@ -45,7 +55,7 @@ services:
             PMA_HOST: localhost
             PMA_USER: admin
             PMA_PASSWORD: 12345
-            AppSettings__FrontendUrl: "http://34.238.85.28:3000"
+            #AppSettings__FrontendUrl: "http://34.238.85.28:3000"
         ports:
             - "0.0.0.0:8080:8080"
         depends_on:

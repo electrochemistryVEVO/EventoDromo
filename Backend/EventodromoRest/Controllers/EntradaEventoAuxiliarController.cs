@@ -1,7 +1,7 @@
 using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
-using EventodromoRest.Servicios; // <-- 1. AÑADE ESTO (para TokenService)
+using EventodromoRest.Servicios; // <-- 
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -43,7 +43,7 @@ namespace EventodromoRest.Controllers
             var authHeader = Request.Headers["Authorization"].ToString();
             if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
             {
-                throw new Exception("Token no proporcionado o inválido.");
+                throw new Exception("Token no proporcionado o invalido.");
             }
 
             var token = authHeader.Substring("Bearer ".Length);
@@ -51,7 +51,7 @@ namespace EventodromoRest.Controllers
 
             if (idCliente == null)
             {
-                throw new Exception("Token inválido o expirado.");
+                throw new Exception("Token invalido o expirado.");
             }
             return idCliente.Value;
         }

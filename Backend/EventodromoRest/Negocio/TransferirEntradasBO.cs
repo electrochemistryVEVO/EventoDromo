@@ -105,7 +105,7 @@ namespace EventodromoRest.Negocio
 
                 var mapper = new TransferirEntradasMapper(globales, DB);
 
-                // Validar que las entradas existan y estén disponibles
+                // Validar que las entradas existan, estén disponibles y sean de eventos futuros
                 bool entradasValidas = mapper.ValidarEntradasDisponibles(request.entradas);
                 if (!entradasValidas)
                 {
@@ -114,7 +114,7 @@ namespace EventodromoRest.Negocio
                         Success = false,
                         Message = "Entradas no disponibles",
                         Data = null,
-                        Error = "Una o más entradas no están disponibles para transferir"
+                        Error = "No se pueden transferir entradas de eventos pasados o que no están disponibles"
                     };
                 }
 
@@ -475,9 +475,9 @@ namespace EventodromoRest.Negocio
         }
 
         /// <summary>
-        /// Obtiene el estado de las entradas para una transacción.
+        /// Obtiene el estado de las entradas para una transacción y opcionalmente un evento específico.
         /// </summary>
-        public GenericResponse<EstadoEntradasDTO> ObtenerEstadoEntradas(string numeroTransaccion)
+        public GenericResponse<EstadoEntradasDTO> ObtenerEstadoEntradas(string numeroTransaccion, int? idEvento = null)
         {
             try
             {
@@ -493,7 +493,7 @@ namespace EventodromoRest.Negocio
                 }
 
                 var mapper = new TransferirEntradasMapper(globales, DB);
-                var estadoDict = mapper.ObtenerEstadoEntradas(numeroTransaccion);
+                var estadoDict = mapper.ObtenerEstadoEntradas(numeroTransaccion, idEvento);
                 
                 var estadoDTO = new EstadoEntradasDTO
                 {

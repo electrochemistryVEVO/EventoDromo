@@ -5,6 +5,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale } from "react-datepicker";
 import es from "date-fns/locale/es";
 registerLocale("es", es);
+import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 import "@/css/detalle-Evento/BookingPanel.css";
 
 const formatDate = (date) => {
@@ -15,7 +17,11 @@ const formatDate = (date) => {
   return `${year}-${month}-${day}`;
 };
 
-const BookingPanel = ({ eventName, functions, onAddToCart }) => {
+const BookingPanel = ({ eventName, eventId, functions, onAddToCart }) => {
+  // --- HOOKS ---
+  const router = useRouter();
+  const { isAuthenticated } = useUser();
+  
   // --- ESTADOS ---
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedFunctionId, setSelectedFunctionId] = useState("");
@@ -25,16 +31,25 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
   // --- DATOS DERIVADOS Y MEMOIZADOS ---
   const availableDates = useMemo(() => {
     const dates = {};
+    const ahora = new Date();
+    ahora.setHours(0, 0, 0, 0); // Inicio del día actual
+    
     (functions || []).forEach((func) => {
-      const date = func.fecha;
-      if (!dates[date]) {
-        dates[date] = [];
+      const [year, month, day] = func.fecha.split("-").map(Number);
+      const fechaEvento = new Date(year, month - 1, day);
+      
+      // ✅ Solo incluir fechas futuras o del día actual
+      if (fechaEvento >= ahora) {
+        const date = func.fecha;
+        if (!dates[date]) {
+          dates[date] = [];
+        }
+        dates[date].push({
+          id: func.id,
+          time: func.hora,
+          tiposDeEntrada: (func.tiposDeEntrada || []).sort((a, b) => b.precio - a.precio),
+        });
       }
-      dates[date].push({
-        id: func.id,
-        time: func.hora,
-        tiposDeEntrada: (func.tiposDeEntrada || []).sort((a, b) => b.precio - a.precio),
-      });
     });
     return dates;
   }, [functions]);
@@ -87,12 +102,24 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
     setTotalPrice(newTotal);
   }, [calculateTotal]);
 
-  // ✅ CORREGIDO: Efecto para inicializar la primera fecha disponible
+  // ✅ CORREGIDO: Efecto para inicializar la primera fecha FUTURA disponible
   useEffect(() => {
     if (functions && functions.length > 0 && !selectedDate) {
-      const firstDateStr = functions[0].fecha;
-      const [year, month, day] = firstDateStr.split("-").map(Number);
-      setSelectedDate(new Date(year, month - 1, day));
+      const ahora = new Date();
+      ahora.setHours(0, 0, 0, 0);
+      
+      // Encontrar la primera función con fecha futura
+      const primeraFuncionFutura = functions.find(func => {
+        const [year, month, day] = func.fecha.split("-").map(Number);
+        const fechaEvento = new Date(year, month - 1, day);
+        return fechaEvento >= ahora;
+      });
+      
+      if (primeraFuncionFutura) {
+        const firstDateStr = primeraFuncionFutura.fecha;
+        const [year, month, day] = firstDateStr.split("-").map(Number);
+        setSelectedDate(new Date(year, month - 1, day));
+      }
     }
   }, [functions, selectedDate]);
 
@@ -112,6 +139,16 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
       ...prevQuantities,
       [tierId]: Math.max(0, (prevQuantities[tierId] || 0) + amount),
     }));
+  };
+
+  const handleRedirectToLogin = () => {
+    if (!eventId) {
+      console.error("EventId no disponible para redirección");
+      return;
+    }
+    const currentUrl = `/user/web/eventos/detalle?id=${eventId}`;
+    const loginUrl = `/auth/login?redirect=${encodeURIComponent(currentUrl)}`;
+    router.push(loginUrl);
   };
 
   const handleSubmit = () => {
@@ -244,9 +281,21 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
         <span>S/ {totalPrice.toFixed(2)}</span>
       </div>
 
-      <button className="add-to-cart-btn" onClick={handleSubmit}>
-        Agregar al Carrito
-      </button>
+      {isAuthenticated ? (
+        <button className="add-to-cart-btn" onClick={handleSubmit}>
+          Agregar al Carrito
+        </button>
+      ) : (
+        <button 
+          className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
+          onClick={handleRedirectToLogin}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          Inicia sesión para comprar
+        </button>
+      )}
     </div>
   );
 };

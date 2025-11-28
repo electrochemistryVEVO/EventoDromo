@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { getEvents, getLocales } from "@/services/gestionEvento.services.js";
+import {
+  getEvents,
+  getLocales,
+  deleteEvent,
+} from "@/services/gestionEvento.services.js";
 
 // --- NUEVO: Función helper para formatear fechas a YYYY-MM-DD ---
 // Este formato es REQUERIDO por el <input type="date"> para su valor (value).
@@ -59,38 +63,40 @@ export const useEventManager = () => {
    * Se usa useCallback para evitar que esta función se recree en cada renderizado,
    * a menos que sus dependencias (filters, pagination.currentPage) cambien.
    */
-  const fetchEvents = useCallback(async (pageToFetch = null, customFilters = null) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const currentPage = pageToFetch || pagination?.currentPage || 1;
-      const filtersToUse = customFilters || filters;
-      console.log("Enviando filtros al servicio:", {
-        ...filtersToUse,
-        page: currentPage,
-      });
-      const response = await getEvents({
-        ...filtersToUse,
-        page: currentPage,
-      });
-      console.log("Respuesta RECIBIDA del servicio:", response);
-      // Accede a los datos y la paginación desde el objeto anidado "response.data"
-      if (response && response.data) {
-        
-        setEvents(response.data.data); // Antes era response.data
-        setPagination(response.data.pagination); // Antes era response.pagination
-      } else {
-        // Maneja el caso de una respuesta inesperada para evitar errores
-        setEvents([]);
-        console.error("La respuesta del API no tiene el formato esperado.");
+  const fetchEvents = useCallback(
+    async (pageToFetch = null, customFilters = null) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const currentPage = pageToFetch || pagination?.currentPage || 1;
+        const filtersToUse = customFilters || filters;
+        console.log("Enviando filtros al servicio:", {
+          ...filtersToUse,
+          page: currentPage,
+        });
+        const response = await getEvents({
+          ...filtersToUse,
+          page: currentPage,
+        });
+        console.log("Respuesta RECIBIDA del servicio:", response);
+        // Accede a los datos y la paginación desde el objeto anidado "response.data"
+        if (response && response.data) {
+          setEvents(response.data.data); // Antes era response.data
+          setPagination(response.data.pagination); // Antes era response.pagination
+        } else {
+          // Maneja el caso de una respuesta inesperada para evitar errores
+          setEvents([]);
+          console.error("La respuesta del API no tiene el formato esperado.");
+        }
+      } catch (err) {
+        console.error("Error fetching events:", err);
+        setError("No se pudieron cargar los eventos.");
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error("Error fetching events:", err);
-      setError("No se pudieron cargar los eventos.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [filters, pagination?.currentPage]);
+    },
+    [filters, pagination?.currentPage]
+  );
 
   /**
    * Efecto que se ejecuta cuando los filtros cambian
@@ -171,12 +177,32 @@ export const useEventManager = () => {
    * Manejador para cambiar de página.
    * @param {number} pageNumber - El número de página al que se quiere ir.
    */
-  const handlePageChange = useCallback((pageNumber) => {
-    setPagination((prev) => ({ ...prev, currentPage: pageNumber }));
-    // Llamamos directamente con el número de página y los filtros actuales
-    fetchEvents(pageNumber, filters);
-  }, [filters, fetchEvents]);
+  const handlePageChange = useCallback(
+    (pageNumber) => {
+      setPagination((prev) => ({ ...prev, currentPage: pageNumber }));
+      // Llamamos directamente con el número de página y los filtros actuales
+      fetchEvents(pageNumber, filters);
+    },
+    [filters, fetchEvents]
+  );
 
+  const removeEvent = async (eventId) => {
+    setIsLoading(true);
+    try {
+      await deleteEvent(eventId);
+      // Si tiene éxito, recargamos los eventos aplicando los filtros actuales
+      // Usamos fetchEvents directamente para refrescar la tabla
+      await fetchEvents(pagination.currentPage, filters);
+      return { success: true };
+    } catch (err) {
+      console.error("Error deleting event:", err);
+      // Podrías setear un error global o retornarlo para que la Page lo muestre
+      setError("No se pudo eliminar el evento. Inténtelo de nuevo.");
+      return { success: false, message: err.message };
+    } finally {
+      setIsLoading(false);
+    }
+  };
   // --- VALORES DEVUELTOS ---
   // El hook devuelve los estados y funciones que el componente de la página necesitará.
   return {
@@ -187,6 +213,7 @@ export const useEventManager = () => {
     isLoading,
     error,
     filters,
+    removeEvent,
     handleFilterChange,
     applyFilters,
     handlePageChange,

@@ -132,5 +132,45 @@ namespace EventodromoRest.Mappers
                 return listaEntrada;
             }
         }
+        public List<TicketInfo> ObtenerTipoEntradasPorTransaccion(int idCliente,string numeroTransaccion)
+        {
+            List<TicketInfo> listaEntrada = new List<TicketInfo>();
+            lock (DB)
+            {
+                // Solo retorna entradas que el cliente actualmente posee
+                // Usa LineaTransaccion para vincular correctamente entradas transferidas
+                string query = @"SELECT TE.nombre,TE.precio,T.nombresCliente,T.apellidosCliente,C.numeroDocumento 
+                FROM Transaccion T 
+                JOIN Cliente C ON C.id=T.idCliente 
+                JOIN LineaTransaccion LT ON LT.idTransaccion=T.id
+                JOIN Entrada E ON E.id=LT.idEntrada 
+                JOIN TipoEntrada TE ON TE.id=E.idTipoEntrada 
+                WHERE T.numeroTransaccion=@numeroTransaccion 
+                AND (
+                    (E.idClienteActual IS NULL AND T.idCliente = @idCliente) 
+                    OR E.idClienteActual = @idCliente
+                );";
+                var parametros = new ParameterList();
+                parametros.Add("@numeroTransaccion", numeroTransaccion);
+                parametros.Add("@idCliente", idCliente);
+                DB.Select(query, parametros);
+                while (DB.Read())
+                {
+                    TicketInfo entrada = new();
+                    entrada.nombre = DB.GetString("nombre");
+                    entrada.precio = (double)DB.GetDecimal("precio");
+                    entrada.dniCliente = DB.GetString("numeroDocumento");
+                    entrada.nombreCliente = DB.GetString("nombresCliente");
+                    if (entrada.nombreCliente != null)
+                    {
+                        entrada.nombreCliente = entrada.nombreCliente + " ";
+                        entrada.nombreCliente = entrada.nombreCliente + DB.GetString("apellidosCliente");
+                    }
+                    
+                    listaEntrada.Add(entrada);
+                }
+                return listaEntrada;
+            }
+        }
     }
 }

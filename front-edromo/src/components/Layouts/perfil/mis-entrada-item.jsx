@@ -18,10 +18,10 @@ export default function MisEntradaItem({ entrada, index, onTransferComplete }) {
 
   // Función para recargar el estado de las entradas
   const recargarEstado = async () => {
-    if (!entrada.transaccion) return;
+    if (!entrada.transaccion || !entrada.id) return;
     
     try {
-      const estado = await servicePerfil.obtenerEstadoEntradas(entrada.transaccion);
+      const estado = await servicePerfil.obtenerEstadoEntradas(entrada.transaccion, entrada.id);
       setEstadoEntradas(estado);
     } catch (error) {
       console.error('Error cargando estado de entradas:', error);
@@ -90,6 +90,28 @@ export default function MisEntradaItem({ entrada, index, onTransferComplete }) {
     }
   };
 
+  // Verificar si el evento está vencido
+  const esEventoVencido = () => {
+    if (!entrada.fecha || !entrada.hora) return false;
+    
+    try {
+      // Parsear la fecha y hora del evento
+      const [dia, mes, anio] = entrada.fecha.split('/').map(Number);
+      const [horas, minutos] = entrada.hora.split(':').map(Number);
+      
+      // Crear fecha del evento (mes es 0-indexed en JS)
+      const fechaEvento = new Date(anio, mes - 1, dia, horas, minutos);
+      const ahora = new Date();
+      
+      return fechaEvento < ahora;
+    } catch (error) {
+      console.error('Error al verificar fecha del evento:', error);
+      return false;
+    }
+  };
+
+  const eventoVencido = esEventoVencido();
+
   return (
     <div className="mei-item" data-index={index}>
       <div className="mei-card">
@@ -100,7 +122,7 @@ export default function MisEntradaItem({ entrada, index, onTransferComplete }) {
                 src={entrada.imagen}
                 alt={entrada.titulo}
                 onError={(e) => {
-                  e.currentTarget.src = "/images/evento-placeholder.jpg";
+                  e.currentTarget.src = "https://placehold.co/400";
                 }}
               />
             ) : (
@@ -193,12 +215,16 @@ export default function MisEntradaItem({ entrada, index, onTransferComplete }) {
           </div>
 
           <div className="mei-buttons">
-            <DescargarButton />
+            <DescargarButton entrada={entrada} />
             <TransferirButton 
               transaccion={entrada.transaccion}
               tiposEntrada={tiposEntrada}
               onTransferComplete={handleTransferComplete}
-              disabled={estadoEntradas.disponibles === 0 && estadoEntradas.total > 0}
+              disabled={
+                eventoVencido || 
+                (estadoEntradas.disponibles === 0 && estadoEntradas.total > 0)
+              }
+              disabledReason={eventoVencido ? 'expired' : 'no-available'}
             />
             <VerDetalleButton numeroTransaccion={entrada.transaccion} idEvento={entrada.id} />
           </div>

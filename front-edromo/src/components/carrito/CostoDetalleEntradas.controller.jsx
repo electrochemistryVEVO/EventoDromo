@@ -9,10 +9,18 @@ export const CostoDetalleEntradasController = () => {
   const { cartItems, totalPrice, isLoading } = useCart();
 
   const { eventos, dromoPuntos } = useMemo(() => {
+    console.log('🔍 [CostoDetalleEntradas] cartItems recibidos:', cartItems);
+    
     const eventosMap = {};
     let totalPuntos = 0;
 
-    cartItems.forEach((item) => {
+    cartItems.forEach((item, itemIndex) => {
+      console.log(`🔍 [Item ${itemIndex}] Procesando:`, {
+        cartItemId: item.cartItemId,
+        eventoNombre: item.eventoInfo?.nombre,
+        totalEntradas: item.entradas?.length
+      });
+
       const eventoId = item.eventoInfo.id;
       
       if (!eventosMap[eventoId]) {
@@ -26,7 +34,15 @@ export const CostoDetalleEntradasController = () => {
       // ✅ CORRECCIÓN: Agrupar entradas por tipo dentro del mismo evento
       const entradasPorTipo = {};
       
-      item.entradas.forEach((entrada) => {
+      item.entradas.forEach((entrada, entradaIndex) => {
+        console.log(`  📝 [Entrada ${entradaIndex}]:`, {
+          nombre: entrada.nombre,
+          cantidad: entrada.cantidad,
+          precioUnitario: entrada.precioUnitario,
+          puntosUnitarios: entrada.puntosUnitarios,
+          tipoEntradaId: entrada.tipoEntradaId
+        });
+
         const tipoEntradaId = entrada.tipoEntradaId;
         const claveTipo = `${tipoEntradaId}`;
         
@@ -45,7 +61,9 @@ export const CostoDetalleEntradasController = () => {
         entradasPorTipo[claveTipo].subtotal += cantidad * entrada.precioUnitario;
         
         // Calcular puntos
-        totalPuntos += cantidad * (entrada.puntosUnitarios || 0);
+        const puntosDeEstaEntrada = cantidad * (entrada.puntosUnitarios || 0);
+        console.log(`    💰 Puntos: ${cantidad} x ${entrada.puntosUnitarios} = ${puntosDeEstaEntrada}`);
+        totalPuntos += puntosDeEstaEntrada;
       });
 
       // Agregar las entradas agrupadas al evento
@@ -59,13 +77,19 @@ export const CostoDetalleEntradasController = () => {
 
     const eventos = Object.values(eventosMap);
     
+    console.log('✅ [CostoDetalleEntradas] RESULTADO FINAL:', {
+      totalEventos: eventos.length,
+      totalPuntos,
+      eventos
+    });
+    
     return {
       eventos,
       dromoPuntos: totalPuntos
     };
   }, [cartItems]);
 
-  console.log('🔍 CostoDetalleEntradas - Eventos agrupados:', eventos);
+  console.log('🎯 [CostoDetalleEntradas] Renderizando con dromoPuntos:', dromoPuntos);
 
   return (
     <CostoDetalleEntradas

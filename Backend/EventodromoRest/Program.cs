@@ -89,7 +89,7 @@ builder.Services.AddDbContext<DBManager>(options =>
 {
     var cs = builder.Configuration.GetConnectionString("DefaultConnection");
 
-    // SQL
+    // SQL 
     //options.UseSqlServer(cs);
 
     //MySQL
@@ -106,6 +106,9 @@ builder.Services.AddSingleton<TokenService>(
 
 // Registrar S3Service
 builder.Services.AddSingleton<IS3Service, S3Service>();
+
+// Registrar EmailService
+builder.Services.AddScoped<EmailService>();
 
 var app = builder.Build();
 

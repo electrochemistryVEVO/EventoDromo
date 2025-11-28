@@ -18,6 +18,34 @@ namespace EventodromoRest.Controllers
         private readonly Globales.Globales globales = globales;
         private readonly TokenService tokenService = tokenService;
 
+        /// <summary>
+        /// Registra un nuevo administrador en el sistema.
+        /// POST /api/Administrador/Registrar
+        /// </summary>
+        [HttpPost]
+        [Route("/api/[controller]/Registrar")]
+        public GenericResponse<RegistrarAdminResponse> Registrar([FromBody] RegistrarAdminRequest request)
+        {
+            try
+            {
+                var administradorBO = new AdministradorBO(globales, BD);
+                return administradorBO.RegistrarAdministrador(request);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<RegistrarAdminResponse>
+                {
+                    Success = false,
+                    Message = "Error al registrar administrador.",
+                    Error = e.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
         [HttpGet]
         [Route("/api/[controller]/FetchAdminData")]
         public GenericResponse<FetchUserDataResponse> FetchAdminData()
@@ -99,7 +127,114 @@ namespace EventodromoRest.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("/api/[controller]/Indicadores")]
+        [Authorize]
+        public GenericResponse<MetricasDashboardDTO> ObtenerIndicadores()
+        {
+            try
+            {
+                // 1️⃣ Leer el token de la cabecera
+                var authHeader = Request.Headers["Authorization"].ToString();
 
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<MetricasDashboardDTO>
+                    {
+                        Success = false,
+                        Message = "Token no proporcionado o inválido.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
 
+                // 2️⃣ Extraer el token y obtener el ID del admin
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<MetricasDashboardDTO>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                // 3️⃣ Obtener las métricas del dashboard
+                var administradorBO = new AdministradorBO(globales, BD);
+                return administradorBO.ObtenerIndicadoresDashboard(idAdmin.Value);
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<MetricasDashboardDTO>
+                {
+                    Success = false,
+                    Message = "Error al obtener los indicadores.",
+                    Error = e.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(e, "SinBody", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+        [HttpGet]
+        [Route("/api/[controller]/EventosMasVendidos")]
+        [Authorize]
+        public GenericResponse<List<EventoMasVendidoDTO>> ObtenerEventosMasVendidos()
+        {
+            try
+            {
+                // 1️⃣ Leer el token de la cabecera
+                var authHeader = Request.Headers["Authorization"].ToString();
+
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<List<EventoMasVendidoDTO>>
+                    {
+                        Success = false,
+                        Message = "Token no proporcionado o inválido.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                // 2️⃣ Extraer el token y obtener el ID del admin
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<List<EventoMasVendidoDTO>>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                // 3️⃣ Obtener los eventos más vendidos
+                var administradorBO = new AdministradorBO(globales, BD);
+                return administradorBO.ObtenerEventosMasVendidos();
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<List<EventoMasVendidoDTO>>
+                {
+                    Success = false,
+                    Message = "Error al obtener los eventos más vendidos.",
+                    Error = e.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(e, "SinBody", JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
     }
 }

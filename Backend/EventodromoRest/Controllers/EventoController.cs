@@ -2,8 +2,10 @@
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
 using EventodromoRest.Servicios;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Security.Claims;
 using System.Text.Json;
 
 
@@ -412,10 +414,180 @@ namespace EventodromoRest.Controllers
                     }
                 };
                 AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+            }
+        }
+         
+        [HttpDelete]
+        [Authorize]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<bool> EliminarEvento([FromQuery] int id)
+        {
+            try
+            {
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<bool>
+                    {
+                        Success = false,
+                        Message = "Acceso no autorizado. Se requiere un token válido.",
+                        Error = "401 Unauthorized",
+                        Data = false
+                    };
+                }
+
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<bool>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = false
+                    };
+                }
+
+                if (id <= 0)
+                {
+                    return new GenericResponse<bool>
+                    {
+                        Success = false,
+                        Message = "ID de evento inválido.",
+                        Error = "El ID debe ser mayor que cero.",
+                        Data = false
+                    };
+                }
+
+                var eventoBO = new EventoBO(globales, BD);
+                var resultado = eventoBO.EliminarEvento(id, idAdmin.Value);
+                return resultado;
+            }
+            catch (Exception ex)
+            {
+                var response = new GenericResponse<bool>
+                {
+                    Success = false,
+                    Message = "Error al eliminar el evento.",
+                    Error = ex.Message,
+                    Data = false
+                };
+
+                AgregarEntradaBitacora(ex, $"id: {id}", JsonSerializer.Serialize(response));
                 return response;
             }
         }
 
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<CrearEventoResponseDTO> CrearEventoFinal([FromBody] CrearEventoDTOFinal dto)
+        {
+            try
+            {
+                // 1️⃣ Validar token JWT
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<CrearEventoResponseDTO>
+                    {
+                        Success = false,
+                        Message = "Acceso no autorizado. Se requiere un token válido.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<CrearEventoResponseDTO>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                // 2. Llamar al Negocio (BO) con el ID fijo
+                var bo = new EventoBO(globales, BD);
+
+                // El método CrearEventoCompleto espera (CrearEventoDTOFinal, int)
+                return bo.CrearEventoCompleto(dto, idAdmin??0);
+            }
+            catch (Exception e)
+            {
+                // 3. Manejo de Errores Global
+                var response = new GenericResponse<CrearEventoResponseDTO>
+                {
+                    Success = false,
+                    Message = "Error fatal en el controlador al crear el evento.",
+                    Error = e.Message
+                };
+
+                // Registrar en bitácora
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(dto), JsonSerializer.Serialize(response));
+
+                return response;
+            }
+        }
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<ActualizarEventoResponseDTO> ActualizarEvento([FromBody] ActualizarEventoDTO dto)
+        {
+            try
+            {
+                // 1️⃣ Validar token JWT
+                /*var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new GenericResponse<ActualizarEventoResponseDTO>
+                    {
+                        Success = false,
+                        Message = "Acceso no autorizado. Se requiere un token válido.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }
+
+                var token = authHeader.Substring("Bearer ".Length);
+                int? idAdmin = tokenService.ObtenerIdDesdeToken(token);
+                if (idAdmin == null)
+                {
+                    return new GenericResponse<ActualizarEventoResponseDTO>
+                    {
+                        Success = false,
+                        Message = "Token inválido o expirado.",
+                        Error = "401 Unauthorized",
+                        Data = null
+                    };
+                }*/
+                int? idAdmin = 1;
+                // 3. Llamar al Negocio (BO)
+                var bo = new EventoBO(globales, BD);
+
+                // Llamamos al método de actualización del BO
+                return bo.ActualizarEventoCompleto(dto, idAdmin??0);
+            }
+            catch (Exception e)
+            {
+                // 4. Manejo de Errores Global
+                var response = new GenericResponse<ActualizarEventoResponseDTO>
+                {
+                    Success = false,
+                    Message = "Error fatal en el controlador al actualizar el evento.",
+                    Error = e.Message
+                };
+
+                // Registrar en bitácora
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(dto), JsonSerializer.Serialize(response));
+
+                return response;
+            }
+        }
     }
 
 

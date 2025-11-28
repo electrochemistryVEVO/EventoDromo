@@ -67,6 +67,7 @@ const normalizeEntrada = (entrada) => {
       nombre: "Entrada",
       cantidad: 1,
       precioUnitario: 0,
+      puntosUnitarios: 0,
     };
   }
 
@@ -75,7 +76,31 @@ const normalizeEntrada = (entrada) => {
     ? Number(entrada.cantidad)
     : 1;
 
-  const puntos = Number(entrada.puntos ?? entrada.puntosUnitarios ?? 0);
+  // 🔍 DEBUG: Ver todos los posibles campos de puntos que podrían venir del backend
+  console.log('🔍🔍🔍 [normalizeEntrada] ENTRADA COMPLETA DEL BACKEND:', {
+    nombreTipoEntrada: entrada.nombreTipoEntrada,
+    'entrada.puntos': entrada.puntos,
+    'entrada.puntosUnitarios': entrada.puntosUnitarios,
+    'typeof entrada.puntos': typeof entrada.puntos,
+    'Number(entrada.puntos)': Number(entrada.puntos),
+    todosLosCampos: Object.keys(entrada),
+    objetoCompleto: entrada
+  });
+
+  const puntos = Number(
+    entrada.puntos ?? 
+    entrada.puntosUnitarios ?? 
+    entrada.puntosGanados ??
+    entrada.dromoPuntos ??
+    entrada.dromopuntos ??
+    0
+  );
+
+  console.log('💰💰💰 [normalizeEntrada] RESULTADO DE PUNTOS:', {
+    nombre: entrada.nombreTipoEntrada,
+    puntosFinales: puntos,
+    puntosOriginales: entrada.puntos
+  });
 
   return {
     entradaId: entrada.idEntrada ?? null,

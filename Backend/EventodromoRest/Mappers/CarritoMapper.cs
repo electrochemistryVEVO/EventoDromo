@@ -148,6 +148,27 @@ namespace EventodromoRest.Mappers
 
         public List<ObtenerCarritoDTO> AgregarItemAlCarrito(int idCliente, RequestAgregarItemAlCarrito request)
         {
+            // ✅ VALIDAR QUE NO SE PUEDAN AGREGAR ENTRADAS DE EVENTOS PASADOS
+            foreach (var entrada in request.entradas)
+            {
+                string queryValidarFecha = @"
+                    SELECT COUNT(*) 
+                    FROM TipoEntrada te
+                    INNER JOIN FechaEvento fe ON te.idFechaEvento = fe.id
+                    WHERE te.id = @idTipoEntrada 
+                    AND fe.fechaHora >= NOW()";
+                
+                var paramValidar = new ParameterList();
+                paramValidar.Add("@idTipoEntrada", entrada.idTipoEntrada);
+                
+                int eventoValido = Convert.ToInt32(DB.ExecuteScalar(queryValidarFecha, paramValidar));
+                
+                if (eventoValido == 0)
+                {
+                    throw new Exception("No se pueden comprar entradas de eventos que ya pasaron o no existen.");
+                }
+            }
+
             DB.BeginTransaction();
             try
             {

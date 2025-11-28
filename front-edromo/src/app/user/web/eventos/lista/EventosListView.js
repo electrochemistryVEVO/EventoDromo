@@ -55,8 +55,8 @@ export function EventosListView({
                     <Image
                         src="/images/eventos/publicidadDromoPuntos.png"
                         alt="Publicidad Dromo Puntos"
-                        layout="fill"
-                        objectFit="cover" 
+                        fill
+                        style={{ objectFit: "cover" }}
                     />
                     </div>
                 </div>

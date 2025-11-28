@@ -1,14 +1,13 @@
 ﻿//para token
-using EventodromoRest.Servicios;
-using System.IdentityModel.Tokens.Jwt;
-
-
 using EventodromoRest.Modelos;
 using EventodromoRest.Modelos.Utiles;
 using EventodromoRest.Negocio;
 using EventodromoRest.Servicios;
+using EventodromoRest.Servicios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 
@@ -16,11 +15,14 @@ namespace EventodromoRest.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    public class ClienteController (Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService) : BaseController
+    public class ClienteController (Globales.Globales globales, DBManager.DBManager BD, TokenService tokenService, EmailService emailService, IConfiguration configuration) : BaseController
     {
         private readonly DBManager.DBManager BD = BD;
         private readonly Globales.Globales globales = globales;
         private readonly TokenService tokenService = tokenService;
+        private readonly EmailService _emailService = emailService;
+        private readonly IConfiguration _configuration = configuration;
+
 
         [HttpPost]
         [Route("/api/[controller]/[action]")]
@@ -597,5 +599,242 @@ namespace EventodromoRest.Controllers
             // Devuelve el valor, no el 'int?'
             return idCliente.Value;
         }
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<RecuperarContrasenaResponse> RecuperarContrasena([FromBody] RequestRecuperarContrasena request)
+        {
+            try
+            {
+                // 1. Validar request
+                if (request == null || string.IsNullOrWhiteSpace(request.email))
+                {
+                    return new GenericResponse<RecuperarContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "Solicitud inválida",
+                        Data = null,
+                        Error = "Debe proporcionar un email válido"
+                    };
+                }
+
+
+
+                // 3. Buscar al usuario en BD
+                var clienteBO = new ClienteBO(globales, BD);
+                Cliente cliente = clienteBO.EncontrarClientePorEmail(request.email);
+
+                if (cliente == null || cliente.id==null)
+                {
+                    return new GenericResponse<RecuperarContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "El correo no está registrado",
+                        Data = null,
+                        Error = "No existe un usuario con este correo"
+                    };
+                }
+
+                // 4. Generar token GUID único
+                string tokenRecuperacion = Guid.NewGuid().ToString("N");
+
+                // Determinar expiración (ej: 1 hora)
+                DateTime fechaExpiracion = DateTime.Now.AddHours(1);
+
+                // 5. Registrar el token en BD
+                var registro = new RecuperacionContrasenaPendiente
+                {
+                    ClienteId = cliente.id ?? 0,
+                    Token = tokenRecuperacion,
+                    FechaSolicitud = DateTime.Now,
+                    FechaExpiracion = fechaExpiracion,
+                    Usado = false
+                };
+                if (clienteBO.RegistrarRecuperarContrasenaPendiente(registro) == -1) //se guarda en la tabla RecuperarContrasenaPendiente el registro
+                {
+                    return new GenericResponse<RecuperarContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "Error al RegistrarRecuperarContrasenaPendiente ",
+                        Data = null,
+                        Error = "NO se pudo RegistrarRecuperarContrasenaPendiente"
+                    };
+                }
+                ;//se guarda en la tabla RecuperarContrasenaPendiente el registro
+
+                // 6. Obtener URL base (frontend)
+                string urlBase = _configuration["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
+                string urlFinal = $"{urlBase}/auth/recuperarContrasena?token={tokenRecuperacion}";
+
+                // 7. Enviar email de forma asíncrona SIN bloquear la respuesta
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        // HTML que quieres mostrar dentro del template (puede ser simple)
+                        string cuerpoHtml = $@"
+            <h3>Recuperación de contraseña</h3>
+            <p>Haz clic en el enlace para continuar:</p>
+            <a href='{urlFinal}'>{urlFinal}</a>
+            <p>El enlace expirará en 1 hora.</p>
+        ";
+
+                        // Construimos el template usando las propiedades existentes en EmailTemplateData
+                        var templateData = new EmailTemplateData
+                        {
+                            Titulo = "Recuperación de contraseña",
+                            Emoji = "🔑",
+                            MensajePrincipal = cuerpoHtml,
+                            AlertaTipo = "info",
+                            AlertaIcono = "⏰",
+                            AlertaMensaje = "El enlace expirará en 1 hora."
+                        };
+
+                        // Llamada correcta según la firma de tu EmailService
+                        await _emailService.EnviarEmailGenericoAsync(
+                            destinatario: request.email,
+                            asunto: "🔑 Recuperación de contraseña - Eventodromo",
+                            nombreDestinatario: $"{cliente?.nombres} {cliente?.apellidos}".Trim(),
+                            templateData: templateData
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Error enviando email de recuperación: {ex.Message}");
+                    }
+                });
+
+
+
+
+                // 8. Respuesta inmediata
+                return new GenericResponse<RecuperarContrasenaResponse>
+                {
+                    Success = true,
+                    Message = "Se ha enviado un correo con instrucciones.",
+                    Data = new RecuperarContrasenaResponse
+                    {
+                        success = true
+                    }
+                };
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<RecuperarContrasenaResponse>
+                {
+                    Success = false,
+                    Message = "Error en el servidor.",
+                    Error = e.Message,
+                    Data = null
+                };
+
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+        [HttpPost]
+        [Route("/api/[controller]/[action]")]
+        public GenericResponse<RestablecerContrasenaResponse> RestablecerContrasena([FromBody] RequestRestablecerContrasena request)
+        {
+            try
+            {
+                // 1. Validar request
+                if (request == null ||
+                    string.IsNullOrWhiteSpace(request.token) ||
+                    string.IsNullOrWhiteSpace(request.newPassword))
+                {
+                    return new GenericResponse<RestablecerContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "Solicitud inválida",
+                        Error = "Debe proporcionar token y nueva contraseña"
+                    };
+                }
+
+                var clienteBO = new ClienteBO(globales, BD);
+
+                // 2. Buscar el token en BD
+                var registro = clienteBO.ObtenerRecuperarContrasenaPendientePorToken(request.token);
+
+                if (registro == null)
+                {
+                    return new GenericResponse<RestablecerContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "El enlace es inválido o ha expirado.",
+                        Error = "Token no encontrado"
+                    };
+                }
+
+                // 3. Validar expiración o si ya se usó
+                if (registro.Usado == true || registro.FechaExpiracion < DateTime.Now)
+                {
+                    return new GenericResponse<RestablecerContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "El enlace es inválido o ha expirado.",
+                        Error = "Token usado o expirado"
+                    };
+                }
+
+                // 4. Buscar usuario asociado
+                var cliente = clienteBO.ReestablecerContrasenaEncontrarClientePorId(registro.ClienteId);
+                if (cliente == null)
+                {
+                    return new GenericResponse<RestablecerContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "No se encontró el usuario.",
+                        Error = "ClienteId inválido en el token"
+                    };
+                }
+
+                // 5. Hashear la nueva contraseña ESTO TODAVÍA NO SE VE, NO LO DESCOMENTEN NADIE LO HA PROBADO
+                //string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.newPassword);
+                string passwordHash = request.newPassword; //Temporal mientras no se prueba el hash
+
+
+                // 6. Actualizar contraseña
+                if (!clienteBO.ReestablecerContrasenaActualizarContrasena(cliente.id.Value, passwordHash))
+                {
+                    return new GenericResponse<RestablecerContrasenaResponse>
+                    {
+                        Success = false,
+                        Message = "No se pudo actualizar la contraseña.",
+                        Error = "Error al guardar nueva contraseña"
+                    };
+                }
+
+                // 7. Marcar token como usado
+                clienteBO.ReestablecerContrasenaMarcarRecuperacionComoUsada(registro.Id);
+
+                // 8. Respuesta final
+                return new GenericResponse<RestablecerContrasenaResponse>
+                {
+                    Success = true,
+                    Message = "Contraseña actualizada correctamente.",
+                    Data = new RestablecerContrasenaResponse
+                    {
+                        success = true
+                    }
+                };
+            }
+            catch (Exception e)
+            {
+                var response = new GenericResponse<RestablecerContrasenaResponse>
+                {
+                    Success = false,
+                    Message = "Error en el servidor.",
+                    Error = e.Message
+                };
+
+                AgregarEntradaBitacora(e, JsonSerializer.Serialize(request), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
+
+
     }
 }

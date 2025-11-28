@@ -40,7 +40,10 @@ export default function DetalleTransaccionModal({
 
   if (!detalle) return null;
 
-  const { evento, transaccion, cliente, entradas, metodoPago, total } = detalle;
+  const { evento, transaccion, cliente, entradas, metodoPago } = detalle;
+
+  // Calcular el total solo de las entradas de este evento (no usar detalle.Total)
+  const total = entradas.reduce((sum, entrada) => sum + entrada.subtotal, 0);
 
   // Verificar si el evento ya pasó
   const eventoFecha = new Date(evento.fecha);

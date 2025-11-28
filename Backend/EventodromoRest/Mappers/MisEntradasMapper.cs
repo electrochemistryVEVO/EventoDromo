@@ -31,7 +31,12 @@ namespace EventodromoRest.Mappers
             // --- 2. WHERE DINÁMICO ---
             // Filtramos solo por el cliente del carrito
             // Las entradas transferidas se muestran en una transacción separada creada para el destinatario
-            string sqlWhere = " WHERE CA.idCliente = @idCliente ";
+            // Filtramos entradas que el usuario actualmente posee (no transferidas a otros)
+            string sqlWhere = @" WHERE CA.idCliente = @idCliente 
+                AND (
+                    (E.idClienteActual IS NULL)
+                    OR E.idClienteActual = @idCliente
+                ) ";
 
             if (!string.IsNullOrEmpty(filtros.fechaInicio))
             {
@@ -63,7 +68,7 @@ namespace EventodromoRest.Mappers
                     T.id, T.numeroTransaccion,
                     FE.id, FE.fechaHora,
                     EV.id, EV.nombre, EV.imagenURL,
-                    L.id, L.direccion,
+                    L.id, L.direccion, L.nombre,
                     CI.id, CI.nombre,
                     P.id, P.nombre
             ";
@@ -95,7 +100,7 @@ namespace EventodromoRest.Mappers
                         EV.id AS idEvento,
                         EV.nombre AS titulo,
                         FE.fechaHora,
-                        L.direccion,
+                        L.direccion, L.nombre AS localNombre,
                         CI.nombre AS ciudadNombre,
                         P.nombre AS paisNombre,
                         EV.imagenURL AS imagen,
@@ -123,6 +128,9 @@ namespace EventodromoRest.Mappers
                         transaccion = DB.GetString("transaccion"),
                         titulo = DB.GetString("titulo"),
                         fecha = fechaHora.ToString("yyyy-MM-dd"),
+                        ciudadNombre = DB.GetString("ciudadNombre"),
+                        paisNombre = DB.GetString("paisNombre"),
+                        localNombre = DB.GetString("localNombre"),
                         hora = fechaHora.ToString("HH:mm"),
                         direccion = $"{DB.GetString("direccion")}, {DB.GetString("ciudadNombre")}, {DB.GetString("paisNombre")}",
 
