@@ -59,7 +59,7 @@ export const TablaEntradas = ({
 
   return (
     <div className="flex flex-col overflow-hidden bg-white border rounded-lg border-slate-200">
-      <header className="flex-shrink-0 grid grid-cols-[auto_1fr_160px_160px_auto] items-center gap-x-4 bg-[#EEECEC] px-4 py-5 text-sm font-bold uppercase text-slate-600">
+      <header className="flex-shrink-0 grid grid-cols-[auto_1fr_160px_160px_auto] items-center gap-x-4 bg-[#EEECEC] px-4 py-3 text-sm font-bold uppercase text-slate-600">
         <div>
           <input
             type="checkbox"
@@ -70,15 +70,15 @@ export const TablaEntradas = ({
             aria-label="Seleccionar todo"
           />
         </div>
-        <div className="text-base">Evento</div>
-        <div className="text-base tracking-wider text-center">Cantidad</div>
-        <div className="text-base tracking-wider text-right">Precio</div>
+        <div className="text-sm">Evento</div>
+        <div className="text-sm tracking-wider text-center">Cantidad</div>
+        <div className="text-sm tracking-wider text-right">Precio</div>
         <div className="w-16" />
       </header>
       <div className="flex-1 overflow-y-auto">
         {renderContent()}
       </div>
-      <footer className="flex-shrink-0 flex items-center justify-center gap-x-4 rounded-b-lg bg-[#EEECEC] px-4 py-4">
+      <footer className="flex-shrink-0 flex items-center justify-center gap-x-4 rounded-b-lg bg-[#EEECEC] px-4 py-3">
         <button
           onClick={onRemoveSelected}
           disabled={(selectedIds?.size ?? 0) === 0}
