@@ -2,6 +2,7 @@ using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.Runtime;
+using System.Web;
 
 namespace EventodromoRest.Servicios
 {
@@ -16,6 +17,7 @@ namespace EventodromoRest.Servicios
     {
         private readonly IAmazonS3 _s3Client;
         private readonly string _bucketName;
+        private readonly string _region;
         private readonly ILogger<S3Service> _logger;
 
         public S3Service(IConfiguration configuration, ILogger<S3Service> logger)
@@ -24,10 +26,18 @@ namespace EventodromoRest.Servicios
             _bucketName = configuration["AWS:BucketName"] 
                 ?? throw new ArgumentNullException("AWS:BucketName no configurado");
 
-            var region = configuration["AWS:Region"] ?? "us-east-1";
+            _region = configuration["AWS:Region"] ?? "us-east-1";
             var accessKey = configuration["AWS:AccessKey"];
             var secretKey = configuration["AWS:SecretKey"];
             var sessionToken = configuration["AWS:SessionToken"];
+            
+            // ✅ LOG para debugging
+            _logger.LogInformation($"[S3Service] Configurando cliente S3:");
+            _logger.LogInformation($"  - Bucket: {_bucketName}");
+            _logger.LogInformation($"  - Region: {_region}");
+            _logger.LogInformation($"  - AccessKey presente: {!string.IsNullOrEmpty(accessKey)}");
+            _logger.LogInformation($"  - SecretKey presente: {!string.IsNullOrEmpty(secretKey)}");
+            _logger.LogInformation($"  - SessionToken presente: {!string.IsNullOrEmpty(sessionToken)}");
 
             // Si hay credenciales explícitas, usarlas
             if (!string.IsNullOrEmpty(accessKey) && !string.IsNullOrEmpty(secretKey))
@@ -45,12 +55,12 @@ namespace EventodromoRest.Servicios
                     credentials = new BasicAWSCredentials(accessKey, secretKey);
                 }
 
-                _s3Client = new AmazonS3Client(credentials, RegionEndpoint.GetBySystemName(region));
+                _s3Client = new AmazonS3Client(credentials, RegionEndpoint.GetBySystemName(_region));
             }
             else
             {
                 // Usar credenciales del entorno (IAM role, variables de entorno, etc.)
-                _s3Client = new AmazonS3Client(RegionEndpoint.GetBySystemName(region));
+                _s3Client = new AmazonS3Client(RegionEndpoint.GetBySystemName(_region));
             }
         }
 
@@ -119,6 +129,16 @@ namespace EventodromoRest.Servicios
             catch (AmazonS3Exception ex)
             {
                 _logger.LogError(ex, "Error de S3 al subir imagen");
+                _logger.LogError($"S3 Error Code: {ex.ErrorCode}");
+                _logger.LogError($"S3 Status Code: {ex.StatusCode}");
+                _logger.LogError($"S3 Message: {ex.Message}");
+                
+                // Detectar credenciales expiradas
+                if (ex.ErrorCode == "ExpiredToken" || ex.Message.Contains("expired") || ex.Message.Contains("Invalid security token"))
+                {
+                    throw new Exception("Las credenciales de AWS han expirado. Por favor, actualiza las credenciales en appsettings.json desde AWS Learner Lab.");
+                }
+                
                 throw new Exception($"Error de AWS S3: {ex.Message}");
             }
             catch (Exception ex)
@@ -163,7 +183,11 @@ namespace EventodromoRest.Servicios
             if (string.IsNullOrEmpty(rutaArchivo))
                 return string.Empty;
 
-            return $"https://{_bucketName}.s3.amazonaws.com/{rutaArchivo}";
+            // URL encode the path to handle special characters (spaces, etc.)
+            var encodedPath = HttpUtility.UrlEncode(rutaArchivo).Replace("+", "%20");
+            
+            // Return URL with region for proper AWS S3 access
+            return $"https://{_bucketName}.s3.{_region}.amazonaws.com/{encodedPath}";
         }
     }
 }

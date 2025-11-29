@@ -49,7 +49,13 @@ namespace EventodromoRest.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al subir imagen");
-                return StatusCode(500, new { mensaje = "Error interno al subir la imagen", detalle = ex.Message });
+                
+                // Devolver mensaje más descriptivo para errores de AWS
+                var mensaje = ex.Message.Contains("AWS") || ex.Message.Contains("expired") || ex.Message.Contains("credential")
+                    ? ex.Message
+                    : "Error interno al subir la imagen";
+                
+                return StatusCode(500, new { mensaje, detalle = ex.Message, tipo = ex.GetType().Name });
             }
         }
 
