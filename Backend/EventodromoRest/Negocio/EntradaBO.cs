@@ -35,6 +35,7 @@ namespace EventodromoRest.Negocio
         }
 
 
+
         // --- 2. ESTE MÉTODO ES EL ANTIGUO (LENTO) ---
         // Lo dejamos aquí por si lo usas en otro lado, pero ya no lo usaremos para "Mis Entradas"
         public GenericResponse<List<EntradaEventoAuxiliar>> ListarTodasLasEntradasEventoAuxiliar()

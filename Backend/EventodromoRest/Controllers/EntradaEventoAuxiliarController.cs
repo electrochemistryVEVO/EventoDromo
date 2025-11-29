@@ -20,7 +20,7 @@ namespace EventodromoRest.Controllers
             try
             {
                 int idCliente = _obtenerIdClienteDesdeToken();
-
+                
                 var entradaBO = new EntradaBO(globales, BD);
                 return entradaBO.ListarMisEntradasPaginado(idCliente, filtros);
             }

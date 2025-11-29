@@ -45,13 +45,24 @@ namespace EventodromoRest.Mappers
             }
             bool quiereVigentes = filtros.estados.Contains("vigente");
             bool quiereVencidos = filtros.estados.Contains("vencido");
-            if (quiereVigentes && !quiereVencidos)
+            //CAMBIO
+            bool quiereTransferidas = filtros.estados != null && filtros.estados.Contains("transferida");
+
+            List<string> condicionesEstado = new List<string>();
+            if (quiereTransferidas && !quiereVencidos && !quiereVigentes)
             {
-                sqlWhere += " AND FE.fechaHora > NOW() ";
+
+                sqlWhere +=  " AND E.estadoTransferencia IN ('pendiente', 'transferida') ";
             }
-            else if (!quiereVigentes && quiereVencidos)
+            if (quiereVigentes && !quiereVencidos && !quiereTransferidas)
             {
-                sqlWhere += " AND FE.fechaHora <= NOW() ";
+               
+                sqlWhere += " AND E.estadoTransferencia='disponible' AND FE.fechaHora > NOW() ";
+            }
+            else if (!quiereVigentes && quiereVencidos && !quiereTransferidas)
+            {
+               
+                sqlWhere += "AND E.estadoTransferencia IN ('disponible', 'vencido') AND FE.fechaHora <= NOW() ";
             }
 
             // --- 3. GROUP BY (Clave de la agrupación) ---
