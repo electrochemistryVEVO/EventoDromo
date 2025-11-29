@@ -13,6 +13,8 @@ const ALLOWED_DOMAINS = [
   'example.com',
   'localhost',
   'eventodromo-s3.s3.amazonaws.com',
+  'eventodromo-s3.s3.us-east-1.amazonaws.com',
+  'static.wixstatic.com',
   's3.amazonaws.com'
 ];
 

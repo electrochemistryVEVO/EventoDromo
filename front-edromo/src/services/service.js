@@ -4,65 +4,35 @@ import path from 'path';
 // --- CONFIGURACIÓN ---
 const USE_BACKEND = true; // Cambia a true para usar el backend
 const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL+"/Evento"; // O la URL de tu backend real
-// NUEVO: Endpoint para obtener TODOS los datos para el caché
-const BACKEND_GET_ALL_URL = `${BACKEND_BASE_URL}/ListarFiltradosConLocales`;
-
-// --- 1. CREACIÓN DEL CACHÉ EN MEMORIA ---
-// Este objeto vivirá en la memoria del servidor mientras la aplicación se ejecute.
-let appCache = {
-    data: null,      // Aquí guardaremos { eventos: [], locales: [] }
-    lastFetch: 0     // Marca de tiempo de la última vez que fuimos al backend
-};
-// Tiempo de vida del caché en milisegundos (ej. 5 minutos)
-const CACHE_DURATION_MS = 20 * 60 * 1000;
 
 /**
- * Función INTERNA que obtiene y cachea los datos del backend.
- * Solo hace la llamada a la red si el caché está vacío o ha expirado.
+ * Función para obtener los datos del backend.
  */
-async function getAndCacheAllData() {
-    const now = Date.now();
-
-    // Comprueba si el caché es inválido (nunca se ha llenado o ya expiró)
-    if (!appCache.data || (now - appCache.lastFetch > CACHE_DURATION_MS)) {
-        console.log("CACHE MISS: Obteniendo datos frescos del backend...");
-        try {
-            if (USE_BACKEND) {
-                const res = await fetch(BACKEND_GET_ALL_URL); // Llama al endpoint que trae todo
-                if (!res.ok) {
-                    throw new Error(`Error ${res.status} cargando datos del backend.`);
-                }
-                const jsonData = await res.json();
-
-                if (!jsonData || jsonData.success === false) {
-                    throw new Error(jsonData.error || "Error en respuesta del servicio");
-                }
-                // Guarda los datos en el caché
-                appCache.data = jsonData.data ?? { eventos: [], locales: [] };
-            } else {
-                // Lógica de archivo local (sin cambios)
-                const jsonPath = path.join(process.cwd(), 'public', 'data', 'eventos.json');
-                const fileContent = await fs.readFile(jsonPath, 'utf8');
-                const jsonData = JSON.parse(fileContent);
-                appCache.data = jsonData.data ?? { eventos: [], locales: [] };
+async function getAllData() {
+    console.log("Obteniendo datos frescos del backend...");
+    try {
+        if (USE_BACKEND) {
+            const res = await fetch(`${BACKEND_BASE_URL}/ListarFiltradosConLocales`);
+            if (!res.ok) {
+                throw new Error(`Error ${res.status} cargando datos del backend.`);
             }
-            // Actualiza la marca de tiempo
-            appCache.lastFetch = now;
+            const jsonData = await res.json();
 
-        } catch (error) {
-            console.error("Error al actualizar el caché:", error);
-            // Si falla, es mejor devolver los datos viejos (si existen) que romper la app
-            if (appCache.data) {
-                console.warn("Devolviendo datos de caché antiguos debido a un error de actualización.");
-                return appCache.data;
+            if (!jsonData || jsonData.success === false) {
+                throw new Error(jsonData.error || "Error en respuesta del servicio");
             }
-            throw error; // Si no hay caché viejo, relanza el error
+            return jsonData.data ?? { eventos: [], locales: [] };
+        } else {
+            // Lógica de archivo local
+            const jsonPath = path.join(process.cwd(), 'public', 'data', 'eventos.json');
+            const fileContent = await fs.readFile(jsonPath, 'utf8');
+            const jsonData = JSON.parse(fileContent);
+            return jsonData.data ?? { eventos: [], locales: [] };
         }
-    } else {
-        console.log("CACHE HIT: Usando datos de la memoria.");
+    } catch (error) {
+        console.error("Error al obtener datos:", error);
+        throw error;
     }
-    // Devuelve una copia profunda para evitar que los filtros modifiquen el caché original
-    return JSON.parse(JSON.stringify(appCache.data));
 }
 
 /**
@@ -127,6 +97,12 @@ async function fetchData(filters = {}) {
         if (jsonData.success === false) {
             throw new Error(jsonData.error || jsonData.mensaje || "Error en respuesta del servicio");
         }
+        
+        // DEBUG: Verificar estructura de eventos
+        if (jsonData.data && jsonData.data.eventos && jsonData.data.eventos.length > 0) {
+            console.log("Primer evento recibido del backend:", jsonData.data.eventos[0]);
+        }
+        
         // Devuelve el contenido de 'data' ({ eventos: [], locales: [] })
         return jsonData.data ?? { eventos: [], locales: [] };
 
@@ -144,7 +120,7 @@ async function fetchData(filters = {}) {
  */
 export const getPaginaEventosData = async (filters = {}) => {
     try {
-        const { eventos: allEvents, locales } = await getAndCacheAllData();
+        const { eventos: allEvents, locales } = await getAllData();
 
         if (Object.values(filters).every(v => v === undefined || v === null || v === '')) {
             return { eventos: allEvents, locales };
