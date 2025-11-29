@@ -6,7 +6,7 @@ USER app
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
-ENV AppSettings__FrontendUrl="http://localhost:3000"
+ENV AppSettings__FrontendUrl="http://34.238.85.28:3000"
 
 
 # Esta fase se usa para compilar el proyecto de servicio

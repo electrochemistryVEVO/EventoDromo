@@ -53,7 +53,7 @@ services:
         restart: unless-stopped
         environment:
             ASPNETCORE_ENVIRONMENT: Development
-            AppSettings__FrontendUrl: "http://localhost:3000"
+            AppSettings__FrontendUrl: "http://34.238.85.28:3000"
         ports:
             - "0.0.0.0:8080:8080"
         depends_on:
