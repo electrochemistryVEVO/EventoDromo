@@ -100,6 +100,9 @@ namespace EventodromoRest.Mappers
                     };
                     listaLocal.Add(local);
                 }
+
+                // ✅ IMPORTANT: Close reader before making additional queries
+                DB.CloseReader();
             }
 
             // Cerrar DataReader antes de nuevas consultas
@@ -112,6 +115,23 @@ namespace EventodromoRest.Mappers
             return listaLocal;
         }
 
+        public List<int> ListarIdLocales()
+        {
+            List<int> listaIdLocales = new();
+            lock (DB)
+            {
+                string query = "SELECT ID FROM Local";
+                DB.Select(query, null);
+                while (DB.Read())
+                {
+                    listaIdLocales.Add(DB.GetInt("ID"));
+                }
+                
+                // ✅ IMPORTANT: Close reader before returning
+                DB.CloseReader();
+            }
+            return listaIdLocales;
+        }
 
         public int InsertarLocal(Local local)
         {

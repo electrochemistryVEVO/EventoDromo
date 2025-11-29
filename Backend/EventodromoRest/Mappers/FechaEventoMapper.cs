@@ -248,5 +248,34 @@ namespace EventodromoRest.Mappers
             }
         }
 
+        public int InsertarFechaEventoBatch(List<FechaEvento> fechasEvento)
+        {
+            if (fechasEvento == null || !fechasEvento.Any())
+                return 0;
+
+            lock (DB)
+            {
+                var parametros = new ParameterList();
+                var values = new List<string>();
+
+                for (int i = 0; i < fechasEvento.Count; i++)
+                {
+                    var f = fechasEvento[i];
+                    values.Add($"(@FECHAHORA{i}, @IDEVENTO{i})");
+
+                    parametros.Add($"@FECHAHORA{i}", f.fechaHora);
+                    parametros.Add($"@IDEVENTO{i}", f.idEvento);
+                }
+
+                // ✅ CORRECCIÓN: LAST_INSERT_ID() en MySQL devuelve el PRIMER ID insertado en un batch
+                // No necesitamos restar nada
+                string query = $"INSERT INTO FechaEvento (FECHAHORA, IDEVENTO) " +
+                               $"VALUES {string.Join(", ", values)}; SELECT LAST_INSERT_ID();";
+
+                object result = DB.ExecuteScalar(query, parametros);
+                return Convert.ToInt32(result);
+            }
+        }
+
     }
 }

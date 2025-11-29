@@ -311,6 +311,35 @@ namespace EventodromoRest.Mappers
             }
         }
 
+        public void InsertarTipoEntradaBatch(List<TipoEntrada> entradas)
+        {
+            if (entradas == null || !entradas.Any())
+                return;
 
+            lock (DB)
+            {
+                var parametros = new ParameterList();
+                var values = new List<string>();
+
+                for (int i = 0; i < entradas.Count; i++)
+                {
+                    var e = entradas[i];
+                    values.Add($"(@NOMBRE{i}, @CANTIDADENTRADAS{i}, @CANTIDADVENDIDA{i}, @PRECIO{i}, @LIMITECOMPRA{i}, @PUNTOS{i}, @IDFECHAEVENTO{i})");
+
+                    parametros.Add($"@NOMBRE{i}", e.nombre);
+                    parametros.Add($"@CANTIDADENTRADAS{i}", e.cantidadEntradas);
+                    parametros.Add($"@CANTIDADVENDIDA{i}", e.cantidadVendida);
+                    parametros.Add($"@PRECIO{i}", e.precio);
+                    parametros.Add($"@LIMITECOMPRA{i}", e.limiteCompra);
+                    parametros.Add($"@PUNTOS{i}", e.puntos);
+                    parametros.Add($"@IDFECHAEVENTO{i}", e.idFechaEvento);
+                }
+
+                string query = $"INSERT INTO TipoEntrada (NOMBRE, CANTIDADENTRADAS, CANTIDADVENDIDA, PRECIO, LIMITECOMPRA, PUNTOS, IDFECHAEVENTO) " +
+                               $"VALUES {string.Join(", ", values)};";
+
+                DB.ExecuteNonQuery(query, parametros);
+            }
+        }
     }
 }
