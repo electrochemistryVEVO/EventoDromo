@@ -360,7 +360,7 @@ namespace EventodromoRest.Mappers
         {
             lock (DB)
             {
-                string query = "SELECT 1 FROM Local WHERE direccion = @DIRECCION LIMIT 1";
+                string query = "SELECT 1 FROM Local WHERE direccion = @DIRECCION AND isDeleted = 0 LIMIT 1";
                 var parametros = new ParameterList();
                 parametros.Add("@DIRECCION", direccion);
 
