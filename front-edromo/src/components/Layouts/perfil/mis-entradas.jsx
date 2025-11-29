@@ -17,7 +17,7 @@ export default function MisEntradas({
   onEndDateChange = () => {},
   startDate = null,
   endDate = null,
-  statusFilter = { vigente: true, vencido: false },
+  statusFilter = { vigente: true, vencido: false, transferida: false },
   onStateFilter = () => {},
 }) {
   if (loading) {
@@ -64,6 +64,14 @@ export default function MisEntradas({
                 onChange={(e) => onStateFilter("vencido", e.target.checked)}
               />
               Vencidos
+            </label>
+            <label className="mef-checkbox-label">
+              <input
+                type="checkbox"
+                checked={statusFilter.transferida}
+                onChange={(e) => onStateFilter("transferida", e.target.checked)}
+              />
+              Transferidas
             </label>
           </div>
         </div>

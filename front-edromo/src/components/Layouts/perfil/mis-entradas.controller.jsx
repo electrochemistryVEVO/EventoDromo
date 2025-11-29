@@ -23,6 +23,7 @@ export default function MisEntradasController({ initialPageSize = DEFAULT_PAGE_S
   const [statusFilter, setStatusFilter] = useState({
     vigente: true,
     vencido: false,
+    transferida: false,
   });
 
   // --- 4. ESTADOS PARA ALMACENAR LA RESPUESTA DE LA API ---

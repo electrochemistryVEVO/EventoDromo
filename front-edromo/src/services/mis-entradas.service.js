@@ -23,6 +23,7 @@ export async function getEntradas(token, { startDate, endDate, statusFilter, cur
   // Manda los estados activos
   if (statusFilter.vigente) params.append('estados', 'vigente');
   if (statusFilter.vencido) params.append('estados', 'vencido');
+  if (statusFilter.transferida) params.append('estados', 'transferida');
   
   // Manda la paginación
   params.append('pagina', currentPage);
