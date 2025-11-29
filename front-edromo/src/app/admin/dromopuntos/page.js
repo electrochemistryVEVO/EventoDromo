@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDromoPuntosManager } from "./controller";
 import { DromoPuntosConfigForm } from "@/components/admin-dromopuntos/dromopuntosConfigForm.jsx";
+import { showSuccess } from "@/components/Notifications/toast";
 
 const DromoPuntosPage = () => {
   const router = useRouter();
@@ -18,7 +19,7 @@ const DromoPuntosPage = () => {
 
   useEffect(() => {
     if (isSuccess) {
-      //alert("¡Configuración de DromoPuntos actualizada exitosamente!");
+      showSuccess("¡Configuración actualizada exitosamente!");
     }
   }, [isSuccess]);
 

@@ -2,6 +2,7 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
 import { useUser } from "./UserContext";
+import { showError, showWarning } from "@/components/Notifications/toast";
 import {
   mergeGuestCartWithDb,
   addItemToDbCart,
@@ -136,9 +137,7 @@ export const CartProvider = ({ children }) => {
             const nombresRechazados = response.data.rejectedItems.map(item => item.nombre).join(', ');
             const mensaje = `Algunas entradas no se pudieron agregar por falta de stock: ${nombresRechazados}.`;
             console.warn(mensaje);
-            // Idealmente, mostrar una notificación "toast"
-            // toast.error(mensaje, { duration: 6000 });
-            alert(mensaje); // Usamos alert como fallback simple.
+            showWarning(mensaje, { duration: 6000 });
           }
 
         } else {
@@ -307,7 +306,7 @@ export const CartProvider = ({ children }) => {
       } catch (error) {
         console.error("Error al eliminar entrada:", error);
         if (manageLoading) {
-          alert("No se pudo disminuir la cantidad. Inténtalo de nuevo.");
+          showError("No se pudo disminuir la cantidad. Inténtalo de nuevo.");
         }
         // ❌ NO hay reversión porque nunca actualizamos optimistamente
         return false;
@@ -383,7 +382,7 @@ export const CartProvider = ({ children }) => {
       } catch (error) {
         console.error("Error al incrementar entrada:", error);
         if (manageLoading) {
-          alert("No se pudo aumentar la cantidad. Es posible que no haya más stock.");
+          showError("No se pudo aumentar la cantidad. Es posible que no haya más stock.");
         }
         // ❌ NO hay reversión porque nunca actualizamos optimistamente
         return false;
@@ -460,7 +459,7 @@ export const CartProvider = ({ children }) => {
 
       } catch (error) {
         console.error("Error al eliminar item del carrito:", error);
-        alert("No se pudo eliminar el artículo del carrito.");
+        showError("No se pudo eliminar el artículo del carrito.");
         // ❌ NO revertimos porque nunca actualizamos optimistamente
       } finally {
         // Desbloqueamos el item sin importar el resultado.
@@ -529,7 +528,7 @@ export const CartProvider = ({ children }) => {
       console.error("Error al eliminar grupo:", error);
       // ✅ ROLLBACK en caso de error
       setCartItems(previousCartItems);
-      alert(error.message || "No se pudo eliminar el grupo de entradas");
+      showError(error.message || "No se pudo eliminar el grupo de entradas");
       return false;
     } finally {
       setSyncingItemIds(prev => {
@@ -590,7 +589,7 @@ export const CartProvider = ({ children }) => {
 
       } catch (error) {
         console.error("Error al agregar entradas:", error);
-        alert("No se pudieron agregar las entradas al carrito.");
+        showError("No se pudieron agregar las entradas al carrito.");
       } finally {
         setSyncingItemIds((prev) => {
           const newSet = new Set(prev);

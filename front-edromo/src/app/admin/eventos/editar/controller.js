@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
+import { showError } from "@/components/Notifications/toast";
 import {
   getLocales,
   getEventTypes,
@@ -209,8 +210,9 @@ export const useEventEditor = (eventId) => {
     );
 
     if (descuentoAsociado) {
-      alert(
-        `No puede eliminar este tipo de entrada porque está asociado al descuento "${descuentoAsociado.nombre}". Por favor, elimine o modifique el descuento primero.`
+      showError(
+        `No puede eliminar este tipo de entrada porque está asociado al descuento "${descuentoAsociado.nombre}". Por favor, elimine o modifique el descuento primero.`,
+        { duration: 7000 }
       );
       return;
     }
