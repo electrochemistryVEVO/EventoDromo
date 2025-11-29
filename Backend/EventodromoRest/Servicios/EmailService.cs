@@ -12,7 +12,7 @@ namespace EventodromoRest.Servicios
         private readonly string _fromEmail = "divadibu132@gmail.com";
         private readonly string _fromPassword = "tqsm mgmi djbv fntn";
         private readonly string _fromName = "Eventodromo";
-        private readonly string _logoUrl = "https://eventodromo-s3.s3.us-east-1.amazonaws.com/Logo-Eventodromo.png";
+        private readonly string _logoUrl = "https://eventodromo-s3.s3.us-east-1.amazonaws.com/Eventodromo+logo.png";
 
         /// <summary>
         /// Envía un email de confirmación al remitente después de transferir entradas.

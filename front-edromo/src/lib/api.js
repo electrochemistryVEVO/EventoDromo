@@ -38,8 +38,14 @@ async function apiFetch(endpoint, options = {}) {
         config.body = JSON.stringify(options.body);
     }
     
+    // ✅ Soporte para body en DELETE (usando 'data' como en axios)
+    if (options.data && !config.body) {
+        config.body = JSON.stringify(options.data);
+    }
+    
     const fullUrl = `${BASE_URL}${endpoint}`;
     console.log("Llamando a:", fullUrl);
+    console.log("Config:", config);
     
     const response = await fetch(fullUrl, config);
     console.log("Respuesta HTTP:", response.status, response.statusText);

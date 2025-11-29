@@ -62,5 +62,6 @@ namespace EventodromoRest.Modelos
     {
         public string CartItemId { get; set; }
         public int TipoEntradaId { get; set; }
+        public int? IdFechaEvento { get; set; } // NUEVO: Para filtrar por fecha específica
     }
 }
