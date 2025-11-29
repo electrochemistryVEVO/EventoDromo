@@ -15,7 +15,12 @@ const formatDate = (date) => {
   return `${year}-${month}-${day}`;
 };
 
-const BookingPanel = ({ eventName, functions, onAddToCart }) => {
+const BookingPanel = ({
+  eventName,
+  functions,
+  ticketAvailability = {}, // Recibimos la nueva prop con un valor por defecto
+  onAddToCart,
+}) => {
   // --- ESTADOS ---
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedFunctionId, setSelectedFunctionId] = useState("");
@@ -184,58 +189,79 @@ const BookingPanel = ({ eventName, functions, onAddToCart }) => {
             Seleccione un horario para ver las entradas.
           </p>
         ) : (
-          currentTicketTiers.map((tier) => (
-            <div
-              key={tier.id}
-              className={`ticket-tier-row ${tier.agotado ? "ticket-tier-row--agotado" : ""
+          currentTicketTiers.map((tier) => {
+            // --- NUEVA LÓGICA DE DISPONIBILIDAD ---
+            const availability = ticketAvailability[tier.id];
+            const restantes = availability
+              ? availability.total - availability.vendidas
+              : undefined;
+            // Una entrada está agotada si la data de disponibilidad lo indica,
+            // o si se mantiene la prop 'agotado' del backend.
+            const isSoldOut = availability ? restantes <= 0 : tier.agotado;
+
+            return (
+              <div
+                key={tier.id}
+                className={`ticket-tier-row ${
+                  isSoldOut ? "ticket-tier-row--agotado" : ""
                 }`}
-            >
-              <div className="ticket-info">
-                <span className="ticket-name">{tier.nombre}</span>
-                <span className="ticket-price">S/ {tier.precio.toFixed(2)}</span>
-              </div>
-              <div className="quantity-control">
-                <button
-                  onClick={() => handleQuantityChange(tier.id, -1)}
-                  disabled={ticketQuantities[tier.id] === 0 || tier.agotado}
-                >
-                  -
-                </button>
-                <span>{ticketQuantities[tier.id] || 0}</span>
-                {tier.agotado ? (
-                  <button disabled className="ban-icon-button">
-                    <svg
-                      className="ban-icon"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path
-                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7v-2z"
-                        transform="rotate(45 12 12)"
-                      ></path>
-                    </svg>
-                  </button>
-                ) : (
+              >
+                <div className="ticket-info">
+                  <span className="ticket-name">{tier.nombre}</span>
+                  <span className="ticket-price">
+                    S/ {tier.precio.toFixed(2)}
+                  </span>
+                  {/* Mostramos la disponibilidad si existe */}
+                  {availability && (
+                    <span className="ticket-availability text-xs">
+                      Quedan: {restantes} / {availability.total}
+                    </span>
+                  )}
+                </div>
+                <div className="quantity-control">
                   <button
-                    onClick={() => handleQuantityChange(tier.id, 1)}
-                    // --- ✅ LÓGICA AÑADIDA ---
-                    // Deshabilitamos el botón si:
-                    // 1. La entrada está agotada (lógica que ya existía).
-                    // 2. O si el limiteCompra es positivo (mayor a 0) Y
-                    // 3. La cantidad actual en el estado (ticketQuantities)
-                    //    es igual or mayor a ese límite.
+                    onClick={() => handleQuantityChange(tier.id, -1)}
                     disabled={
-                      tier.agotado ||
-                      (tier.limiteCompra > 0 &&
-                        (ticketQuantities[tier.id] || 0) >= tier.limiteCompra)
+                      (ticketQuantities[tier.id] || 0) === 0 || isSoldOut
                     }
                   >
                     +
                   </button>
-                )}
+                  <span>{ticketQuantities[tier.id] || 0}</span>
+                  {isSoldOut ? (
+                    <button disabled className="ban-icon-button">
+                      <svg
+                        className="ban-icon"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path
+                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7v-2z"
+                          transform="rotate(45 12 12)"
+                        ></path>
+                      </svg>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleQuantityChange(tier.id, 1)}
+                      disabled={
+                        isSoldOut ||
+                        // Deshabilitar si se alcanza el límite de compra por usuario
+                        (tier.limiteCompra > 0 &&
+                          (ticketQuantities[tier.id] || 0) >=
+                            tier.limiteCompra) ||
+                        // Deshabilitar si se alcanza el total de entradas restantes
+                        (availability &&
+                          (ticketQuantities[tier.id] || 0) >= restantes)
+                      }
+                    >
+                      +
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 

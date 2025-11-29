@@ -2,8 +2,10 @@
 import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 
+import { v4 } from 'uuid';
+
 // Servicios
-import { obtenerDetallePorId } from "@/services/EntradaDetalle.service";
+import { obtenerDetallePorId, obtenerDisponibilidadEntrada } from "@/services/EntradaDetalle.service";
 
 // Componentes visuales
 import EventBanner from "@/components/detalle-evento/EventoBanner";
@@ -15,14 +17,14 @@ import LocationInfo from "@/components/detalle-evento/LocationInfo";
 
 //contexto
 import { useCart } from "@/context/CartContext";
-import {v4} from "uuid";
 
 const EventPageController = () => {
-  const { addTicketsToCart } = useCart();
+  const { addToCart } = useCart();
   // --- HOOKS AL INICIO ---
   const [isLoading, setIsLoading] = useState(true);
   const [eventData, setEventData] = useState(null);
-  //const { evento, funciones, tiposDeEntrada, local } = eventData.data;
+  // Nuevo estado para guardar la disponibilidad de las entradas
+  const [ticketAvailability, setTicketAvailability] = useState({});
   const [error, setError] = useState(null);
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
@@ -38,32 +40,61 @@ const EventPageController = () => {
   
   useEffect(() => {
     const fetchEventData = async () => {
-      if (!id) {
-        setEventData({ success: false, error: "Evento no especificado." });
-        setIsLoading(false);
-        return;
-      }
-
-      if (Number.isNaN(parsedEventId)) {
-        setEventData({ success: false, error: "Identificador de evento invalido." });
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-
       try {
-        const data = await obtenerDetallePorId(parsedEventId);
+        if (!id) {
+          throw new Error("No se proporcionó ID en la URL");
+        }
+
+        const data = await obtenerDetallePorId(id);
+
+        if (!data) {
+          throw new Error("La API devolvió null o undefined");
+        }
+
+        if (data.success === false) {
+          throw new Error(data.error || data.message || "Error del servidor");
+        }
+
+        if (!data.data) {
+          throw new Error("El servidor no devolvió datos del evento");
+        }
+
         setEventData(data);
+
+        // --- NUEVA LÓGICA ---
+        // Una vez tenemos los datos del evento, buscamos la disponibilidad.
+        const allTicketTypes = data.data.funciones.flatMap(f => f.tiposDeEntrada || []);
+        const uniqueTicketTypeIds = [...new Set(allTicketTypes.map(t => t.id))];
+
+        // Creamos un array de promesas para obtener la disponibilidad de cada tipo de entrada.
+        const availabilityPromises = uniqueTicketTypeIds.map(idTipo =>
+          obtenerDisponibilidadEntrada(idTipo).then(avail => ({ id: idTipo, ...avail }))
+        );
+
+        // Ejecutamos todas las promesas en paralelo.
+        const availabilities = await Promise.all(availabilityPromises);
+
+        // Convertimos el array de resultados en un objeto para fácil acceso.
+        const availabilityMap = availabilities.reduce((acc, curr) => {
+          acc[curr.id] = { vendidas: curr.vendidas, total: curr.total };
+          return acc;
+        }, {});
+
+        setTicketAvailability(availabilityMap);
+        // --- FIN NUEVA LÓGICA ---
+
+        setError(null);
+
       } catch (error) {
-        console.error("Error en el hook al obtener datos del evento:", error);
-        setEventData({ success: false, error: "Error de conexion." });
+        console.error("❌ Error en fetchEventData:", error);
+        setError(error.message);
       } finally {
         setIsLoading(false);
       }
     };
+
     fetchEventData();
-  }, [id, parsedEventId]);
+  }, [id]);
   // --- RENDERIZADO CONDICIONAL ---
   if (isLoading) {
     return (
@@ -108,9 +139,8 @@ const EventPageController = () => {
       return;
     }
 
-    const { evento, funciones, local } = eventData.data;
+    const { evento, funciones, local, tiposDeEntrada } = eventData.data;
 
-    // Encontrar la función seleccionada
     const selectedFunction = funciones.find(
       (f) => f.id.toString() === bookingDetails.selectedFunctionId
     );
@@ -120,13 +150,9 @@ const EventPageController = () => {
       return;
     }
 
-    // Los tipos de entrada vienen de la función seleccionada, no del nivel superior
-    const tiposDeEntrada = selectedFunction.tiposDeEntrada || [];
-
     const entradasSeleccionadas = Object.keys(bookingDetails.ticketQuantities)
       .filter((tierId) => bookingDetails.ticketQuantities[tierId] > 0)
       .map((tierId) => {
-        // Buscar en los tipos de entrada de la función seleccionada
         const tipoEntrada = tiposDeEntrada.find(
           (t) => t.id.toString() === tierId
         );
@@ -141,8 +167,6 @@ const EventPageController = () => {
           nombre: tipoEntrada.nombre,
           cantidad: bookingDetails.ticketQuantities[tierId],
           precioUnitario: tipoEntrada.precio,
-          puntosUnitarios: tipoEntrada.puntos,
-          limiteCompra: tipoEntrada.limiteCompra,
         };
       })
       .filter(Boolean);
@@ -173,8 +197,7 @@ const EventPageController = () => {
       totalItem: bookingDetails.totalPrice,
     };
 
-    addTicketsToCart(cartItem);
-    // alert("Entradas agregadas al carrito!");
+    addToCart(cartItem);
   };
 
   // --- RENDERIZADO FINAL ---
@@ -196,10 +219,11 @@ const EventPageController = () => {
           <BookingPanel
             eventName={evento.nombre}
             functions={funciones || []}
+            ticketAvailability={ticketAvailability} // <-- Pasamos el nuevo estado como prop
             onAddToCart={handleAddToCart}
           />
           <LocationInfo
-            city={`${local.ciudad.nombre}, ${local.ciudad.pais.nombre}`}
+            city={ciudadInfo}
             venue={local?.nombre || "Local no disponible"}
             address={local?.direccion || "Dirección no disponible"}
             googleMapsEmbed={local?.googleMapsEmbed || ""}

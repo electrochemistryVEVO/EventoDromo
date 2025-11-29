@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { v4 } from 'uuid';
 
 // Servicios
-import { obtenerDetallePorId } from "@/services/EntradaDetalle.service";
+import { obtenerDetallePorId, obtenerDisponibilidadEntrada } from "@/services/EntradaDetalle.service";
 
 // Componentes visuales
 import EventBanner from "@/components/detalle-evento/EventoBanner";
@@ -22,6 +22,8 @@ const EventPageController = () => {
   // --- HOOKS AL INICIO ---
   const [isLoading, setIsLoading] = useState(true);
   const [eventData, setEventData] = useState(null);
+  // Nuevo estado para guardar la disponibilidad de las entradas
+  const [ticketAvailability, setTicketAvailability] = useState({});
   const [error, setError] = useState(null);
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
@@ -56,6 +58,29 @@ const EventPageController = () => {
         }
 
         setEventData(data);
+
+        // --- NUEVA LÓGICA ---
+        // Una vez tenemos los datos del evento, buscamos la disponibilidad.
+        const allTicketTypes = data.data.funciones.flatMap(f => f.tiposDeEntrada || []);
+        const uniqueTicketTypeIds = [...new Set(allTicketTypes.map(t => t.id))];
+
+        // Creamos un array de promesas para obtener la disponibilidad de cada tipo de entrada.
+        const availabilityPromises = uniqueTicketTypeIds.map(idTipo =>
+          obtenerDisponibilidadEntrada(idTipo).then(avail => ({ id: idTipo, ...avail }))
+        );
+
+        // Ejecutamos todas las promesas en paralelo.
+        const availabilities = await Promise.all(availabilityPromises);
+
+        // Convertimos el array de resultados en un objeto para fácil acceso.
+        const availabilityMap = availabilities.reduce((acc, curr) => {
+          acc[curr.id] = { vendidas: curr.vendidas, total: curr.total };
+          return acc;
+        }, {});
+
+        setTicketAvailability(availabilityMap);
+        // --- FIN NUEVA LÓGICA ---
+
         setError(null);
 
       } catch (error) {
@@ -220,6 +245,7 @@ const EventPageController = () => {
           <BookingPanel
             eventName={evento.nombre}
             functions={funciones || []}
+            ticketAvailability={ticketAvailability} // <-- Pasamos el nuevo estado como prop
             onAddToCart={handleAddToCart}
           />
           <LocationInfo
