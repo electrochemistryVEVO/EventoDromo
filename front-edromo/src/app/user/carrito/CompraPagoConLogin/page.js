@@ -220,17 +220,21 @@ const PaymentMethod = ({
 };
 
 // --- Modal de Compra Exitosa ---
-const SuccessModal = ({ onClose }) => {
+const SuccessModal = ({ onClose, refreshUserPoints }) => {
     const router = useRouter();
     const { clearCart } = useCart();
 
     const handleRedirect = async () => {
-        // Primero navegamos
+        // Primero limpiamos el carrito
+        clearCart();
+        
+        // Refrescar puntos del usuario desde el backend
+        if (refreshUserPoints) {
+            await refreshUserPoints();
+        }
+        
+        // Luego navegamos
         router.push("/user/web/perfil?tab=entradas");
-        // Luego esperamos un momento y limpiamos el carrito
-        setTimeout(() => {
-            clearCart();
-        }, 100);
     };
 
     return (
@@ -419,12 +423,6 @@ function CompraPagoConLoginPage() {
                 };
 
                 response = await procesarPagoConPuntos(payload, token);
-                
-                // ✅ Actualizar puntos del usuario después del pago exitoso
-                if (response.success) {
-                    const nuevosPuntos = userPuntos - puntosRequeridos;
-                    updateUserPoints(nuevosPuntos);
-                }
 
             } else {
                 throw new Error("Por favor, seleccione un método de pago.");
@@ -542,7 +540,7 @@ function CompraPagoConLoginPage() {
                                 </div>
                             )}
                         </div>
-                        {showModal && <SuccessModal onClose={() => setShowModal(false)} />}
+                        {showModal && <SuccessModal onClose={() => setShowModal(false)} refreshUserPoints={refreshUserPoints} />}
                     </div>
                 </section>
             </main>
