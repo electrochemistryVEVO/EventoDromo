@@ -1334,5 +1334,40 @@ WHERE  E.id = @idEvento;
             }
             return lista;
         }
+
+        public int InsertarEventosBatch(List<Evento> eventos)
+        {
+            if (eventos == null || !eventos.Any())
+                return 0;
+
+            lock (DB)
+            {
+                var parametros = new ParameterList();
+                var values = new List<string>();
+
+                for (int i = 0; i < eventos.Count; i++)
+                {
+                    var e = eventos[i];
+                    values.Add($"(@NOMBRE{i}, @DESCRIPCION{i}, @IDTIPOEVENTO{i}, @IDLOCAL{i}, @CREADOPOR{i}, @FECHAPUBLICACION{i}, @FECHACOMPRA{i}, @ISDELETED{i}, @IMAGENURL{i})");
+
+                    parametros.Add($"@NOMBRE{i}", e.nombre);
+                    parametros.Add($"@DESCRIPCION{i}", e.descripcion);
+                    parametros.Add($"@IDTIPOEVENTO{i}", e.idTipoEvento);
+                    parametros.Add($"@IDLOCAL{i}", e.idLocal);
+                    parametros.Add($"@CREADOPOR{i}", e.creadoPor);
+                    parametros.Add($"@FECHAPUBLICACION{i}", e.fechaPublicacion);
+                    parametros.Add($"@FECHACOMPRA{i}", e.fechaCompra);
+                    parametros.Add($"@ISDELETED{i}", e.isDeleted);
+                    parametros.Add($"@IMAGENURL{i}", e.imagenURL ?? "");
+                }
+
+                // ✅ CORRECCIÓN: LAST_INSERT_ID() devuelve el PRIMER ID insertado en MySQL
+                string query = $"INSERT INTO Evento (NOMBRE, DESCRIPCION, IDTIPOEVENTO, IDLOCAL, CREADOPOR, FECHAPUBLICACION, FECHACOMPRA, ISDELETED, IMAGENURL) " +
+                               $"VALUES {string.Join(", ", values)}; SELECT LAST_INSERT_ID();";
+
+                object result = DB.ExecuteScalar(query, parametros);
+                return Convert.ToInt32(result);
+            }
+        }
     }
 }
