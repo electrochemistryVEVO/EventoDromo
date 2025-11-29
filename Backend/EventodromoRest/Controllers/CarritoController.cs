@@ -198,7 +198,26 @@ namespace EventodromoRest.Controllers
         {
             try
             {
+                // ✅ LOG TEMPORAL para debug
+                Console.WriteLine($"[EliminarTipoEntradaDelCarrito] Request received: {request != null}");
+                if (request != null)
+                {
+                    Console.WriteLine($"  - CartItemId: '{request.CartItemId}'");
+                    Console.WriteLine($"  - TipoEntradaId: {request.TipoEntradaId}");
+                    Console.WriteLine($"  - IdFechaEvento: {request.IdFechaEvento}");
+                }
+                else
+                {
+                    Console.WriteLine("  ❌ Request is NULL!");
+                }
+                
                 ValidarBody(request);
+                
+                if (request.TipoEntradaId <= 0)
+                {
+                    throw new Exception("El TipoEntradaId debe ser mayor a 0");
+                }
+                
                 var userIdString = User.FindFirst("idCliente")?.Value;
                 if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idCliente))
                 {
@@ -208,6 +227,8 @@ namespace EventodromoRest.Controllers
             }
             catch (Exception e)
             {
+                Console.WriteLine($"[EliminarTipoEntradaDelCarrito] ERROR: {e.Message}");
+                Console.WriteLine($"[EliminarTipoEntradaDelCarrito] StackTrace: {e.StackTrace}");
                 var response = new GenericResponse<ResponseObtenerCarrito>
                 {
                     Success = false,

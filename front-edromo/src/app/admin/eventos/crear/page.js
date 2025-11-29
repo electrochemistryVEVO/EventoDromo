@@ -3,6 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { useEventCreator } from "./controller"; // Ajusta la ruta si es necesario
+import { showSuccess } from "@/components/Notifications/toast";
 
 // Importación de los componentes de la interfaz
 import { EventInfoForm } from "@/components/crear-evento/EventInfoForm.jsx";
@@ -43,7 +44,7 @@ const CrearEventoPage = () => {
   // Opcional: Redirigir al usuario tras una creación exitosa.
   React.useEffect(() => {
     if (isSuccess) {
-      alert("¡Evento creado exitosamente!");
+      showSuccess("¡Evento creado exitosamente!");
       router.push("/admin/eventos/gestion"); // Redirige a la página de la lista
     }
   }, [isSuccess, router]);

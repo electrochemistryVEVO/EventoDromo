@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import { Suspense } from "react";
+import ToastProvider from "@/components/Notifications/ToastProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,6 +26,7 @@ export default function RootLayout({ children }) {
         <Suspense fallback={<h1>Espere un momento...</h1>}>
           <Providers>{children}</Providers>
         </Suspense>
+        <ToastProvider />
       </body>
     </html>
   );

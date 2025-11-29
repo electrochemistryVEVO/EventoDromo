@@ -33,6 +33,33 @@ namespace EventodromoRest.Negocio
                 loginResponse.rol = tipoUsuario;
                 loginResponse.idCliente = idCliente;
                 loginResponse.totalPuntos = totalPuntos;
+
+                // ✅ REGISTRAR LOGIN EN AUDITORÍA
+                try
+                {
+                    // Actualizar fecha de última sesión
+                    mapper.ActualizarUltimaSesion(idCliente);
+
+                    // Registrar auditoría de login solo para clientes (no admins)
+                    if (tipoUsuario == 'C')
+                    {
+                        var auditoriaMapper = new AuditoriaMapper(globales, DB);
+                        var auditoria = new Auditoria
+                        {
+                            idcliente = idCliente,
+                            idtipoauditoria = 5, // ID 5 = Inicio Sesión
+                            descripcion = $"Inicio de sesión exitoso desde {email}",
+                            fechahora = DateTime.Now,
+                            monto = 0
+                        };
+                        auditoriaMapper.InsertarAuditoria(auditoria);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // No fallar el login si la auditoría falla
+                    Console.WriteLine($"⚠️ Error al registrar auditoría de login: {ex.Message}");
+                }
             }
             return loginResponse;
 

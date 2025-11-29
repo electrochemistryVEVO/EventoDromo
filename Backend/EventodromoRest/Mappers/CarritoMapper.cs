@@ -406,7 +406,7 @@ namespace EventodromoRest.Mappers
         /// y devuelve el stock.
         /// </summary>
         /// <returns>La lista actualizada de items del carrito.</returns>
-        public List<ObtenerCarritoDTO> EliminarTipoEntradaDelCarrito(int idCliente, int idTipoEntrada)
+        public List<ObtenerCarritoDTO> EliminarTipoEntradaDelCarrito(int idCliente, int idTipoEntrada, int? idFechaEvento = null)
         {
             DB.BeginTransaction();
             try
@@ -424,16 +424,43 @@ namespace EventodromoRest.Mappers
 
                 int idCarrito = Convert.ToInt32(carritoIdObj);
 
-                string queryCount = "SELECT COUNT(id) FROM Entrada WHERE idCarrito = @idCarrito AND idTipoEntrada = @idTipoEntrada";
+                // ✅ NUEVO: Construir query dinámicamente según si hay filtro de fecha
+                string queryCount, queryDelete;
                 var pParams = new ParameterList();
                 pParams.Add("@idCarrito", idCarrito);
                 pParams.Add("@idTipoEntrada", idTipoEntrada);
+
+                if (idFechaEvento.HasValue && idFechaEvento.Value > 0)
+                {
+                    // Filtrar por tipo de entrada Y fecha específica
+                    queryCount = @"
+                        SELECT COUNT(e.id) 
+                        FROM Entrada e
+                        INNER JOIN TipoEntrada te ON e.idTipoEntrada = te.id
+                        WHERE e.idCarrito = @idCarrito 
+                        AND e.idTipoEntrada = @idTipoEntrada
+                        AND te.idFechaEvento = @idFechaEvento";
+
+                    queryDelete = @"
+                        DELETE e FROM Entrada e
+                        INNER JOIN TipoEntrada te ON e.idTipoEntrada = te.id
+                        WHERE e.idCarrito = @idCarrito 
+                        AND e.idTipoEntrada = @idTipoEntrada
+                        AND te.idFechaEvento = @idFechaEvento";
+
+                    pParams.Add("@idFechaEvento", idFechaEvento.Value);
+                }
+                else
+                {
+                    // Comportamiento original: eliminar por tipo de entrada solamente
+                    queryCount = "SELECT COUNT(id) FROM Entrada WHERE idCarrito = @idCarrito AND idTipoEntrada = @idTipoEntrada";
+                    queryDelete = "DELETE FROM Entrada WHERE idCarrito = @idCarrito AND idTipoEntrada = @idTipoEntrada";
+                }
 
                 int cantidadAEliminar = Convert.ToInt32(DB.ExecuteScalar(queryCount, pParams));
 
                 if (cantidadAEliminar > 0)
                 {
-                    string queryDelete = "DELETE FROM Entrada WHERE idCarrito = @idCarrito AND idTipoEntrada = @idTipoEntrada";
                     DB.ExecuteNonQuery(queryDelete, pParams);
 
                     // Usamos CASE para evitar números negativos

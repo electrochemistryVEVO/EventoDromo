@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { controllerPerfil } from './controller-informacion-personal';
 // --- 1. IMPORTA useUser AQUÍ (EN EL COMPONENTE) ---
 import { useUser } from '@/context/UserContext.jsx';
@@ -30,8 +30,8 @@ export default function PerfilPage() {
   const [message, setMessage] = useState(null);
   const [maxDate, setMaxDate] = useState('');
 
-  // --- 3. fetchData AHORA USA EL 'user.token' ---
-  const fetchData = async () => {
+  // --- 3. fetchData AHORA USA useCallback para estabilidad ---
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     setMessage(null);
     try {
@@ -66,7 +66,7 @@ export default function PerfilPage() {
           setSelectedPaisId(ciudadActual.idPais);
         }
       } else {
-        throw new Error("El formato de datos recibido no es correcto.");
+        throw new Error("El formato de datos recibidos no es correcto.");
       }
 
     } catch (error) {
@@ -74,16 +74,15 @@ export default function PerfilPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]); // ✅ Solo se recrea si user cambia
 
-  // --- 4. useEffect AHORA DEPENDE DE 'user' ---
-  // Cargar datos al montar el componente
+  // --- 4. useEffect SOLO SE EJECUTA UNA VEZ al montar ---
   useEffect(() => {
     // Solo intenta cargar datos si 'user' (y el token) ya están disponibles
-    if (user) { 
+    if (user?.token) { 
       fetchData();
     }
-  }, [user]); // <-- Se ejecuta cuando 'user' se carga
+  }, [user?.token, fetchData]); // ✅ Solo cuando token esté disponible
 
   // ... (handleChange y handlePaisChange quedan igual) ...
   const handleChange = (e) => {
@@ -129,6 +128,12 @@ export default function PerfilPage() {
     }
   };
 
+  // ✅ Filtrar ciudades solo cuando cambia el país o las opciones
+  const ciudadesFiltradas = useMemo(() => {
+    if (!selectedPaisId) return selectOptions.ciudades;
+    return selectOptions.ciudades.filter(c => c.idPais === selectedPaisId);
+  }, [selectedPaisId, selectOptions.ciudades]);
+
   // ... (El resto de tu código: handleCancel y todo el JSX del return, queda exactamente igual) ...
   const handleCancel = () => {
     if (originalFormData) {
@@ -148,8 +153,6 @@ export default function PerfilPage() {
       <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
     </svg>
   );
-
-  const filteredCiudades = selectOptions.ciudades.filter(c => c.idPais === selectedPaisId);
 
   return (
     <>
@@ -249,11 +252,11 @@ export default function PerfilPage() {
                 name="idciudad"
                 value={formData.idciudad}
                 onChange={handleChange}
-                disabled={!selectedPaisId || filteredCiudades.length === 0} // Deshabilitado si no hay país o ciudades
+                disabled={!selectedPaisId || ciudadesFiltradas.length === 0} // Deshabilitado si no hay país o ciudades
                 className="w-full px-3 py-2 bg-zinc-100 border-b border-gray-300 rounded-md focus:outline-none focus:ring-0 focus:border-b-2 focus:border-[#00C49A]"
               >
                 <option value="" disabled>Seleccione una ciudad</option>
-                {filteredCiudades.map(ciudad => (
+                {ciudadesFiltradas.map(ciudad => (
                   <option key={ciudad.id} value={ciudad.id}>
                     {ciudad.nombre}
                   </option>

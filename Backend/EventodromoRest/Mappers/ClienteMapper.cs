@@ -491,5 +491,22 @@ namespace EventodromoRest.Mappers
                 return rowsAffected;
             }
         }
+
+        /// <summary>
+        /// Actualiza la fecha de última sesión del cliente
+        /// </summary>
+        /// <param name="idCliente">ID del cliente</param>
+        /// <returns>Número de filas afectadas</returns>
+        public int ActualizarUltimaSesion(int idCliente)
+        {
+            lock (DB)
+            {
+                string query = "UPDATE Cliente SET fechaUltimaSesion = NOW() WHERE id = @idCliente";
+                var parametros = new ParameterList();
+                parametros.Add("@idCliente", idCliente);
+                int rowsAffected = DB.ExecuteNonQuery(query, parametros);
+                return rowsAffected;
+            }
+        }
     }
 }

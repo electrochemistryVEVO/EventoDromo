@@ -167,7 +167,11 @@ namespace EventodromoRest.Negocio
 
             var carritoMapper = new CarritoMapper(globales, DB);
 
-            var carritoData = carritoMapper.EliminarTipoEntradaDelCarrito(idCliente, request.TipoEntradaId);
+            var carritoData = carritoMapper.EliminarTipoEntradaDelCarrito(
+                idCliente, 
+                request.TipoEntradaId, 
+                request.IdFechaEvento // NUEVO: Pasar el filtro de fecha
+            );
 
             var response = TransformarCarrito(carritoData);
 

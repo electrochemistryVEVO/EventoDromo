@@ -2,6 +2,7 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
 import { useUser } from "./UserContext";
+import { showError, showWarning } from "@/components/Notifications/toast";
 import {
   mergeGuestCartWithDb,
   addItemToDbCart,
@@ -136,9 +137,7 @@ export const CartProvider = ({ children }) => {
             const nombresRechazados = response.data.rejectedItems.map(item => item.nombre).join(', ');
             const mensaje = `Algunas entradas no se pudieron agregar por falta de stock: ${nombresRechazados}.`;
             console.warn(mensaje);
-            // Idealmente, mostrar una notificación "toast"
-            // toast.error(mensaje, { duration: 6000 });
-            alert(mensaje); // Usamos alert como fallback simple.
+            showWarning(mensaje, { duration: 6000 });
           }
 
         } else {
@@ -268,13 +267,15 @@ export const CartProvider = ({ children }) => {
     { cartItemId, entradaId, tipoEntradaId } = {},
     { manageLoading = true } = {},
   ) => {
-    if (syncingItemIds.has(cartItemId)) {
+    // ✅ FIX RACE CONDITION: Usar clave más granular
+    const syncKey = `${cartItemId}-${tipoEntradaId ?? entradaId ?? 'remove'}`;
+    if (syncingItemIds.has(syncKey)) {
+      console.log(`[CartContext] Request bloqueado: ${syncKey} ya en proceso`);
       return false;
     }
 
     if (isAuthenticated) {
-      // ✅ ELIMINADO: La lógica optimista completa
-      setSyncingItemIds((prev) => new Set(prev).add(cartItemId));
+      setSyncingItemIds((prev) => new Set(prev).add(syncKey));
 
       try {
         const token = resolveAuthToken();
@@ -307,14 +308,14 @@ export const CartProvider = ({ children }) => {
       } catch (error) {
         console.error("Error al eliminar entrada:", error);
         if (manageLoading) {
-          alert("No se pudo disminuir la cantidad. Inténtalo de nuevo.");
+          showError("No se pudo disminuir la cantidad. Inténtalo de nuevo.");
         }
         // ❌ NO hay reversión porque nunca actualizamos optimistamente
         return false;
       } finally {
         setSyncingItemIds((prev) => {
           const newSet = new Set(prev);
-          newSet.delete(cartItemId);
+          newSet.delete(syncKey); // ✅ Usar syncKey en lugar de cartItemId
           return newSet;
         });
       }
@@ -355,13 +356,45 @@ export const CartProvider = ({ children }) => {
       return false;
     }
 
-    if (syncingItemIds.has(cartItemId)) {
+    // ✅ FIX RACE CONDITION: Usar clave más granular (cartItemId + tipoEntradaId)
+    const syncKey = `${cartItemId}-${tipoEntradaId}`;
+    if (syncingItemIds.has(syncKey)) {
+      console.log(`[CartContext] Request bloqueado: ${syncKey} ya en proceso`);
+      return false;
+    }
+
+    // ✅ VALIDAR LÍMITE DE COMPRA ANTES de llamar al backend
+    // ✅ CONTAR CORRECTAMENTE: Buscar en TODO el carrito cuántas entradas de este tipo ya hay
+    let cantidadTotalEnCarrito = 0;
+    let limiteCompra = 0;
+    let nombreEntrada = 'entradas';
+    
+    for (const item of cartItems) {
+      for (const entrada of (item.entradas || [])) {
+        const entradaTipoId = entrada.tipoEntradaId ?? entrada.idTipoEntrada;
+        if (String(entradaTipoId) === String(tipoEntradaId)) {
+          cantidadTotalEnCarrito += Number(entrada.cantidad ?? entrada.quantity ?? 0);
+          limiteCompra = Number(entrada.limiteCompra ?? 0);
+          nombreEntrada = entrada.nombre || 'entradas';
+        }
+      }
+    }
+
+    console.log(`🔍 [incrementEntryInCart] Validación para ${nombreEntrada}:`, {
+      cantidadTotalEnCarrito,
+      limiteCompra,
+      alcanzaLimite: limiteCompra > 0 && cantidadTotalEnCarrito >= limiteCompra
+    });
+    
+    if (limiteCompra > 0 && cantidadTotalEnCarrito >= limiteCompra) {
+      if (manageLoading) {
+        showWarning(`Has alcanzado el límite de compra de "${nombreEntrada}" (máximo ${limiteCompra} entradas)`);
+      }
       return false;
     }
 
     if (isAuthenticated) {
-      // ✅ ELIMINADO: La lógica optimista completa
-      setSyncingItemIds((prev) => new Set(prev).add(cartItemId));
+      setSyncingItemIds((prev) => new Set(prev).add(syncKey));
 
       try {
         const token = resolveAuthToken();
@@ -383,26 +416,48 @@ export const CartProvider = ({ children }) => {
       } catch (error) {
         console.error("Error al incrementar entrada:", error);
         if (manageLoading) {
-          alert("No se pudo aumentar la cantidad. Es posible que no haya más stock.");
+          showError("No se pudo aumentar la cantidad. Es posible que no haya más stock.");
         }
-        // ❌ NO hay reversión porque nunca actualizamos optimistamente
         return false;
       } finally {
         setSyncingItemIds((prev) => {
           const newSet = new Set(prev);
-          newSet.delete(cartItemId);
+          newSet.delete(syncKey);
           return newSet;
         });
       }
 
     } else {
-      // La lógica de invitado no cambia.
+      // La lógica de invitado - también validar límite
+      // ✅ CONTAR TOTAL EN TODO EL CARRITO primero
+      let cantidadTotalEnCarrito = 0;
+      let limiteCompra = 0;
+      
+      for (const item of cartItems) {
+        for (const entrada of (item.entradas || [])) {
+          const entradaTipoId = entrada.tipoEntradaId ?? entrada.idTipoEntrada;
+          if (String(entradaTipoId) === String(tipoEntradaId)) {
+            cantidadTotalEnCarrito += Number(entrada.cantidad ?? entrada.quantity ?? 0);
+            limiteCompra = Number(entrada.limiteCompra ?? 0);
+          }
+        }
+      }
+      
+      if (limiteCompra > 0 && cantidadTotalEnCarrito >= limiteCompra) {
+        if (manageLoading) {
+          showWarning(`Has alcanzado el límite de compra (máximo ${limiteCompra} entradas)`);
+        }
+        return false;
+      }
+      
       setCartItems((prev) => prev.map((item) => {
         if (item.cartItemId !== cartItemId) return item;
         const entradasIncrementadas = (item.entradas || []).map((entrada) => {
           const tipoEntradaActual = entrada.tipoEntradaId ?? entrada.idTipoEntrada ?? entrada.tipoEntrada?.id ?? null;
           if (tipoEntradaActual == null || String(tipoEntradaActual) !== String(tipoEntradaId)) return entrada;
+          
           const cantidadActual = Number(entrada.cantidad ?? entrada.quantity ?? 0);
+          
           return { ...entrada, cantidad: cantidadActual + 1, quantity: cantidadActual + 1 };
         });
         return { ...item, entradas: entradasIncrementadas, totalItem: computeEntradasTotal(entradasIncrementadas) };
@@ -414,12 +469,16 @@ export const CartProvider = ({ children }) => {
   const removeFromCart = async (cartItemId) => {
     // Si el item ya se está sincronizando, ignoramos la acción.
     if (syncingItemIds.has(cartItemId)) {
+      console.log('[removeFromCart] Item ya sincronizando, ignorando');
       return;
     }
 
     if (isAuthenticated) {
       // Marcamos el item como "sincronizando".
       setSyncingItemIds((prev) => new Set(prev).add(cartItemId));
+
+      // ✅ GUARDAR ESTADO ANTERIOR PARA ROLLBACK
+      const previousCartItems = [...cartItems];
 
       try {
         const targetItem = cartItems.find((item) => item.cartItemId === cartItemId);
@@ -428,40 +487,50 @@ export const CartProvider = ({ children }) => {
           return;
         }
 
-        // Eliminar todas las entradas del item llamando a removeEntryFromCart
+        console.log('[removeFromCart] Eliminando item completo:', targetItem);
+
+        // ✅ Extraer idFechaEvento ANTES de eliminar el item del estado
+        const idFechaEvento = targetItem.funcionInfo?.id || null;
         const entradas = Array.isArray(targetItem.entradas) ? targetItem.entradas : [];
+        const tiposUnicos = [...new Set(entradas.map(e => e.tipoEntradaId))];
+        
+        console.log('[removeFromCart] idFechaEvento:', idFechaEvento, 'tipos:', tiposUnicos);
 
-        // Usamos Promise.all para esperar a que todas las eliminaciones terminen
-        const deletePromises = [];
+        // ✅ ACTUALIZACIÓN OPTIMISTA: Eliminar del estado inmediatamente
+        setCartItems((prev) => prev.filter((item) => item.cartItemId !== cartItemId));
 
-        for (const entrada of entradas) {
-          const tipoEntradaId = entrada?.tipoEntradaId ?? entrada?.idTipoEntrada ?? null;
-          const entradaId = entrada?.entradaId ?? entrada?.idEntrada ?? entrada?.id ?? null;
-          const repeat = Math.max(1, Number(entrada?.cantidad ?? entrada?.quantity ?? 0) || 1);
+        // ✅ USAR EL NUEVO ENDPOINT QUE ELIMINA POR TIPO DE ENTRADA
+        const token = resolveAuthToken();
+        if (!token) throw new Error("No se pudo obtener el token.");
 
-          for (let i = 0; i < repeat; i += 1) {
-            deletePromises.push(
-              removeEntryFromCart({ cartItemId, entradaId, tipoEntradaId }, { manageLoading: false })
-            );
-          }
+        // Eliminamos cada tipo de entrada usando el endpoint de batch
+        const deletePromises = tiposUnicos.map(tipoEntradaId => {
+          if (!tipoEntradaId) return Promise.resolve();
+          return removeEntireTierFromCart(cartItemId, tipoEntradaId, idFechaEvento, token).then(response => {
+            if (!response.success) {
+              throw new Error(response.error || 'Error eliminando tipo de entrada');
+            }
+            return response;
+          });
+        });
+
+        // Esperamos a que todos se completen
+        const results = await Promise.all(deletePromises);
+        
+        // Tomamos el último resultado que contiene el carrito actualizado
+        const lastResult = results[results.length - 1];
+        if (lastResult?.data) {
+          setCartItems(lastResult.data.items || []);
+          setExpirationTime(lastResult.data.expirationTime);
         }
 
-        // Esperar a que todas las eliminaciones se completen
-        const results = await Promise.allSettled(deletePromises);
-
-        // Verificar si alguna eliminación falló
-        const hasFailures = results.some(result => result.status === 'rejected');
-        if (hasFailures) {
-          throw new Error("Algunas entradas no se pudieron eliminar del carrito.");
-        }
-
-        // ✅ El estado ya se actualizó automáticamente mediante las llamadas a removeEntryFromCart
-        // No necesitamos hacer setCartItems aquí
+        console.log('[removeFromCart] ✅ Item completo eliminado correctamente');
 
       } catch (error) {
-        console.error("Error al eliminar item del carrito:", error);
-        alert("No se pudo eliminar el artículo del carrito.");
-        // ❌ NO revertimos porque nunca actualizamos optimistamente
+        console.error("[removeFromCart] Error al eliminar item:", error);
+        // ✅ ROLLBACK: Restaurar estado anterior
+        setCartItems(previousCartItems);
+        showError("No se pudo eliminar el artículo del carrito.");
       } finally {
         // Desbloqueamos el item sin importar el resultado.
         setSyncingItemIds((prev) => {
@@ -484,9 +553,18 @@ export const CartProvider = ({ children }) => {
     setSyncingItemIds(prev => new Set(prev).add(cartItemId));
 
     // ✅ GUARDAR ESTADO PREVIO PARA ROLLBACK
-    const previousCartItems = cartItems;
+    const previousCartItems = [...cartItems];
 
     try {
+      // ✅ EXTRAER idFechaEvento ANTES de la actualización optimista
+      const targetItem = cartItems.find(item => item.cartItemId === cartItemId);
+      if (!targetItem) {
+        throw new Error("Item no encontrado en el carrito");
+      }
+      
+      const idFechaEvento = targetItem.funcionInfo?.id || null;
+      console.log('[removeTierFromCart] Datos:', { cartItemId, tipoEntradaId, idFechaEvento });
+
       // ✅ ACTUALIZACIÓN OPTIMISTA
       setCartItems(prev => prev.map(item => {
         if (item.cartItemId !== cartItemId) return item;
@@ -511,14 +589,14 @@ export const CartProvider = ({ children }) => {
         const token = resolveAuthToken();
         if (!token) throw new Error("No se pudo obtener el token");
 
-        const response = await removeEntireTierFromCart(cartItemId, tipoEntradaId, token);
+        const response = await removeEntireTierFromCart(cartItemId, tipoEntradaId, idFechaEvento, token);
 
         if (!response.success) {
           throw new Error(response.error);
         }
 
         // ✅ ACTUALIZAR CON LA RESPUESTA DEL BACKEND
-        setCartItems(response.data.items);
+        setCartItems(response.data.items || []);
         setExpirationTime(response.data.expirationTime);
       }
 
@@ -526,10 +604,10 @@ export const CartProvider = ({ children }) => {
       return true;
 
     } catch (error) {
-      console.error("Error al eliminar grupo:", error);
+      console.error("[removeTierFromCart] Error al eliminar grupo:", error);
       // ✅ ROLLBACK en caso de error
       setCartItems(previousCartItems);
-      alert(error.message || "No se pudo eliminar el grupo de entradas");
+      showError(error.message || "No se pudo eliminar el grupo de entradas");
       return false;
     } finally {
       setSyncingItemIds(prev => {
@@ -567,9 +645,75 @@ export const CartProvider = ({ children }) => {
   };
 
   const addTicketsToCart = async (ticketsInfo) => {
+    console.log('🎫 [addTicketsToCart] Tickets recibidos:', ticketsInfo);
+    
     // Evitar duplicados durante la sincronización
     if (syncingItemIds.has(ticketsInfo.cartItemId)) {
       return;
+    }
+
+    // ✅ VALIDAR LÍMITE DE COMPRA antes de agregar
+    const existingItem = cartItems.find(item =>
+      item.eventoInfo?.id === ticketsInfo.eventoInfo?.id &&
+      item.funcionInfo?.id === ticketsInfo.funcionInfo?.id
+    );
+
+    console.log('🔍 [addTicketsToCart] Item existente:', existingItem);
+    console.log('🔍 [addTicketsToCart] Entradas a agregar:', ticketsInfo.entradas);
+
+    // Validar límites para cada entrada
+    for (const newEntrada of ticketsInfo.entradas) {
+      const limiteCompra = Number(newEntrada.limiteCompra ?? 0);
+      const cantidadNueva = Number(newEntrada.cantidad ?? 0);
+      const tipoEntradaId = newEntrada.tipoEntradaId;
+
+      console.log(`🔢 [addTicketsToCart] Validando entrada "${newEntrada.nombre}" (ID: ${tipoEntradaId}):`, {
+        limiteCompra,
+        cantidadNueva,
+        excedeLimite: limiteCompra > 0 && cantidadNueva > limiteCompra
+      });
+
+      // Validar si la cantidad que quiere agregar excede el límite por sí sola
+      if (limiteCompra > 0 && cantidadNueva > limiteCompra) {
+        console.warn(`⚠️ [addTicketsToCart] BLOQUEADO: Cantidad ${cantidadNueva} excede límite ${limiteCompra}`);
+        showWarning(
+          `No puedes agregar ${cantidadNueva} entradas de "${newEntrada.nombre}". ` +
+          `El límite de compra es ${limiteCompra} entrada${limiteCompra > 1 ? 's' : ''}.`
+        );
+        return; // Bloquear la operación completa
+      }
+
+      // ✅ CONTAR CORRECTAMENTE: Buscar en TODO el carrito cuántas entradas de este tipo ya hay
+      let cantidadTotalEnCarrito = 0;
+      
+      for (const item of cartItems) {
+        for (const entrada of (item.entradas || [])) {
+          const entradaTipoId = entrada.tipoEntradaId ?? entrada.idTipoEntrada;
+          if (String(entradaTipoId) === String(tipoEntradaId)) {
+            cantidadTotalEnCarrito += Number(entrada.cantidad ?? entrada.quantity ?? 0);
+          }
+        }
+      }
+
+      const totalDespues = cantidadTotalEnCarrito + cantidadNueva;
+
+      console.log(`🔍 [Validación acumulada] ${newEntrada.nombre}:`, {
+        cantidadTotalEnCarrito,
+        cantidadNueva,
+        totalDespues,
+        limiteCompra,
+        excedeLimite: limiteCompra > 0 && totalDespues > limiteCompra
+      });
+
+      if (limiteCompra > 0 && totalDespues > limiteCompra) {
+        const espacioDisponible = limiteCompra - cantidadTotalEnCarrito;
+        showWarning(
+          `No puedes agregar ${cantidadNueva} entrada${cantidadNueva > 1 ? 's' : ''} más de "${newEntrada.nombre}". ` +
+          `Ya tienes ${cantidadTotalEnCarrito} en el carrito, el límite es ${limiteCompra}. ` +
+          `Solo puedes agregar ${espacioDisponible > 0 ? espacioDisponible : 0} más.`
+        );
+        return; // Bloquear la operación completa
+      }
     }
 
     if (isAuthenticated) {
@@ -590,7 +734,7 @@ export const CartProvider = ({ children }) => {
 
       } catch (error) {
         console.error("Error al agregar entradas:", error);
-        alert("No se pudieron agregar las entradas al carrito.");
+        showError("No se pudieron agregar las entradas al carrito.");
       } finally {
         setSyncingItemIds((prev) => {
           const newSet = new Set(prev);
@@ -600,7 +744,23 @@ export const CartProvider = ({ children }) => {
       }
 
     } else {
-      // Lógica de invitado (sin cambios)
+      // Lógica de invitado - también validar límite
+      
+      // Primero validar ANTES de modificar el estado
+      for (const newEntrada of ticketsInfo.entradas) {
+        const limiteCompra = Number(newEntrada.limiteCompra ?? 0);
+        const cantidadNueva = Number(newEntrada.cantidad ?? 0);
+
+        // Validar si la cantidad que quiere agregar excede el límite por sí sola
+        if (limiteCompra > 0 && cantidadNueva > limiteCompra) {
+          showWarning(
+            `No puedes agregar ${cantidadNueva} entradas de "${newEntrada.nombre}". ` +
+            `El límite de compra es ${limiteCompra} entrada${limiteCompra > 1 ? 's' : ''}.`
+          );
+          return; // No agregar nada
+        }
+      }
+      
       setCartItems((prevCartItems) => {
         const existingItem = prevCartItems.find(item =>
           item.eventoInfo.id === ticketsInfo.eventoInfo.id &&
@@ -608,12 +768,43 @@ export const CartProvider = ({ children }) => {
         );
 
         if (existingItem) {
+          // Validar límites acumulados antes de actualizar
+          let hasLimitExceeded = false;
+          
+          for (const newEntrada of ticketsInfo.entradas) {
+            const existing = existingItem.entradas?.find(e => 
+              e.tipoEntradaId === newEntrada.tipoEntradaId
+            );
+            
+            if (existing) {
+              const limiteCompra = Number(existing.limiteCompra ?? newEntrada.limiteCompra ?? 0);
+              const cantidadActual = Number(existing.cantidad ?? 0);
+              const cantidadNueva = Number(newEntrada.cantidad ?? 0);
+              const totalDespues = cantidadActual + cantidadNueva;
+              
+              if (limiteCompra > 0 && totalDespues > limiteCompra) {
+                showWarning(
+                  `No puedes agregar ${cantidadNueva} entrada${cantidadNueva > 1 ? 's' : ''} más de "${newEntrada.nombre}". ` +
+                  `Ya tienes ${cantidadActual} en el carrito y el límite es ${limiteCompra}.`
+                );
+                hasLimitExceeded = true;
+                break;
+              }
+            }
+          }
+          
+          if (hasLimitExceeded) {
+            return prevCartItems; // No modificar el carrito
+          }
+          
           return prevCartItems.map(item => {
             if (item.cartItemId !== existingItem.cartItemId) return item;
             const existingEntradasMap = new Map(item.entradas.map(e => [e.tipoEntradaId, e]));
+            
             ticketsInfo.entradas.forEach(newEntrada => {
               if (existingEntradasMap.has(newEntrada.tipoEntradaId)) {
-                existingEntradasMap.get(newEntrada.tipoEntradaId).cantidad += newEntrada.cantidad;
+                const existing = existingEntradasMap.get(newEntrada.tipoEntradaId);
+                existing.cantidad += newEntrada.cantidad;
               } else {
                 existingEntradasMap.set(newEntrada.tipoEntradaId, newEntrada);
               }

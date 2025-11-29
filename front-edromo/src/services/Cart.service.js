@@ -476,6 +476,48 @@ export const removeItemFromDbCart = async (entradaId, token) => {
   }
 };
 
+/**
+ * Elimina TODAS las entradas de un tipo específico del carrito (batch delete en una sola transacción).
+ * Usa el endpoint backend EliminarTipoEntradaDelCarrito que maneja múltiples entradas atómicamente.
+ */
+export const removeEntireTierFromCart = async (cartItemId, tipoEntradaId, idFechaEvento, token) => {
+  const normalizedTipoId = Number(tipoEntradaId);
+  if (!Number.isFinite(normalizedTipoId) || normalizedTipoId <= 0) {
+    return { success: false, error: "Id de tipo de entrada inválido" };
+  }
+
+  try {
+    const headers = buildAuthHeaders(token);
+    
+    // ✅ Payload con PascalCase para coincidir con el modelo C#
+    const payload = {
+      CartItemId: String(cartItemId),
+      TipoEntradaId: normalizedTipoId,
+      IdFechaEvento: idFechaEvento ? Number(idFechaEvento) : null
+    };
+    
+    console.log('[removeEntireTierFromCart] Payload:', payload);
+    
+    const response = await api.delete(
+      CART_ENDPOINTS.removeTier,
+      {
+        data: payload,
+        ...(headers ? { headers } : {})
+      }
+    );
+
+    const normalized = normalizeCartPayload(response ?? null);
+
+    return {
+      success: true,
+      data: normalized,
+    };
+  } catch (error) {
+    console.error("[Cart.service] Error al eliminar tipo de entrada del carrito:", error);
+    return { success: false, error: error.message || "No se pudo eliminar el grupo de entradas" };
+  }
+};
+
 export const clearDbCart = async (token) => {
   try {
     const headers = buildAuthHeaders(token);
@@ -487,72 +529,6 @@ export const clearDbCart = async (token) => {
     return {
       success: false,
       error: error.message || "No se pudo limpiar el carrito",
-    };
-  }
-};
-
-export const removeEntireTierFromCart = async (cartItemId, tipoEntradaId, token) => {
-  try {
-    const normalizedTipoEntradaId = Number(tipoEntradaId);
-    if (!Number.isFinite(normalizedTipoEntradaId) || normalizedTipoEntradaId <= 0) {
-      return {
-        success: false,
-        error: "Id de tipo de entrada inválido"
-      };
-    }
-
-    // Validar cartItemId
-    if (!cartItemId || typeof cartItemId !== 'string') {
-      return {
-        success: false,
-        error: "Id de carrito inválido"
-      };
-    }
-
-    const headers = buildAuthHeaders(token);
-
-    // Construir el payload para eliminar el grupo completo
-    const payload = {
-      cartItemId: cartItemId,
-      tipoEntradaId: normalizedTipoEntradaId
-    };
-
-    console.log('🔍 Enviando payload para eliminar tier:', payload);
-
-    // Realizar la llamada DELETE con payload en el body
-    const response = await api.delete(
-      CART_ENDPOINTS.removeTier,
-      {
-        body: payload, // Para axios, los DELETE pueden llevar data
-        ...(headers ? { headers } : {})
-      }
-    );
-
-    // Normalizar la respuesta
-    const normalized = normalizeCartPayload(response ?? null);
-
-    return {
-      success: true,
-      data: normalized,
-    };
-
-  } catch (error) {
-    console.error("[Cart.service] Error al eliminar grupo del carrito:", error);
-
-    // Manejar diferentes tipos de errores
-    let errorMessage = "No se pudo eliminar el grupo de entradas";
-
-    if (error.response) {
-      // Error del servidor
-      errorMessage = error.response.data?.message || errorMessage;
-    } else if (error.request) {
-      // Error de red
-      errorMessage = "Error de conexión. Verifique su internet.";
-    }
-
-    return {
-      success: false,
-      error: errorMessage
     };
   }
 };
