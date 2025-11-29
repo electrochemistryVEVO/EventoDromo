@@ -21,6 +21,10 @@ namespace EventodromoRest.Mappers
                     };
                     listaTipoEvento.Add(tipoEvento);
                 }
+                
+                // ✅ IMPORTANT: Close reader before returning
+                DB.CloseReader();
+                
                 return listaTipoEvento;
             }
         }

@@ -392,9 +392,9 @@ namespace EventodromoRest.Negocio
                     {
                         Success = false,
                         Message = "El array de eventos no puede estar vacío.",
-                        Data = new EventoCrearMasivoResponseData 
-                        { 
-                            insertados = 0, 
+                        Data = new EventoCrearMasivoResponseData
+                        {
+                            insertados = 0,
                             fallidos = 0,
                             errores = new List<string> { "El array de eventos no puede estar vacío." }
                         }
@@ -405,14 +405,14 @@ namespace EventodromoRest.Negocio
                 var eventoMapper = new EventoMapper(globales, DB);
                 var localMapper = new LocalMapper(globales, DB);
                 var tipoEventoMapper = new TipoEventoMapper(globales, DB);
-                var fechaMapper = new FechaEventoMapper(globales, DB);
-                var entradaMapper = new TipoEntradaMapper(globales, DB);
 
                 // Obtener listas de IDs válidos para validación (UNA SOLA VEZ)
-                var localesExistentes = localMapper.ListarLocales2().Select(l => l.id).ToHashSet();
+                var localesExistentes = localMapper.ListarIdLocales().ToHashSet();
                 var tiposEventoExistentes = tipoEventoMapper.ListarTipoEvento().Select(t => t.id).ToHashSet();
 
-                // 2. Procesar cada evento individualmente
+                // 2. Validar y agrupar eventos válidos
+                var eventosValidos = new List<(EventoMasivoItem evento, List<DateTime> horarios, int indice)>();
+
                 for (int i = 0; i < eventos.Count; i++)
                 {
                     var evento = eventos[i];
@@ -480,6 +480,13 @@ namespace EventodromoRest.Negocio
                             continue;
                         }
 
+                        // 🔍 DEBUG: Log de los horarios recibidos
+                        Debug.WriteLine($"[DEBUG] Evento '{nombreEvento}' - Horarios recibidos: {evento.horarios.Count}");
+                        for (int h = 0; h < evento.horarios.Count; h++)
+                        {
+                            Debug.WriteLine($"  Horario[{h}]: '{evento.horarios[h]}'");
+                        }
+
                         // Validar entradas
                         if (evento.entradas == null || !evento.entradas.Any())
                         {
@@ -522,7 +529,7 @@ namespace EventodromoRest.Negocio
                                 horarioInvalido = true;
                                 break;
                             }
-                            
+
                             // Validar que el horario sea futuro
                             if (horarioDateTime <= DateTime.Now)
                             {
@@ -530,7 +537,7 @@ namespace EventodromoRest.Negocio
                                 horarioInvalido = true;
                                 break;
                             }
-                            
+
                             horariosValidos.Add(horarioDateTime);
                         }
 
@@ -591,35 +598,133 @@ namespace EventodromoRest.Negocio
                             continue;
                         }
 
-                        // ✅ Todas las validaciones pasaron, proceder a insertar
-                        var nuevoEvento = new Evento
-                        {
-                            nombre = evento.nombre,
-                            descripcion = evento.descripcion,
-                            idLocal = evento.localId,
-                            idTipoEvento = evento.tipoEventoId,
-                            creadoPor = idAdministrador,
-                            fechaPublicacion = fechaPublicacion,
-                            fechaCompra = fechaCompra,
-                            isDeleted = false,
-                            imagenURL = evento.imagenURL
-                        };
-
-                        // Insertar el evento usando la lógica existente
-                        int idEvento = CrearEvento(nuevoEvento, evento.horarios, evento.entradas);
-
-                        insertados++;
+                        // ✅ Evento válido, agregarlo a la lista
+                        eventosValidos.Add((evento, horariosValidos, i));
                     }
                     catch (Exception ex)
                     {
-                        errores.Add($"Evento '{nombreEvento}': Error al insertar - {ex.Message}");
+                        errores.Add($"Evento '{nombreEvento}': Error en validación - {ex.Message}");
                         fallidos++;
                     }
                 }
 
-                // 3. Preparar respuesta
+                // 3. Si no hay eventos válidos, retornar
+                if (!eventosValidos.Any())
+                {
+                    return new GenericResponse<EventoCrearMasivoResponseData>
+                    {
+                        Success = false,
+                        Message = "No hay eventos válidos para insertar.",
+                        Data = new EventoCrearMasivoResponseData
+                        {
+                            insertados = 0,
+                            fallidos = fallidos,
+                            errores = errores
+                        }
+                    };
+                }
+
+                // 4. Realizar inserción batch de eventos
+                var eventosParaInsertar = eventosValidos.Select(x => new Evento
+                {
+                    nombre = x.evento.nombre,
+                    descripcion = x.evento.descripcion,
+                    idLocal = x.evento.localId,
+                    idTipoEvento = x.evento.tipoEventoId,
+                    creadoPor = idAdministrador,
+                    fechaPublicacion = DateTime.Parse(x.evento.fechaPublicacion),
+                    fechaCompra = DateTime.Parse(x.evento.fechaCompra),
+                    isDeleted = false,
+                    imagenURL = x.evento.imagenURL
+                }).ToList();
+
+                // Llamar al método batch en EventoMapper
+                int primerIdEvento = eventoMapper.InsertarEventosBatch(eventosParaInsertar);
+
+                // 5. Preparar FechaEvento y TipoEntrada para inserción batch
+                // En lugar de usar índices, vamos a construir un mapeo más preciso
+                var fechasEventoParaInsertar = new List<FechaEvento>();
+                var mapeoEventoACantidadHorarios = new Dictionary<int, int>(); // idEvento -> cantidad de horarios
+
+                // Construir todas las fechas y trackear cuántas fechas tiene cada evento
+                for (int i = 0; i < eventosValidos.Count; i++)
+                {
+                    int idEventoActual = primerIdEvento + i;
+                    var (evento, horarios, _) = eventosValidos[i];
+
+                    mapeoEventoACantidadHorarios[idEventoActual] = horarios.Count;
+
+                    // 🔍 DEBUG: Log del mapeo de horarios
+                    Debug.WriteLine($"[DEBUG BATCH] Evento ID {idEventoActual} ('{evento.nombre}') - {horarios.Count} horarios:");
+                    for (int j = 0; j < horarios.Count; j++)
+                    {
+                        Debug.WriteLine($"  Horario[{j}]: {horarios[j]:yyyy-MM-dd HH:mm:ss}");
+                    }
+
+                    foreach (var horario in horarios)
+                    {
+                        fechasEventoParaInsertar.Add(new FechaEvento
+                        {
+                            fechaHora = horario,
+                            idEvento = idEventoActual
+                        });
+                    }
+                }
+
+                // 🔍 DEBUG: Log del batch total de fechas
+                Debug.WriteLine($"[DEBUG BATCH] Total de fechas a insertar: {fechasEventoParaInsertar.Count}");
+
+                // Insertar todas las fechas de una sola vez
+                var fechaMapper = new FechaEventoMapper(globales, DB);
+                int primerIdFecha = fechaMapper.InsertarFechaEventoBatch(fechasEventoParaInsertar);
+
+                // 🔍 DEBUG: Log del primer ID devuelto
+                Debug.WriteLine($"[DEBUG BATCH] Primer ID de fecha devuelto: {primerIdFecha}");
+
+                // 6. Preparar TipoEntrada para inserción batch
+                // Ahora calculamos correctamente el ID de cada fecha
+                var entradasParaInsertar = new List<TipoEntrada>();
+                int offsetFechaGlobal = 0; // Offset acumulado de fechas procesadas
+
+                for (int i = 0; i < eventosValidos.Count; i++)
+                {
+                    int idEventoActual = primerIdEvento + i;
+                    var (evento, horarios, _) = eventosValidos[i];
+
+                    // Para este evento, las fechas van desde (primerIdFecha + offsetFechaGlobal)
+                    // hasta (primerIdFecha + offsetFechaGlobal + cantidadHorariosEvento - 1)
+                    for (int j = 0; j < horarios.Count; j++)
+                    {
+                        int idFechaActual = primerIdFecha + offsetFechaGlobal + j;
+
+                        foreach (var entrada in evento.entradas)
+                        {
+                            entradasParaInsertar.Add(new TipoEntrada
+                            {
+                                nombre = entrada.nombre,
+                                precio = entrada.precio,
+                                cantidadEntradas = entrada.cantidad,
+                                limiteCompra = entrada.limiteCompra,
+                                puntos = entrada.puntos,
+                                cantidadVendida = 0,
+                                idFechaEvento = idFechaActual
+                            });
+                        }
+                    }
+
+                    // Incrementar el offset por la cantidad de horarios de este evento
+                    offsetFechaGlobal += horarios.Count;
+                }
+
+                // Insertar todas las entradas de una sola vez
+                var entradaMapper = new TipoEntradaMapper(globales, DB);
+                entradaMapper.InsertarTipoEntradaBatch(entradasParaInsertar);
+
+                insertados = eventosValidos.Count;
+
+                // 7. Preparar respuesta
                 var success = insertados > 0;
-                var message = insertados == eventos.Count
+                var message = fallidos == 0
                     ? $"{insertados} eventos creados exitosamente"
                     : $"Se crearon {insertados} eventos, fallaron {fallidos}";
 
@@ -651,7 +756,7 @@ namespace EventodromoRest.Negocio
                 };
             }
         }
-    
+
         public GenericResponse<bool> EliminarEvento(int idEvento, int idAdmin)
         {
             try

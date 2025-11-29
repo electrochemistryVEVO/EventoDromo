@@ -249,7 +249,7 @@ const GestionEventosPage = () => {
         throw new Error('No se encontró el token de autenticación');
       }
       
-      const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+      const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5189/api";
       
       const response = await fetch(`${BASE_API_URL}/Evento/EventoCrearMasivo`, {
         method: 'POST',
@@ -324,13 +324,13 @@ const GestionEventosPage = () => {
             ¿Estás seguro de que deseas eliminar el evento{" "}
             <strong>"{modalState.data?.nombre}"</strong>?
           </p>
-          <p className="text-sm text-red-600 mt-2">
+          <p className="mt-2 text-sm text-red-600">
             Esta acción no se puede deshacer.
           </p>
           <div className="flex justify-end gap-4 mt-6">
             <button
               onClick={closeModal}
-              className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+              className="px-4 py-2 transition-colors bg-gray-200 rounded-lg hover:bg-gray-300"
               disabled={isDeleting} // Deshabilitar si está cargando
             >
               Cancelar
@@ -349,7 +349,7 @@ const GestionEventosPage = () => {
               {isDeleting ? (
                 <>
                   {/* Spinner simple con CSS de Tailwind */}
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
                   Eliminando...
                 </>
               ) : (
@@ -367,7 +367,7 @@ const GestionEventosPage = () => {
   const showPagination = pagination?.totalPages > 0 && !isLoading;
 
   return (
-    <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
+    <div className="min-h-screen p-4 md:p-8 bg-gray-50">
       <div className="page-container">
         <header className="page-header">
           <h1>Gestión de Eventos</h1>
