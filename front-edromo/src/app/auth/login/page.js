@@ -13,6 +13,9 @@ import { autenticarUsuario } from "@/services/Login.service.js";
 // Importamos el Modal
 import ForgotPasswordModal from "@/components/ForgotPasswordModal/ForgotPasswordModal";
 
+// Importamos el sistema de notificaciones
+import { showSuccess, showError, showWarning } from "@/components/Notifications/toast";
+
 // --- IMPORTAMOS LOS CSS DE TU DISEÑO ANTIGUO ---
 import "@/css/login-style.css";
 import "@/css/forgot-password.css";
@@ -36,17 +39,53 @@ function App() {
     e.preventDefault();
     setError("");
 
+    // Validaciones
+    if (!email.trim()) {
+      showError("Por favor ingresa tu email");
+      return;
+    }
+
+    if (email.length > 100) {
+      showError("El email no puede exceder 100 caracteres");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showError("Por favor ingresa un email válido");
+      return;
+    }
+
+    if (!password.trim()) {
+      showError("Por favor ingresa tu contraseña");
+      return;
+    }
+
+    if (password.length < 6) {
+      showError("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
+    if (password.length > 50) {
+      showError("La contraseña no puede exceder 50 caracteres");
+      return;
+    }
+
     try {
       console.log("Iniciando proceso de login...");
       // Usamos la lógica de tu versión "nueva" (autenticarUsuario con email/password)
       const response = await autenticarUsuario(email, password);
       console.log("Autenticación exitosa:", response);
       
+      showSuccess("¡Inicio de sesión exitoso!");
+      
       // El login del UserContext maneja la redirección
       login(response);
     } catch (error) {
       console.error("Error en login:", error);
-      setError(error.message || "Error al intentar iniciar sesión");
+      const errorMessage = error.message || "Error al intentar iniciar sesión";
+      showError(errorMessage);
+      setError(errorMessage);
     }
   };
   // --- FIN DE LA LÓGICA ---
@@ -86,7 +125,9 @@ function App() {
               name="email"
               value={email} // Controlado por el estado
               onChange={(e) => setEmail(e.target.value)} // Controlado por el estado
+              maxLength={100}
               required
+              placeholder="correo@ejemplo.com"
             />
           </div>
 
@@ -98,7 +139,10 @@ function App() {
               name="password"
               value={password} // Controlado por el estado
               onChange={(e) => setPassword(e.target.value)} // Controlado por el estado
+              minLength={6}
+              maxLength={50}
               required
+              placeholder="Mínimo 6 caracteres"
             />
           </div>
 

@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { onSubmit } from "./controller";
 import { obtenerDatosDeRegistro } from "@/services/signUpService";
 import Link from "next/link";
+import { showSuccess, showError, showWarning } from "@/components/Notifications/toast";
 
 const EMPTY_DATA = { 
   sexos: [], 
@@ -16,15 +17,163 @@ const EMPTY_DATA = {
 
 function App() {
   const searchParams = useSearchParams();
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [dataRegistro, setDataRegistro] = useState(EMPTY_DATA);
   const [paisSeleccionado, setPaisSeleccionado] = useState("");
+  const [tipoDocumentoSeleccionado, setTipoDocumentoSeleccionado] = useState("");
+  const [numeroDocumento, setNumeroDocumento] = useState("");
+  const [fechaNacimiento, setFechaNacimiento] = useState("");
 
   // Ciudades filtradas: se recalcula en cada renderizado
   const ciudadesFiltradas = dataRegistro.ciudades.filter(
     (c) => c.idPais.toString() === paisSeleccionado
   );
+
+  // Funciones de validación
+  const calcularEdad = (fechaNac) => {
+    const hoy = new Date();
+    const nacimiento = new Date(fechaNac);
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const mes = hoy.getMonth() - nacimiento.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+      edad--;
+    }
+    return edad;
+  };
+
+  const validarDocumento = (tipoDoc, numero) => {
+    const tipoDocumento = dataRegistro.tiposDocumento.find(td => td.id.toString() === tipoDoc);
+    if (!tipoDocumento) return { valido: false, mensaje: "Tipo de documento no válido" };
+
+    const nombreTipo = tipoDocumento.nombre.toLowerCase();
+    
+    // DNI - 8 dígitos numéricos
+    if (nombreTipo.includes('dni')) {
+      if (!/^\d{8}$/.test(numero)) {
+        return { valido: false, mensaje: "El DNI debe tener exactamente 8 dígitos numéricos" };
+      }
+    }
+    // Carné de Extranjería - 9 caracteres alfanuméricos
+    else if (nombreTipo.includes('extranjería') || nombreTipo.includes('extranjeria')) {
+      if (!/^[A-Z0-9]{9}$/.test(numero.toUpperCase())) {
+        return { valido: false, mensaje: "El Carné de Extranjería debe tener 9 caracteres alfanuméricos" };
+      }
+    }
+    // Pasaporte - 9-12 caracteres alfanuméricos
+    else if (nombreTipo.includes('pasaporte')) {
+      if (!/^[A-Z0-9]{9,12}$/.test(numero.toUpperCase())) {
+        return { valido: false, mensaje: "El Pasaporte debe tener entre 9 y 12 caracteres alfanuméricos" };
+      }
+    }
+    // Otros documentos - validación genérica
+    else {
+      if (numero.length < 6 || numero.length > 20) {
+        return { valido: false, mensaje: "El documento debe tener entre 6 y 20 caracteres" };
+      }
+    }
+
+    return { valido: true };
+  };
+
+  const validarFormulario = (formData) => {
+    // Nombres
+    const nombres = formData.get("nombres").trim();
+    if (nombres.length < 2 || nombres.length > 50) {
+      showError("Los nombres deben tener entre 2 y 50 caracteres");
+      return false;
+    }
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombres)) {
+      showError("Los nombres solo pueden contener letras");
+      return false;
+    }
+
+    // Apellidos
+    const apellidos = formData.get("apellidos").trim();
+    if (apellidos.length < 2 || apellidos.length > 50) {
+      showError("Los apellidos deben tener entre 2 y 50 caracteres");
+      return false;
+    }
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(apellidos)) {
+      showError("Los apellidos solo pueden contener letras");
+      return false;
+    }
+
+    // Email
+    const email = formData.get("email").trim();
+    if (email.length > 100) {
+      showError("El email no puede exceder 100 caracteres");
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showError("Por favor ingresa un email válido");
+      return false;
+    }
+
+    // Contraseña
+    const password = formData.get("password");
+    if (password.length < 6 || password.length > 50) {
+      showError("La contraseña debe tener entre 6 y 50 caracteres");
+      return false;
+    }
+
+    // Fecha de nacimiento - Mayor de 18 años
+    const fechaNac = formData.get("fechaNacimiento");
+    if (!fechaNac) {
+      showError("Por favor ingresa tu fecha de nacimiento");
+      return false;
+    }
+    const edad = calcularEdad(fechaNac);
+    if (edad < 18) {
+      showError("Debes ser mayor de 18 años para registrarte");
+      return false;
+    }
+    if (edad > 120) {
+      showError("Por favor ingresa una fecha de nacimiento válida");
+      return false;
+    }
+
+    // Teléfono
+    const telefono = formData.get("telefono").trim();
+    if (!/^\+?\d{7,15}$/.test(telefono)) {
+      showError("El teléfono debe contener entre 7 y 15 dígitos");
+      return false;
+    }
+
+    // Dirección (opcional)
+    const direccion = formData.get("direccion")?.trim() || "";
+    if (direccion.length > 200) {
+      showError("La dirección no puede exceder 200 caracteres");
+      return false;
+    }
+
+    // Documento
+    const tipoDoc = formData.get("tipoDocumento");
+    const numDoc = formData.get("numeroDocumento").trim();
+    const validacionDoc = validarDocumento(tipoDoc, numDoc);
+    if (!validacionDoc.valido) {
+      showError(validacionDoc.mensaje);
+      return false;
+    }
+
+    // Validar selecciones
+    if (!formData.get("sexo")) {
+      showError("Por favor selecciona tu sexo");
+      return false;
+    }
+    if (!formData.get("pais") || !formData.get("ciudad")) {
+      showError("Por favor selecciona tu país y ciudad");
+      return false;
+    }
+
+    // Términos y condiciones
+    if (!formData.get("terminos")) {
+      showError("Debes aceptar los términos y condiciones");
+      return false;
+    }
+
+    return true;
+  };
 
   // Lógica de carga de datos (Método GET)
   useEffect(() => {
@@ -38,7 +187,7 @@ function App() {
         }
       } catch (err) {
         console.error("Error al cargar datos del formulario:", err);
-        setError(`Error al cargar opciones del formulario: ${err.message || 'Verifique el backend.'}`);
+        showError(`Error al cargar opciones del formulario: ${err.message || 'Verifique el backend.'}`);
       } finally {
         setIsLoading(false);
       }
@@ -49,6 +198,11 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
+
+    // Validar formulario completo
+    if (!validarFormulario(formData)) {
+      return;
+    }
 
     // Obtener valores seleccionados (código/ID) del formulario
     const sexoSeleccionado = formData.get("sexo");
@@ -64,11 +218,22 @@ function App() {
 
       // 2. Validación de selección (Verifica que se encontró un ID)
       if (!idSexo || !idTipoDocumento || !idCiudad || !paisSeleccionado) {
-          setError("Por favor, complete correctamente todos los campos de selección.");
+          showError("Por favor, complete correctamente todos los campos de selección.");
           return;
       }
 
-      // 3. Inyecta los IDs numéricos en el formData para el envío POST
+      // 3. Normalizar datos
+      formData.set("nombres", formData.get("nombres").trim());
+      formData.set("apellidos", formData.get("apellidos").trim());
+      formData.set("email", formData.get("email").trim());
+      formData.set("telefono", formData.get("telefono").trim());
+      formData.set("numeroDocumento", formData.get("numeroDocumento").trim().toUpperCase());
+      
+      // Dirección es opcional
+      const direccion = formData.get("direccion")?.trim() || "";
+      formData.set("direccion", direccion);
+      
+      // 4. Inyecta los IDs numéricos en el formData para el envío POST
       formData.set("idsexo", idSexo);
       formData.set("idtipoDocumento", idTipoDocumento);
       formData.set("idciudad", idCiudad);
@@ -79,10 +244,12 @@ function App() {
       const result = await onSubmit(formData, redirect);
       
       if (result?.error) {
-        setError(result.error);
+        showError(result.error);
+      } else {
+        showSuccess("¡Registro exitoso! Bienvenido a Eventodromo");
       }
     } catch (err) {
-      setError("Error al registrar usuario");
+      showError("Error al registrar usuario. Por favor intenta nuevamente");
       console.error(err);
     }
   };
@@ -108,7 +275,6 @@ function App() {
         </div>
         <div className="form-content">
           <form className="login-text-signup" onSubmit={handleSubmit}>
-            {error && <div className="error-message-signup">{error}</div>}
             <div>
               <label htmlFor="nombres">Nombres</label>
               <input
@@ -116,6 +282,7 @@ function App() {
                 id="nombres"
                 name="nombres"
                 required
+                maxLength={50}
                 placeholder="Nombres"
               />
             </div>
@@ -126,6 +293,7 @@ function App() {
                 id="apellidos"
                 name="apellidos"
                 required
+                maxLength={50}
                 placeholder="Apellidos"
               />
             </div>
@@ -136,7 +304,8 @@ function App() {
                 id="email"
                 name="email"
                 required
-                placeholder="Email"
+                maxLength={100}
+                placeholder="correo@ejemplo.com"
               />
             </div>
             <div>
@@ -146,12 +315,21 @@ function App() {
                 id="password"
                 name="password"
                 required
-                placeholder="Contraseña"
+                minLength={6}
+                maxLength={50}
+                placeholder="Mínimo 6 caracteres"
               />
             </div>
             <div>
               <label htmlFor="tipoDocumento">Tipo de documento</label>
-              <select id="tipoDocumento" name="tipoDocumento" className="select-custom" required>
+              <select 
+                id="tipoDocumento" 
+                name="tipoDocumento" 
+                className="select-custom" 
+                required
+                value={tipoDocumentoSeleccionado}
+                onChange={(e) => setTipoDocumentoSeleccionado(e.target.value)}
+              >
                 <option value="">Seleccionar</option>
                 {dataRegistro.tiposDocumento.map((td) => (
                   <option key={td.id} value={td.id}> 
@@ -167,6 +345,9 @@ function App() {
                 id="numeroDocumento"
                 name="numeroDocumento"
                 required
+                maxLength={20}
+                value={numeroDocumento}
+                onChange={(e) => setNumeroDocumento(e.target.value)}
                 placeholder="Número de documento"
               />
             </div>
@@ -177,6 +358,9 @@ function App() {
                 id="fechaNacimiento"
                 name="fechaNacimiento"
                 required
+                max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                value={fechaNacimiento}
+                onChange={(e) => setFechaNacimiento(e.target.value)}
               />
             </div>
             <div>
@@ -186,7 +370,18 @@ function App() {
                 id="telefono"
                 name="telefono"
                 required
-                placeholder="Teléfono"
+                maxLength={15}
+                placeholder="+51 999999999"
+              />
+            </div>
+            <div>
+              <label htmlFor="direccion">Dirección</label>
+              <input
+                type="text"
+                id="direccion"
+                name="direccion"
+                maxLength={200}
+                placeholder="Dirección (opcional)"
               />
             </div>
             <div>
