@@ -6,7 +6,12 @@ import { useCart } from "@/context/CartContext";
 import CostoDetalleEntradas from "./costoDetalleEntradas";
 
 export const CostoDetalleEntradasController = () => {
-  const { cartItems, totalPrice, isLoading } = useCart();
+  const { cartItems, totalPrice, isLoading, cart } = useCart();
+
+  // Obtener información de descuento del carrito
+  const subtotal = cart?.subtotal ?? totalPrice;
+  const descuento = cart?.descuento ?? 0;
+  const promocionAplicada = cart?.promocionAplicada ?? null;
 
   const { eventos, dromoPuntos } = useMemo(() => {
     console.log('🔍 [CostoDetalleEntradas] cartItems recibidos:', cartItems);
@@ -94,7 +99,10 @@ export const CostoDetalleEntradasController = () => {
   return (
     <CostoDetalleEntradas
       eventos={eventos}
+      subtotal={subtotal}
+      descuento={descuento}
       totalGeneral={totalPrice}
+      promocionAplicada={promocionAplicada}
       dromoPuntos={dromoPuntos}
       isLoading={isLoading}
       error={null}

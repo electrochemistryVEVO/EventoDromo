@@ -268,6 +268,7 @@ const normalizeCartPayload = (raw) => {
       expirationTime: null,
       cartId: null,
       totalCart: 0,
+      rawCart: null,
     };
   }
 
@@ -289,6 +290,7 @@ const normalizeCartPayload = (raw) => {
     expirationTime,
     cartId,
     totalCart,
+    rawCart: raw, // Incluimos el objeto crudo del carrito con promocionAplicada, subtotal, descuento, etc.
   };
 };
 

@@ -11,6 +11,9 @@ import styles from "@/css/compraPagoConLogin.module.css";
 import { CostoDetalleEntradasController } from "@/components/carrito/CostoDetalleEntradas.controller";
 import CartTimer from "@/components/carrito/CartTimer";
 import { obtenerConfiguracion } from "@/services/config.service";
+import CodigoDescuentoSection from "@/components/carrito/CodigoDescuentoSection";
+import { aplicarCodigoDescuento, removerCodigoDescuento } from "@/services/codigo-descuento.service";
+import { showSuccess, showError, showWarning } from "@/components/Notifications/toast";
 
 import { procesarPagoConTarjeta, procesarPagoConPuntos } from "@/services/Transaccion.service";
 // --- COMPONENTES INTERNOS DE LA PÁGINA ---
@@ -264,6 +267,8 @@ function CompraPagoConLoginPage() {
         isLoading: isCartLoading,
         itemCount,
         totalPrice,
+        cart,
+        refreshCart,
     } = useCart();
     const { user, isAuthenticated, isLoading: isUserLoading, updateUserPoints, refreshUserPoints } = useUser();
 
@@ -280,10 +285,19 @@ function CompraPagoConLoginPage() {
     const [formErrors, setFormErrors] = useState({});
     const [isProcessing, setIsProcessing] = useState(false); // Para el loader del botón "Pagar"
 
+    // --- ESTADO PARA CÓDIGO DE DESCUENTO ---
+    const [isApplyingCode, setIsApplyingCode] = useState(false);
+
     const isLoading = isCartLoading || isUserLoading;
 
     const userPuntos = user?.totalPuntos ?? 0;
     const [puntosPorSol, setPuntosPorSol] = useState(10);
+
+    // Obtener información de descuento del carrito
+    const promocionAplicada = cart?.promocionAplicada || null;
+    const subtotal = cart?.subtotal || totalPrice;
+    const descuento = cart?.descuento || 0;
+    const totalFinal = cart?.totalCarrito || totalPrice;
 
     // ✅ Los puntos se actualizan automáticamente en UserContext (segundo plano)
     // Ya no es necesario llamar refreshUserPoints() aquí
@@ -313,6 +327,59 @@ function CompraPagoConLoginPage() {
             router.replace("/user/carrito/entradaDetalle");
         }
     }, [isLoading, isAuthenticated, itemCount, router, showModal]);
+
+    // --- HANDLERS PARA CÓDIGOS DE DESCUENTO ---
+    const handleAplicarCodigo = async (codigo) => {
+        if (!cart?.idCarrito) {
+            showError("No se pudo obtener el carrito");
+            return;
+        }
+
+        setIsApplyingCode(true);
+
+        try {
+            const response = await aplicarCodigoDescuento(codigo, cart.idCarrito, user.token);
+
+            if (response.success && response.data?.exito) {
+                showSuccess(response.data.mensaje || "Código aplicado exitosamente");
+                // Refrescar el carrito para obtener los nuevos totales
+                await refreshCart();
+            } else {
+                showError(response.data?.mensaje || response.message || "Código inválido");
+            }
+        } catch (error) {
+            console.error("Error al aplicar código:", error);
+            showError(error.message || "Error al aplicar el código");
+        } finally {
+            setIsApplyingCode(false);
+        }
+    };
+
+    const handleRemoverCodigo = async () => {
+        if (!cart?.idCarrito) {
+            showError("No se pudo obtener el carrito");
+            return;
+        }
+
+        setIsApplyingCode(true);
+
+        try {
+            const response = await removerCodigoDescuento(cart.idCarrito, user.token);
+
+            if (response.success) {
+                showSuccess("Código removido exitosamente");
+                // Refrescar el carrito para obtener los nuevos totales
+                await refreshCart();
+            } else {
+                showError(response.message || "Error al remover el código");
+            }
+        } catch (error) {
+            console.error("Error al remover código:", error);
+            showError(error.message || "Error al remover el código");
+        } finally {
+            setIsApplyingCode(false);
+        }
+    };
 
     // --- HANDLERS PARA EL FORMULARIO ---
 
@@ -412,7 +479,7 @@ function CompraPagoConLoginPage() {
             // --- Lógica de Pago por PUNTOS ---
             } else if (selectedPaymentMethod === "dromopuntos") {
                 
-                const puntosRequeridos = Math.ceil(totalPrice / puntosPorSol);
+                const puntosRequeridos = Math.ceil(totalFinal / puntosPorSol);
                 if (userPuntos < puntosRequeridos) {
                     throw new Error("Puntos insuficientes para realizar esta compra.");
                 }
@@ -503,8 +570,17 @@ function CompraPagoConLoginPage() {
                     formErrors={formErrors}
                     handleCardInputChange={handleCardInputChange}
                     userPuntos={userPuntos}
-                    totalPrice={totalPrice}
+                    totalPrice={totalFinal}
                     puntosPorSol={puntosPorSol}
+                />
+
+                {/* 2.5. Componente de Código de Descuento */}
+                <CodigoDescuentoSection
+                    promocionAplicada={promocionAplicada}
+                    onAplicarCodigo={handleAplicarCodigo}
+                    onRemoverCodigo={handleRemoverCodigo}
+                    isProcessing={isApplyingCode}
+                    disabled={isProcessing}
                 />
 
                 {/* 3. Columna de Resumen de Compra */}
@@ -515,15 +591,34 @@ function CompraPagoConLoginPage() {
                         <CostoDetalleEntradasController />
                         <div className="flex flex-col items-center gap-4 pt-4 mt-auto border-t border-gray-300">
 
+                            {/* Mostrar desglose de costos */}
+                            <div className="w-full space-y-2">
+                                <div className="flex justify-between text-gray-700">
+                                    <span>Subtotal:</span>
+                                    <span>S/. {subtotal.toFixed(2)}</span>
+                                </div>
+                                
+                                {descuento > 0 && (
+                                    <div className="flex justify-between text-green-600 font-semibold">
+                                        <span>Descuento:</span>
+                                        <span>- S/. {descuento.toFixed(2)}</span>
+                                    </div>
+                                )}
+                            </div>
+
                             {selectedPaymentMethod === "tarjeta" && (
                                 <div className="flex flex-col items-center w-full gap-1">
-                                    <div className="text-xl font-bold">Total: S/. {totalPrice.toFixed(2)}</div>
+                                    <div className="text-xl font-bold border-t border-gray-300 pt-2 w-full text-center">
+                                        Total: S/. {totalFinal.toFixed(2)}
+                                    </div>
                                 </div>
                             )}
 
                             {/* Muestra Total en PUNTOS si es dromopuntos */}
                             {selectedPaymentMethod === "dromopuntos" && (
-                                <div className="text-xl font-bold">Total: {Math.ceil(totalPrice / puntosPorSol)} Puntos</div>
+                                <div className="text-xl font-bold border-t border-gray-300 pt-2 w-full text-center">
+                                    Total: {Math.ceil(totalFinal / puntosPorSol)} Puntos
+                                </div>
                             )}
 
                             {selectedPaymentMethod ? (

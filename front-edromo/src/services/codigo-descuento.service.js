@@ -1,29 +1,21 @@
 // src/services/codigo-descuento.service.js
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+import { api } from "@/lib/api";
 
 /**
  * Valida un código de descuento
  * @param {string} codigo - El código de descuento a validar
- * @param {string} token - Token de autenticación del usuario
+ * @param {number} idCarrito - ID del carrito (opcional)
  * @returns {Promise<{valido: boolean, descuento: number, mensaje: string}>}
  */
-export const validarCodigoDescuento = async (codigo, token) => {
+export const validarCodigoDescuento = async (codigo, idCarrito = null) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/CodigoDescuento/Validar`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-      body: JSON.stringify({ codigo }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.mensaje || "Error al validar el código");
+    let endpoint = `/CodigoDescuento/Validar?codigo=${encodeURIComponent(codigo)}`;
+    if (idCarrito) {
+      endpoint += `&idCarrito=${idCarrito}`;
     }
 
-    return await response.json();
+    const data = await api.get(endpoint);
+    return data;
   } catch (error) {
     console.error("Error en validarCodigoDescuento:", error);
     throw error;
@@ -34,26 +26,12 @@ export const validarCodigoDescuento = async (codigo, token) => {
  * Aplica un código de descuento al carrito
  * @param {string} codigo - El código de descuento
  * @param {number} idCarrito - ID del carrito
- * @param {string} token - Token de autenticación
  * @returns {Promise<{exito: boolean, descuentoAplicado: number, mensaje: string}>}
  */
-export const aplicarCodigoDescuento = async (codigo, idCarrito, token) => {
+export const aplicarCodigoDescuento = async (codigo, idCarrito) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/CodigoDescuento/Aplicar`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ codigo, idCarrito }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.mensaje || "Error al aplicar el código");
-    }
-
-    return await response.json();
+    const data = await api.post("/CodigoDescuento/Aplicar", { codigo, idCarrito });
+    return data;
   } catch (error) {
     console.error("Error en aplicarCodigoDescuento:", error);
     throw error;
@@ -63,27 +41,12 @@ export const aplicarCodigoDescuento = async (codigo, idCarrito, token) => {
 /**
  * Remueve un código de descuento del carrito
  * @param {number} idCarrito - ID del carrito
- * @param {string} token - Token de autenticación
  * @returns {Promise<{exito: boolean, mensaje: string}>}
  */
-export const removerCodigoDescuento = async (idCarrito, token) => {
+export const removerCodigoDescuento = async (idCarrito) => {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/CodigoDescuento/Remover/${idCarrito}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.mensaje || "Error al remover el código");
-    }
-
-    return await response.json();
+    const data = await api.delete(`/CodigoDescuento/Remover/${idCarrito}`);
+    return data;
   } catch (error) {
     console.error("Error en removerCodigoDescuento:", error);
     throw error;
