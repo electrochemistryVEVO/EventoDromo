@@ -32,6 +32,7 @@ export const obtenerIndicadoresDashboard = async () => {
       },
     });
 
+    console.log("Respuesta de obtenerIndicadoresDashboard:", response.data);
     if (!response.ok) {
       throw new Error(
         `Error HTTP ${response.status}: La solicitud de indicadores falló.`

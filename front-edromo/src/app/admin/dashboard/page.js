@@ -70,14 +70,6 @@ const DashboardAnaliticasPage = () => {
             )}
           />
           <IndicadorCard
-            icono={ICON_PATHS.puntos}
-            titulo="Uso de puntos promedio"
-            valor={indicadores.puntosUsadosPromedio.valor}
-            porcentajeCambio={formatearPorcentaje(
-              indicadores.puntosUsadosPromedio.porcentajeCambio
-            )}
-          />
-          <IndicadorCard
             icono={ICON_PATHS.entradas}
             titulo="Entradas Vendidas"
             valor={indicadores.entradasVendidas.valor.toLocaleString("es-PE")}
@@ -102,15 +94,6 @@ const DashboardAnaliticasPage = () => {
               indicadores.tiempoSesionPromedio.porcentajeCambio
             )}
           />
-          <IndicadorCard
-            icono={ICON_PATHS.conversion}
-            titulo="Tasa de Conversión"
-            valor={indicadores.tasaConversion.valor}
-            sufijoValor="%"
-            porcentajeCambio={formatearPorcentaje(
-              indicadores.tasaConversion.porcentajeCambio
-            )}
-          />
         </div>
       )}
 
@@ -119,6 +102,7 @@ const DashboardAnaliticasPage = () => {
           <DashboardSectionCard
             titulo="Eventos más vendidos"
             icono={ICON_PATHS.eventosVendidos}
+            subtitulo="de los últimos 30 días"
           >
             <div className="flex flex-col space-y-2">
               {eventos.map((evento) => (
@@ -132,16 +116,12 @@ const DashboardAnaliticasPage = () => {
           <DashboardSectionCard
             titulo="Ocupación de Locales"
             icono={ICON_PATHS.ocupacionLocales}
+            subtitulo="de los últimos 30 días"
           >
             <div className="grid grid-cols-3 gap-4 pb-2 mb-2 border-b text-sm font-semibold text-gray-500">
               <div className="col-span-1">Local</div>
               <div className="col-span-1 text-center">Días Ocupados</div>
-              <div className="col-span-1">
-                Tasa de ocupación{" "}
-                <span className="text-xs text-gray-400 font-normal">
-                  (Últimos 30 días)
-                </span>
-              </div>
+              <div className="col-span-1">Tasa de ocupación</div>
             </div>
             <div className="flex flex-col">
               {ocupacion.map((local) => (
