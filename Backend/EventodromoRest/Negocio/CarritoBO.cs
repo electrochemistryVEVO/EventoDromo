@@ -88,10 +88,29 @@ namespace EventodromoRest.Negocio
 
                     eventoDto.entradas.Add(nuevaEntrada);
                     eventoDto.totalEvento += nuevaEntrada.precio; // Sumamos al total del evento
-                    response.totalCarrito += nuevaEntrada.precio; // Sumamos al total general del carrito
+                    response.subtotal += nuevaEntrada.precio; // Sumamos al subtotal sin descuento
                 }
                 response.eventos.Add(eventoDto);
             }
+
+            // Obtener información del descuento si existe
+            var promocionMapper = new PromocionMapper(globales, DB);
+            var promocion = promocionMapper.ObtenerPromocionDeCarrito(response.idCarrito);
+            
+            if (promocion != null)
+            {
+                response.descuento = promocionMapper.ObtenerMontoDescuentoCarrito(response.idCarrito);
+                response.promocionAplicada = new PromocionCarritoDTO
+                {
+                    codigo = promocion.codigo,
+                    tipo = promocion.tipo,
+                    valor = promocion.valor,
+                    montoDescuento = response.descuento
+                };
+            }
+
+            // Calcular total final (subtotal - descuento)
+            response.totalCarrito = response.subtotal - response.descuento;
 
             return response;
         }

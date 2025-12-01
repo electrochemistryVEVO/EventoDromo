@@ -29,6 +29,7 @@ const computeEntradasTotal = (entradas = []) =>
 export const CartProvider = ({ children }) => {
   const { user, isAuthenticated, logout } = useUser();
   const [cartItems, setCartItems] = useState([]);
+  const [cart, setCart] = useState(null); // Objeto completo del carrito con descuentos
   const [expirationTime, setExpirationTime] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [syncingItemIds, setSyncingItemIds] = useState(new Set());
@@ -128,6 +129,7 @@ export const CartProvider = ({ children }) => {
 
         if (response.success) {
           setCartItems(response.data.items);
+          setCart(response.data.rawCart); // Guardar objeto completo del carrito
           setExpirationTime(response.data.expirationTime);
           localStorage.removeItem("cart");
           localStorage.removeItem("cartExpiration");
@@ -826,8 +828,36 @@ export const CartProvider = ({ children }) => {
   const totalPrice = cartItems.reduce((acc, item) => acc + item.totalItem, 0);
   const itemCount = cartItems.length;
 
+  /**
+   * Función para refrescar el carrito desde el backend
+   * Útil después de aplicar/remover códigos de descuento
+   */
+  const refreshCart = async () => {
+    if (!isAuthenticated) return;
+    
+    const token = resolveAuthToken();
+    if (!token) {
+      console.warn("[CartContext] No se pudo obtener token para refrescar el carrito.");
+      return;
+    }
+
+    try {
+      const { fetchCartWithToken } = await import("@/services/Cart.service");
+      const response = await fetchCartWithToken(token);
+      
+      if (response.success) {
+        setCartItems(response.data.items);
+        setCart(response.data.rawCart); // Actualizar objeto completo
+        setExpirationTime(response.data.expirationTime);
+      }
+    } catch (error) {
+      console.error("[CartContext] Error al refrescar carrito:", error);
+    }
+  };
+
   const value = {
     cartItems,
+    cart, // Objeto completo del carrito con descuentos
     expirationTime,
     totalPrice,
     itemCount,
@@ -840,6 +870,7 @@ export const CartProvider = ({ children }) => {
     incrementEntryInCart,
     clearCart,
     addTicketsToCart,
+    refreshCart, // Nueva función para refrescar
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

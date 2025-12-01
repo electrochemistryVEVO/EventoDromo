@@ -7,7 +7,10 @@ const formatCurrency = (value) => `S/. ${value?.toFixed(2) ?? 0}`;
 
 export const CostoDetalleEntradas = ({
   eventos,
+  subtotal,
+  descuento,
   totalGeneral,
+  promocionAplicada,
   dromoPuntos,
   isLoading,
   error,
@@ -89,8 +92,28 @@ export const CostoDetalleEntradas = ({
   return (
     <div className="w-full">
       {renderContent()}
-      <div className="pt-3 mt-3 text-lg font-bold text-right text-gray-800 border-t-2 border-gray-300">
-        Total: {formatCurrency(totalGeneral)}
+      <div className="pt-3 mt-3 space-y-2">
+        {descuento > 0 ? (
+          <>
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>Subtotal:</span>
+              <span>{formatCurrency(subtotal)}</span>
+            </div>
+            <div className="flex justify-between text-sm text-green-600 font-semibold">
+              <span>Descuento:</span>
+              <span>- {formatCurrency(descuento)}</span>
+            </div>
+            <div className="pt-2 border-t-2 border-gray-300 flex justify-between text-lg font-bold text-gray-800">
+              <span>Total:</span>
+              <span>{formatCurrency(totalGeneral)}</span>
+            </div>
+          </>
+        ) : (
+          <div className="border-t-2 border-gray-300 pt-2 flex justify-between text-lg font-bold text-gray-800">
+            <span>Total:</span>
+            <span>{formatCurrency(totalGeneral)}</span>
+          </div>
+        )}
       </div>
       {dromoPuntos > 0 && (
         <div className="mt-4 px-3 py-2 bg-linear-to-r from-emerald-50 to-teal-50 border-l-4 border-[#00C49A] rounded">

@@ -30,9 +30,20 @@ namespace EventodromoRest.Modelos
     public class ResponseObtenerCarrito
     {
         public int idCarrito { get; set; }
-        public decimal totalCarrito { get; set; } = 0;
+        public decimal subtotal { get; set; } = 0; // Subtotal sin descuento
+        public decimal descuento { get; set; } = 0; // Monto del descuento aplicado
+        public decimal totalCarrito { get; set; } = 0; // Total con descuento aplicado
         public DateTime fechaExpiracion { get; set; }
         public List<EventoCarritoDTO> eventos { get; set; }
+        public PromocionCarritoDTO? promocionAplicada { get; set; } // Info de la promoción si hay alguna
+    }
+
+    public class PromocionCarritoDTO
+    {
+        public string codigo { get; set; }
+        public string tipo { get; set; } // "PORCENTAJE" o "MONTO_FIJO"
+        public decimal valor { get; set; }
+        public decimal montoDescuento { get; set; }
     }
 
     public class RequestSincronizarCarrito
