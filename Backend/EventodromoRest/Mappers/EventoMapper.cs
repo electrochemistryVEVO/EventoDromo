@@ -553,7 +553,9 @@ namespace EventodromoRest.Mappers
                 T.NOMBRE AS TipoEntradaNombre,
                 T.PRECIO,
                 T.PUNTOS,
-                T.LIMITECOMPRA
+                T.LIMITECOMPRA,
+                T.CANTIDADENTRADAS,
+                T.CANTIDADVENDIDA
             FROM
                 FechaEvento AS F
             LEFT JOIN
@@ -592,14 +594,20 @@ namespace EventodromoRest.Mappers
                     // (Verificamos si existe, por si una función no tiene tipos de entrada)
                     if (!DB.IsDBNull("TipoEntradaId"))
                     {
+                        int cantidadEntradas = DB.GetInt("CANTIDADENTRADAS");
+                        int cantidadVendida = DB.GetInt("CANTIDADVENDIDA");
+                        int disponibles = cantidadEntradas - cantidadVendida;
+                        
                         var tipoEntrada = new ResponseTipoEntrada
                         {
                             id = DB.GetInt("TipoEntradaId"),
                             nombre = DB.GetString("TipoEntradaNombre"),
                             precio = double.Parse(DB.GetDecimal("PRECIO").ToString()),
                             puntos = DB.GetInt("PUNTOS"),
-                            agotado = false, // Tu lógica original
-                            limiteCompra = DB.GetInt("LIMITECOMPRA") // <<< MAPEO DEL NUEVO CAMPO
+                            agotado = disponibles <= 0,
+                            limiteCompra = DB.GetInt("LIMITECOMPRA"),
+                            cantidadEntradas = cantidadEntradas,
+                            cantidadVendida = cantidadVendida
                         };
                         funcionesDict[fechaEventoId].tiposDeEntrada.Add(tipoEntrada);
                     }
