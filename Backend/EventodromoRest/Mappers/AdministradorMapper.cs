@@ -141,49 +141,57 @@ namespace EventodromoRest.Mappers
 WITH 
 Fechas AS (
     SELECT 
-        DATE_FORMAT(NOW(), '%Y-%m-01 00:00:00') as InicioMesActual,
-        DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01 00:00:00') as InicioMesAnterior
+        DATE_FORMAT(CONVERT_TZ(NOW(), @@session.time_zone, '-05:00'), '%Y-%m-01 00:00:00') AS InicioMesActual,
+        DATE_FORMAT(
+            DATE_SUB(CONVERT_TZ(NOW(), @@session.time_zone, '-05:00'), INTERVAL 1 MONTH),
+            '%Y-%m-01 00:00:00'
+        ) AS InicioMesAnterior
 ),
 
 KpiTransaccional AS (
     SELECT 
-        COALESCE(SUM(CASE WHEN t.fechaHoraCompra >= f.InicioMesActual THEN t.montoTotal ELSE 0 END), 0) as Ingresos_Actual,
-        COALESCE(SUM(CASE WHEN t.fechaHoraCompra >= f.InicioMesAnterior AND t.fechaHoraCompra < f.InicioMesActual THEN t.montoTotal ELSE 0 END), 0) as Ingresos_Anterior,
+        COALESCE(SUM(CASE WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesActual THEN t.montoTotal ELSE 0 END), 0) as Ingresos_Actual,
+        COALESCE(SUM(CASE WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesAnterior 
+                          AND CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') < f.InicioMesActual THEN t.montoTotal ELSE 0 END), 0) as Ingresos_Anterior,
         
-        COALESCE(COUNT(DISTINCT CASE WHEN t.fechaHoraCompra >= f.InicioMesActual THEN t.idCliente END), 0) as Compradores_Actual,
-        COALESCE(COUNT(DISTINCT CASE WHEN t.fechaHoraCompra >= f.InicioMesAnterior AND t.fechaHoraCompra < f.InicioMesActual THEN t.idCliente END), 0) as Compradores_Anterior
+        COALESCE(COUNT(DISTINCT CASE WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesActual THEN t.idCliente END), 0) as Compradores_Actual,
+        COALESCE(COUNT(DISTINCT CASE WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesAnterior 
+                          AND CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') < f.InicioMesActual THEN t.idCliente END), 0) as Compradores_Anterior
     FROM Transaccion t
     JOIN Fechas f ON 1=1
-    WHERE t.fechaHoraCompra >= f.InicioMesAnterior
+    WHERE CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesAnterior
 ),
 
 KpiEntradas AS (
     SELECT 
-        COALESCE(COUNT(CASE WHEN t.fechaHoraCompra >= f.InicioMesActual THEN 1 END), 0) as Actual,
-        COALESCE(COUNT(CASE WHEN t.fechaHoraCompra >= f.InicioMesAnterior AND t.fechaHoraCompra < f.InicioMesActual THEN 1 END), 0) as Anterior
+        COALESCE(COUNT(CASE WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesActual THEN 1 END), 0) as Actual,
+        COALESCE(COUNT(CASE WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesAnterior 
+                            AND CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') < f.InicioMesActual THEN 1 END), 0) as Anterior
     FROM LineaTransaccion lt
     JOIN Transaccion t ON lt.idTransaccion = t.id
     JOIN Fechas f ON 1=1
-    WHERE t.fechaHoraCompra >= f.InicioMesAnterior
+    WHERE CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesAnterior
 ),
 
 KpiPuntos AS (
     SELECT 
-        COALESCE(SUM(CASE WHEN t.fechaHoraCompra >= f.InicioMesActual THEN tp.puntosGastados ELSE 0 END), 0) as Actual,
-        COALESCE(SUM(CASE WHEN t.fechaHoraCompra >= f.InicioMesAnterior AND t.fechaHoraCompra < f.InicioMesActual THEN tp.puntosGastados ELSE 0 END), 0) as Anterior
+        COALESCE(SUM(CASE WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesActual THEN tp.puntosGastados ELSE 0 END), 0) as Actual,
+        COALESCE(SUM(CASE WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesAnterior 
+                          AND CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') < f.InicioMesActual THEN tp.puntosGastados ELSE 0 END), 0) as Anterior
     FROM TransaccionPuntos tp
     JOIN Transaccion t ON tp.idTransaccion = t.id
     JOIN Fechas f ON 1=1
-    WHERE t.fechaHoraCompra >= f.InicioMesAnterior
+    WHERE CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesAnterior
 ),
 
 KpiUsuarios AS (
     SELECT 
-        COALESCE(COUNT(CASE WHEN c.fechaCreacion >= f.InicioMesActual THEN 1 END), 0) as Actual,
-        COALESCE(COUNT(CASE WHEN c.fechaCreacion >= f.InicioMesAnterior AND c.fechaCreacion < f.InicioMesActual THEN 1 END), 0) as Anterior
+        COALESCE(COUNT(CASE WHEN CONVERT_TZ(c.fechaCreacion, '+00:00', '-05:00') >= f.InicioMesActual THEN 1 END), 0) as Actual,
+        COALESCE(COUNT(CASE WHEN CONVERT_TZ(c.fechaCreacion, '+00:00', '-05:00') >= f.InicioMesAnterior 
+                            AND CONVERT_TZ(c.fechaCreacion, '+00:00', '-05:00') < f.InicioMesActual THEN 1 END), 0) as Anterior
     FROM Cliente c
     JOIN Fechas f ON 1=1
-    WHERE c.fechaCreacion >= f.InicioMesAnterior
+    WHERE CONVERT_TZ(c.fechaCreacion, '+00:00', '-05:00') >= f.InicioMesAnterior
 )
 
 SELECT 
