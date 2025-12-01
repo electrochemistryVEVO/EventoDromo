@@ -32,11 +32,8 @@ export const useAnaliticasController = () => {
         ) {
           setIndicadores(resultados[0].value.data);
         } else {
-          errores.push("No se pudieron cargar los indicadores.");
-          console.error(
-            "Error obteniendo indicadores:",
-            resultados[0].reason || resultados[0].value.message
-          );
+          // Si no hay datos, no es un error crítico
+          setIndicadores(null);
         }
 
         if (
@@ -55,11 +52,8 @@ export const useAnaliticasController = () => {
 
           setEventos(eventosOrdenados);
         } else {
-          errores.push("No se pudieron cargar los eventos más vendidos.");
-          console.error(
-            "Error obteniendo eventos:",
-            resultados[1].reason || resultados[1].value.message
-          );
+          // Si no hay eventos, array vacío (no es error)
+          setEventos([]);
         }
 
         if (
@@ -70,8 +64,6 @@ export const useAnaliticasController = () => {
           const listaLocales = resultados[2].value.data || [];
 
           // 2. Ordenamos de MAYOR a MENOR por tasa de ocupación
-          // IMPORTANTE: Asegúrate de que la propiedad en tu JSON se llame "tasaOcupacion".
-          // Si tu backend la envía como "porcentaje" o "valor", cambia 'b.tasaOcupacion' por ese nombre.
           const listaOrdenada = listaLocales.sort((a, b) => {
             const tasaA = a.tasaOcupacion || 0;
             const tasaB = b.tasaOcupacion || 0;
@@ -84,13 +76,11 @@ export const useAnaliticasController = () => {
           // 4. Guardamos en el estado
           setOcupacion(top10Locales);
         } else {
-          errores.push("No se pudo cargar la ocupación de locales.");
-          console.error(
-            "Error obteniendo ocupación:",
-            resultados[2].reason || resultados[2].value.message
-          );
+          // Si no hay ocupación, array vacío (no es error)
+          setOcupacion([]);
         }
 
+        // Solo mostrar error si todas las llamadas fallaron
         if (errores.length > 0) {
           setError(errores.join(" "));
         }

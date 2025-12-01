@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { servicePerfil } from "@/services/transferir.service";
+import { useUser } from "@/context/UserContext";
 
 export default function TransferirButton({ 
   transaccion = null, 
@@ -8,6 +9,7 @@ export default function TransferirButton({
   disabled = false, // Nuevo prop para deshabilitar el botón
   disabledReason = null // Razón específica para deshabilitar: 'expired', 'no-available', etc.
 }) {
+  const { user } = useUser();
   const [showModal, setShowModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -109,6 +111,28 @@ export default function TransferirButton({
     setEmailError('');
 
     try {
+      // Validar que no se esté transfiriendo a sí mismo
+      if (user?.email && transferEmail.toLowerCase() === user.email.toLowerCase()) {
+        setEmailError('No puedes transferir entradas a ti mismo');
+        setIsTransferring(false);
+        return;
+      }
+
+      // Validar que el email exista en la base de datos
+      try {
+        const clienteDestino = await servicePerfil.obtenerPorEmail(transferEmail);
+        if (!clienteDestino) {
+          setEmailError('El correo electrónico no está registrado en el sistema');
+          setIsTransferring(false);
+          return;
+        }
+      } catch (emailValidationError) {
+        console.error('Error al validar email:', emailValidationError);
+        setEmailError('El correo electrónico no está registrado en el sistema');
+        setIsTransferring(false);
+        return;
+      }
+
       // Preparar datos de transferencia
       const entradasATransferir = Object.entries(selected)
         .filter(([id, sel]) => sel && quantities[id] > 0)

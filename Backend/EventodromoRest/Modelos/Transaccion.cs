@@ -5,6 +5,7 @@
         public int id { get; set; }
         public int idCarrito { get; set; }
         public Carrito carrito { get; set; }
+        public int? idCliente { get; set; } // ID del cliente que realizó la compra
         public DateTime fechaHoraCompra { get; set; }
         public string numeroTransaccion { get; set; }
         public string nombresCliente { get; set; }
@@ -13,7 +14,10 @@
         public string numeroDocumentoCliente { get; set; }
         public int idTipoDocumento { get; set; }
         public TipoDocumento tipoDocumento { get; set; }
-        public decimal montoTotal { get; set; }
+        public decimal subtotal { get; set; } // Subtotal sin descuento
+        public decimal montoDescuento { get; set; } // Monto del descuento aplicado
+        public int? idPromocionAplicada { get; set; } // ID de la promoción usada
+        public decimal montoTotal { get; set; } // Total final (subtotal - descuento)
     }
     public class RequestTransferencia
     {
@@ -58,6 +62,7 @@
     public class PrecioEntradaDTO
     {
         public int IdEntrada { get; set; }
+        public int IdTipoEntrada { get; set; }
         public decimal Precio { get; set; }
         public int Puntos { get; set; }
     }

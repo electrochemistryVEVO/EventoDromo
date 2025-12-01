@@ -85,8 +85,7 @@ namespace EventodromoRest.Negocio
                 var detallesEntradas = transaccionMapper.ObtenerDetallesEntradasParaEmail(response.IdTransaccion);
                 var emailService = new EmailService();
                 
-                // Obtener información del carrito para el descuento ANTES del Task.Run
-                var carritoMapper = new CarritoMapper(globales, DB);
+                // Obtener información del descuento de la transacción ANTES del Task.Run
                 var promocionMapper = new PromocionMapper(globales, DB);
                 var transaccion = transaccionMapper.ObtenerTransaccionPorId(response.IdTransaccion);
                 
@@ -95,14 +94,14 @@ namespace EventodromoRest.Negocio
                 
                 if (transaccion != null)
                 {
-                    var carrito = carritoMapper.ObtenerCarritoPorId(transaccion.idCarrito);
-                    if (carrito != null && carrito.montoDescuento.HasValue && carrito.montoDescuento.Value > 0)
+                    // Obtener descuento directo de la transacción
+                    if (transaccion.montoDescuento > 0)
                     {
-                        montoDescuentoCapturado = carrito.montoDescuento.Value;
+                        montoDescuentoCapturado = transaccion.montoDescuento;
                         
-                        if (carrito.idPromocionAplicada.HasValue)
+                        if (transaccion.idPromocionAplicada.HasValue)
                         {
-                            var promocion = promocionMapper.ObtenerPromocionPorId(carrito.idPromocionAplicada.Value);
+                            var promocion = promocionMapper.ObtenerPromocionPorId(transaccion.idPromocionAplicada.Value);
                             codigoDescuentoCapturado = promocion?.codigo;
                         }
                     }
@@ -168,8 +167,7 @@ namespace EventodromoRest.Negocio
                 var detallesEntradas = transaccionMapper.ObtenerDetallesEntradasParaEmail(response.IdTransaccion);
                 var emailService = new EmailService();
                 
-                // Obtener información del carrito para el descuento ANTES del Task.Run
-                var carritoMapper = new CarritoMapper(globales, DB);
+                // Obtener información del descuento de la transacción ANTES del Task.Run
                 var promocionMapper = new PromocionMapper(globales, DB);
                 var transaccion = transaccionMapper.ObtenerTransaccionPorId(response.IdTransaccion);
                 
@@ -178,14 +176,14 @@ namespace EventodromoRest.Negocio
                 
                 if (transaccion != null)
                 {
-                    var carrito = carritoMapper.ObtenerCarritoPorId(transaccion.idCarrito);
-                    if (carrito != null && carrito.montoDescuento.HasValue && carrito.montoDescuento.Value > 0)
+                    // Obtener descuento directo de la transacción
+                    if (transaccion.montoDescuento > 0)
                     {
-                        montoDescuentoCapturado = carrito.montoDescuento.Value;
+                        montoDescuentoCapturado = transaccion.montoDescuento;
                         
-                        if (carrito.idPromocionAplicada.HasValue)
+                        if (transaccion.idPromocionAplicada.HasValue)
                         {
-                            var promocion = promocionMapper.ObtenerPromocionPorId(carrito.idPromocionAplicada.Value);
+                            var promocion = promocionMapper.ObtenerPromocionPorId(transaccion.idPromocionAplicada.Value);
                             codigoDescuentoCapturado = promocion?.codigo;
                         }
                     }

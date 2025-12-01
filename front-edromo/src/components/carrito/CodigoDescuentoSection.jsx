@@ -83,9 +83,6 @@ const CodigoDescuentoSection = ({
                   ? `${promocionAplicada.valor}% de descuento`
                   : `S/ ${promocionAplicada.valor.toFixed(2)} de descuento`}
               </p>
-              <p className="text-sm font-semibold text-green-800 mt-1">
-                Ahorras: S/ {promocionAplicada.montoDescuento.toFixed(2)}
-              </p>
             </div>
             <button
               onClick={onRemoverCodigo}

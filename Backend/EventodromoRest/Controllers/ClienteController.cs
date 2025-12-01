@@ -218,6 +218,54 @@ namespace EventodromoRest.Controllers
             }
         }
 
+
+        [HttpGet]
+        [Route("/api/[controller]/[action]/{email}")]
+        public GenericResponse<Cliente> ObtenerPorEmail(string email)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(email))
+                {
+                    throw new Exception("El email es requerido");
+                }
+
+                var clienteMapper = new ClienteMapper(globales, BD);
+                var cliente = clienteMapper.ObtenerClientePorEmail(email);
+
+                if (cliente == null)
+                {
+                    return new GenericResponse<Cliente>
+                    {
+                        Success = false,
+                        Message = "Cliente no encontrado",
+                        Error = "No existe un cliente con ese correo electrónico",
+                        Data = null
+                    };
+                }
+
+                return new GenericResponse<Cliente>
+                {
+                    Success = true,
+                    Message = "Cliente encontrado",
+                    Error = null,
+                    Data = cliente
+                };
+            }
+            catch (Exception ex)
+            {
+                var response = new GenericResponse<Cliente>
+                {
+                    Success = false,
+                    Message = null,
+                    Error = ex.Message,
+                    Data = null
+                };
+                AgregarEntradaBitacora(ex, JsonSerializer.Serialize(new { email }), JsonSerializer.Serialize(response));
+                return response;
+            }
+        }
+
         [HttpPut]
         [Route("/api/[controller]/[action]")]
         public GenericResponse<bool> ActualizarInformacionPersonal([FromBody] DatosCliente datosCliente)

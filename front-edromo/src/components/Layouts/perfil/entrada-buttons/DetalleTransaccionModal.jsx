@@ -40,10 +40,10 @@ export default function DetalleTransaccionModal({
 
   if (!detalle) return null;
 
-  const { evento, transaccion, cliente, entradas, metodoPago } = detalle;
+  const { evento, transaccion, cliente, entradas, metodoPago, subtotal, descuento, codigoDescuento } = detalle;
 
   // Calcular el total solo de las entradas de este evento (no usar detalle.Total)
-  const total = entradas.reduce((sum, entrada) => sum + entrada.subtotal, 0);
+  const total = detalle.total || entradas.reduce((sum, entrada) => sum + entrada.subtotal, 0);
 
   // Verificar si el evento ya pasó
   const eventoFecha = new Date(evento.fecha);
@@ -227,14 +227,34 @@ export default function DetalleTransaccionModal({
             </div>
           )}
 
-          {/* Total */}
-          <div className="border-t pt-4 flex justify-between items-center">
-            <span className="text-lg font-semibold">Total</span>
-            <span className="text-2xl font-bold text-purple-600">S/ {total.toFixed(2)}</span>
+          {/* Subtotal y Descuento */}
+          <div className="border-t pt-4 space-y-2">
+            {descuento > 0 ? (
+              <>
+                <div className="flex justify-between items-center text-gray-700">
+                  <span>Subtotal</span>
+                  <span>S/ {subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center text-green-600">
+                  <span>
+                    Descuento {codigoDescuento && `(${codigoDescuento})`}
+                  </span>
+                  <span>- S/ {descuento.toFixed(2)}</span>
+                </div>
+                <div className="border-t pt-2 flex justify-between items-center">
+                  <span className="text-lg font-semibold">Total</span>
+                  <span className="text-2xl font-bold text-purple-600">S/ {total.toFixed(2)}</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-semibold">Total</span>
+                <span className="text-2xl font-bold text-purple-600">S/ {total.toFixed(2)}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 }
-

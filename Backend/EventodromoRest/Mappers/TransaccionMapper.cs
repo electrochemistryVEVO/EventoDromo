@@ -325,8 +325,8 @@ namespace EventodromoRest.Mappers
 
                 // --- 4. Insertar Transacción Principal ---
                 string numeroDeTransaccion = "TXN-" + Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper();
-                string queryTrans = "INSERT INTO Transaccion (idCarrito, fechaHoraCompra, numeroTransaccion, nombresCliente, apellidosCliente, emailCliente, numeroDocumentoCliente, idTipoDocumento, montoTotal, idCliente) " +
-                                    "VALUES (@idCarrito, UTC_TIMESTAMP(), @numTrans, @nombres, @apellidos, @email, @numDoc, @idTipoDoc, @monto, @idCliente); SELECT LAST_INSERT_ID();";
+                string queryTrans = "INSERT INTO Transaccion (idCarrito, fechaHoraCompra, numeroTransaccion, nombresCliente, apellidosCliente, emailCliente, numeroDocumentoCliente, idTipoDocumento, montoTotal, idCliente, subtotal, montoDescuento, idPromocionAplicada) " +
+                                    "VALUES (@idCarrito, UTC_TIMESTAMP(), @numTrans, @nombres, @apellidos, @email, @numDoc, @idTipoDoc, @monto, @idCliente, @subtotal, @montoDescuento, @idPromocionAplicada); SELECT LAST_INSERT_ID();";
                 var pTrans = new ParameterList();
                 pTrans.Add("@idCarrito", carrito.id);
                 pTrans.Add("@numTrans", numeroDeTransaccion);
@@ -337,6 +337,9 @@ namespace EventodromoRest.Mappers
                 pTrans.Add("@idTipoDoc", request.DatosFacturacion.IdTipoDocumento);
                 pTrans.Add("@monto", montoTotalCalculado);
                 pTrans.Add("@idCliente", idCliente);
+                pTrans.Add("@subtotal", subtotal);
+                pTrans.Add("@montoDescuento", descuento);
+                pTrans.Add("@idPromocionAplicada", carrito.idPromocionAplicada.HasValue ? (object)carrito.idPromocionAplicada.Value : DBNull.Value);
 
                 int idTransaccion = Convert.ToInt32(DB.ExecuteScalar(queryTrans, pTrans));
 
@@ -347,7 +350,8 @@ namespace EventodromoRest.Mappers
                 pLinkTarj.Add("@idTarj", idTarjeta);
                 DB.ExecuteNonQuery(queryLinkTarj, pLinkTarj);
 
-                // --- 6. Vincular cada Entrada (LineaTransaccion) ---
+                // --- 6. Vincular cada Entrada (LineaTransaccion) y actualizar cantidadVendida ---
+                var tiposEntradaVendidos = new Dictionary<int, int>();
                 foreach (var entrada in entradasConPrecio)
                 {
                     string queryLinea = "INSERT INTO LineaTransaccion (idTransaccion, idEntrada, precio, puntosGanados) VALUES (@idTrans, @idEntrada, @precio, @puntos);";
@@ -357,6 +361,21 @@ namespace EventodromoRest.Mappers
                     pLinea.Add("@precio", entrada.Precio);
                     pLinea.Add("@puntos", entrada.Puntos);
                     DB.ExecuteNonQuery(queryLinea, pLinea);
+                    
+                    // Contar cuántas entradas de cada tipo se vendieron
+                    if (!tiposEntradaVendidos.ContainsKey(entrada.IdTipoEntrada))
+                        tiposEntradaVendidos[entrada.IdTipoEntrada] = 0;
+                    tiposEntradaVendidos[entrada.IdTipoEntrada]++;
+                }
+                
+                // Actualizar cantidadVendida en TipoEntrada
+                foreach (var kvp in tiposEntradaVendidos)
+                {
+                    string queryUpdateVendidas = "UPDATE TipoEntrada SET cantidadVendida = IFNULL(cantidadVendida, 0) + @cantidad WHERE id = @idTipoEntrada;";
+                    var pUpdate = new ParameterList();
+                    pUpdate.Add("@cantidad", kvp.Value);
+                    pUpdate.Add("@idTipoEntrada", kvp.Key);
+                    DB.ExecuteNonQuery(queryUpdateVendidas, pUpdate);
                 }
 
                 // --- 7. Registrar Puntos Ganados (si hay) ---
@@ -444,7 +463,7 @@ namespace EventodromoRest.Mappers
         {
             var lista = new List<PrecioEntradaDTO>();
             // Consulta optimizada: Trae solo los datos necesarios
-            string query = "SELECT e.id, te.precio, te.puntos FROM Entrada e " +
+            string query = "SELECT e.id, e.idTipoEntrada, te.precio, te.puntos FROM Entrada e " +
                            "JOIN TipoEntrada te ON e.idTipoEntrada = te.id " +
                            "WHERE e.idCarrito = @idCarrito";
             var p = new ParameterList();
@@ -457,6 +476,7 @@ namespace EventodromoRest.Mappers
                     lista.Add(new PrecioEntradaDTO
                     {
                         IdEntrada = DB.GetInt("id"),
+                        IdTipoEntrada = DB.GetInt("idTipoEntrada"),
                         Precio = DB.GetDecimal("precio"),
                         Puntos = DB.GetInt("puntos")
                     });
@@ -498,8 +518,8 @@ namespace EventodromoRest.Mappers
 
                 // --- 5. Insertar Transacción Principal (Monto 0.00) ---
                 string numeroDeTransaccion = "TRP-" + Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper();
-                string queryTrans = "INSERT INTO Transaccion (idCarrito, fechaHoraCompra, numeroTransaccion, nombresCliente, apellidosCliente, emailCliente, numeroDocumentoCliente, idTipoDocumento, montoTotal, idCliente) " +
-                                    "VALUES (@idCarrito, UTC_TIMESTAMP(), @numTrans, @nombres, @apellidos, @email, @numDoc, @idTipoDoc, 0.00, @idCliente); SELECT LAST_INSERT_ID();"; // <-- Monto 0
+                string queryTrans = "INSERT INTO Transaccion (idCarrito, fechaHoraCompra, numeroTransaccion, nombresCliente, apellidosCliente, emailCliente, numeroDocumentoCliente, idTipoDocumento, montoTotal, idCliente, subtotal, montoDescuento, idPromocionAplicada) " +
+                                    "VALUES (@idCarrito, UTC_TIMESTAMP(), @numTrans, @nombres, @apellidos, @email, @numDoc, @idTipoDoc, 0.00, @idCliente, @subtotal, @montoDescuento, @idPromocionAplicada); SELECT LAST_INSERT_ID();"; // <-- Monto 0
                 var pTrans = new ParameterList();
                 pTrans.Add("@idCarrito", carrito.id);
                 pTrans.Add("@numTrans", numeroDeTransaccion);
@@ -509,6 +529,9 @@ namespace EventodromoRest.Mappers
                 pTrans.Add("@numDoc", request.DatosFacturacion.NumeroDocumento);
                 pTrans.Add("@idTipoDoc", request.DatosFacturacion.IdTipoDocumento);
                 pTrans.Add("@idCliente", idCliente);
+                pTrans.Add("@subtotal", subtotal);
+                pTrans.Add("@montoDescuento", descuento);
+                pTrans.Add("@idPromocionAplicada", carrito.idPromocionAplicada.HasValue ? (object)carrito.idPromocionAplicada.Value : DBNull.Value);
 
                 int idTransaccion = Convert.ToInt32(DB.ExecuteScalar(queryTrans, pTrans));
 
@@ -520,8 +543,9 @@ namespace EventodromoRest.Mappers
                 pLinkPuntos.Add("@puntosGastados", puntosRequeridosServidor);
                 DB.ExecuteNonQuery(queryLinkPuntos, pLinkPuntos);
 
-                // --- 7. Vincular cada Entrada (LineaTransaccion) ---
+                // --- 7. Vincular cada Entrada (LineaTransaccion) y actualizar cantidadVendida ---
                 // Guardamos el precio original (para métricas) pero 0 puntos ganados.
+                var tiposEntradaVendidos = new Dictionary<int, int>();
                 foreach (var entrada in entradasConPrecio)
                 {
                     string queryLinea = "INSERT INTO LineaTransaccion (idTransaccion, idEntrada, precio, puntosGanados) VALUES (@idTrans, @idEntrada, @precio, 0);"; // Puntos Ganados = 0
@@ -530,6 +554,21 @@ namespace EventodromoRest.Mappers
                     pLinea.Add("@idEntrada", entrada.IdEntrada);
                     pLinea.Add("@precio", entrada.Precio); // Guardamos el precio original
                     DB.ExecuteNonQuery(queryLinea, pLinea);
+                    
+                    // Contar cuántas entradas de cada tipo se vendieron
+                    if (!tiposEntradaVendidos.ContainsKey(entrada.IdTipoEntrada))
+                        tiposEntradaVendidos[entrada.IdTipoEntrada] = 0;
+                    tiposEntradaVendidos[entrada.IdTipoEntrada]++;
+                }
+                
+                // Actualizar cantidadVendida en TipoEntrada
+                foreach (var kvp in tiposEntradaVendidos)
+                {
+                    string queryUpdateVendidas = "UPDATE TipoEntrada SET cantidadVendida = IFNULL(cantidadVendida, 0) + @cantidad WHERE id = @idTipoEntrada;";
+                    var pUpdate = new ParameterList();
+                    pUpdate.Add("@cantidad", kvp.Value);
+                    pUpdate.Add("@idTipoEntrada", kvp.Key);
+                    DB.ExecuteNonQuery(queryUpdateVendidas, pUpdate);
                 }
 
                 // --- 8. Registrar en Auditoría (ID 4 = "Uso de Puntos") ---
@@ -749,7 +788,12 @@ namespace EventodromoRest.Mappers
                             ELSE 0
                         END AS EsTransferencia,
                         trp.emailDestino AS TransferenciaEmailDestino,
-                        trp.estado AS TransferenciaEstado
+                        trp.estado AS TransferenciaEstado,
+                        
+                        -- Información del descuento
+                        t.montoDescuento AS MontoDescuento,
+                        t.subtotal AS Subtotal,
+                        promo.codigo AS CodigoDescuento
                         
                     FROM Transaccion t
                     INNER JOIN Carrito ca ON t.idCarrito = ca.id
@@ -759,6 +803,7 @@ namespace EventodromoRest.Mappers
                     LEFT JOIN TransaccionPuntos tp ON tp.idTransaccion = t.id
                     LEFT JOIN TransaccionTransferencia ttr ON ttr.idTransaccion = t.id
                     LEFT JOIN TransferenciaPendiente trp ON ttr.idTransferenciaPendiente = trp.id
+                    LEFT JOIN Promocion promo ON t.idPromocionAplicada = promo.id
                     -- Obtener datos del evento directamente usando el idEvento
                     LEFT JOIN Evento ev ON ev.id = @idEvento
                     LEFT JOIN Local l ON ev.idLocal = l.id
@@ -816,6 +861,9 @@ namespace EventodromoRest.Mappers
                         TipoDocumento = DB.GetStringOrNull("ClienteTipoDocumento") ?? "DNI",
                         NumeroDocumento = DB.GetStringOrNull("ClienteNumeroDocumento") ?? ""
                     },
+                    Subtotal = DB.GetNullableDecimal("Subtotal") ?? DB.GetDecimal("TransaccionTotal"),
+                    Descuento = DB.GetNullableDecimal("MontoDescuento") ?? 0,
+                    CodigoDescuento = DB.GetStringOrNull("CodigoDescuento"),
                     Total = DB.GetDecimal("TransaccionTotal")
                 };
 

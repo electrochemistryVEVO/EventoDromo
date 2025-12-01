@@ -11,7 +11,10 @@ namespace EventodromoRest.Modelos
         public ClienteTransaccionDTO Cliente { get; set; }
         public List<EntradaTransaccionDTO> Entradas { get; set; }
         public MetodoPagoDTO MetodoPago { get; set; }
-        public decimal Total { get; set; }
+        public decimal Subtotal { get; set; } // Suma de entradas sin descuento
+        public decimal Descuento { get; set; } // Monto del descuento aplicado
+        public string? CodigoDescuento { get; set; } // Código promocional usado
+        public decimal Total { get; set; } // Total final (Subtotal - Descuento)
     }
 
     public class EventoTransaccionDTO

@@ -19,6 +19,60 @@ namespace EventodromoRest.Mappers
             }
         }
 
+        public Cliente? ObtenerClientePorEmail(string email)
+        {
+            lock (DB)
+            {
+                string query = @"SELECT 
+                    id, nombres, apellidos, email, fechaNacimiento, 
+                    idSexo, idTipoDocumento, numeroDocumento, telefono, 
+                    idCiudad, politicaDePrivacidad, envioDePublicidad, 
+                    fechaCreacion, fechaUltimaEdicion, fechaUltimaSesion
+                    FROM Cliente WHERE email = @email";
+                
+                var parametros = new ParameterList();
+                parametros.Add("@email", email);
+                
+                try
+                {
+                    DB.Select(query, parametros);
+                    
+                    if (DB.Read())
+                    {
+                        var cliente = new Cliente
+                        {
+                            id = DB.GetInt("id"),
+                            nombres = DB.GetString("nombres"),
+                            apellidos = DB.GetString("apellidos"),
+                            email = DB.GetString("email"),
+                            fechanacimiento = DB.GetDateTime("fechaNacimiento"),
+                            idsexo = DB.GetInt("idSexo"),
+                            idtipodocumento = DB.GetInt("idTipoDocumento"),
+                            numerodocumento = DB.GetString("numeroDocumento"),
+                            telefono = DB.GetString("telefono"),
+                            idciudad = DB.GetInt("idCiudad"),
+                            politicadeprivacidad = DB.GetBoolean("politicaDePrivacidad"),
+                            enviodepublicidad = DB.GetBoolean("envioDePublicidad"),
+                            fechacreacion = DB.GetDateTime("fechaCreacion"),
+                            fechaultimaedicion = DB.GetDateTime("fechaUltimaEdicion"),
+                            fechaultimasession = DB.GetDateTime("fechaUltimaSesion")
+                        };
+                        
+                        DB.CloseReader();
+                        return cliente;
+                    }
+                    
+                    DB.CloseReader();
+                    return null;
+                }
+                catch
+                {
+                    DB.CloseReader();
+                    throw;
+                }
+            }
+        }
+
         public Cliente ObtenerClientePorEmailPassword(string email, string password, out char tipoUsuario, out int idCliente)
         {
             // Valores por defecto

@@ -58,7 +58,7 @@ const DashboardAnaliticasPage = () => {
         Dashboard de Analíticas
       </h1>
 
-      {indicadores && (
+      {indicadores && indicadores.ingresosTotales && indicadores.entradasVendidas ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <IndicadorCard
             icono={ICON_PATHS.ingresos}
@@ -85,6 +85,7 @@ const DashboardAnaliticasPage = () => {
               indicadores.usuariosNuevos.porcentajeCambio
             )}
           />
+          {/* Tiempo medio de sesión */}
           <IndicadorCard
             icono={ICON_PATHS.sesion}
             titulo="Tiempo medio de sesión"
@@ -94,7 +95,16 @@ const DashboardAnaliticasPage = () => {
               indicadores.tiempoSesionPromedio.porcentajeCambio
             )}
           />
+          
         </div>
+      ) : (
+        !isLoading && (
+          <div className="bg-white rounded-lg shadow p-8 mb-8 text-center">
+            <p className="text-gray-500 text-lg">
+              No hay datos de indicadores disponibles en este momento.
+            </p>
+          </div>
+        )
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
@@ -104,11 +114,17 @@ const DashboardAnaliticasPage = () => {
             icono={ICON_PATHS.eventosVendidos}
             subtitulo="de los últimos 30 días"
           >
-            <div className="flex flex-col space-y-2">
-              {eventos.map((evento) => (
-                <EventoItem key={evento.id} evento={evento} />
-              ))}
-            </div>
+            {eventos.length > 0 ? (
+              <div className="flex flex-col space-y-2">
+                {eventos.map((evento) => (
+                  <EventoItem key={evento.id} evento={evento} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No hay eventos vendidos en los últimos 30 días</p>
+              </div>
+            )}
           </DashboardSectionCard>
         </div>
 
@@ -118,16 +134,24 @@ const DashboardAnaliticasPage = () => {
             icono={ICON_PATHS.ocupacionLocales}
             subtitulo="de los últimos 30 días"
           >
-            <div className="grid grid-cols-3 gap-4 pb-2 mb-2 border-b text-sm font-semibold text-gray-500">
-              <div className="col-span-1">Local</div>
-              <div className="col-span-1 text-center">Días Ocupados</div>
-              <div className="col-span-1">Tasa de ocupación</div>
-            </div>
-            <div className="flex flex-col">
-              {ocupacion.map((local) => (
-                <OcupacionLocalRow key={local.id} local={local} />
-              ))}
-            </div>
+            {ocupacion.length > 0 ? (
+              <>
+                <div className="grid grid-cols-3 gap-4 pb-2 mb-2 border-b text-sm font-semibold text-gray-500">
+                  <div className="col-span-1">Local</div>
+                  <div className="col-span-1 text-center">Días Ocupados</div>
+                  <div className="col-span-1">Tasa de ocupación</div>
+                </div>
+                <div className="flex flex-col">
+                  {ocupacion.map((local) => (
+                    <OcupacionLocalRow key={local.id} local={local} />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No hay datos de ocupación de locales disponibles</p>
+              </div>
+            )}
           </DashboardSectionCard>
         </div>
       </div>
