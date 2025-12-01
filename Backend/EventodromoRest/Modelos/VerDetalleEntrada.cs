@@ -26,6 +26,9 @@
         // Datos del pago
         public string MetodoPago { get; set; }
         public string NumeroTarjeta { get; set; }
+        public decimal Subtotal { get; set; }
+        public decimal? MontoDescuento { get; set; }
+        public string? CodigoDescuento { get; set; }
         public decimal Total { get; set; }
     }
 

@@ -85,20 +85,54 @@ namespace EventodromoRest.Negocio
                 var detallesEntradas = transaccionMapper.ObtenerDetallesEntradasParaEmail(response.IdTransaccion);
                 var emailService = new EmailService();
                 
+                // Obtener información del carrito para el descuento ANTES del Task.Run
+                var carritoMapper = new CarritoMapper(globales, DB);
+                var promocionMapper = new PromocionMapper(globales, DB);
+                var transaccion = transaccionMapper.ObtenerTransaccionPorId(response.IdTransaccion);
+                
+                decimal? montoDescuentoCapturado = null;
+                string codigoDescuentoCapturado = null;
+                
+                if (transaccion != null)
+                {
+                    var carrito = carritoMapper.ObtenerCarritoPorId(transaccion.idCarrito);
+                    if (carrito != null && carrito.montoDescuento.HasValue && carrito.montoDescuento.Value > 0)
+                    {
+                        montoDescuentoCapturado = carrito.montoDescuento.Value;
+                        
+                        if (carrito.idPromocionAplicada.HasValue)
+                        {
+                            var promocion = promocionMapper.ObtenerPromocionPorId(carrito.idPromocionAplicada.Value);
+                            codigoDescuentoCapturado = promocion?.codigo;
+                        }
+                    }
+                }
+                
+                // Capturar todas las variables necesarias
+                string emailCapturado = request.DatosFacturacion.Email;
+                string nombreCapturado = request.DatosFacturacion.Nombres + " " + request.DatosFacturacion.Apellidos;
+                string numeroTransaccionCapturado = response.NumeroTransaccion;
+                DateTime fechaCompraCapturada = response.FechaCompra;
+                decimal montoTotalCapturado = response.MontoTotal;
+                int puntosGanadosCapturados = response.PuntosGanados;
+                string tarjetaCapturada = response.Ultimos4DigitosTarjeta ?? "****";
+                
                 // Enviar email de forma asíncrona sin bloquear la respuesta
                 _ = Task.Run(async () =>
                 {
                     try
                     {
                         await emailService.EnviarEmailConfirmacionCompraTarjetaAsync(
-                            request.DatosFacturacion.Email,
-                            request.DatosFacturacion.Nombres + " " + request.DatosFacturacion.Apellidos,
-                            response.NumeroTransaccion,
-                            response.FechaCompra,
-                            response.MontoTotal,
-                            response.PuntosGanados,
-                            response.Ultimos4DigitosTarjeta ?? "****",
-                            detallesEntradas
+                            emailCapturado,
+                            nombreCapturado,
+                            numeroTransaccionCapturado,
+                            fechaCompraCapturada,
+                            montoTotalCapturado,
+                            puntosGanadosCapturados,
+                            tarjetaCapturada,
+                            detallesEntradas,
+                            montoDescuentoCapturado,
+                            codigoDescuentoCapturado
                         );
                     }
                     catch (Exception ex)
@@ -134,18 +168,50 @@ namespace EventodromoRest.Negocio
                 var detallesEntradas = transaccionMapper.ObtenerDetallesEntradasParaEmail(response.IdTransaccion);
                 var emailService = new EmailService();
                 
+                // Obtener información del carrito para el descuento ANTES del Task.Run
+                var carritoMapper = new CarritoMapper(globales, DB);
+                var promocionMapper = new PromocionMapper(globales, DB);
+                var transaccion = transaccionMapper.ObtenerTransaccionPorId(response.IdTransaccion);
+                
+                decimal? montoDescuentoCapturado = null;
+                string codigoDescuentoCapturado = null;
+                
+                if (transaccion != null)
+                {
+                    var carrito = carritoMapper.ObtenerCarritoPorId(transaccion.idCarrito);
+                    if (carrito != null && carrito.montoDescuento.HasValue && carrito.montoDescuento.Value > 0)
+                    {
+                        montoDescuentoCapturado = carrito.montoDescuento.Value;
+                        
+                        if (carrito.idPromocionAplicada.HasValue)
+                        {
+                            var promocion = promocionMapper.ObtenerPromocionPorId(carrito.idPromocionAplicada.Value);
+                            codigoDescuentoCapturado = promocion?.codigo;
+                        }
+                    }
+                }
+                
+                // Capturar todas las variables necesarias
+                string emailCapturado = request.DatosFacturacion.Email;
+                string nombreCapturado = request.DatosFacturacion.Nombres + " " + request.DatosFacturacion.Apellidos;
+                string numeroTransaccionCapturado = response.NumeroTransaccion;
+                DateTime fechaCompraCapturada = response.FechaCompra;
+                int puntosGastadosCapturados = response.PuntosGastados;
+                
                 // Enviar email de forma asíncrona sin bloquear la respuesta
                 _ = Task.Run(async () =>
                 {
                     try
                     {
                         await emailService.EnviarEmailConfirmacionCompraPuntosAsync(
-                            request.DatosFacturacion.Email,
-                            request.DatosFacturacion.Nombres + " " + request.DatosFacturacion.Apellidos,
-                            response.NumeroTransaccion,
-                            response.FechaCompra,
-                            response.PuntosGastados,
-                            detallesEntradas
+                            emailCapturado,
+                            nombreCapturado,
+                            numeroTransaccionCapturado,
+                            fechaCompraCapturada,
+                            puntosGastadosCapturados,
+                            detallesEntradas,
+                            montoDescuentoCapturado,
+                            codigoDescuentoCapturado
                         );
                     }
                     catch (Exception ex)

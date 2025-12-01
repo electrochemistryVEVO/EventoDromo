@@ -9,6 +9,8 @@ namespace EventodromoRest.Modelos
         public int idCliente { get; set; }
         public DateTime fechaCreacion { get; set; }
         public DateTime fechaExpiracion { get; set; }
+        public int? idPromocionAplicada { get; set; }
+        public decimal? montoDescuento { get; set; }
     }
 
     public class ObtenerCarritoDTO

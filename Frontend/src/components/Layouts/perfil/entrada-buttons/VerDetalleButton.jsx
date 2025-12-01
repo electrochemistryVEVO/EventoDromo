@@ -156,6 +156,9 @@ export default function VerDetalleButton({ entrada = {}, onDownload, onTransfer 
   const finalMetodoPago = d.metodoPago ?? d.pago?.metodo ?? d.pago?.method;
   const finalTarjeta = d.numeroTarjeta ?? d.pago?.tarjetaMasked ?? d.pago?.cardMasked;
   const finalTotal = d.total ?? d.pago?.total ?? entrada.total ?? entrada.precio;
+  const finalSubtotal = d.subtotal ?? finalTotal;
+  const finalMontoDescuento = d.montoDescuento ?? 0;
+  const finalCodigoDescuento = d.codigoDescuento ?? null;
   const itemsRenderList = (finalItemsList.length > 0) 
     ? finalItemsList 
     : [{ 
@@ -296,6 +299,23 @@ export default function VerDetalleButton({ entrada = {}, onDownload, onTransfer 
                       <div className="vdb-label">Número de Tarjeta</div>
                       <div className="vdb-strong">{finalTarjeta ?? "—"}</div>
                     </div>
+                    
+                    {/* Mostrar información de descuento si existe */}
+                    {finalMontoDescuento > 0 && (
+                      <>
+                        <div className="vdb-payment-row">
+                          <div className="vdb-label">Subtotal</div>
+                          <div className="vdb-strong">{formatMoney(finalSubtotal)}</div>
+                        </div>
+                        <div className="vdb-payment-row" style={{ color: '#00C49A' }}>
+                          <div className="vdb-label">
+                            Descuento {finalCodigoDescuento && `(${finalCodigoDescuento})`}
+                          </div>
+                          <div className="vdb-strong">- {formatMoney(finalMontoDescuento)}</div>
+                        </div>
+                      </>
+                    )}
+                    
                     <div className="vdb-payment-total">
                       <div className="vdb-total-label">Total</div>
                       <div className="vdb-total-amount">{formatMoney(finalTotal)}</div>

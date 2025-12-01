@@ -82,7 +82,9 @@ namespace EventodromoRest.Mappers
                         id = DB.GetInt("id"),
                         idCliente = DB.GetInt("idCliente"),
                         fechaExpiracion = DB.GetDateTime("fechaExpiracion"),
-                        fechaCreacion = DB.GetDateTime("fechaCreacion")
+                        fechaCreacion = DB.GetDateTime("fechaCreacion"),
+                        idPromocionAplicada = DB.IsDBNull("idPromocionAplicada") ? (int?)null : DB.GetInt("idPromocionAplicada"),
+                        montoDescuento = DB.IsDBNull("montoDescuento") ? (decimal?)null : DB.GetDecimal("montoDescuento")
                     };
                 }
             }

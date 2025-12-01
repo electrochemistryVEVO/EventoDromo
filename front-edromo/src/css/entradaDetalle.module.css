@@ -53,15 +53,6 @@
     position: relative;
 }
 
-/* Hacer que el código de descuento sea sticky */
-.rightColumn > *:first-child {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background-color: #fff;
-    padding-bottom: 0.5rem;
-}
-
 .paymentCard {
     background-color: #EFECEC;
     border-radius: 0.5rem;

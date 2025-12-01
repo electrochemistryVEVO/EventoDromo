@@ -58,6 +58,47 @@ namespace EventodromoRest.Mappers
         }
 
         /// <summary>
+        /// Obtiene una promoción por su ID
+        /// </summary>
+        public Promocion? ObtenerPromocionPorId(int idPromocion)
+        {
+            lock (DB)
+            {
+                string query = @"
+                    SELECT id, nombre, codigo, tipo, valor, fechaInicio, fechaFin, 
+                           usosMaximos, usosActuales 
+                    FROM Promocion 
+                    WHERE id = @IDPROMOCION";
+
+                var parametros = new ParameterList();
+                parametros.Add("@IDPROMOCION", idPromocion);
+
+                DB.Select(query, parametros);
+
+                Promocion? promocion = null;
+
+                if (DB.Read())
+                {
+                    promocion = new Promocion
+                    {
+                        id = DB.GetInt("id"),
+                        nombre = DB.GetString("nombre") ?? string.Empty,
+                        codigo = DB.GetString("codigo") ?? string.Empty,
+                        tipo = DB.GetString("tipo") ?? string.Empty,
+                        valor = DB.GetDecimal("valor"),
+                        fechaInicio = DB.GetDateTime("fechaInicio"),
+                        fechaFin = DB.GetDateTime("fechaFin"),
+                        usosMaximos = DB.IsDBNull("usosMaximos") ? (int?)null : DB.GetInt("usosMaximos"),
+                        usosActuales = DB.GetInt("usosActuales")
+                    };
+                }
+
+                DB.CloseReader();
+                return promocion;
+            }
+        }
+
+        /// <summary>
         /// Verifica si una promoción es aplicable a las entradas del carrito
         /// </summary>
         public bool VerificarAplicabilidadPromocion(int idPromocion, int idCarrito)

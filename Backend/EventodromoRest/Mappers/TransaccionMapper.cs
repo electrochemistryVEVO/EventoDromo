@@ -307,7 +307,9 @@ namespace EventodromoRest.Mappers
                 var entradasConPrecio = ObtenerEntradasConPrecio(carrito.id);
                 if (!entradasConPrecio.Any()) throw new Exception("No se encontraron entradas válidas en tu carrito.");
 
-                decimal montoTotalCalculado = entradasConPrecio.Sum(e => e.Precio);
+                decimal subtotal = entradasConPrecio.Sum(e => e.Precio);
+                decimal descuento = carrito.montoDescuento ?? 0;
+                decimal montoTotalCalculado = subtotal - descuento;
                 int puntosTotalesGanados = entradasConPrecio.Sum(e => e.Puntos);
 
                 // --- 3. Insertar Tarjeta (solo los últimos 4 dígitos) ---
@@ -428,7 +430,9 @@ namespace EventodromoRest.Mappers
                     {
                         id = DB.GetInt("id"),
                         idCliente = DB.GetInt("idCliente"),
-                        fechaExpiracion = DB.GetDateTime("fechaExpiracion")
+                        fechaExpiracion = DB.GetDateTime("fechaExpiracion"),
+                        idPromocionAplicada = DB.IsDBNull("idPromocionAplicada") ? (int?)null : DB.GetInt("idPromocionAplicada"),
+                        montoDescuento = DB.IsDBNull("montoDescuento") ? (decimal?)null : DB.GetDecimal("montoDescuento")
                     };
                 }
             }
@@ -476,7 +480,9 @@ namespace EventodromoRest.Mappers
                 if (!entradasConPrecio.Any()) throw new Exception("No se encontraron entradas válidas en tu carrito.");
 
                 // --- 3. Verificar Puntos (Server-Side) ---
-                decimal montoTotalCalculado = entradasConPrecio.Sum(e => e.Precio);
+                decimal subtotal = entradasConPrecio.Sum(e => e.Precio);
+                decimal descuento = carrito.montoDescuento ?? 0;
+                decimal montoTotalCalculado = subtotal - descuento;
                 decimal puntosPorSol = ObtenerPuntosPorSol();
                 int puntosRequeridosServidor = (int)Math.Ceiling(montoTotalCalculado / puntosPorSol);
 

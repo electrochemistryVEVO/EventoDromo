@@ -167,6 +167,8 @@ namespace EventodromoRest.Negocio
                 var fechaEventoMapper = new FechaEventoMapper(globales, DB);
                 var eventoMapper = new EventoMapper(globales, DB);
                 var TarjetaMapper = new TarjetaMapper(globales, DB);
+                var carritoMapper = new CarritoMapper(globales, DB);
+                var promocionMapper = new PromocionMapper(globales, DB);
                 // --- 2. Obtener la línea de transacción por idEntrada ---
                 LineaTransaccion linea = lineaTransaccionMapper.ObtenerLineaTransaccionPorId(idEntrada);
                 if (linea == null)
@@ -217,6 +219,27 @@ namespace EventodromoRest.Negocio
 
                 TipoDocumento doc = tipoDocumentoMapper.ObtenerTipoDocumentoPorId(transaccion.idTipoDocumento);
                 detalle.TipoDocumento = doc?.nombre ?? "N/A";
+
+                // --- 5.1. Obtener información de descuento del carrito ---
+                Carrito carrito = carritoMapper.ObtenerCarritoPorId(transaccion.idCarrito);
+                if (carrito != null)
+                {
+                    detalle.MontoDescuento = carrito.montoDescuento;
+                    detalle.Subtotal = transaccion.montoTotal + (carrito.montoDescuento ?? 0);
+                    
+                    // Si hay descuento, obtener el código de promoción
+                    if (carrito.idPromocionAplicada.HasValue)
+                    {
+                        Promocion promocion = promocionMapper.ObtenerPromocionPorId(carrito.idPromocionAplicada.Value);
+                        detalle.CodigoDescuento = promocion?.codigo;
+                    }
+                }
+                else
+                {
+                    detalle.Subtotal = transaccion.montoTotal;
+                    detalle.MontoDescuento = null;
+                    detalle.CodigoDescuento = null;
+                }
 
                 // --- 6. Llenar Datos del Evento ---
                 Entrada entrada = entradaMapper.ObtenerEntradaPorId(idEntrada);

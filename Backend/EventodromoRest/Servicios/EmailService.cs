@@ -118,7 +118,9 @@ namespace EventodromoRest.Servicios
             decimal montoTotal,
             int puntosGanados,
             string ultimos4DigitosTarjeta,
-            List<DetalleEntradaEmail> entradas)
+            List<DetalleEntradaEmail> entradas,
+            decimal? montoDescuento = null,
+            string codigoDescuento = null)
         {
             try
             {
@@ -153,6 +155,9 @@ namespace EventodromoRest.Servicios
                     DetalleItems = detalleItems,
                     DetalleFooter = $@"
                         <strong>💳 Método de pago:</strong> Tarjeta terminada en {ultimos4DigitosTarjeta}<br>
+                        {(montoDescuento.HasValue && montoDescuento.Value > 0 
+                            ? $"<strong>💵 Subtotal:</strong> S/ {(montoTotal + montoDescuento.Value):F2}<br><strong>🎟️ Descuento{(string.IsNullOrEmpty(codigoDescuento) ? "" : $" ({codigoDescuento})")}:</strong> <span style='color: #00C49A;'>- S/ {montoDescuento.Value:F2}</span><br>" 
+                            : "")}
                         <strong>💰 Total pagado:</strong> S/ {montoTotal:F2}<br>
                         <strong>⭐ Puntos ganados:</strong> {puntosGanados} puntos<br>
                         <strong>📅 Fecha:</strong> {fechaCompra:dd/MM/yyyy HH:mm}<br>
@@ -187,7 +192,9 @@ namespace EventodromoRest.Servicios
             string numeroTransaccion,
             DateTime fechaCompra,
             int puntosGastados,
-            List<DetalleEntradaEmail> entradas)
+            List<DetalleEntradaEmail> entradas,
+            decimal? montoDescuento = null,
+            string codigoDescuento = null)
         {
             try
             {
@@ -222,6 +229,9 @@ namespace EventodromoRest.Servicios
                     DetalleItems = detalleItems,
                     DetalleFooter = $@"
                         <strong>⭐ Método de pago:</strong> Puntos Eventodromo<br>
+                        {(montoDescuento.HasValue && montoDescuento.Value > 0 
+                            ? $"<strong>💵 Subtotal en puntos:</strong> {puntosGastados + (int)(montoDescuento.Value * 10)} puntos<br><strong>🎟️ Descuento{(string.IsNullOrEmpty(codigoDescuento) ? "" : $" ({codigoDescuento})")}:</strong> <span style='color: #00C49A;'>- {(int)(montoDescuento.Value * 10)} puntos</span><br>" 
+                            : "")}
                         <strong>💎 Puntos gastados:</strong> {puntosGastados} puntos<br>
                         <strong>💰 Total:</strong> S/ 0.00 (Pagado con puntos)<br>
                         <strong>📅 Fecha:</strong> {fechaCompra:dd/MM/yyyy HH:mm}<br>
