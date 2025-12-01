@@ -129,14 +129,15 @@ namespace EventodromoRest.Controllers
 
         [HttpGet]
         [Route("/api/[controller]/Indicadores")]
-        [Authorize]
+        //[Authorize]
         public GenericResponse<MetricasDashboardDTO> ObtenerIndicadores()
         {
             try
             {
+                
                 // 1️⃣ Leer el token de la cabecera
                 var authHeader = Request.Headers["Authorization"].ToString();
-
+                
                 if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
                     return new GenericResponse<MetricasDashboardDTO>
@@ -162,9 +163,10 @@ namespace EventodromoRest.Controllers
                         Data = null
                     };
                 }
-
+                
                 // 3️⃣ Obtener las métricas del dashboard
                 var administradorBO = new AdministradorBO(globales, BD);
+                //return administradorBO.ObtenerIndicadoresDashboard(10);
                 return administradorBO.ObtenerIndicadoresDashboard(idAdmin.Value);
             }
             catch (Exception e)
