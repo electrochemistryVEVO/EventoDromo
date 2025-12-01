@@ -150,16 +150,37 @@ Fechas AS (
 
 KpiTransaccional AS (
     SELECT 
-        COALESCE(SUM(CASE WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesActual THEN t.montoTotal ELSE 0 END), 0) as Ingresos_Actual,
-        COALESCE(SUM(CASE WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesAnterior 
-                          AND CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') < f.InicioMesActual THEN t.montoTotal ELSE 0 END), 0) as Ingresos_Anterior,
-        
-        COALESCE(COUNT(DISTINCT CASE WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesActual THEN t.idCliente END), 0) as Compradores_Actual,
-        COALESCE(COUNT(DISTINCT CASE WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesAnterior 
-                          AND CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') < f.InicioMesActual THEN t.idCliente END), 0) as Compradores_Anterior
-    FROM Transaccion t
+        -- INGRESOS DEL MES ACTUAL (SOLO LINEAS DE ENTRADA)
+        COALESCE(SUM(CASE 
+            WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesActual
+              THEN lt.precio
+            ELSE 0 END), 0) AS Ingresos_Actual,
+
+        -- INGRESOS DEL MES ANTERIOR (SOLO LINEAS DE ENTRADA)
+        COALESCE(SUM(CASE 
+            WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesAnterior
+             AND CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') < f.InicioMesActual
+              THEN lt.precio
+            ELSE 0 END), 0) AS Ingresos_Anterior,
+
+        -- COMPRADORES (Actual y Anterior) — SE MANTIENEN IGUAL
+        COALESCE(COUNT(DISTINCT CASE 
+            WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesActual
+              THEN t.idCliente
+            END), 0) as Compradores_Actual,
+
+        COALESCE(COUNT(DISTINCT CASE 
+            WHEN CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesAnterior
+             AND CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') < f.InicioMesActual
+              THEN t.idCliente
+            END), 0) as Compradores_Anterior
+
+    FROM LineaTransaccion lt
+    JOIN Transaccion t ON lt.idTransaccion = t.id
     JOIN Fechas f ON 1=1
-    WHERE CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesAnterior
+    WHERE 
+        -- Este WHERE solo acota el rango mínimo para no cargar datos innecesarios
+        CONVERT_TZ(t.fechaHoraCompra, '+00:00', '-05:00') >= f.InicioMesAnterior
 ),
 
 KpiEntradas AS (
